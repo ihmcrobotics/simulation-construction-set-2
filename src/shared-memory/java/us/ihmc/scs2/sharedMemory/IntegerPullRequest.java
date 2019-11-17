@@ -1,0 +1,25 @@
+package us.ihmc.scs2.sharedMemory;
+
+import us.ihmc.yoVariables.variable.YoInteger;
+
+public class IntegerPullRequest implements PullRequest<YoInteger>
+{
+   private final YoInteger variableToUpdate;
+   private final int valueToPull;
+
+   public IntegerPullRequest(YoInteger variableToUpdate, int valueToPull)
+   {
+      this.variableToUpdate = variableToUpdate;
+      this.valueToPull = valueToPull;
+   }
+
+   public void pull()
+   {
+      variableToUpdate.set(valueToPull);
+   }
+
+   public int getValueToPull()
+   {
+      return valueToPull;
+   }
+}
