@@ -8,7 +8,7 @@ ihmc {
    group = "us.ihmc"
    version = "alpha-20191103"
    vcsUrl = "https://github.com/ihmcrobotics/simulation-construction-set-2"
-   openSource = false
+   openSource = true
 
    configureDependencyResolution()
    configurePublications()
