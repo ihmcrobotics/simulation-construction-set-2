@@ -4,6 +4,7 @@
 <?import com.jfoenix.controls.JFXCheckBox?>
 <?import com.jfoenix.controls.JFXTextField?>
 <?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView?>
+<?import java.lang.String?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.image.Image?>
@@ -29,9 +30,13 @@
       <AnchorPane VBox.vgrow="NEVER">
          <children>
             <Label text="Component identifiers" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
-            <JFXButton fx:id="addComponentButton" alignment="CENTER_RIGHT" onAction="#addComponent" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <JFXButton fx:id="addComponentButton" alignment="CENTER_RIGHT" contentDisplay="GRAPHIC_ONLY" graphicTextGap="0.0" onAction="#addComponent" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                <graphic>
-                  <FontAwesomeIconView styleClass="add-icon-view" />
+                  <FontAwesomeIconView>
+                     <styleClass>
+                        <String fx:value="add-icon-view" />
+                        <String fx:value="composite-editor-icon-view" />
+                     </styleClass></FontAwesomeIconView>
                </graphic>
             </JFXButton>
          </children>
@@ -40,9 +45,13 @@
       <AnchorPane prefWidth="250.0" VBox.vgrow="NEVER">
          <children>
             <Label text="Preferred chart configurations:" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0" />
-            <JFXButton fx:id="addChartGroupModelButton" alignment="CENTER_RIGHT" onAction="#addChartGroupModel" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <JFXButton fx:id="addChartGroupModelButton" alignment="CENTER_RIGHT" contentDisplay="GRAPHIC_ONLY" graphicTextGap="0.0" onAction="#addChartGroupModel" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                <graphic>
-                  <FontAwesomeIconView styleClass="add-icon-view" />
+                  <FontAwesomeIconView>
+                     <styleClass>
+                        <String fx:value="add-icon-view" />
+                        <String fx:value="composite-editor-icon-view" />
+                     </styleClass></FontAwesomeIconView>
                </graphic>
             </JFXButton>
          </children>
