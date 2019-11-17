@@ -3,17 +3,17 @@
 # This is an alpha version
 This version is not bug-free and still misses lots of features.
 Do not expect a fully functional application, however the main features should be available to make it usable.
-If you'd like to help improving this application, please provide feedback and I'll do my best to include them in the next release. Note that this is until further notice an application I develop in my free time, so development can be slow.
+If you'd like to help improving this application, please provide feedback and I'll do my best to include them in the next release. Note that this is, until further notice, an application I develop in my free time, so development can be slow.
 Any type of feedback would be greatly appreciated, in particular:
-- If the application throws an exception, the most helpful set of information is: strack-trace of the exception (available from the console) and the steps you proceeded through the GUI before getting the exception.
+- If the application throws an exception, the most helpful set of information is: strack-trace of the exception (available from the console) and the steps you proceeded through the GUI before getting the exception so I can reproduce the issue locally.
 - Missing minor features: when it feels like there should be that one small option, for instance a button to reset a view or something, available to the user but it's not there. They're often easy to implement without involving large development and still make the application much better.
-- Missing major features: provide context or a concrete example illustrating the need for a new major feature. A major feature is for instance: the ability to record videos (already in the roadmap) or the ability to do some post-processing on the YoVariables. It will probably very take a while to implement it, but may be so much worth it.
+- Missing major features: provide context or a concrete example illustrating the need for a new major feature. A major feature is for instance: the ability to record videos (already in the roadmap) or the ability to do some post-processing on the YoVariables. It will very likely take a while to implement it, but may be so much worth it.
 - GUI visual feel: Ugh that button is ugly... That background could be darker... Well if that helps making the GUI look nicer, everybody will enjoy it.
 - GUI unexpected/frustrating behavior: When after hitting that button 30 times you're still expecting a different result and that is frustrating... If you can provide the details on what's unexpected/frustrating and what you would expect, that'll help make the GUI fell smoother to work with.
 
-Every version will be attributed a data, for instance the initial version is `SCS2Visualizer-alpha-20191009`, please provide the version when providing feedback.
+Every version will be attributed a date, for example `SCS2-alpha-20191009`, please provide the version when providing feedback.
 
-![SCS	2 Atlas RemoteSession](snapshots/AtlasRemoteSession.png)
+![SCS 2 Atlas RemoteSession](snapshots/AtlasRemoteSession.png)
 
 # GUI differences and limitations w.r.t. to SCS1
 - Where is the search panel? See that hamburger control in the top left corner of the 3D view? There, click it.
@@ -22,7 +22,6 @@ Every version will be attributed a data, for instance the initial version is `SC
 - The navigation controls for the 3D view differ from SCS1, they are the same to our other JavaFX GUI applications though and all controls are available when using a touchpad instead of a mouse.
 - Overhead plotter navigation controls differ from SCS1. Left click'n'drag: translate. Right click'n'drag zoom in/out. Note that all controls are available when using a touchpad instead of a mouse.
 - The camera is not tracking the robot?? Right click on the graphic you want to track.
-- I can't access the chart properties to modify the min/max to display... Yup, it's under development.
 - Can I visualize a log? Go to the menu `Session > Start log session...`.
 - Can connect to a remote session? Go to the menu `Session > Start remote session...`.
 - I can't record a video... Yup, it's under development.
@@ -51,7 +50,7 @@ While `YoGraphic` were available in SCS1 by implementing them in Java, they are 
 
 # How to get it?
 ## Executable version:
-I still need to figure out an internal location to host the binaries, for now the executables will be passed via Slack or what not.
+The binaries can be downloaded from the release section of the GitHub page: <a href="https://github.com/ihmcrobotics/simulation-construction-set-2/releases">Release page</a>.
 ## From source:
 Keep in mind that this project being at the alpha stage it'll be refactored quite several times. If you still want to have it from source, I recommend not making development that depends on it. If you want to make development on top of it, that is at your own risk, development on SCS2 will not consider dependencies.
 
