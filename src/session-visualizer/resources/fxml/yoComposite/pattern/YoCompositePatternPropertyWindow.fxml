@@ -72,8 +72,8 @@
                         <AnchorPane fx:id="yoCompositePatternEditorPane" VBox.vgrow="ALWAYS" />
                         <HBox alignment="CENTER_RIGHT" maxHeight="-Infinity" minHeight="-Infinity" spacing="5.0" VBox.vgrow="NEVER">
                            <children>
-                              <JFXButton fx:id="saveChangesButton" contentDisplay="TEXT_ONLY" defaultButton="true" styleClass="save-changes-button" text="Save" />
-                              <JFXButton fx:id="revertChangesButton" contentDisplay="TEXT_ONLY" styleClass="revert-changes-button" text="Revert" />
+                              <JFXButton fx:id="saveChangesButton" contentDisplay="TEXT_ONLY" defaultButton="true" onAction="#saveChanges" styleClass="save-changes-button" text="Save" />
+                              <JFXButton fx:id="revertChangesButton" contentDisplay="TEXT_ONLY" onAction="#cancelChanges" styleClass="revert-changes-button" text="Revert" />
                            </children>
                         </HBox>
                      </children>
