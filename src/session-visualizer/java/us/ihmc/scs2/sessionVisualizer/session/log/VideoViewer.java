@@ -2,6 +2,7 @@ package us.ihmc.scs2.sessionVisualizer.session.log;
 
 import java.awt.image.BufferedImage;
 
+import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -18,6 +19,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -26,27 +28,35 @@ import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
 
 public class VideoViewer
 {
+   private static final double THUMBNAIL_HIGHLIGHT_SCALE = 1.05;
+
    private final ImageView thumbnail = new ImageView();
+   private final StackPane thumbnailContainer = new StackPane(thumbnail);
    private final ImageView videoView = new ImageView();
 
    private final BooleanProperty updateVideoView = new SimpleBooleanProperty(this, "updateVideoView", false);
    private final ObjectProperty<Stage> videoWindowProperty = new SimpleObjectProperty<>(this, "videoWindow", null);
    private final VideoDataReader reader;
+   private final double defaultThumbnailSize;
 
    public VideoViewer(Window owner, VideoDataReader reader, double defaultThumbnailSize)
    {
       this.reader = reader;
+      this.defaultThumbnailSize = defaultThumbnailSize;
       thumbnail.setPreserveRatio(true);
+      thumbnail.setSmooth(true);
       videoView.setPreserveRatio(true);
+      videoView.setSmooth(true);
       thumbnail.setFitWidth(defaultThumbnailSize);
       thumbnail.setOnMouseEntered(e ->
       {
-         Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(0.1), new KeyValue(thumbnail.fitWidthProperty(), 1.05 * defaultThumbnailSize)));
+         Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(0.1),
+                                                       new KeyValue(thumbnail.fitWidthProperty(), THUMBNAIL_HIGHLIGHT_SCALE * defaultThumbnailSize, Interpolator.EASE_BOTH)));
          timeline.playFromStart();
       });
       thumbnail.setOnMouseExited(e ->
       {
-         Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(0.1), new KeyValue(thumbnail.fitWidthProperty(), defaultThumbnailSize)));
+         Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(0.1), new KeyValue(thumbnail.fitWidthProperty(), defaultThumbnailSize, Interpolator.EASE_BOTH)));
          timeline.playFromStart();
       });
 
@@ -123,7 +133,12 @@ public class VideoViewer
          return;
 
       WritableImage newFrame = SwingFXUtils.toFXImage(currentFrame, null);
+
+      thumbnailContainer.setPrefWidth(THUMBNAIL_HIGHLIGHT_SCALE * defaultThumbnailSize);
+      thumbnailContainer.setPrefHeight(THUMBNAIL_HIGHLIGHT_SCALE * defaultThumbnailSize * newFrame.getHeight() / newFrame.getWidth());
+
       thumbnail.setImage(newFrame);
+
       if (updateVideoView.get())
          videoView.setImage(newFrame);
    }
@@ -139,6 +154,6 @@ public class VideoViewer
 
    public Node getThumbnail()
    {
-      return thumbnail;
+      return thumbnailContainer;
    }
 }
