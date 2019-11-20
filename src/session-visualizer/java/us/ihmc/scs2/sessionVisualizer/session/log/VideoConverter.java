@@ -51,7 +51,8 @@ public class VideoConverter
          }
       }
 
-      builder.close();
+      if (builder != null)
+         builder.close();
       demuxer.delete();
 
       return frameRate;
