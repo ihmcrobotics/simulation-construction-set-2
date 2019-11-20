@@ -39,6 +39,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import us.ihmc.log.LogTools;
+import us.ihmc.robotDataLogger.LogProperties;
 import us.ihmc.robotDataLogger.logger.LogPropertiesReader;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
@@ -128,7 +129,7 @@ public class LogSessionManagerController implements SessionControlsController
             LogPropertiesReader logProperties = newValue.getLogProperties();
 
             sessionNameLabel.setText(newValue.getSessionName());
-            dateLabel.setText(logProperties.getTimestampAsString());
+            dateLabel.setText(getDate(logProperties));
             logPathLabel.setText(logDirectory.getAbsolutePath());
             endSessionButton.setDisable(false);
             logPositionSlider.setDisable(false);
@@ -369,5 +370,19 @@ public class LogSessionManagerController implements SessionControlsController
 
          return time;
       }
+   }
+
+   private static String getDate(LogProperties logProperties)
+   {
+      String timestampAsString = logProperties.getTimestampAsString();
+
+      String year = timestampAsString.substring(0, 4);
+      String month = timestampAsString.substring(4, 6);
+      String day = timestampAsString.substring(6, 8);
+      String hour = timestampAsString.substring(9, 11);
+      String minute = timestampAsString.substring(11, 13);
+      String second = timestampAsString.substring(13, 15);
+
+      return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second;
    }
 }
