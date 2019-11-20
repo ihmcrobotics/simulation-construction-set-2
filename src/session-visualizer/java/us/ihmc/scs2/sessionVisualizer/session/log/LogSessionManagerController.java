@@ -8,7 +8,6 @@ import java.util.function.Consumer;
 import java.util.function.ToLongFunction;
 
 import com.jfoenix.controls.JFXButton;
-import com.jfoenix.controls.JFXSlider;
 import com.jfoenix.controls.JFXSpinner;
 import com.jfoenix.controls.JFXToggleButton;
 
@@ -35,9 +34,10 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import javafx.util.Callback;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.logger.LogPropertiesReader;
 import us.ihmc.scs2.session.Session;
@@ -93,22 +93,13 @@ public class LogSessionManagerController implements SessionControlsController
 
       backgroundExecutorManager = toolkit.getBackgroundExecutorManager();
 
-      mainPane.getStylesheets().add(SessionVisualizerIOTools.GENERAL_STYLESHEET.toExternalForm());
-
-      logPositionSlider.setValueFactory(new Callback<JFXSlider, StringBinding>()
+      logPositionSlider.setValueFactory(param -> new TimeStringBinding(param.valueProperty(), position ->
       {
-         @Override
-         public StringBinding call(JFXSlider param)
-         {
-            return new TimeStringBinding(param.valueProperty(), position ->
-            {
-               if (activeSessionProperty.get() == null)
-                  return 0;
-               LogDataReader logDataReader = activeSessionProperty.get().getLogDataReader();
-               return logDataReader.getRelativeTimestamp(position.intValue());
-            });
-         }
-      });
+         if (activeSessionProperty.get() == null)
+            return 0;
+         LogDataReader logDataReader = activeSessionProperty.get().getLogDataReader();
+         return logDataReader.getRelativeTimestamp(position.intValue());
+      }));
 
       ChangeListener<? super LogSession> activeSessionListener = (o, oldValue, newValue) ->
       {
@@ -231,10 +222,11 @@ public class LogSessionManagerController implements SessionControlsController
       openSessionButton.disableProperty().bind(loadingSpinner.visibleProperty());
       openSessionButton.setOnAction(e ->
       {
-         DirectoryChooser directoryChooser = new DirectoryChooser();
-         directoryChooser.setInitialDirectory(SessionVisualizerIOTools.getDefaultFilePath(LOG_FILE_KEY));
-         directoryChooser.setTitle("Choose log directory");
-         File result = directoryChooser.showDialog(stage);
+         FileChooser fileChooser = new FileChooser();
+         fileChooser.setInitialDirectory(SessionVisualizerIOTools.getDefaultFilePath(LOG_FILE_KEY));
+         fileChooser.getExtensionFilters().add(new ExtensionFilter("Log property file", "*.log"));
+         fileChooser.setTitle("Choose log directory");
+         File result = fileChooser.showOpenDialog(stage);
          if (result == null)
             return;
 
@@ -247,7 +239,7 @@ public class LogSessionManagerController implements SessionControlsController
             try
             {
                LogTools.info("Creating log session.");
-               newSession = new LogSession(result, null); // TODO Need a progress window
+               newSession = new LogSession(result.getParentFile(), null); // TODO Need a progress window
                LogTools.info("Created log session.");
                Platform.runLater(() -> activeSessionProperty.set(newSession));
                SessionVisualizerIOTools.setDefaultFilePath(LOG_FILE_KEY, result);
