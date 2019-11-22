@@ -1,7 +1,5 @@
 package us.ihmc.scs2.sessionVisualizer.session.log;
 
-import java.awt.image.BufferedImage;
-
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -10,13 +8,11 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -44,9 +40,7 @@ public class VideoViewer
       this.reader = reader;
       this.defaultThumbnailSize = defaultThumbnailSize;
       thumbnail.setPreserveRatio(true);
-      thumbnail.setSmooth(true);
       videoView.setPreserveRatio(true);
-      videoView.setSmooth(true);
       thumbnail.setFitWidth(defaultThumbnailSize);
       thumbnail.setOnMouseEntered(e ->
       {
@@ -127,20 +121,18 @@ public class VideoViewer
 
    public void update()
    {
-      BufferedImage currentFrame = reader.pollCurrentFrame();
+      Image currentFrame = reader.pollCurrentFrame();
 
       if (currentFrame == null)
          return;
 
-      WritableImage newFrame = SwingFXUtils.toFXImage(currentFrame, null);
-
       thumbnailContainer.setPrefWidth(THUMBNAIL_HIGHLIGHT_SCALE * defaultThumbnailSize);
-      thumbnailContainer.setPrefHeight(THUMBNAIL_HIGHLIGHT_SCALE * defaultThumbnailSize * newFrame.getHeight() / newFrame.getWidth());
+      thumbnailContainer.setPrefHeight(THUMBNAIL_HIGHLIGHT_SCALE * defaultThumbnailSize * currentFrame.getHeight() / currentFrame.getWidth());
 
-      thumbnail.setImage(newFrame);
+      thumbnail.setImage(currentFrame);
 
       if (updateVideoView.get())
-         videoView.setImage(newFrame);
+         videoView.setImage(currentFrame);
    }
 
    public void stop()
