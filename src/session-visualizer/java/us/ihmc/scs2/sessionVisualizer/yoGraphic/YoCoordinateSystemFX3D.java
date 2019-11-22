@@ -1,6 +1,7 @@
 package us.ihmc.scs2.sessionVisualizer.yoGraphic;
 
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -137,10 +138,10 @@ public class YoCoordinateSystemFX3D extends YoGraphicFX3D
       }
 
       oldData = newDataLocal;
-      newNodes = createCoordinateSystem(newDataLocal, material);
+      newNodes = createCoordinateSystem(newDataLocal, material, nameProperty());
    }
 
-   static Node[] createCoordinateSystem(CoordinateSystemData data, Material material)
+   static Node[] createCoordinateSystem(CoordinateSystemData data, Material material, ReadOnlyStringProperty nameProperty)
    {
       Node[] nodes = new Node[6];
 
@@ -150,6 +151,7 @@ public class YoCoordinateSystemFX3D extends YoGraphicFX3D
       {
          Cylinder body = new Cylinder(data.bodyRadius, data.bodyLength);
          body.setMaterial(material);
+         body.idProperty().bind(nameProperty.concat(" (").concat(Axis.values[axis].name()).concat("-body)"));
 
          if (axisBodyRotates[axis] != null)
             body.getTransforms().add(axisBodyRotates[axis]);
@@ -161,6 +163,7 @@ public class YoCoordinateSystemFX3D extends YoGraphicFX3D
          meshBuilder.addCone(data.headLength, data.headRadius, headPosition, axisHeadOrientations[axis]);
          MeshView head = new MeshView(meshBuilder.generateMesh());
          head.setMaterial(new PhongMaterial(axisColors[axis]));
+         head.idProperty().bind(nameProperty.concat(" (").concat(Axis.values[axis].name()).concat("-head)"));
 
          nodes[2 * axis] = body;
          nodes[2 * axis + 1] = head;

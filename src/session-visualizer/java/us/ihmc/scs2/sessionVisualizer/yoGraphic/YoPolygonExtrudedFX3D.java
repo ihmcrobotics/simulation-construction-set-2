@@ -45,6 +45,7 @@ public class YoPolygonExtrudedFX3D extends YoGraphicFX3D
    {
       polygonNode.setMaterial(material);
       polygonNode.getTransforms().add(affine);
+      polygonNode.idProperty().bind(nameProperty());
    }
 
    @Override

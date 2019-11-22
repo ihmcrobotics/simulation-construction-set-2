@@ -44,7 +44,10 @@ public class YoPointFX3D extends YoGraphicFX3D
       List<Shape3D> shapes = YoGraphicTools.extractShape3Ds(Arrays.asList(nodes));
 
       for (Shape3D shape : shapes)
+      {
          shape.setMaterial(material);
+         shape.idProperty().bind(nameProperty());
+      }
 
       pointNode.getChildren().addAll(nodes);
    }

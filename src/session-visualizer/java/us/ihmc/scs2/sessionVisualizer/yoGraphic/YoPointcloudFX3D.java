@@ -103,6 +103,7 @@ public class YoPointcloudFX3D extends YoGraphicFX3D
             shape.setMaterial(material);
             // The importer may have added transforms, we want to be before these.
             shape.getTransforms().addAll(0, Arrays.asList(translate, scale));
+            shape.idProperty().bind(nameProperty().concat(" (").concat(Integer.toString(i)).concat(")"));
          }
 
          pointcloudNode.getChildren().addAll(shapes);
