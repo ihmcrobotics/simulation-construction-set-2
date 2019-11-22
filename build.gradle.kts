@@ -6,7 +6,7 @@ plugins {
 
 ihmc {
    group = "us.ihmc"
-   version = "alpha-20191117"
+   version = "alpha-20191122"
    vcsUrl = "https://github.com/ihmcrobotics/simulation-construction-set-2"
    openSource = true
 
