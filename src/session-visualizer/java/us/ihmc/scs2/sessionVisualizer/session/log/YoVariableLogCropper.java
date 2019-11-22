@@ -40,20 +40,20 @@ public class YoVariableLogCropper extends YoVariableLogReader
             if (!destination.isDirectory())
             {
                progressConsumer.error("Destination " + destination.getAbsolutePath() + " already exists.");
-               progressConsumer.progress(0.0);
+               progressConsumer.done();
                return;
             }
             else if (destination.list().length > 0)
             {
                progressConsumer.error("Destination " + destination.getAbsolutePath() + " is not empty.");
-               progressConsumer.progress(0.0);
+               progressConsumer.done();
                return;
             }
          }
          else if (!destination.mkdir())
          {
             progressConsumer.error("Cannot make directory " + destination.getAbsolutePath());
-            progressConsumer.progress(0.0);
+            progressConsumer.done();
             return;
          }
 

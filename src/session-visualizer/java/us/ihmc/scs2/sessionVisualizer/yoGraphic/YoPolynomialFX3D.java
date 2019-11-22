@@ -122,6 +122,7 @@ public class YoPolynomialFX3D extends YoGraphicFX3D
       {
          meshViews[i] = new MeshView(meshes[i]);
          meshViews[i].setMaterial(material);
+         meshViews[i].idProperty().bind(nameProperty().concat(" (").concat(Integer.toString(i)).concat(")"));
       }
 
       oldPolynomial = newPolynomialLocal;

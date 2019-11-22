@@ -38,6 +38,7 @@ public class YoCapsuleFX3D extends YoGraphicFX3D
    {
       capsuleNode.setMaterial(material);
       capsuleNode.getTransforms().addAll(translate, rotate);
+      capsuleNode.idProperty().bind(nameProperty());
    }
 
    @Override

@@ -1,6 +1,5 @@
 package us.ihmc.scs2.sessionVisualizer.session.log;
 
-import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,12 +7,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicReference;
+
+import org.apache.commons.lang3.mutable.MutableObject;
 
 import gnu.trove.list.array.TLongArrayList;
+import javafx.scene.image.WritableImage;
 import us.ihmc.codecs.demuxer.MP4VideoDemuxer;
 import us.ihmc.codecs.generated.YUVPicture;
-import us.ihmc.codecs.yuv.YUVPictureConverter;
+import us.ihmc.concurrent.ConcurrentCopier;
 import us.ihmc.robotDataLogger.Camera;
 
 public class VideoDataReader
@@ -29,8 +30,7 @@ public class VideoDataReader
    private long bmdTimeBaseDen;
 
    private final MP4VideoDemuxer demuxer;
-
-   private final YUVPictureConverter converter = new YUVPictureConverter();
+   private final JavaFXPictureConverter converter = new JavaFXPictureConverter();
 
    private int currentlyShowingIndex = 0;
    private long currentlyShowingRobotTimestamp = 0;
@@ -38,7 +38,7 @@ public class VideoDataReader
 
    private final File videoFile;
    private final Camera camera;
-   private final AtomicReference<BufferedImage> currentFrame = new AtomicReference<>(null);
+   private final ConcurrentCopier<MutableObject<WritableImage>> imageBuffer = new ConcurrentCopier<>(MutableObject::new);
 
    public VideoDataReader(Camera camera, File dataDirectory, boolean hasTimeBase) throws IOException
    {
@@ -100,7 +100,10 @@ public class VideoDataReader
       {
          demuxer.seekToPTS(videoTimestamp);
          YUVPicture nextFrame = demuxer.getNextFrame();
-         currentFrame.set(converter.toBufferedImage(nextFrame, null));
+         MutableObject<WritableImage> copyForWriting = imageBuffer.getCopyForWriting();
+         copyForWriting.setValue(converter.toFXImage(nextFrame, copyForWriting.getValue()));
+         
+         imageBuffer.commit();
       }
       catch (IOException e)
       {
@@ -276,8 +279,8 @@ public class VideoDataReader
       return camera;
    }
 
-   public BufferedImage pollCurrentFrame()
+   public WritableImage pollCurrentFrame()
    {
-      return currentFrame.getAndSet(null);
+      return imageBuffer.getCopyForReading().getValue();
    }
 }

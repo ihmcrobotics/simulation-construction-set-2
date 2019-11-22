@@ -41,6 +41,8 @@ public class YoArrowFX3D extends YoGraphicFX3D
    {
       body.setMaterial(material);
       head.setMaterial(material);
+      body.idProperty().bind(nameProperty().concat(" (body)"));
+      head.idProperty().bind(nameProperty().concat(" (head)"));
 
       Affine bodyAffineToZUp = new Affine();
       bodyAffineToZUp.appendTranslation(0.0, 0.0, 0.5);

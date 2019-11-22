@@ -34,6 +34,7 @@ public abstract class Session
    private final AtomicReference<SessionMode> activeMode = new AtomicReference<>(SessionMode.PAUSE);
    private final AtomicBoolean runAtRealTimeRate = new AtomicBoolean(false);
    private final AtomicReference<Double> playbackRealTimeRate = new AtomicReference<>(2.0);
+   private int stepSizePerPlaybackTick = 1;
    /**
     * Map from one session tick to the time increment in the data.
     * <p>
@@ -339,7 +340,15 @@ public abstract class Session
 
    protected long computePlaybackTaskPeriod()
    {
-      return (long) (sessionTickToTimeIncrement.get() / playbackRealTimeRate.get().doubleValue());
+      if (playbackRealTimeRate.get().doubleValue() <= 0.5)
+      {
+         stepSizePerPlaybackTick = 1;
+         return (long) (sessionTickToTimeIncrement.get() / playbackRealTimeRate.get().doubleValue());
+      }
+
+      stepSizePerPlaybackTick = 2 * Math.max(1, (int) Math.floor(playbackRealTimeRate.get().doubleValue()));
+      long timeIncrement = sessionTickToTimeIncrement.longValue() * stepSizePerPlaybackTick;
+      return (long) (timeIncrement / playbackRealTimeRate.get().doubleValue());
    }
 
    public void playbackTick()
@@ -385,7 +394,7 @@ public abstract class Session
          lastPublishedBufferTimestamp = currentTimestamp;
       }
 
-      sharedBuffer.incrementBufferIndex(false);
+      sharedBuffer.incrementBufferIndex(false, stepSizePerPlaybackTick);
       processBufferRequests(false);
       publishBufferProperties(sharedBuffer.getProperties());
    }
