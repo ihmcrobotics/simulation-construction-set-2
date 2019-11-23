@@ -23,11 +23,9 @@ public class Plotter2D extends Region
    private final PlotterGrid2D grid2D = new PlotterGrid2D(root.localToSceneTransformProperty());
 
    private final Translate rootTranslation = new Translate();
-   private final ObjectProperty<MouseButton> mouseButtonForTranslation = new SimpleObjectProperty<MouseButton>(this,
-                                                                                                               "mouseButtonForTranslation",
-                                                                                                               MouseButton.PRIMARY);
+   private final ObjectProperty<MouseButton> mouseButtonForTranslation = new SimpleObjectProperty<>(this, "mouseButtonForTranslation", MouseButton.PRIMARY);
    private final Scale rootScale = new Scale(1.0, -1.0);
-   private final ObjectProperty<MouseButton> mouseButtonForScale = new SimpleObjectProperty<MouseButton>(this, "mouseButtonForScale", MouseButton.SECONDARY);
+   private final ObjectProperty<MouseButton> mouseButtonForScale = new SimpleObjectProperty<>(this, "mouseButtonForScale", MouseButton.SECONDARY);
    private final DoubleProperty scaleModifier = new SimpleDoubleProperty(this, "scaleModifier", 0.025);
    private final DoubleProperty minScale = new SimpleDoubleProperty(this, "minScale", 0.01);
 
