@@ -1,5 +1,7 @@
 package us.ihmc.scs2.sessionVisualizer.tools;
 
+import java.util.function.Predicate;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.SubScene;
@@ -11,23 +13,27 @@ public class CameraTools
 {
    public static void setupNodeTrackingContextMenu(FocusBasedCameraMouseEventHandler cameraController, SubScene ownerSubScene)
    {
-      ObjectProperty<Node> nodeTracked = cameraController.getNodeTracker().nodeToTrackProperty();
+      setupNodeTrackingContextMenu(cameraController.getNodeTracker().nodeToTrackProperty(), ownerSubScene, node -> true);
+   }
 
+   private static void setupNodeTrackingContextMenu(ObjectProperty<Node> nodeTrackedProperty, SubScene ownerSubScene, Predicate<Node> filter)
+   {
       ContextMenuTools.setupContextMenu(ownerSubScene, (owner, event) ->
       {
+         
          PickResult pickResult = event.getPickResult();
          Node intersectedNode = pickResult.getIntersectedNode();
-         if (intersectedNode == null || intersectedNode instanceof SubScene || intersectedNode == nodeTracked.get())
+         if (intersectedNode == null || intersectedNode instanceof SubScene || intersectedNode == nodeTrackedProperty.get() || !filter.test(intersectedNode))
             return null;
          MenuItem menuItem = new MenuItem("Start tracking node: " + intersectedNode.getId());
-         menuItem.setOnAction(e -> nodeTracked.set(intersectedNode));
+         menuItem.setOnAction(e -> nodeTrackedProperty.set(intersectedNode));
          return menuItem;
       }, (owner, event) ->
       {
-         if (nodeTracked.get() == null)
+         if (nodeTrackedProperty.get() == null)
             return null;
-         MenuItem menuItem = new MenuItem("Stop tracking node: " + nodeTracked.get().getId());
-         menuItem.setOnAction(e -> nodeTracked.set(null));
+         MenuItem menuItem = new MenuItem("Stop tracking node: " + nodeTrackedProperty.get().getId());
+         menuItem.setOnAction(e -> nodeTrackedProperty.set(null));
          return menuItem;
       });
    }

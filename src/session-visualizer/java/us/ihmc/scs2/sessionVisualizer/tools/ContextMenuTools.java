@@ -9,7 +9,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
-import javafx.scene.input.ContextMenuEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 
 public class ContextMenuTools
@@ -18,21 +18,23 @@ public class ContextMenuTools
    @SafeVarargs
    public static <T extends Node> void setupContextMenu(T owner, Function<T, MenuItem>... menuItemFactories)
    {
-      BiFunction<T, ContextMenuEvent, MenuItem>[] factoryAdapters = Stream.of(menuItemFactories)
-                                                                          .map(factory -> (BiFunction<T, ContextMenuEvent, MenuItem>) (t,
-                                                                                                                                       u) -> factory.apply(t))
-                                                                          .toArray(BiFunction[]::new);
+      BiFunction<T, MouseEvent, MenuItem>[] factoryAdapters = Stream.of(menuItemFactories)
+                                                                    .map(factory -> (BiFunction<T, MouseEvent, MenuItem>) (t, u) -> factory.apply(t))
+                                                                    .toArray(BiFunction[]::new);
 
       setupContextMenu(owner, factoryAdapters);
    }
 
    @SafeVarargs
-   public static <T extends Node> void setupContextMenu(T owner, BiFunction<T, ContextMenuEvent, MenuItem>... menuItemFactories)
+   public static <T extends Node> void setupContextMenu(T owner, BiFunction<T, MouseEvent, MenuItem>... menuItemFactories)
    {
       ObjectProperty<ContextMenu> activeContexMenu = new SimpleObjectProperty<>(owner, "activeContextMenu", null);
 
-      owner.setOnContextMenuRequested(e ->
+      owner.addEventHandler(MouseEvent.MOUSE_RELEASED, e ->
       {
+         if (e.getButton() != MouseButton.SECONDARY || !e.isStillSincePress())
+            return;
+
          if (activeContexMenu.get() != null)
          {
             activeContexMenu.get().hide();
