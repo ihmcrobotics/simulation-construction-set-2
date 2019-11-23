@@ -14,6 +14,11 @@ public class YoLineFX2D extends YoGraphicFX2D
 
    private final Line lineNode = new Line();
 
+   public YoLineFX2D()
+   {
+      lineNode.idProperty().bind(nameProperty());
+   }
+
    @Override
    public void render()
    {

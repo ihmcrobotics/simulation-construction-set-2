@@ -53,6 +53,7 @@ public class YoPointFX2D extends YoGraphicFX2D
          shape.fillProperty().bind(fillProperty);
          shape.strokeProperty().bind(strokeProperty);
          shape.strokeWidthProperty().bind(strokeWidthProperty);
+         shape.idProperty().bind(nameProperty());
       }
 
       pointNode.getChildren().add(graphic);
