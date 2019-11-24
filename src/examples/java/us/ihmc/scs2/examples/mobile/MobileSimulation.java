@@ -1,6 +1,6 @@
 package us.ihmc.scs2.examples.mobile;
 
-import us.ihmc.scs2.sessionVisualizer.JavaFXSimulationConstructionSet;
+import us.ihmc.scs2.sessionVisualizer.SimulationVisualizer;
 
 public class MobileSimulation
 {
@@ -8,7 +8,7 @@ public class MobileSimulation
    {
       MobileDefinition definition = new MobileDefinition();
 
-      JavaFXSimulationConstructionSet scs = new JavaFXSimulationConstructionSet();
+      SimulationVisualizer scs = new SimulationVisualizer();
       scs.addRobot(definition, definition.getRobotControllerDefinition(), definition);
       scs.startSimulation();
    }

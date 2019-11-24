@@ -11,12 +11,12 @@ import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
 import us.ihmc.scs2.simulation.SimulationCore;
 import us.ihmc.scs2.simulation.physicsEngine.RobotPhysicsEnginePlugin;
 
-public class JavaFXSimulationConstructionSet
+public class SimulationVisualizer
 {
    private final SimulationCore simulationCore;
    private final SessionVisualizer simulationGUI;
 
-   public JavaFXSimulationConstructionSet()
+   public SimulationVisualizer()
    {
       simulationCore = new SimulationCore();
       simulationGUI = new SessionVisualizer();
