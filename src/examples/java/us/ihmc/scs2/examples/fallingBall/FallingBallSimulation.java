@@ -1,7 +1,8 @@
 package us.ihmc.scs2.examples.fallingBall;
 
 import us.ihmc.scs2.definition.controller.interfaces.ControllerDefinition;
-import us.ihmc.scs2.sessionVisualizer.SimulationVisualizer;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizer;
+import us.ihmc.scs2.simulation.SimulationCore;
 
 public class FallingBallSimulation
 {
@@ -9,9 +10,10 @@ public class FallingBallSimulation
    {
       FallingBallDefinition definition = new FallingBallDefinition();
 
-      SimulationVisualizer scs = new SimulationVisualizer();
-      scs.addRobot(definition, ControllerDefinition.emptyControllerDefinition(), definition);
-      scs.addTerrainObject(new SlopeGroundDefinition());
-      scs.startSimulation();
+      SimulationCore simulationCore = new SimulationCore();
+      simulationCore.addRobot(definition, ControllerDefinition.emptyControllerDefinition(), definition);
+      simulationCore.addTerrainObject(new SlopeGroundDefinition());
+
+      SessionVisualizer.startSessionVisualizer(simulationCore);
    }
 }

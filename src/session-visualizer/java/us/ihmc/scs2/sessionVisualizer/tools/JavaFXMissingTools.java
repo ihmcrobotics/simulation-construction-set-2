@@ -1,5 +1,7 @@
 package us.ihmc.scs2.sessionVisualizer.tools;
 
+import com.sun.javafx.application.PlatformImpl;
+
 import javafx.animation.AnimationTimer;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -112,7 +114,35 @@ public class JavaFXMissingTools
             primaryStage = null;
          }
       };
-      ApplicationRunner.runApplication(splashScreenApplication);
+      runApplication(splashScreenApplication);
       return splashScreenApplication;
+   }
+
+   public static void runApplication(Application application)
+   {
+      runApplication(application, null);
+   }
+
+   public static void runApplication(Application application, Runnable initialize)
+   {
+      Runnable runnable = () ->
+      {
+         try
+         {
+            application.start(new Stage());
+            if (initialize != null)
+               initialize.run();
+         }
+         catch (Exception e)
+         {
+            e.printStackTrace();
+         }
+      };
+
+      PlatformImpl.startup(() ->
+      {
+         Platform.runLater(runnable);
+      });
+      PlatformImpl.setImplicitExit(false);
    }
 }

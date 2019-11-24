@@ -17,6 +17,7 @@ import us.ihmc.scs2.sessionVisualizer.managers.MultiSessionManager;
 import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.plotter.Plotter2D;
 import us.ihmc.scs2.sessionVisualizer.tools.CameraTools;
+import us.ihmc.scs2.sessionVisualizer.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.xml.XMLTools;
 
 public class SessionVisualizer extends Application
@@ -135,5 +136,11 @@ public class SessionVisualizer extends Application
    public static void main(String[] args)
    {
       launch(args);
+   }
+
+   public static void startSessionVisualizer(Session session)
+   {
+      SessionVisualizer sessionVisualizer = new SessionVisualizer();
+      JavaFXMissingTools.runApplication(sessionVisualizer, () -> sessionVisualizer.startSession(session));
    }
 }

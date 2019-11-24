@@ -1,6 +1,7 @@
 package us.ihmc.scs2.examples.mobile;
 
-import us.ihmc.scs2.sessionVisualizer.SimulationVisualizer;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizer;
+import us.ihmc.scs2.simulation.SimulationCore;
 
 public class MobileSimulation
 {
@@ -8,8 +9,9 @@ public class MobileSimulation
    {
       MobileDefinition definition = new MobileDefinition();
 
-      SimulationVisualizer scs = new SimulationVisualizer();
-      scs.addRobot(definition, definition.getRobotControllerDefinition(), definition);
-      scs.startSimulation();
+      SimulationCore simulationCore = new SimulationCore();
+      simulationCore.addRobot(definition, definition.getRobotControllerDefinition(), definition);
+
+      SessionVisualizer.startSessionVisualizer(simulationCore);
    }
 }

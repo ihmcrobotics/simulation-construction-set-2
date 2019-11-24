@@ -1,7 +1,8 @@
 package us.ihmc.scs2.examples.springDamperEngine;
 
 import us.ihmc.scs2.definition.controller.interfaces.ControllerDefinition;
-import us.ihmc.scs2.sessionVisualizer.SimulationVisualizer;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizer;
+import us.ihmc.scs2.simulation.SimulationCore;
 
 public class SpringDamperSimulation
 {
@@ -9,10 +10,9 @@ public class SpringDamperSimulation
    {
       SpringDamperDefinition definition = new SpringDamperDefinition();
 
-      SimulationVisualizer scs = new SimulationVisualizer();
-      scs.addRobot(definition, ControllerDefinition.emptyControllerDefinition(), definition, new SimplePhysicsPlugin());
+      SimulationCore simulationCore = new SimulationCore();
+      simulationCore.addRobot(definition, ControllerDefinition.emptyControllerDefinition(), definition, new SimplePhysicsPlugin());
 
-
-      scs.startSimulation();
+      SessionVisualizer.startSessionVisualizer(simulationCore);
    }
 }
