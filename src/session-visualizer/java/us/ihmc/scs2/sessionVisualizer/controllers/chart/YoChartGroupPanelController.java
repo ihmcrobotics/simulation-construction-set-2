@@ -47,7 +47,7 @@ import us.ihmc.messager.TopicListener;
 import us.ihmc.scs2.definition.yoChart.YoChartConfigurationDefinition;
 import us.ihmc.scs2.definition.yoChart.YoChartGroupConfigurationDefinition;
 import us.ihmc.scs2.session.SessionState;
-import us.ihmc.scs2.sessionVisualizer.SCSGUITopics;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartGroupLayout;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartGroupModel;
@@ -89,7 +89,7 @@ public class YoChartGroupPanelController
    };
 
    private Window owner;
-   private SCSGUITopics topics;
+   private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
 
    public void initialize(SessionVisualizerToolkit toolkit, Window owner)

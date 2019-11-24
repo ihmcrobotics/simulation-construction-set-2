@@ -7,7 +7,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.session.Session;
-import us.ihmc.scs2.sessionVisualizer.SCSGUITopics;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 
 public class KeyFrameManager implements Manager
@@ -16,9 +16,9 @@ public class KeyFrameManager implements Manager
    private final TIntArrayList keyFrameIndices = new TIntArrayList();
    private final Property<YoBufferPropertiesReadOnly> bufferProperties;
    private final JavaFXMessager messager;
-   private final SCSGUITopics topics;
+   private final SessionVisualizerTopics topics;
 
-   public KeyFrameManager(JavaFXMessager messager, SCSGUITopics topics)
+   public KeyFrameManager(JavaFXMessager messager, SessionVisualizerTopics topics)
    {
       this.messager = messager;
       this.topics = topics;

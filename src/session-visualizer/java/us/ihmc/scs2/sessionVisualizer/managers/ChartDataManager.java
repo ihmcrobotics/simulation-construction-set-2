@@ -10,7 +10,7 @@ import javafx.animation.AnimationTimer;
 import javafx.beans.property.Property;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.session.Session;
-import us.ihmc.scs2.sessionVisualizer.SCSGUITopics;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartIntegerBounds;
 import us.ihmc.scs2.sessionVisualizer.charts.YoVariableChartData;
 import us.ihmc.scs2.sharedMemory.LinkedYoVariable;
@@ -21,7 +21,7 @@ public class ChartDataManager extends AnimationTimer implements Manager
 {
    private final Map<YoVariable<?>, LinkedYoVariable<?>> linkedVariableMap = new HashMap<>();
    private final Map<YoVariable<?>, YoVariableChartData<?, ?>> chartDataMap = new ConcurrentHashMap<>();
-   private final SCSGUITopics topics;
+   private final SessionVisualizerTopics topics;
    private final JavaFXMessager messager;
    private final YoManager yoManager;
    private final BackgroundExecutorManager backgroundExecutorManager;
@@ -36,7 +36,7 @@ public class ChartDataManager extends AnimationTimer implements Manager
 
    private boolean initialize = true;
 
-   public ChartDataManager(JavaFXMessager messager, SCSGUITopics topics, YoManager yoManager, BackgroundExecutorManager backgroundExecutorManager)
+   public ChartDataManager(JavaFXMessager messager, SessionVisualizerTopics topics, YoManager yoManager, BackgroundExecutorManager backgroundExecutorManager)
    {
       this.topics = topics;
       this.messager = messager;

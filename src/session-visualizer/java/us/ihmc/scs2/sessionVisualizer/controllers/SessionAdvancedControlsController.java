@@ -21,7 +21,7 @@ import javafx.scene.layout.VBox;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.session.SessionState;
-import us.ihmc.scs2.sessionVisualizer.SCSGUITopics;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 
@@ -31,7 +31,7 @@ public class SessionAdvancedControlsController
    public static final String ACTIVE_MODE = "session-controls-active-mode";
 
    private JavaFXMessager messager;
-   private SCSGUITopics topics;
+   private SessionVisualizerTopics topics;
 
    @FXML
    private VBox mainPane;
@@ -100,7 +100,7 @@ public class SessionAdvancedControlsController
       setupMainControlsActiveMode(this, messager, topics, runningIconView, playbackIconView, pauseIconView);
    }
 
-   public static void setupMainControlsActiveMode(Object bean, JavaFXMessager messager, SCSGUITopics topics, FontAwesomeIconView runningIconView,
+   public static void setupMainControlsActiveMode(Object bean, JavaFXMessager messager, SessionVisualizerTopics topics, FontAwesomeIconView runningIconView,
                                                   FontAwesomeIconView playbackIconView, FontAwesomeIconView pauseIconView)
    {
       Property<SessionState> sessionCurrentStateProperty = messager.createPropertyInput(topics.getSessionCurrentState(), null);

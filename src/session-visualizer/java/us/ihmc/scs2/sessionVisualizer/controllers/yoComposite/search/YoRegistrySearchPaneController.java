@@ -19,7 +19,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.session.SessionState;
-import us.ihmc.scs2.sessionVisualizer.SCSGUITopics;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.managers.BackgroundExecutorManager;
 import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.managers.YoManager;
@@ -65,7 +65,7 @@ public class YoRegistrySearchPaneController extends AnimationTimer
       searchTextField.textProperty().addListener((ChangeListener<String>) (observable, oldValue, newValue) -> search(newValue));
 
       JavaFXMessager messager = toolkit.getMessager();
-      SCSGUITopics topics = toolkit.getTopics();
+      SessionVisualizerTopics topics = toolkit.getTopics();
       activeSearchEngine = messager.createInput(topics.getYoSearchEngine(), SearchEngines.DEFAULT);
 
       messager.registerJavaFXSyncedTopicListener(topics.getSessionCurrentState(), state ->

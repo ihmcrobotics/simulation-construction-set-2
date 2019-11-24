@@ -35,7 +35,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.session.SessionState;
-import us.ihmc.scs2.sessionVisualizer.SCSGUITopics;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.managers.BackgroundExecutorManager;
 import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.managers.YoCompositeSearchManager;
@@ -81,7 +81,7 @@ public class YoCompositeSearchPaneController extends AnimationTimer
    public void initialize(SessionVisualizerToolkit toolkit, YoVariableRegistry ownerRegistry)
    {
       JavaFXMessager messager = toolkit.getMessager();
-      SCSGUITopics topics = toolkit.getTopics();
+      SessionVisualizerTopics topics = toolkit.getTopics();
       YoManager yoManager = toolkit.getYoManager();
       backgroundExecutorManager = toolkit.getBackgroundExecutorManager();
       yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();

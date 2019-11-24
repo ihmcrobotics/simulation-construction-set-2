@@ -10,7 +10,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.control.CheckMenuItem;
 import javafx.stage.Stage;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
-import us.ihmc.scs2.sessionVisualizer.SCSGUITopics;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.controllers.yoGraphic.YoGraphicPropertyWindowController;
 import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
@@ -25,7 +25,7 @@ public class YoGraphicMenuController
    private SessionVisualizerToolkit toolkit;
    private Stage mainWindow;
    private JavaFXMessager messager;
-   private SCSGUITopics topics;
+   private SessionVisualizerTopics topics;
 
    public void initialize(SessionVisualizerToolkit toolkit)
    {

@@ -3,14 +3,14 @@ package us.ihmc.scs2.sessionVisualizer.controllers.menu;
 import javafx.fxml.FXML;
 import javafx.stage.Stage;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
-import us.ihmc.scs2.sessionVisualizer.SCSGUITopics;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
 
 public class FileMenuController
 {
    private Stage mainWindow;
    private JavaFXMessager messager;
-   private SCSGUITopics topics;
+   private SessionVisualizerTopics topics;
 
    public void initialize(SessionVisualizerToolkit toolkit)
    {

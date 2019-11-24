@@ -48,7 +48,7 @@ import us.ihmc.log.LogTools;
 import us.ihmc.messager.TopicListener;
 import us.ihmc.scs2.definition.yoChart.ChartDoubleBoundsDefinition;
 import us.ihmc.scs2.definition.yoChart.YoChartConfigurationDefinition;
-import us.ihmc.scs2.sessionVisualizer.SCSGUITopics;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartIdentifier;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartIntegerBounds;
@@ -105,7 +105,7 @@ public class YoChartPanelController extends AnimationTimer
 
    private final SimpleObjectProperty<ContextMenu> contextMenuProperty = new SimpleObjectProperty<ContextMenu>(this, "graphContextMenu", null);
 
-   private SCSGUITopics topics;
+   private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
    private YoManager yoManager;
    private SessionVisualizerToolkit toolkit;

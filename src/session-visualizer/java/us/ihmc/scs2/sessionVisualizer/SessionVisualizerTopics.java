@@ -15,7 +15,7 @@ import us.ihmc.scs2.sessionVisualizer.yoGraphic.YoGroupFX;
 import us.ihmc.scs2.sharedMemory.CropBufferRequest;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 
-public class SCSGUITopics
+public class SessionVisualizerTopics
 {
    // GUI internal topics:
    private Topic<Object> takeSnapshot;

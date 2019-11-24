@@ -15,7 +15,7 @@ import javafx.stage.WindowEvent;
 import javafx.util.Pair;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.session.SessionState;
-import us.ihmc.scs2.sessionVisualizer.SCSGUITopics;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.SecondaryWindowController;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.controllers.chart.YoChartGroupPanelController;
@@ -25,7 +25,7 @@ public class YoChartMenuController
 {
    private SessionVisualizerToolkit toolkit;
    private Window owner;
-   private SCSGUITopics topics;
+   private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
 
    public void initialize(SessionVisualizerToolkit toolkit, Window owner)

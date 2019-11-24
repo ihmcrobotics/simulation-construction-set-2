@@ -12,7 +12,7 @@ import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicListDefinition;
 import us.ihmc.scs2.session.Session;
-import us.ihmc.scs2.sessionVisualizer.SCSGUITopics;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.xml.XMLTools;
 import us.ihmc.scs2.sessionVisualizer.yoGraphic.YoGraphicFXResourceManager;
 import us.ihmc.scs2.sessionVisualizer.yoGraphic.YoGraphicTools;
@@ -22,7 +22,7 @@ public class YoGraphicFXManager extends AnimationTimer implements Manager
 {
    private final YoGroupFX root = YoGroupFX.createRoot();
    private final JavaFXMessager messager;
-   private final SCSGUITopics topics;
+   private final SessionVisualizerTopics topics;
    private final YoManager yoManager;
    private final BackgroundExecutorManager backgroundExecutorManager;
    private final ReferenceFrameManager referenceFrameManager;
@@ -30,7 +30,7 @@ public class YoGraphicFXManager extends AnimationTimer implements Manager
    // TODO Not sure if that belongs here.
    private final YoGraphicFXResourceManager yoGraphicFXResourceManager = new YoGraphicFXResourceManager();
 
-   public YoGraphicFXManager(JavaFXMessager messager, SCSGUITopics topics, YoManager yoManager, BackgroundExecutorManager backgroundExecutorManager,
+   public YoGraphicFXManager(JavaFXMessager messager, SessionVisualizerTopics topics, YoManager yoManager, BackgroundExecutorManager backgroundExecutorManager,
                              ReferenceFrameManager referenceFrameManager)
    {
       this.messager = messager;

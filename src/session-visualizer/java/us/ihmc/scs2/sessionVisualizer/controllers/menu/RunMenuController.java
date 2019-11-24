@@ -10,7 +10,7 @@ import javafx.scene.control.TextFormatter;
 import javafx.util.converter.DoubleStringConverter;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.session.SessionMode;
-import us.ihmc.scs2.sessionVisualizer.SCSGUITopics;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 
@@ -22,7 +22,7 @@ public class RunMenuController
    private JFXTextField playbackRealTimeRateTextField;
 
    private JavaFXMessager messager;
-   private SCSGUITopics topics;
+   private SessionVisualizerTopics topics;
 
    private AtomicReference<YoBufferPropertiesReadOnly> bufferProperties;
 

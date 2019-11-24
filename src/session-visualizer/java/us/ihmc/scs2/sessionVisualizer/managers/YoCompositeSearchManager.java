@@ -41,7 +41,7 @@ import javafx.collections.ObservableSet;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.session.Session;
-import us.ihmc.scs2.sessionVisualizer.SCSGUITopics;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartGroupModel;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartIdentifier;
@@ -91,7 +91,7 @@ public class YoCompositeSearchManager implements Manager
    private final YoManager yoManager;
    private final BackgroundExecutorManager backgroundExecutorManager;
 
-   public YoCompositeSearchManager(JavaFXMessager messager, SCSGUITopics topics, YoManager yoManager, BackgroundExecutorManager backgroundExecutorManager)
+   public YoCompositeSearchManager(JavaFXMessager messager, SessionVisualizerTopics topics, YoManager yoManager, BackgroundExecutorManager backgroundExecutorManager)
    {
       this.yoManager = yoManager;
       this.backgroundExecutorManager = backgroundExecutorManager;

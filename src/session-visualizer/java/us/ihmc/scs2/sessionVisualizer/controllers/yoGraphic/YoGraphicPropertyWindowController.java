@@ -50,7 +50,7 @@ import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
-import us.ihmc.scs2.sessionVisualizer.SCSGUITopics;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.tools.DragAndDropTools;
@@ -77,7 +77,7 @@ public class YoGraphicPropertyWindowController
    private CheckBoxTreeItem<YoGraphicFXItem> oldRootItem;
 
    private SessionVisualizerToolkit toolkit;
-   private SCSGUITopics topics;
+   private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
    private final ObjectProperty<YoGraphicFXCreatorController<YoGraphicFX>> activeEditor = new SimpleObjectProperty<>(this, "activeEditor", null);
    private final Map<YoGraphicFXItem, YoGraphicFXCreatorController<YoGraphicFX>> cachedEditors = new HashMap<>();

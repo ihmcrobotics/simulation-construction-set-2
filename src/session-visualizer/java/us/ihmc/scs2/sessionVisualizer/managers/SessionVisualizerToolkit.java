@@ -16,7 +16,7 @@ import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.session.SessionMessagerAPI;
 import us.ihmc.scs2.session.SessionState;
 import us.ihmc.scs2.session.YoSharedBufferMessagerAPI;
-import us.ihmc.scs2.sessionVisualizer.SCSGUITopics;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizer;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerMessagerAPI;
 import us.ihmc.scs2.sessionVisualizer.controllers.chart.YoChartGroupPanelController;
@@ -26,7 +26,7 @@ import us.ihmc.scs2.sessionVisualizer.yoGraphic.YoGroupFX;
 public class SessionVisualizerToolkit extends AnimationTimer
 {
    private final JavaFXMessager messager;
-   private final SCSGUITopics topics = new SCSGUITopics();
+   private final SessionVisualizerTopics topics = new SessionVisualizerTopics();
 
    private final YoManager yoManager = new YoManager();
    private final ChartDataManager chartDataManager;
@@ -196,7 +196,7 @@ public class SessionVisualizerToolkit extends AnimationTimer
       return messager;
    }
 
-   public SCSGUITopics getTopics()
+   public SessionVisualizerTopics getTopics()
    {
       return topics;
    }

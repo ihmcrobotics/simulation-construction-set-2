@@ -9,7 +9,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
-import us.ihmc.scs2.sessionVisualizer.SCSGUITopics;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.controllers.yoComposite.pattern.YoCompositePatternPropertyWindowController;
 import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
@@ -22,7 +22,7 @@ public class YoCompositeMenuController
 
    private SessionVisualizerToolkit toolkit;
    private JavaFXMessager messager;
-   private SCSGUITopics topics;
+   private SessionVisualizerTopics topics;
    private Stage mainWindow;
 
    public void initialize(SessionVisualizerToolkit toolkit)

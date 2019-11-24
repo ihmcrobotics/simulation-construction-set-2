@@ -22,7 +22,7 @@ import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.MainWindowController;
-import us.ihmc.scs2.sessionVisualizer.SCSGUITopics;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.SCSGuiConfiguration;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.SidePaneController;
@@ -59,7 +59,7 @@ public class MultiSessionManager
             startSession(newValue, () -> activeController.get().notifySessionLoaded());
       });
 
-      SCSGUITopics topics = toolkit.getTopics();
+      SessionVisualizerTopics topics = toolkit.getTopics();
       JavaFXMessager messager = toolkit.getMessager();
       messager.registerJavaFXSyncedTopicListener(topics.getRemoteSessionControlsRequest(), m -> openRemoteSessionControls());
       messager.registerJavaFXSyncedTopicListener(topics.getLogSessionControlsRequest(), m -> openLogSessionControls());
@@ -183,7 +183,7 @@ public class MultiSessionManager
       if (!configuration.exists())
          return;
 
-      SCSGUITopics topics = toolkit.getTopics();
+      SessionVisualizerTopics topics = toolkit.getTopics();
       if (configuration.hasYoGraphicsConfiguration())
          messager.submitMessage(topics.getYoGraphicLoadRequest(), configuration.getYoGraphicsConfigurationFile());
 

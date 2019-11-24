@@ -40,7 +40,7 @@ import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.definition.yoComposite.YoCompositePatternDefinition;
-import us.ihmc.scs2.sessionVisualizer.SCSGUITopics;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.managers.YoCompositeSearchManager;
@@ -73,7 +73,7 @@ public class YoCompositePatternPropertyWindowController
    private YoCompositeSearchManager yoCompositeSearchManager;
 
    private Stage window;
-   private SCSGUITopics topics;
+   private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
    private SessionVisualizerToolkit toolkit;
    private Window owner;
