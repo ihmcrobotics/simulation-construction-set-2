@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIconView?>
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView?>
 <?import java.lang.String?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuItem?>
@@ -9,22 +9,22 @@
    <items>
       <MenuItem onAction="#startRemoteSession" text="Start _remote session...">
          <graphic>
-            <MaterialDesignIconView>
+            <FontAwesomeIconView>
                <styleClass>
                   <String fx:value="start-remote-session-icon-view"/>
                   <String fx:value="menu-item-icon-view"/>
                </styleClass>
-            </MaterialDesignIconView>
+            </FontAwesomeIconView>
          </graphic>
       </MenuItem>
       <MenuItem onAction="#startLogSession" text="Start _log session...">
          <graphic>
-            <MaterialDesignIconView>
+            <FontAwesomeIconView>
                <styleClass>
                   <String fx:value="start-log-session-icon-view"/>
                   <String fx:value="menu-item-icon-view"/>
                </styleClass>
-            </MaterialDesignIconView>
+            </FontAwesomeIconView>
          </graphic>
       </MenuItem>
    </items>

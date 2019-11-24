@@ -137,7 +137,7 @@
 
 .start-remote-session-icon-view {
 	-fx-fill: black;
-	-glyph-name: ACCESS_POINT_NETWORK;
+	-glyph-name: WIFI;
 }
 
 .start-log-session-icon-view {
