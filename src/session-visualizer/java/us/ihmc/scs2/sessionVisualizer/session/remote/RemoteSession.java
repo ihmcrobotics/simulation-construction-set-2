@@ -20,6 +20,8 @@ import us.ihmc.scs2.sessionVisualizer.tools.RobotModelLoader;
 
 public class RemoteSession extends Session
 {
+   private static final double MAX_DELAY_MILLI = 200.0;
+
    private YoVariableClientInterface yoVariableClientInterface;
 
    private final String sessionName;
@@ -118,6 +120,22 @@ public class RemoteSession extends Session
    {
       if (robotStateUpdater != null)
          robotStateUpdater.run();
+   }
+
+   @Override
+   protected void finalizeRunTick()
+   {
+      if (Conversions.nanosecondsToMilliseconds(getDelay()) < MAX_DELAY_MILLI)
+      {
+         super.finalizeRunTick();
+      }
+      else
+      {
+         sharedBuffer.updateBuffer();
+         sharedBuffer.incrementBufferIndex(true);
+         processBufferRequests(false);
+         publishBufferProperties(sharedBuffer.getProperties());
+      }
    }
 
    public void receivedCommand(DataServerCommand command, int argument)
