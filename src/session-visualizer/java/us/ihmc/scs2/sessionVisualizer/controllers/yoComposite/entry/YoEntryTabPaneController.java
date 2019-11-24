@@ -61,7 +61,8 @@ public class YoEntryTabPaneController
       ContextMenuTools.setupContextMenu(yoEntryTabPane,
                                         TabPaneTools.addBeforeMenuItemFactory(this::newEmptyTab),
                                         TabPaneTools.addAfterMenuItemFactory(this::newEmptyTab),
-                                        TabPaneTools.removeAllMenuItemFactory("Clear all", true),
+                                        TabPaneTools.removeMenuItemFactory(),
+                                        TabPaneTools.removeAllMenuItemFactory(false),
                                         exportTabMenuItemFactory(),
                                         exportAllTabMenuItemFactory(),
                                         importTabMenuItemFactory());

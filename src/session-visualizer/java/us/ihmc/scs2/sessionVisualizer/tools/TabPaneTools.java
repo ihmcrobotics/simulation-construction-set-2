@@ -78,12 +78,12 @@ public class TabPaneTools
       return removeAllMenuItemFactory(false);
    }
 
-   public static Function<TabPane, MenuItem> removeAllMenuItemFactory(boolean removeClosableTabs)
+   public static Function<TabPane, MenuItem> removeAllMenuItemFactory(boolean removeOnlyClosableTabs)
    {
-      return removeAllMenuItemFactory("Remove all", removeClosableTabs);
+      return removeAllMenuItemFactory("Remove all", removeOnlyClosableTabs);
    }
 
-   public static Function<TabPane, MenuItem> removeAllMenuItemFactory(String text, boolean removeClosableTabs)
+   public static Function<TabPane, MenuItem> removeAllMenuItemFactory(String text, boolean removeOnlyClosableTabs)
    {
       return tabPane ->
       {
@@ -95,10 +95,10 @@ public class TabPaneTools
             return null;
 
          List<Tab> tabsToclose;
-         if (removeClosableTabs)
-            tabsToclose = tabPane.getTabs();
-         else
+         if (removeOnlyClosableTabs)
             tabsToclose = tabPane.getTabs().stream().filter(Tab::isClosable).collect(Collectors.toList());
+         else
+            tabsToclose = tabPane.getTabs();
 
          if (tabsToclose.isEmpty())
             return null;
