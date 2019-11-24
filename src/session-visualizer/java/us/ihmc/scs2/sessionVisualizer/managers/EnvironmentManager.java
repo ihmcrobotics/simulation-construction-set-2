@@ -18,7 +18,7 @@ public class EnvironmentManager implements Manager
    private final Group rootNode = new Group();
    private final Group terrainObjectGraphics = new Group();
 
-   private BackgroundExecutorManager backgroundExecutorManager;
+   private final BackgroundExecutorManager backgroundExecutorManager;
 
    public EnvironmentManager(BackgroundExecutorManager backgroundExecutorManager)
    {
