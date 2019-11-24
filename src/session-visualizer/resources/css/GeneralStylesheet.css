@@ -59,12 +59,12 @@
 
 .set-inpoint-icon-view {
 	-fx-fill: -default-pale-green;
-	-glyph-name: MAP_MARKER;
+	-glyph-name: STEP_BACKWARD;
 }
 
 .set-outpoint-icon-view {
 	-fx-fill: -default-pale-red;
-	-glyph-name: MAP_MARKER;
+	-glyph-name: STEP_FORWARD;
 }
 
 .goto-inpoint-icon-view {

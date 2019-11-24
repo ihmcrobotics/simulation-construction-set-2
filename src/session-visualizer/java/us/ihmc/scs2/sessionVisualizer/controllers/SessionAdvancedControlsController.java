@@ -193,30 +193,6 @@ public class SessionAdvancedControlsController
    }
 
    @FXML
-   private void requestExportData()
-   {
-      // TODO implement me
-   }
-
-   @FXML
-   private void requestImportData()
-   {
-      // TODO implement me
-   }
-
-   @FXML
-   private void requestVideo()
-   {
-      // TODO implement me
-   }
-
-   @FXML
-   private void requestSnapshot()
-   {
-      messager.submitMessage(topics.getTakeSnapshot(), new Object());
-   }
-
-   @FXML
    private void setInPoint()
    {
       messager.submitMessage(topics.getYoBufferInPointIndexRequest(), bufferIndexSlider.valueProperty().getValue().intValue());
