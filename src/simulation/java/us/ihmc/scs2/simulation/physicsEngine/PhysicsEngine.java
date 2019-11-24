@@ -17,10 +17,9 @@ import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.robot.interfaces.RobotInitialStateProvider;
 import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
-import us.ihmc.scs2.simulation.collision.CollidableRigidBody;
+import us.ihmc.scs2.simulation.collision.Collidable;
 import us.ihmc.scs2.simulation.collision.CollisionTools;
 import us.ihmc.scs2.simulation.collision.DefaultCollisionManagerPlugin;
-import us.ihmc.scs2.simulation.collision.shape.CollisionShape;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class PhysicsEngine
@@ -32,7 +31,7 @@ public class PhysicsEngine
    private final List<RobotPhysicsEngine> robotPhysicsEngineList = new ArrayList<>();
    private EnvironmentPhysicsEnginePlugin environmentPlugin = new DefaultCollisionManagerPlugin();
 
-   private final List<CollisionShape> environmentShapes = new ArrayList<>();
+   private final List<Collidable> environmentShapes = new ArrayList<>();
    private final List<TerrainObjectDefinition> terrainObjectDefinitions = new ArrayList<>();
 
    private boolean initialize = true;
@@ -67,7 +66,7 @@ public class PhysicsEngine
    public void addTerrainObject(TerrainObjectDefinition terrainObjectDefinition)
    {
       terrainObjectDefinitions.add(terrainObjectDefinition);
-      environmentShapes.add(CollisionTools.toCollisionShape(terrainObjectDefinition));
+      environmentShapes.addAll(CollisionTools.toCollisionShape(terrainObjectDefinition, rootFrame));
    }
 
    public void initialize()
@@ -125,7 +124,7 @@ public class PhysicsEngine
       private final ControllerOutput controllerOutput;
       private final Controller controller;
       private final List<RobotPhysicsEnginePlugin> robotPlugins = new ArrayList<>();
-      private final List<CollidableRigidBody> collidableRigidBodies;
+      private final List<Collidable> collidables;
       private ExternalInteractionProvider externalInteractionProvider;
 
       public RobotPhysicsEngine(RobotDefinition robotDefinition, ControllerDefinition controllerDefinition, RobotInitialStateProvider robotInitialStateProvider,
@@ -143,7 +142,7 @@ public class PhysicsEngine
 
          controller = controllerDefinition.newController(controllerInput, controllerOutput);
 
-         collidableRigidBodies = CollisionTools.extractCollidableRigidBodies(robotDefinition, multiBodySystem.getRootBody());
+         collidables = CollisionTools.extractCollidableRigidBodies(robotDefinition, multiBodySystem.getRootBody());
 
          if (controller.getYoVariableRegistry() != null)
             robotRegistry.addChild(controller.getYoVariableRegistry());
@@ -175,7 +174,6 @@ public class PhysicsEngine
                initialJointState.getEffort(joint);
          }
          multiBodySystem.getRootBody().updateFramesRecursively();
-         collidableRigidBodies.forEach(CollidableRigidBody::updateCollisionShape);
          robotPlugins.forEach(PhysicsEnginePlugin::initialize);
       }
 
@@ -198,7 +196,6 @@ public class PhysicsEngine
             plugin.doScience(dt, gravity);
          }
          multiBodySystem.getRootBody().updateFramesRecursively();
-         collidableRigidBodies.forEach(CollidableRigidBody::updateCollisionShape);
       }
 
       public RobotDefinition getRobotDefinition()
@@ -211,9 +208,9 @@ public class PhysicsEngine
          return controllerDefinition;
       }
 
-      public List<CollidableRigidBody> getCollidableRigidBodies()
+      public List<Collidable> getCollidables()
       {
-         return collidableRigidBodies;
+         return collidables;
       }
 
       public YoVariableRegistry getRobotRegistry()

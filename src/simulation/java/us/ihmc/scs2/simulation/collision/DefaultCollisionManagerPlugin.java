@@ -9,35 +9,34 @@ import java.util.stream.Collectors;
 import us.ihmc.euclid.referenceFrame.FramePoint3D;
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FramePoint3DReadOnly;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.frames.MovingReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.spatial.Wrench;
 import us.ihmc.mecano.spatial.interfaces.WrenchReadOnly;
-import us.ihmc.scs2.simulation.collision.shape.CollisionShape;
 import us.ihmc.scs2.simulation.physicsEngine.EnvironmentPhysicsEnginePlugin;
 import us.ihmc.scs2.simulation.physicsEngine.ExternalInteractionProvider;
 import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngine.RobotPhysicsEngine;
 
 public class DefaultCollisionManagerPlugin implements EnvironmentPhysicsEnginePlugin
 {
-   private final double kp = 10000.0;
-   private final double kd = 10000.0;
+   private final double kp = 100.0;
+   private final double kd = 0.0;
 
    private final DefaultCollisionDetection collisionDetection = new DefaultCollisionDetection();
    private final Map<RobotPhysicsEngine, List<CollisionResult>> collisionResultMap = new HashMap<>();
    private final Map<RobotPhysicsEngine, InteractionProvider> interactionProviderMap = new HashMap<>();
-   
+
    public DefaultCollisionManagerPlugin()
    {
    }
-   
+
    @Override
-   public void submitWorldElements(List<RobotPhysicsEngine> robotPhysicsEngines, List<CollisionShape> staticCollisionShapes)
+   public void submitWorldElements(List<RobotPhysicsEngine> robotPhysicsEngines, List<Collidable> staticCollidables)
    {
-      collisionDetection.evaluationCollision(robotPhysicsEngines, staticCollisionShapes);
+      collisionDetection.evaluationCollision(robotPhysicsEngines, staticCollidables);
    }
 
    @Override
@@ -45,44 +44,43 @@ public class DefaultCollisionManagerPlugin implements EnvironmentPhysicsEnginePl
    {
       interactionProviderMap.clear();
 
-      for (Entry<RobotPhysicsEngine, List<RigidBodyCollisionResult>> entry : collisionDetection.getCollisionResultMap().entrySet())
+      for (Entry<RobotPhysicsEngine, List<CollisionResult>> entry : collisionDetection.getCollisionResultMap().entrySet())
       {
-         List<CollisionResult> collisions = entry.getValue().stream().map(this::computeCollisionResult).collect(Collectors.toList());
+         List<CollisionResult> collisions = entry.getValue().stream().peek(this::computeCollisionWrenches).collect(Collectors.toList());
          collisionResultMap.put(entry.getKey(), collisions);
          interactionProviderMap.put(entry.getKey(), new InteractionProvider(collisions));
       }
    }
 
-   public CollisionResult computeCollisionResult(RigidBodyCollisionResult input)
+   public void computeCollisionWrenches(CollisionResult collision)
    {
-      CollisionResult output = new CollisionResult();
-      RigidBodyBasics bodyA = input.getBodyA();
-      RigidBodyBasics bodyB = input.getBodyB();
+      Collidable collidableA = collision.getCollidableA();
+      Collidable collidableB = collision.getCollidableB();
 
-      Point3DReadOnly pointOnA = input.getShape3DCollisionResult().getPointOnA();
-      Point3DReadOnly pointOnB = input.getShape3DCollisionResult().getPointOnB();
+      FramePoint3DReadOnly pointOnA = collision.getPointOnA();
+      FramePoint3DReadOnly pointOnB = collision.getPointOnB();
       Vector3D collisionPositionTerm = new Vector3D();
       collisionPositionTerm.sub(pointOnB, pointOnA);
       collisionPositionTerm.scale(kp);
 
       Vector3D collisionVelocityTerm = new Vector3D();
 
-      if (bodyA != null)
+      if (collidableA != null && collidableA.getRigidBody() != null)
       {
-         MovingReferenceFrame bodyFixedFrame = bodyA.getBodyFixedFrame();
+         MovingReferenceFrame bodyFixedFrame = collidableA.getRigidBody().getBodyFixedFrame();
          FrameVector3D linearVelocityAtA = new FrameVector3D();
-         FramePoint3D framePointOnA = new FramePoint3D(bodyFixedFrame.getRootFrame(), pointOnA);
+         FramePoint3D framePointOnA = new FramePoint3D(pointOnA);
          framePointOnA.changeFrame(bodyFixedFrame);
          bodyFixedFrame.getTwistOfFrame().getLinearVelocityAt(framePointOnA, linearVelocityAtA);
          linearVelocityAtA.changeFrame(bodyFixedFrame.getRootFrame());
          collisionVelocityTerm.sub(linearVelocityAtA);
       }
-      
-      if (bodyB != null)
+
+      if (collidableB != null && collidableB.getRigidBody() != null)
       {
-         MovingReferenceFrame bodyFixedFrame = bodyB.getBodyFixedFrame();
+         MovingReferenceFrame bodyFixedFrame = collidableB.getRigidBody().getBodyFixedFrame();
          FrameVector3D linearVelocityAtB = new FrameVector3D();
-         FramePoint3D framePointOnB = new FramePoint3D(bodyFixedFrame.getRootFrame(), pointOnB);
+         FramePoint3D framePointOnB = new FramePoint3D(pointOnB);
          framePointOnB.changeFrame(bodyFixedFrame);
          bodyFixedFrame.getTwistOfFrame().getLinearVelocityAt(framePointOnB, linearVelocityAtB);
          linearVelocityAtB.changeFrame(bodyFixedFrame.getRootFrame());
@@ -93,26 +91,22 @@ public class DefaultCollisionManagerPlugin implements EnvironmentPhysicsEnginePl
 
       Vector3D collisionForce = new Vector3D();
       collisionForce.add(collisionPositionTerm, collisionVelocityTerm);
-      
-      if (bodyA != null)
+
+      if (collidableA != null && collidableA.getRigidBody() != null)
       {
-         output.setBodyA(bodyA);
-         MovingReferenceFrame bodyFixedFrame = bodyA.getBodyFixedFrame();
+         MovingReferenceFrame bodyFixedFrame = collidableA.getRigidBody().getBodyFixedFrame();
          ReferenceFrame rootFrame = bodyFixedFrame.getRootFrame();
-         output.getWrenchOnA().setToZero(bodyFixedFrame, rootFrame);
-         output.getWrenchOnA().getLinearPart().set(collisionForce);
+         collision.getWrenchOnA().setToZero(bodyFixedFrame, rootFrame);
+         collision.getWrenchOnA().getLinearPart().set(collisionForce);
       }
-      
-      if (bodyB != null)
+
+      if (collidableB != null && collidableB.getRigidBody() != null)
       {
-         output.setBodyB(bodyB);
-         MovingReferenceFrame bodyFixedFrame = bodyB.getBodyFixedFrame();
+         MovingReferenceFrame bodyFixedFrame = collidableB.getRigidBody().getBodyFixedFrame();
          ReferenceFrame rootFrame = bodyFixedFrame.getRootFrame();
-         output.getWrenchOnB().setToZero(bodyFixedFrame, rootFrame);
-         output.getWrenchOnB().getLinearPart().setAndNegate(collisionForce);
+         collision.getWrenchOnB().setToZero(bodyFixedFrame, rootFrame);
+         collision.getWrenchOnB().getLinearPart().setAndNegate(collisionForce);
       }
-      
-      return output;
    }
 
    @Override
@@ -128,8 +122,9 @@ public class DefaultCollisionManagerPlugin implements EnvironmentPhysicsEnginePl
 
       public InteractionProvider(List<CollisionResult> collisionResults)
       {
-         rigidBodies = collisionResults.stream().map(CollisionResult::getBodyA).collect(Collectors.toList());
-         wrenchMap = collisionResults.stream().collect(Collectors.toMap(CollisionResult::getBodyA, CollisionResult::getWrenchOnA));
+         rigidBodies = collisionResults.stream().map(collisionResult -> collisionResult.getCollidableA().getRigidBody()).collect(Collectors.toList());
+         wrenchMap = collisionResults.stream().collect(Collectors.toMap(collisionResult -> collisionResult.getCollidableA().getRigidBody(),
+                                                                        CollisionResult::getWrenchOnA));
       }
 
       @Override
@@ -143,6 +138,5 @@ public class DefaultCollisionManagerPlugin implements EnvironmentPhysicsEnginePl
       {
          return wrenchMap.get(rigidBody);
       }
-      
    }
 }
