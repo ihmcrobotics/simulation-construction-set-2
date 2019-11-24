@@ -23,6 +23,7 @@ public class EnvironmentManager implements Manager
    public EnvironmentManager(BackgroundExecutorManager backgroundExecutorManager)
    {
       this.backgroundExecutorManager = backgroundExecutorManager;
+      rootNode.getChildren().add(terrainObjectGraphics);
    }
 
    public void addWorldCoordinateSystem(double size)
