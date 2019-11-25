@@ -160,38 +160,35 @@ public class DefaultCollisionManagerPlugin implements EnvironmentPhysicsEnginePl
 
       collisionVelocityTermOnA.sub(linearVelocityOfA);
       collisionVelocityTermOnA.add(linearVelocityOfB);
-      FrameVector3D collisionAxis = new FrameVector3D();
+      FrameVector3D collisionAxis = new FrameVector3D(rootFrame);
 
       if (!collisionResult.getNormalOnA().containsNaN())
       {
          collisionAxis.setIncludingFrame(collisionResult.getNormalOnA());
-         if (collisionResult.areShapesColliding())
-            collisionAxis.negate();
+         collisionAxis.negate();
       }
       else if (!collisionResult.getNormalOnB().containsNaN())
       {
          collisionAxis.setIncludingFrame(collisionResult.getNormalOnB());
-         if (!collisionResult.areShapesColliding())
-            collisionAxis.negate();
       }
       else
       {
          collisionResult.getPointOnA().changeFrame(rootFrame);
          collisionResult.getPointOnB().changeFrame(rootFrame);
          collisionAxis.sub(collisionResult.getPointOnB(), collisionResult.getPointOnA());
-         collisionAxis.normalize();
       }
 
+      collisionAxis.normalize();
       collisionAxis.changeFrame(rootFrame);
 
       // TODO Review the following
-//      double dot = collisionVelocityTermOnA.dot(collisionAxis);
-//
-//      if (dot < 0.0)
-//      { // The damping would result in pulling the objects toward each other, we need to cancel that effect.
-//         collisionAxis.scale(dot);
-//         collisionVelocityTermOnA.sub(collisionAxis);
-//      }
+      double dot = collisionVelocityTermOnA.dot(collisionAxis);
+
+      if (dot < 0.0)
+      { // The damping would result in pulling the objects toward each other, we need to cancel that effect.
+         collisionAxis.scale(dot);
+         collisionVelocityTermOnA.sub(collisionAxis);
+      }
 
       collisionVelocityTermOnA.scale(kd);
 
