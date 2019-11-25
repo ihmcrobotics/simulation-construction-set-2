@@ -12,7 +12,7 @@ public class FallingBallSimulation
 
       SimulationCore simulationCore = new SimulationCore();
       simulationCore.addRobot(definition, ControllerDefinition.emptyControllerDefinition(), definition);
-      simulationCore.addTerrainObject(new SlopeGroundDefinition());
+      simulationCore.addTerrainObject(new SlopeGroundDefinition(Math.toRadians(15.0)));
 
       SessionVisualizer.startSessionVisualizer(simulationCore);
    }
