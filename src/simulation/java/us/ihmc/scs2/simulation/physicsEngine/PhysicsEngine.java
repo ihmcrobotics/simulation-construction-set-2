@@ -29,7 +29,7 @@ public class PhysicsEngine
 
    private final YoVariableRegistry physicsEngineRegistry = new YoVariableRegistry("PhysicsPlugins");
    private final List<RobotPhysicsEngine> robotPhysicsEngineList = new ArrayList<>();
-   private EnvironmentPhysicsEnginePlugin environmentPlugin = new DefaultCollisionManagerPlugin();
+   private EnvironmentPhysicsEnginePlugin environmentPlugin;
 
    private final List<Collidable> environmentShapes = new ArrayList<>();
    private final List<TerrainObjectDefinition> terrainObjectDefinitions = new ArrayList<>();
@@ -40,7 +40,9 @@ public class PhysicsEngine
    {
       this.rootFrame = rootFrame;
       this.parentRegistry = parentRegistry;
+      environmentPlugin = new DefaultCollisionManagerPlugin(rootFrame);
       parentRegistry.addChild(physicsEngineRegistry);
+      physicsEngineRegistry.addChild(environmentPlugin.getYoVariableRegistry());
    }
 
    public void addRobot(RobotDefinition input, ControllerDefinition robotControllerDefinition, RobotInitialStateProvider initialStateProvider,
