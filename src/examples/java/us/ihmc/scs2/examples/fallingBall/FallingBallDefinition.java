@@ -1,6 +1,7 @@
 package us.ihmc.scs2.examples.fallingBall;
 
 import us.ihmc.euclid.geometry.Pose3D;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 import us.ihmc.scs2.definition.geometry.SphereGeometryDefinition;
@@ -50,6 +51,7 @@ public class FallingBallDefinition extends RobotDefinition implements RobotIniti
       {
          SixDoFJointState jointState = new SixDoFJointState();
          jointState.setConfiguration(new Pose3D(0.0, 0.0, 1.0, 0.0, 0.0, 0.0));
+         jointState.setVelocity(new Vector3D(), new Vector3D(-1.0, 0.0, 0.0));
          return jointState;
       }
       else
