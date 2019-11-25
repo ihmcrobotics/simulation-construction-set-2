@@ -47,8 +47,8 @@ import us.ihmc.messager.TopicListener;
 import us.ihmc.scs2.definition.yoChart.YoChartConfigurationDefinition;
 import us.ihmc.scs2.definition.yoChart.YoChartGroupConfigurationDefinition;
 import us.ihmc.scs2.session.SessionState;
-import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartGroupLayout;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartGroupModel;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartGroupTools;
@@ -188,6 +188,11 @@ public class YoChartGroupPanelController
          chartControllers.add(newController);
       }
 
+      updateConstraint();
+   }
+
+   private void updateConstraint()
+   {
       int row = 0;
       int col = 0;
 
@@ -199,6 +204,47 @@ public class YoChartGroupPanelController
          {
             row++;
             col = 0;
+         }
+      }
+   }
+
+   private void removeEmptyRowsAndColumns()
+   {
+      if (chartControllers.isEmpty())
+         return;
+
+      int lastRow = chartControllers.stream().mapToInt(chart -> GridPane.getRowIndex(chart.getMainPane()).intValue()).max().getAsInt();
+      int lastColumn = chartControllers.stream().mapToInt(chart -> GridPane.getColumnIndex(chart.getMainPane()).intValue()).max().getAsInt();
+
+      for (int row = lastRow; row >= 0; row--)
+      {
+         int rowFinal = row;
+         boolean isEmpty = chartControllers.stream().noneMatch(chart -> GridPane.getRowIndex(chart.getMainPane()) == rowFinal);
+
+         if (isEmpty)
+         {
+            for (YoChartPanelController chart : chartControllers)
+            {
+               int chartRow = GridPane.getRowIndex(chart.getMainPane());
+               if (chartRow > row)
+                  GridPane.setRowIndex(chart.getMainPane(), chartRow - 1);
+            }
+         }
+      }
+
+      for (int column = lastColumn; column >= 0; column--)
+      {
+         int columnFinal = column;
+         boolean isEmpty = chartControllers.stream().noneMatch(chart -> GridPane.getColumnIndex(chart.getMainPane()) == columnFinal);
+
+         if (isEmpty)
+         {
+            for (YoChartPanelController chart : chartControllers)
+            {
+               int chartColumn = GridPane.getColumnIndex(chart.getMainPane());
+               if (chartColumn > column)
+                  GridPane.setColumnIndex(chart.getMainPane(), chartColumn - 1);
+            }
          }
       }
    }
@@ -215,6 +261,7 @@ public class YoChartGroupPanelController
       chartToClose.close();
       gridPane.getChildren().remove(chartToClose.getMainPane());
       chartControllers.remove(chartToClose);
+      removeEmptyRowsAndColumns();
       numberOfRows.set(chartControllers.size() / numberOfCols.intValue());
    }
 
@@ -312,7 +359,7 @@ public class YoChartGroupPanelController
                                                                            maximumColNumberProperty.get());
       AnchorPane rootNode = tableSizeQuickAccess.getMainPane();
       Pane backgroundPane = new Pane();
-      backgroundPane.setStyle("-fx-background-radius:10;-fx-background-color:rgba(79,132,186,0.5);");
+      backgroundPane.setStyle("-fx-background-radius:10;-fx-background-color:rgba(79,132,186,0.5);"); // TODO Needs to be extracted to CSS
       backgroundPane.setEffect(new GaussianBlur(10));
       rootNode.getChildren().add(0, backgroundPane);
       AnchorPane.setTopAnchor(backgroundPane, -5.0);
