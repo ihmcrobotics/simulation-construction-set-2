@@ -401,7 +401,25 @@ public class JavaFXVisualTools
          }
       }
 
-      return importModel(fileURL);
+      Node[] importedModel = importModel(fileURL);
+
+      Vector3D scale = geometryDefinition.getScale();
+
+      if (scale != null && importedModel != null && importedModel.length > 0)
+      {
+         if (importedModel.length == 1)
+         {
+            importedModel[0].getTransforms().add(new Scale(scale.getX(), scale.getY(), scale.getZ()));
+         }
+         else
+         {
+            Group group = new Group(importedModel);
+            group.getTransforms().add(new Scale(scale.getX(), scale.getY(), scale.getZ()));
+            importedModel = new Node[] {group};
+         }
+      }
+
+      return importedModel;
    }
 
    public static Node[] importModel(URL fileURL)
