@@ -60,6 +60,7 @@ public abstract class Session
    // Strictly internal fields
    private SessionTopicListeners sessionTopicListeners = null;
    private boolean sessionStarted = false;
+   private boolean sessionInitialized = false;
    private boolean isSessionShutdown = false;
    private long lastPublishedBufferTimestamp = -1L;
    protected boolean firstRunTick = true;
@@ -281,6 +282,13 @@ public abstract class Session
                                                sessionTickToTimeIncrement.get()));
    }
 
+   /**
+    * Called when starting this session regardless of the initial mode.
+    */
+   public void initializeSession()
+   {
+   }
+
    protected long computeRunTaskPeriod()
    {
       return runAtRealTimeRate.get() ? sessionTickToTimeIncrement.get() : 1L;
@@ -288,6 +296,12 @@ public abstract class Session
 
    public void runTick()
    {
+      if (!sessionInitialized)
+      {
+         initializeSession();
+         sessionInitialized = true;
+      }
+
       initializeRunTick();
 
       boolean caughtException;
@@ -353,6 +367,12 @@ public abstract class Session
 
    public void playbackTick()
    {
+      if (!sessionInitialized)
+      {
+         initializeSession();
+         sessionInitialized = true;
+      }
+
       initializePlaybackTick();
 
       boolean caughtException;
@@ -406,6 +426,12 @@ public abstract class Session
 
    public void pauseTick()
    {
+      if (!sessionInitialized)
+      {
+         initializeSession();
+         sessionInitialized = true;
+      }
+
       boolean shouldPublishBuffer = initializePauseTick();
       shouldPublishBuffer |= doSpecificPauseTick();
       finalizePauseTick(shouldPublishBuffer);

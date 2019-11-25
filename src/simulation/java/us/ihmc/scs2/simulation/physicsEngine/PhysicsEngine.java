@@ -73,21 +73,20 @@ public class PhysicsEngine
 
    public void initialize()
    {
+      if (!initialize)
+         return;
+
       robotPhysicsEngineList.forEach(RobotPhysicsEngine::initialize);
       for (RobotPhysicsEngine robotPhysicsEngine : robotPhysicsEngineList)
       {
          robotPhysicsEngine.initialize();
       }
+
+      initialize = false;
    }
 
    public void simulate(double dt, Vector3DReadOnly gravity)
    {
-      if (initialize)
-      {
-         initialize();
-         initialize = false;
-      }
-
       for (RobotPhysicsEngine robotPhysicsEngine : robotPhysicsEngineList)
       {
          robotPhysicsEngine.doControl();

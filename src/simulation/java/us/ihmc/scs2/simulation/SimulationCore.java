@@ -42,6 +42,12 @@ public class SimulationCore extends Session
    }
 
    @Override
+   public void initializeSession()
+   {
+      physicsEngine.initialize();
+   }
+
+   @Override
    protected void doSpecificRunTick()
    {
       double dt = Conversions.nanosecondsToSeconds(getSessionTickToTimeIncrement());
