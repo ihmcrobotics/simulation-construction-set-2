@@ -98,33 +98,26 @@ public class LogSession extends Session
    @Override
    public void pauseTick()
    {
-      boolean shouldPublishBuffer = initializePauseTick();
-      boolean isScrubbingThroughLog = doSpecificPauseTick();
-      if (!isScrubbingThroughLog)
-         finalizePauseTick(shouldPublishBuffer);
-   }
-
-   @Override
-   protected boolean doSpecificPauseTick()
-   {
       int logPosition = logPositionRequest.getAndSet(-1);
 
       if (logPosition == -1)
-         return false;
+      {
+         super.pauseTick();
+      }
+      else
+      {// Handles when the user is scrubbing through the log using the log slider.
+         processBufferRequests(false);
 
-      logDataReader.seek(logPosition);
-      logDataReader.read();
+         logDataReader.seek(logPosition);
+         logDataReader.read();
 
-      if (robotStateUpdater != null)
-         robotStateUpdater.run();
+         if (robotStateUpdater != null)
+            robotStateUpdater.run();
 
-      // TODO See if we can fall back to the default finalize
-      sharedBuffer.updateBufferAndPublish();
-      sharedBuffer.incrementBufferIndex(true);
-      processBufferRequests(false);
-      publishBufferProperties(sharedBuffer.getProperties());
-
-      return true;
+         sharedBuffer.incrementBufferIndex(true);
+         sharedBuffer.updateBufferAndPublish();
+         publishBufferProperties(sharedBuffer.getProperties());
+      }
    }
 
    @Override

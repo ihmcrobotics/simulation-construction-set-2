@@ -416,6 +416,8 @@ public abstract class Session
       boolean shouldPublish = firstPauseTick;
       firstPauseTick = false;
       shouldPublish |= sharedBuffer.processLinkedRequests();
+      if (shouldPublish)
+         sharedBuffer.updateBuffer();
       shouldPublish |= processBufferRequests(true);
       if (!shouldPublish)
          shouldPublish = sharedBuffer.hasBufferSampleRequestPending();
@@ -431,7 +433,7 @@ public abstract class Session
    protected void finalizePauseTick(boolean shouldPublishBuffer)
    {
       if (shouldPublishBuffer)
-         sharedBuffer.updateBufferAndPublish();
+         sharedBuffer.updateYoVariablesAndPublish();
       publishBufferProperties(sharedBuffer.getProperties());
    }
 
