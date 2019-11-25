@@ -13,11 +13,17 @@ public class SlopeGroundDefinition extends TerrainObjectDefinition
 {
    public SlopeGroundDefinition()
    {
+      this(Math.toRadians(15.0));
+   }
+
+   public SlopeGroundDefinition(double slopeAngle)
+   {
       super();
       RigidBodyTransform originPose = new RigidBodyTransform();
-      originPose.setRotationPitch(Math.toRadians(15.0));
+      originPose.setRotationPitch(slopeAngle);
+      originPose.appendTranslation(0.0, 0.0, -0.25);
 
-      GeometryDefinition groundGeometryDefinition = new BoxGeometryDefinition(10.0, 10.0, 0.20);
+      GeometryDefinition groundGeometryDefinition = new BoxGeometryDefinition(100.0, 100.0, 0.50);
       addVisualDefinition(new VisualDefinition(originPose, groundGeometryDefinition, new MaterialDefinition(ColorDefinitions.DeepSkyBlue())));
       addCollisionShapeDefinition(new CollisionShapeDefinition(originPose, groundGeometryDefinition));
    }
