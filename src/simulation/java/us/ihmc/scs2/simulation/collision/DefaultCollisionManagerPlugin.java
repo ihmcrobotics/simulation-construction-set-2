@@ -97,6 +97,7 @@ public class DefaultCollisionManagerPlugin implements EnvironmentPhysicsEnginePl
       {
          collisionResult.getPointOnA().changeFrame(rootFrame);
          collisionResult.getPointOnB().changeFrame(rootFrame);
+         collisionAxis.setReferenceFrame(rootFrame);
          collisionAxis.sub(collisionResult.getPointOnB(), collisionResult.getPointOnA());
       }
 
