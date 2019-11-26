@@ -12,7 +12,7 @@ public class FallingBoxSimulation
 {
    public static void main(String[] args)
    {
-      BoxDefinition definition = new BoxDefinition();
+      BoxRobotDefinition definition = new BoxRobotDefinition();
       RobotInitialStateProvider robotInitialStateProvider = robotInitialStateProvider(definition);
 
       SimulationCore simulationCore = new SimulationCore();
@@ -22,7 +22,7 @@ public class FallingBoxSimulation
       SessionVisualizer.startSessionVisualizer(simulationCore);
    }
 
-   private static RobotInitialStateProvider robotInitialStateProvider(BoxDefinition definition)
+   private static RobotInitialStateProvider robotInitialStateProvider(BoxRobotDefinition definition)
    {
       return jointName ->
       {

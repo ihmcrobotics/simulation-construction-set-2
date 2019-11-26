@@ -13,7 +13,7 @@ public class SlidingBoxSimulation
    public static void main(String[] args)
    {
       double slopeAngle = Math.toRadians(15.0);
-      BoxDefinition definition = new BoxDefinition();
+      BoxRobotDefinition definition = new BoxRobotDefinition();
       RobotInitialStateProvider robotInitialStateProvider = robotInitialStateProvider(definition, slopeAngle);
 
       SimulationCore simulationCore = new SimulationCore();
@@ -23,7 +23,7 @@ public class SlidingBoxSimulation
       SessionVisualizer.startSessionVisualizer(simulationCore);
    }
 
-   private static RobotInitialStateProvider robotInitialStateProvider(BoxDefinition definition, double angle)
+   private static RobotInitialStateProvider robotInitialStateProvider(BoxRobotDefinition definition, double angle)
    {
       return jointName ->
       {

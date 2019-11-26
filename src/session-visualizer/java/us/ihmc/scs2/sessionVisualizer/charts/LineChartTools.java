@@ -142,7 +142,7 @@ public class LineChartTools
          newData.add(dataPoint);
          yBounds = yBounds.include(value);
 
-         newData = DouglasPeuckerReduction.reduce(newData, epsilon * (yBounds.getUpper() - yBounds.getLower()));
+//         newData = DouglasPeuckerReduction.reduce(newData, epsilon * (yBounds.getUpper() - yBounds.getLower()));
       }
 
       return new DataEntry(xBounds, yBounds, newData);
