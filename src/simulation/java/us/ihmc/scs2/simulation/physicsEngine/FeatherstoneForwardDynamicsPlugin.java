@@ -74,10 +74,10 @@ public class FeatherstoneForwardDynamicsPlugin implements RobotPhysicsEnginePlug
 
    public void applyExternalWrenches()
    {
+      forwardDynamicsCalculator.setExternalWrenchesToZero();
+
       if (externalInteractionProvider == null)
          return;
-
-      forwardDynamicsCalculator.setExternalWrenchesToZero();
 
       for (RigidBodyBasics rigidBody : externalInteractionProvider.getRigidBodies())
       {

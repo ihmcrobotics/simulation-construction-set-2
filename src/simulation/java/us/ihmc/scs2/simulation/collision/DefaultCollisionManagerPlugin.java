@@ -30,11 +30,10 @@ public class DefaultCollisionManagerPlugin implements EnvironmentPhysicsEnginePl
 
    private final double kp = 100000.0;
    private final double kd = 1000.0;
-   private final double coefficientOfFriction = 0.7;
+   private final double coefficientOfFriction = 0.7; // Equals to 35 degrees
 
    private final ReferenceFrame rootFrame;
    private final DefaultCollisionDetection collisionDetection = new DefaultCollisionDetection();
-   private final Map<RobotPhysicsEngine, List<CollisionResult>> collisionResultMap = new HashMap<>();
    private final Map<RobotPhysicsEngine, InteractionProvider> interactionProviderMap = new HashMap<>();
 
    public DefaultCollisionManagerPlugin(ReferenceFrame rootFrame)
@@ -74,12 +73,35 @@ public class DefaultCollisionManagerPlugin implements EnvironmentPhysicsEnginePl
             index++;
          }
 
-         collisionResultMap.put(robotPhysicsEngine, collisions);
          interactionProviderMap.put(robotPhysicsEngine, new InteractionProvider(collisions));
       }
 
       for (int i = index; i < numberOfCollisionsToVisualize; i++)
          yoCollisionResults.get(i).setToNaN();
+   }
+
+   private static void computeCollisionAxis(CollisionResult collisionResult, ReferenceFrame rootFrame)
+   {
+      FrameVector3D collisionAxis = collisionResult.getCollisionAxisForA();
+
+      if (!collisionResult.getNormalOnA().containsNaN())
+      {
+         collisionAxis.setIncludingFrame(collisionResult.getNormalOnA());
+         collisionAxis.negate();
+      }
+      else if (!collisionResult.getNormalOnB().containsNaN())
+      {
+         collisionAxis.setIncludingFrame(collisionResult.getNormalOnB());
+      }
+      else
+      {
+         collisionResult.getPointOnA().changeFrame(rootFrame);
+         collisionResult.getPointOnB().changeFrame(rootFrame);
+         collisionAxis.sub(collisionResult.getPointOnB(), collisionResult.getPointOnA());
+      }
+
+      collisionAxis.normalize();
+      collisionAxis.changeFrame(rootFrame);
    }
 
    public boolean computeCollisionWrenches(CollisionResult collision)
@@ -93,6 +115,8 @@ public class DefaultCollisionManagerPlugin implements EnvironmentPhysicsEnginePl
          wrenchOnB.setToZero();
          return false;
       }
+
+      computeCollisionAxis(collision, rootFrame);
 
       Collidable collidableA = collision.getCollidableA();
       Collidable collidableB = collision.getCollidableB();
@@ -151,51 +175,31 @@ public class DefaultCollisionManagerPlugin implements EnvironmentPhysicsEnginePl
       if (collidableA != null && collidableA.getRigidBody() != null)
       {
          MovingReferenceFrame bodyFixedFrame = collidableA.getRigidBody().getBodyFixedFrame();
-         FramePoint3D framePointOnA = new FramePoint3D(collisionResult.getPointOnA());
-         framePointOnA.changeFrame(bodyFixedFrame);
-         bodyFixedFrame.getTwistOfFrame().getLinearVelocityAt(framePointOnA, linearVelocityOfA);
+         FramePoint3D pointOnACopy = new FramePoint3D(collisionResult.getPointOnA());
+         pointOnACopy.changeFrame(bodyFixedFrame);
+         bodyFixedFrame.getTwistOfFrame().getLinearVelocityAt(pointOnACopy, linearVelocityOfA);
          linearVelocityOfA.changeFrame(rootFrame);
       }
 
       if (collidableB != null && collidableB.getRigidBody() != null)
       {
          MovingReferenceFrame bodyFixedFrame = collidableB.getRigidBody().getBodyFixedFrame();
-         FramePoint3D framePointOnB = new FramePoint3D(collisionResult.getPointOnB());
-         framePointOnB.changeFrame(bodyFixedFrame);
-         bodyFixedFrame.getTwistOfFrame().getLinearVelocityAt(framePointOnB, linearVelocityOfB);
+         FramePoint3D pointOnBCopy = new FramePoint3D(collisionResult.getPointOnB());
+         pointOnBCopy.changeFrame(bodyFixedFrame);
+         bodyFixedFrame.getTwistOfFrame().getLinearVelocityAt(pointOnBCopy, linearVelocityOfB);
          linearVelocityOfB.changeFrame(rootFrame);
       }
 
       collisionVelocityTermOnA.sub(linearVelocityOfA);
       collisionVelocityTermOnA.add(linearVelocityOfB);
-      FrameVector3D collisionAxis = new FrameVector3D(rootFrame);
 
-      if (!collisionResult.getNormalOnA().containsNaN())
-      {
-         collisionAxis.setIncludingFrame(collisionResult.getNormalOnA());
-         collisionAxis.negate();
-      }
-      else if (!collisionResult.getNormalOnB().containsNaN())
-      {
-         collisionAxis.setIncludingFrame(collisionResult.getNormalOnB());
-      }
-      else
-      {
-         collisionResult.getPointOnA().changeFrame(rootFrame);
-         collisionResult.getPointOnB().changeFrame(rootFrame);
-         collisionAxis.sub(collisionResult.getPointOnB(), collisionResult.getPointOnA());
-      }
+      FrameVector3D collisionAxis = collisionResult.getCollisionAxisForA();
 
-      collisionAxis.normalize();
-      collisionAxis.changeFrame(rootFrame);
-
-      // TODO Review the following
       double dot = collisionVelocityTermOnA.dot(collisionAxis);
 
       if (dot < 0.0)
       { // The damping would result in pulling the objects toward each other, we need to cancel that effect.
-         collisionAxis.scale(dot);
-         collisionVelocityTermOnA.sub(collisionAxis);
+         collisionVelocityTermOnA.scaleAdd(-dot, collisionAxis, collisionVelocityTermOnA);
       }
 
       collisionVelocityTermOnA.scale(kd);
@@ -203,39 +207,24 @@ public class DefaultCollisionManagerPlugin implements EnvironmentPhysicsEnginePl
       return collisionVelocityTermOnA;
    }
 
-   private static void enforceFrictionCone(Vector3DBasics collisionForce, CollisionResult collisionResult, ReferenceFrame rootFrame, double coefficientOfFriction)
+   private static void enforceFrictionCone(Vector3DBasics collisionForce, CollisionResult collisionResult, ReferenceFrame rootFrame,
+                                           double coefficientOfFriction)
    {
-      FrameVector3D collisionAxis = new FrameVector3D(rootFrame);
+      FrameVector3D collisionAxis = collisionResult.getCollisionAxisForA();
 
-      if (!collisionResult.getNormalOnA().containsNaN())
-      {
-         collisionAxis.setIncludingFrame(collisionResult.getNormalOnA());
-         collisionAxis.negate();
-      }
-      else if (!collisionResult.getNormalOnB().containsNaN())
-      {
-         collisionAxis.setIncludingFrame(collisionResult.getNormalOnB());
-      }
-      else
-      {
-         collisionResult.getPointOnA().changeFrame(rootFrame);
-         collisionResult.getPointOnB().changeFrame(rootFrame);
-         collisionAxis.sub(collisionResult.getPointOnB(), collisionResult.getPointOnA());
-      }
-
-      collisionAxis.normalize();
-      collisionAxis.changeFrame(rootFrame);
+      Vector3D forceNormal = new Vector3D();
+      Vector3D forceTangential = new Vector3D();
 
       double forceNormalMagnitude = collisionForce.dot(collisionAxis);
-      Vector3D forceNormal = new Vector3D();
       forceNormal.setAndScale(forceNormalMagnitude, collisionAxis);
-      Vector3D forceTangential = new Vector3D();
       forceTangential.sub(collisionForce, forceNormal);
-      double forceTangentialMagnitude = forceTangential.length();
+      double forceTangentialMagnitudeSquared = forceTangential.lengthSquared();
 
-      if (forceTangentialMagnitude > coefficientOfFriction * forceNormalMagnitude)
+      double maxForceTangential = coefficientOfFriction * forceNormalMagnitude;
+
+      if (forceTangentialMagnitudeSquared > maxForceTangential * maxForceTangential)
       {
-         forceTangential.scale(coefficientOfFriction * forceNormalMagnitude / forceTangentialMagnitude);
+         forceTangential.scale(maxForceTangential / Math.sqrt(forceTangentialMagnitudeSquared));
          collisionForce.add(forceNormal, forceTangential);
       }
    }

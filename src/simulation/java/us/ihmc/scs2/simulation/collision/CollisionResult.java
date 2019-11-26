@@ -51,6 +51,15 @@ public class CollisionResult implements EuclidShape3DCollisionResultBasics, Epsi
    /** The surface normal at {@code pointOnB}. */
    private final FrameVector3D normalOnB = new FrameVector3D();
 
+   /**
+    * The collision direction (normalized) for the shape A:
+    * 
+    * <pre>
+    *  collisionAxisForA &equiv; normalOnB
+    * </pre>
+    */
+   private final FrameVector3D collisionAxisForA = new FrameVector3D();
+
    /** The resulting wrench from the collision to apply on shape A. */
    private final Wrench wrenchOnA = new Wrench();
    /** The resulting wrench from the collision to apply on shape B. */
@@ -134,6 +143,8 @@ public class CollisionResult implements EuclidShape3DCollisionResultBasics, Epsi
       ReferenceFrame tempFrame = frameA;
       frameA = frameB;
       frameB = tempFrame;
+
+      collisionAxisForA.negate();
 
       tempFrame = wrenchOnA.getReferenceFrame();
       ReferenceFrame tempBodyFrame = wrenchOnA.getBodyFrame();
@@ -234,6 +245,20 @@ public class CollisionResult implements EuclidShape3DCollisionResultBasics, Epsi
    public FrameVector3D getNormalOnB()
    {
       return normalOnB;
+   }
+
+   /**
+    * The collision direction (normalized) for the shape A:
+    * 
+    * <pre>
+    *  collisionAxisForA &equiv; normalOnB
+    *  collisionAxisForA &equiv; -normalOnA
+    *  collisionAxisForA &equiv; pointOnA - pointOnB
+    * </pre>
+    */
+   public FrameVector3D getCollisionAxisForA()
+   {
+      return collisionAxisForA;
    }
 
    /**
