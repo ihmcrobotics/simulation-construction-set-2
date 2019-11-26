@@ -1,4 +1,4 @@
-package us.ihmc.scs2.examples.fallingBall;
+package us.ihmc.scs2.examples.ball;
 
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
@@ -23,7 +23,7 @@ public class SlopeGroundDefinition extends TerrainObjectDefinition
       originPose.setRotationPitch(slopeAngle);
       originPose.appendTranslation(0.0, 0.0, -0.25);
 
-      GeometryDefinition groundGeometryDefinition = new BoxGeometryDefinition(100.0, 100.0, 0.50);
+      GeometryDefinition groundGeometryDefinition = new BoxGeometryDefinition(10000.0, 10000.0, 0.50);
       addVisualDefinition(new VisualDefinition(originPose, groundGeometryDefinition, new MaterialDefinition(ColorDefinitions.DeepSkyBlue())));
       addCollisionShapeDefinition(new CollisionShapeDefinition(originPose, groundGeometryDefinition));
    }

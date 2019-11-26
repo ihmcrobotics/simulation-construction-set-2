@@ -1,4 +1,4 @@
-package us.ihmc.scs2.examples.fallingBall;
+package us.ihmc.scs2.examples.ball;
 
 import us.ihmc.scs2.definition.controller.interfaces.ControllerDefinition;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizer;
