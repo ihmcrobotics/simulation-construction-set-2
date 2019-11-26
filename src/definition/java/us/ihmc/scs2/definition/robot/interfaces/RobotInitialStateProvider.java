@@ -4,16 +4,10 @@ import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
 
 public interface RobotInitialStateProvider
 {
-   default JointStateReadOnly getInitialJointState(String jointName)
-   {
-      return null;
-   }
+   JointStateReadOnly getInitialJointState(String jointName);
 
    public static RobotInitialStateProvider emptyProvider()
    {
-      return new RobotInitialStateProvider()
-      {
-         /* Do nothing */
-      };
+      return jointName -> null;
    }
 }
