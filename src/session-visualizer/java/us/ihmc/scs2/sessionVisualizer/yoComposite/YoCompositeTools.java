@@ -524,6 +524,8 @@ public class YoCompositeTools
 
             do
             {
+               int numberOfUnmodifiedUniqueNames = 0;
+
                for (int i = 0; i < homonyms.size(); i++)
                {
                   NamedObjectHolder<T> homonym = homonyms.get(i);
@@ -534,7 +536,14 @@ public class YoCompositeTools
                      homonym.uniqueName = homonym.namespace.get(namespaceIndex) + "." + homonym.uniqueName;
                      namespaceIndices.set(i, namespaceIndex - 1);
                   }
+                  else
+                  {
+                     numberOfUnmodifiedUniqueNames++;
+                  }
                }
+
+               if (numberOfUnmodifiedUniqueNames >= 2)
+                  throw new IllegalArgumentException("Cannot compute unique names for the homonyms: " + homonyms);
 
                List<NamedObjectHolder<T>> homonymsToProcess = new ArrayList<>();
                TIntArrayList namespaceIndexOfHomonymsToProcess = new TIntArrayList();
