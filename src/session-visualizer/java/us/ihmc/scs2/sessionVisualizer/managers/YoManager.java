@@ -11,7 +11,7 @@ import us.ihmc.scs2.sharedMemory.LinkedBufferProperties;
 import us.ihmc.scs2.sharedMemory.LinkedYoVariable;
 import us.ihmc.scs2.sharedMemory.LinkedYoVariableRegistry;
 import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
-import us.ihmc.scs2.simulation.SimulationCore;
+import us.ihmc.scs2.simulation.SimulationSession;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -42,7 +42,7 @@ public class YoManager extends AnimationTimer implements Manager
    public void startSession(Session session)
    {
       LogTools.info("Linking YoVariables");
-      rootRegistry = new YoVariableRegistry(SimulationCore.ROOT_REGISTRY_NAME);
+      rootRegistry = new YoVariableRegistry(SimulationSession.ROOT_REGISTRY_NAME);
       linkedYoVariableFactory = session.getLinkedYoVariableFactory();
       linkedRootRegistry = linkedYoVariableFactory.newLinkedYoVariableRegistry(rootRegistry);
 

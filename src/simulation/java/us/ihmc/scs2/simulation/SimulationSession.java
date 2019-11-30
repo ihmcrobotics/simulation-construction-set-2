@@ -19,7 +19,7 @@ import us.ihmc.scs2.simulation.physicsEngine.RobotPhysicsEnginePlugin;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoFrameVector3D;
 
-public class SimulationCore extends Session
+public class SimulationSession extends Session
 {
    private final ReferenceFrame worldFrame = ReferenceFrameTools.constructARootFrame("worldFrame");
    private final PhysicsEngine physicsEngine = new PhysicsEngine(worldFrame, rootRegistry);
@@ -27,12 +27,12 @@ public class SimulationCore extends Session
    private final YoFrameVector3D gravity = new YoFrameVector3D("gravity", ReferenceFrame.getWorldFrame(), rootRegistry);
    private final String simulationName;
 
-   public SimulationCore()
+   public SimulationSession()
    {
       this(retrieveCallerName());
    }
 
-   public SimulationCore(String simulationName)
+   public SimulationSession(String simulationName)
    {
       this.simulationName = simulationName;
       submitBufferSizeRequest(200000);

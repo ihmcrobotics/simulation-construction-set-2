@@ -21,7 +21,7 @@ import us.ihmc.scs2.sessionVisualizer.multiBodySystem.FrameNode;
 import us.ihmc.scs2.sessionVisualizer.multiBodySystem.JavaFXRigidBody;
 import us.ihmc.scs2.sessionVisualizer.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sharedMemory.LinkedYoVariableRegistry;
-import us.ihmc.scs2.simulation.SimulationCore;
+import us.ihmc.scs2.simulation.SimulationSession;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 
 public class YoRobotFX
@@ -45,7 +45,7 @@ public class YoRobotFX
       this.robotDefinition = robotDefinition;
 
       robotRegistry = new YoVariableRegistry(robotDefinition.getName());
-      new YoVariableRegistry(SimulationCore.ROOT_REGISTRY_NAME).addChild(robotRegistry);
+      new YoVariableRegistry(SimulationSession.ROOT_REGISTRY_NAME).addChild(robotRegistry);
    }
 
    public void loadRobot(Executor graphicLoader)

@@ -6,7 +6,7 @@ import us.ihmc.scs2.definition.robot.interfaces.RobotInitialStateProvider;
 import us.ihmc.scs2.definition.state.SixDoFJointState;
 import us.ihmc.scs2.examples.ball.SlopeGroundDefinition;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizer;
-import us.ihmc.scs2.simulation.SimulationCore;
+import us.ihmc.scs2.simulation.SimulationSession;
 
 public class EllipsoidCylinderSimulation
 {
@@ -15,7 +15,7 @@ public class EllipsoidCylinderSimulation
       EllipsoidRobotSimulation definition = new EllipsoidRobotSimulation();
       RobotInitialStateProvider robotInitialStateProvider = robotInitialStateProvider(definition);
 
-      SimulationCore simulationCore = new SimulationCore();
+      SimulationSession simulationCore = new SimulationSession();
       simulationCore.addRobot(definition, ControllerDefinition.emptyControllerDefinition(), robotInitialStateProvider);
       simulationCore.addTerrainObject(new SlopeGroundDefinition());
 

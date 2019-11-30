@@ -6,7 +6,7 @@ import us.ihmc.scs2.definition.robot.interfaces.RobotInitialStateProvider;
 import us.ihmc.scs2.definition.state.SixDoFJointState;
 import us.ihmc.scs2.examples.ball.SlopeGroundDefinition;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizer;
-import us.ihmc.scs2.simulation.SimulationCore;
+import us.ihmc.scs2.simulation.SimulationSession;
 
 public class SlidingBoxSimulation
 {
@@ -16,11 +16,11 @@ public class SlidingBoxSimulation
       BoxRobotDefinition definition = new BoxRobotDefinition();
       RobotInitialStateProvider robotInitialStateProvider = robotInitialStateProvider(definition, slopeAngle);
 
-      SimulationCore simulationCore = new SimulationCore();
-      simulationCore.addRobot(definition, ControllerDefinition.emptyControllerDefinition(), robotInitialStateProvider);
-      simulationCore.addTerrainObject(new SlopeGroundDefinition(slopeAngle));
+      SimulationSession simulationSession = new SimulationSession();
+      simulationSession.addRobot(definition, ControllerDefinition.emptyControllerDefinition(), robotInitialStateProvider);
+      simulationSession.addTerrainObject(new SlopeGroundDefinition(slopeAngle));
 
-      SessionVisualizer.startSessionVisualizer(simulationCore);
+      SessionVisualizer.startSessionVisualizer(simulationSession);
    }
 
    private static RobotInitialStateProvider robotInitialStateProvider(BoxRobotDefinition definition, double angle)
