@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.controlsfx.control.textfield.AutoCompletionBinding.ISuggestionRequest;
 
+import impl.org.controlsfx.autocompletion.SuggestionProvider;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.control.TextField;
@@ -64,12 +65,14 @@ public class YoIntegerTextField extends YoVariableTextField<IntegerProperty>
    @Override
    protected Callback<ISuggestionRequest, Collection<String>> createSuggestions()
    {
+      SuggestionProvider<String> suggestionProvider = SuggestionProvider.create(yoIntegerCollection.uniqueNameCollection());
+
       return request ->
       {
          if (CompositePropertyTools.isParsableAsInteger(request.getUserText()))
             return null;
-         else
-            return yoIntegerCollection.uniqueNameCollection();
+
+         return suggestionProvider.call(request);
       };
    }
 

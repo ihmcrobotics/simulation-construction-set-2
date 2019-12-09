@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.controlsfx.control.textfield.AutoCompletionBinding.ISuggestionRequest;
 
+import impl.org.controlsfx.autocompletion.SuggestionProvider;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.control.TextField;
@@ -56,12 +57,14 @@ public class YoDoubleTextField extends YoVariableTextField<DoubleProperty>
    @Override
    protected Callback<ISuggestionRequest, Collection<String>> createSuggestions()
    {
+      SuggestionProvider<String> suggestionProvider = SuggestionProvider.create(yoVariableCollection.uniqueNameCollection());
+
       return request ->
       {
          if (CompositePropertyTools.isParsableAsDouble(request.getUserText()))
             return null;
-         else
-            return yoVariableCollection.uniqueNameCollection();
+
+         return suggestionProvider.call(request);
       };
    }
 

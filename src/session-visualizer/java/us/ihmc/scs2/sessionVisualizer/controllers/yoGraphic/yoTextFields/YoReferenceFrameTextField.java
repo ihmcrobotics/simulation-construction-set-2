@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.controlsfx.control.textfield.AutoCompletionBinding.ISuggestionRequest;
 
+import impl.org.controlsfx.autocompletion.SuggestionProvider;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TextField;
@@ -61,7 +62,7 @@ public class YoReferenceFrameTextField extends YoVariableTextField<Property<Refe
    @Override
    protected Callback<ISuggestionRequest, Collection<String>> createSuggestions()
    {
-      return request -> referenceFrameManager.getReferenceFrameUniqueNames();
+      return SuggestionProvider.create(referenceFrameManager.getReferenceFrameUniqueNames());
    }
 
    @Override
