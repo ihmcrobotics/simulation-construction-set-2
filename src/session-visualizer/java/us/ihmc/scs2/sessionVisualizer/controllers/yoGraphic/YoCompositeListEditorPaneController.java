@@ -228,7 +228,7 @@ public class YoCompositeListEditorPaneController
    {
       YoCompositeEditorPaneController newCompositeEditor = newYoCompositeEditor();
       newCompositeEditor.setCompositeName(compositeNameProperty.get());
-      if (yoReferenceFrameTextField.getSupplier() != null)
+      if (setupReferenceFrameFields && yoReferenceFrameTextField.getSupplier() != null)
          newCompositeEditor.setReferenceFrame(yoReferenceFrameTextField.getSupplier().getValue());
       listView.getItems().add(newCompositeEditor);
       // FIXME This doesn't seem reliable, also should force the ListView to scroll down the item is guaranteed to be visible.
