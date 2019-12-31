@@ -38,6 +38,8 @@ public class SessionVisualizer extends Application
    private final Plotter2D plotter2D = new Plotter2D();
    private MainWindowController mainWindowController;
 
+   private double initialZoomOut = Double.NaN;
+
    public SessionVisualizer()
    {
    }
@@ -61,6 +63,10 @@ public class SessionVisualizer extends Application
       view3dFactory.addNodeToView(toolkit.getYoRobotFXManager().getRootNode());
       view3dFactory.addNodeToView(toolkit.getEnvironmentManager().getRootNode());
       FocusBasedCameraMouseEventHandler cameraController = view3dFactory.addCameraController(0.05, 2.0e5, true);
+      if (initialZoomOut != Double.NaN)
+      {
+         cameraController.changeCameraPosition(-initialZoomOut, initialZoomOut, initialZoomOut);
+      }
       CameraTools.setupNodeTrackingContextMenu(cameraController, view3dFactory.getSubScene());
 
       toolkit.getEnvironmentManager().addWorldCoordinateSystem(0.3);
@@ -131,6 +137,11 @@ public class SessionVisualizer extends Application
    public SessionVisualizerToolkit getToolkit()
    {
       return toolkit;
+   }
+
+   public void setInitialZoomOut(double initialZoomOut)
+   {
+      this.initialZoomOut = initialZoomOut;
    }
 
    public static void main(String[] args)
