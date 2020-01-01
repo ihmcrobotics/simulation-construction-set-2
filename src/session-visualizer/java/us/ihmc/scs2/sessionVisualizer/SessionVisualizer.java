@@ -20,6 +20,8 @@ import us.ihmc.scs2.sessionVisualizer.tools.CameraTools;
 import us.ihmc.scs2.sessionVisualizer.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.xml.XMLTools;
 
+import java.util.function.Consumer;
+
 public class SessionVisualizer extends Application
 {
    public static final String NO_ACTIVE_SESSION_TITLE = "No Active Session";
@@ -38,7 +40,7 @@ public class SessionVisualizer extends Application
    private final Plotter2D plotter2D = new Plotter2D();
    private MainWindowController mainWindowController;
 
-   private double initialZoomOut = Double.NaN;
+   private Consumer<FocusBasedCameraMouseEventHandler> userInitialCameraSetup;
 
    public SessionVisualizer()
    {
@@ -63,9 +65,9 @@ public class SessionVisualizer extends Application
       view3dFactory.addNodeToView(toolkit.getYoRobotFXManager().getRootNode());
       view3dFactory.addNodeToView(toolkit.getEnvironmentManager().getRootNode());
       FocusBasedCameraMouseEventHandler cameraController = view3dFactory.addCameraController(0.05, 2.0e5, true);
-      if (initialZoomOut != Double.NaN)
+      if (userInitialCameraSetup != null)
       {
-         cameraController.changeCameraPosition(-initialZoomOut, initialZoomOut, initialZoomOut);
+         userInitialCameraSetup.accept(cameraController);
       }
       CameraTools.setupNodeTrackingContextMenu(cameraController, view3dFactory.getSubScene());
 
@@ -139,9 +141,9 @@ public class SessionVisualizer extends Application
       return toolkit;
    }
 
-   public void setInitialZoomOut(double initialZoomOut)
+   public void setUserInitialCameraSetup(Consumer<FocusBasedCameraMouseEventHandler> userInitialCameraSetup)
    {
-      this.initialZoomOut = initialZoomOut;
+      this.userInitialCameraSetup = userInitialCameraSetup;
    }
 
    public static void main(String[] args)
