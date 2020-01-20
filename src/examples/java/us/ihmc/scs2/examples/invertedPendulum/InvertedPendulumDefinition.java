@@ -3,6 +3,7 @@ package us.ihmc.scs2.examples.invertedPendulum;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 import us.ihmc.euclid.Axis;
+import us.ihmc.euclid.tools.EuclidCoreTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointReadOnly;
@@ -19,6 +20,7 @@ import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.state.OneDoFJointState;
 import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
+import us.ihmc.scs2.definition.state.interfaces.OneDoFJointStateBasics;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition.MaterialDefinition;
@@ -151,19 +153,64 @@ public class InvertedPendulumDefinition extends RobotDefinition
       return this::doControl;
    }
 
+   double last_t = 0.0;
+   double last_ball_y = 0.0;
+   double last_cart_y_desired = 0.0;
+
    private void doControl()
    {
+      OneDoFJointStateBasics sliderJointState = controllerOutput.getOneDoFJointOutput(sliderJoint);
 
       double t = simulationTime.getDoubleValue();
-      long tfloor = (long) Math.floor(t);
-      if (tfloor % 2 == 0)
+      double cart_y = sliderJoint.getQ();
+      double cart_dy = sliderJoint.getQd();
+      double pin_theta = pinJoint.getQ();
+      double pin_qtheta = pinJoint.getQd();
+
+      double dt = t - last_t;
+      last_t = t;
+
+      double pin_PItoPI = EuclidCoreTools.trimAngleMinusPiToPi(pin_theta);
+
+      if (pin_PItoPI > 0.5 * Math.PI)
       {
-         controllerOutput.getOneDoFJointOutput(pinJoint).setEffort(1.0);
+         sliderJointState.setEffort(0.0);
+         return;
       }
-      else
-      {
-         controllerOutput.getOneDoFJointOutput(pinJoint).setEffort(-1.0);
-      }
+
+      double estimatedRodLength = 1.0;
+      double ball_y = cart_y + estimatedRodLength * Math.sin(pin_PItoPI);
+
+      double ball_dy = (ball_y - last_ball_y) * dt;
+      last_ball_y = ball_y;
+
+      double pendulum_kp = 1.0;
+      double pendulum_kd = 10.0;
+
+      double cart_y_desired = pendulum_kp * ball_y + pendulum_kd * ball_dy;
+
+      double cart_dy_desired = (cart_y_desired - last_cart_y_desired) * dt;
+      last_cart_y_desired = cart_y_desired;
+
+      double cart_error = cart_y_desired - cart_y;
+      double cart_derror = cart_dy_desired - cart_dy;
+
+      double cart_kp = 5.0;
+      double cart_kd = 2.0;
+
+      sliderJointState.setEffort(cart_kp * cart_error + cart_kd * cart_derror);
+
+//      long tfloor = (long) Math.floor(t);
+//      if (tfloor % 2 == 0)
+//      {
+//         controllerOutput.getOneDoFJointOutput(pinJoint).setEffort(1.0);
+//         sliderJointState.setEffort(1.0);
+//      }
+//      else
+//      {
+//         controllerOutput.getOneDoFJointOutput(pinJoint).setEffort(-1.0);
+//         controllerOutput.getOneDoFJointOutput(sliderJoint).setEffort(-1.0);
+//      }
    }
 
    private JointStateReadOnly initialJointState(String jointName)
