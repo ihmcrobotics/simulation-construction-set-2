@@ -6,8 +6,10 @@ import javafx.util.Pair;
 import us.ihmc.euclid.Axis;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.scs2.definition.controller.interfaces.ControllerDefinition;
+import us.ihmc.scs2.definition.geometry.BoxGeometryDefinition;
 import us.ihmc.scs2.definition.geometry.CylinderGeometryDefinition;
 import us.ihmc.scs2.definition.geometry.SphereGeometryDefinition;
+import us.ihmc.scs2.definition.robot.PrismaticJointDefinition;
 import us.ihmc.scs2.definition.robot.RevoluteJointDefinition;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
@@ -60,8 +62,23 @@ public class InvertedPendulumDefinition extends RobotDefinition
       revoluteJointDefinition.setSuccessor(pea);
       revoluteJointDefinition.getAxis().set(Axis.X);
 
+      RigidBodyDefinition cart = new RigidBodyDefinition("cart");
+      cart.setMass(1.0);
+
+      BoxGeometryDefinition boxGeometryDefinition = new BoxGeometryDefinition(0.1, 0.2, 0.1);
+      ColorDefinition boxColor = new ColorDefinition(0.0, 1.0, 0.0);
+      MaterialDefinition boxMaterial = new MaterialDefinition(boxColor);
+      RigidBodyTransform boxPose = new RigidBodyTransform();
+      cart.addVisualDefinition(new VisualDefinition(boxPose, boxGeometryDefinition, boxMaterial));
+
+      PrismaticJointDefinition prismaticJointDefinition = new PrismaticJointDefinition("slider");
+      prismaticJointDefinition.setSuccessor(cart);
+      prismaticJointDefinition.getAxis().set(Axis.Y);
+
+      cart.getChildrenJoints().add(revoluteJointDefinition);
+
       RigidBodyDefinition elevator = new RigidBodyDefinition("elevator");
-      elevator.getChildrenJoints().add(revoluteJointDefinition);
+      elevator.getChildrenJoints().add(prismaticJointDefinition);
 
       setRootBodyDefinition(elevator);
    }
@@ -78,8 +95,8 @@ public class InvertedPendulumDefinition extends RobotDefinition
       InvertedPendulumDefinition invertedPendulumDefinition = new InvertedPendulumDefinition();
 
       SimulationSession simulationSession = new SimulationSession();
-      simulationSession.addRobot(invertedPendulumDefinition,
-                                 ControllerDefinition.emptyControllerDefinition(),
+      ControllerDefinition controller = ControllerDefinition.emptyControllerDefinition();
+      simulationSession.addRobot(invertedPendulumDefinition, controller,
                                  invertedPendulumDefinition::initialJointState);
 
       SessionVisualizer sessionVisualizer = new SessionVisualizer();
