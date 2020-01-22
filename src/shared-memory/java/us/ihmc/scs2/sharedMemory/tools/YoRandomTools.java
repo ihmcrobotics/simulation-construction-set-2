@@ -3,11 +3,17 @@ package us.ihmc.scs2.sharedMemory.tools;
 import java.util.Random;
 
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.mutable.MutableObject;
 
 import us.ihmc.commons.RandomNumbers;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
-import us.ihmc.yoVariables.variable.*;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoEnum;
+import us.ihmc.yoVariables.variable.YoInteger;
+import us.ihmc.yoVariables.variable.YoLong;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoRandomTools
 {
@@ -58,6 +64,22 @@ public class YoRandomTools
    {
       int length = RandomNumbers.nextInt(random, minLengthInclusive, maxLengthInclusive);
       return RandomStringUtils.random(length, 0, 0, true, true, null, random);
+   }
+
+   public static String nextAvailableVariableName(Random random, int minLengthInclusive, int maxLengthInclusive, YoVariableRegistry registry)
+   {
+      String next = nextAlphanumericString(random, minLengthInclusive, maxLengthInclusive);
+      while (registry.getVariable(next) != null)
+         next = nextAlphanumericString(random, minLengthInclusive, maxLengthInclusive);
+      return next;
+   }
+
+   public static String nextAvailableRegistryName(Random random, int minLengthInclusive, int maxLengthInclusive, YoVariableRegistry registry)
+   {
+      MutableObject<String> next = new MutableObject<String>(nextAlphanumericString(random, minLengthInclusive, maxLengthInclusive));
+      while (registry.getChildren().stream().anyMatch(child -> child.getName().equals(next.getValue())))
+         next.setValue(nextAlphanumericString(random, minLengthInclusive, maxLengthInclusive));
+      return next.getValue();
    }
 
    public static YoVariable<?> nextYoVariable(Random random, YoVariableRegistry registry)
@@ -116,7 +138,7 @@ public class YoRandomTools
 
    public static YoBoolean nextYoBoolean(Random random, YoVariableRegistry registry)
    {
-      return nextYoBoolean(random, nextAlphanumericString(random, 1, 50), registry);
+      return nextYoBoolean(random, nextAvailableVariableName(random, 1, 50, registry), registry);
    }
 
    public static YoBoolean nextYoBoolean(Random random, String name, YoVariableRegistry registry)
@@ -129,7 +151,7 @@ public class YoRandomTools
 
    public static YoDouble nextYoDouble(Random random, YoVariableRegistry registry)
    {
-      return nextYoDouble(random, nextAlphanumericString(random, 1, 50), registry);
+      return nextYoDouble(random, nextAvailableVariableName(random, 1, 50, registry), registry);
    }
 
    public static YoDouble nextYoDouble(Random random, String name, YoVariableRegistry registry)
@@ -142,7 +164,7 @@ public class YoRandomTools
 
    public static YoInteger nextYoInteger(Random random, YoVariableRegistry registry)
    {
-      return nextYoInteger(random, nextAlphanumericString(random, 1, 50), registry);
+      return nextYoInteger(random, nextAvailableVariableName(random, 1, 50, registry), registry);
    }
 
    public static YoInteger nextYoInteger(Random random, String name, YoVariableRegistry registry)
@@ -155,7 +177,7 @@ public class YoRandomTools
 
    public static YoLong nextYoLong(Random random, YoVariableRegistry registry)
    {
-      return nextYoLong(random, nextAlphanumericString(random, 1, 50), registry);
+      return nextYoLong(random, nextAvailableVariableName(random, 1, 50, registry), registry);
    }
 
    public static YoLong nextYoLong(Random random, String name, YoVariableRegistry registry)
@@ -168,12 +190,12 @@ public class YoRandomTools
 
    public static <E extends Enum<E>> YoEnum<E> nextYoEnum(Random random, YoVariableRegistry registry)
    {
-      return nextYoEnum(random, nextAlphanumericString(random, 1, 50), registry);
+      return nextYoEnum(random, nextAvailableVariableName(random, 1, 50, registry), registry);
    }
 
    public static <E extends Enum<E>> YoEnum<E> nextYoEnum(Random random, Class<E> enumType, YoVariableRegistry registry)
    {
-      return nextYoEnum(random, nextAlphanumericString(random, 1, 50), enumType, registry);
+      return nextYoEnum(random, nextAvailableVariableName(random, 1, 50, registry), enumType, registry);
    }
 
    @SuppressWarnings("unchecked")

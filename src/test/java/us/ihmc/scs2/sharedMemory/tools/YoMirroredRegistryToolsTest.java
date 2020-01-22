@@ -3,7 +3,6 @@ package us.ihmc.scs2.sharedMemory.tools;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.util.ArrayList;
 import java.util.Random;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -41,7 +40,7 @@ public class YoMirroredRegistryToolsTest
          {
             YoVariable<?> targetVariable = target.getVariable(originalVariable.getName());
             assertNotNull(targetVariable);
-            assertEquals(originalVariable.getName(), targetVariable.getName());
+            assertEquals(originalVariable.getClass(), targetVariable.getClass());
          }
       }
 
@@ -65,9 +64,9 @@ public class YoMirroredRegistryToolsTest
          {
             YoVariable<?> targetVariable = targetRoot.getVariable(originalVariable.getNameSpace().toString(), originalVariable.getName());
             assertNotNull(targetVariable);
+            assertEquals(originalVariable.getClass(), targetVariable.getClass());
          }
       }
-
 
       for (int i = 0; i < ITERATIONS; i++)
       { // Test completing single registry
@@ -86,10 +85,45 @@ public class YoMirroredRegistryToolsTest
          {
             YoVariable<?> targetVariable = target.getVariable(originalVariable.getName());
             assertNotNull(targetVariable);
-            assertEquals(originalVariable.getName(), targetVariable.getName());
+            assertEquals(originalVariable.getClass(), targetVariable.getClass());
          }
       }
 
-   }
+      for (int i = 0; i < ITERATIONS; i++)
+      { // Test completing registry tree
+         int numberOfVariables = RandomNumbers.nextInt(random, 0, 250);
+         YoVariableRegistry[] originalRegistries = YoRandomTools.nextYoVariableRegistryTree(random, numberOfVariables, 25);
+         YoVariableRegistry originalRoot = originalRegistries[0];
+         YoVariableRegistry targetRoot = new YoVariableRegistry(originalRoot.getName());
+         YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(originalRoot, targetRoot);
 
+         int numberOfMissingVariables = 0;
+
+         for (int j = 0; j < 25; j++)
+         {
+            int n = RandomNumbers.nextInt(random, 0, 250);
+            YoVariableRegistry parent = originalRegistries[random.nextInt(originalRegistries.length)];
+            YoVariableRegistry registry = YoRandomTools.nextYoVariableRegistry(random, YoRandomTools.nextAvailableRegistryName(random, 1, 50, parent), n);
+            parent.addChild(registry);
+            numberOfMissingVariables += n;
+         }
+
+         int numberOfYoVariablesCreated = YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(originalRoot, targetRoot);
+         assertEquals(numberOfMissingVariables, numberOfYoVariablesCreated);
+
+         for (YoVariableRegistry originalRegistry : originalRoot.getAllRegistriesIncludingChildren())
+         {
+            YoVariableRegistry targetRegistry = targetRoot.getRegistry(originalRegistry.getNameSpace());
+            assertNotNull(targetRegistry);
+            assertEquals(originalRegistry.getNumberOfYoVariables(), targetRegistry.getNumberOfYoVariables());
+         }
+
+         for (YoVariable<?> originalVariable : originalRoot.getAllVariables())
+         {
+            YoVariable<?> targetVariable = targetRoot.getVariable(originalVariable.getNameSpace().toString(), originalVariable.getName());
+            assertNotNull(targetVariable);
+            assertEquals(originalVariable.getClass(), targetVariable.getClass());
+         }
+      }
+   }
 }
