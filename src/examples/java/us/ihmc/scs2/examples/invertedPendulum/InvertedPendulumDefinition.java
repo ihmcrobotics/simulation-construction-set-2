@@ -3,14 +3,7 @@ package us.ihmc.scs2.examples.invertedPendulum;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 import us.ihmc.euclid.Axis;
-import us.ihmc.euclid.tools.EuclidCoreTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
-import us.ihmc.mecano.multiBodySystem.interfaces.JointReadOnly;
-import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointReadOnly;
-import us.ihmc.scs2.definition.controller.ControllerInput;
-import us.ihmc.scs2.definition.controller.ControllerOutput;
-import us.ihmc.scs2.definition.controller.interfaces.Controller;
-import us.ihmc.scs2.definition.controller.interfaces.ControllerDefinition;
 import us.ihmc.scs2.definition.geometry.BoxGeometryDefinition;
 import us.ihmc.scs2.definition.geometry.CylinderGeometryDefinition;
 import us.ihmc.scs2.definition.geometry.SphereGeometryDefinition;
@@ -18,29 +11,20 @@ import us.ihmc.scs2.definition.robot.PrismaticJointDefinition;
 import us.ihmc.scs2.definition.robot.RevoluteJointDefinition;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
-import us.ihmc.scs2.definition.state.OneDoFJointState;
-import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
-import us.ihmc.scs2.definition.state.interfaces.OneDoFJointStateBasics;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition.MaterialDefinition;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizer;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
+import us.ihmc.scs2.sessionVisualizer.controllers.menu.YoChartMenuController;
 import us.ihmc.scs2.sessionVisualizer.tools.JavaFXMissingTools;
 import us.ihmc.scs2.simulation.SimulationSession;
-import us.ihmc.yoVariables.variable.YoDouble;
 
 import java.io.File;
 import java.nio.file.Paths;
 
 public class InvertedPendulumDefinition extends RobotDefinition
 {
-   private ControllerInput controllerInput;
-   private ControllerOutput controllerOutput;
-   private YoDouble simulationTime;
-   private OneDoFJointReadOnly sliderJoint;
-   private OneDoFJointReadOnly pinJoint;
-
    public InvertedPendulumDefinition()
    {
       super("invertedPendulum");
@@ -90,134 +74,46 @@ public class InvertedPendulumDefinition extends RobotDefinition
       setRootBodyDefinition(elevator);
 
       SimulationSession simulationSession = new SimulationSession();
-      ControllerDefinition controller = this::controllerDefinition;
-      simulationSession.addRobot(this, controller, this::initialJointState);
+      InvertedPendulumController invertedPendulumController = new InvertedPendulumController();
+      simulationSession.addRobot(this, invertedPendulumController, invertedPendulumController::initialJointState);
+//      simulationSession.
+//      invertedPendulumController.registerYoVariables(simulationSession.getLinkedYoVariableFactory());
 
       SessionVisualizer sessionVisualizer = new SessionVisualizer();
       double isoCameraZoomOut = 4.0;
       sessionVisualizer.setUserInitialCameraSetup(camera -> camera.changeCameraPosition(isoCameraZoomOut, 0.0, 0.0));
 
-
-      //      sessionVisualizer.getToolkit().getYoManager().
-
       JavaFXMissingTools.runApplication(sessionVisualizer, () ->
       {
          sessionVisualizer.startSession(simulationSession);
-         //         YoChartGroupPanelController yoChartGroupPanelController = new YoChartGroupPanelController();
-         //         sessionVisualizer.getToolkit().addYoChartGroupController(yoChartGroupPanelController);
-         //         YoChartGroupConfigurationDefinition definition = new YoChartGroupConfigurationDefinition();
-         //         definition.setNumberOfColumns(1);
-         //         definition.setNumberOfRows(2);
-         //         YoChartConfigurationDefinition qdChart = new YoChartConfigurationDefinition();
-         //         qdChart.setYoVariables(Lists.newArrayList("q_pin"));
-         //         definition.setChartConfigurations(Lists.newArrayList(qdChart));
-         //         YoChartConfigurationDefinition qddPin = new YoChartConfigurationDefinition();
-         //         qddPin.setYoVariables(Lists.newArrayList("qdd_pin"));
-         //         definition.setChartConfigurations(Lists.newArrayList(qddPin));
-         //         yoChartGroupPanelController.setChartGroupConfiguration(definition);
       });
 
       JavaFXMissingTools.runNFramesLater(5, () ->
       {
          File result = Paths.get(System.getProperty("user.home")).resolve(".ihmc/invertedPendulum.scs2.chart").toFile();
+         Stage mainWindow = sessionVisualizer.getToolkit().getMainWindow();
          if (result.exists())
          {
             SessionVisualizerTopics topics = sessionVisualizer.getToolkit().getTopics();
-            Stage mainWindow = sessionVisualizer.getToolkit().getMainWindow();
             sessionVisualizer.getToolkit().getMessager().submitMessage(topics.getYoChartGroupLoadConfiguration(), new Pair<>(mainWindow, result));
          }
-         simulationTime = (YoDouble) sessionVisualizer.getToolkit().getYoManager().getRootRegistry().getVariable("simulationTime");
+         mainWindow.setX(0);
+
+         invertedPendulumController.setupYoVariables(sessionVisualizer.getToolkit().getYoManager().getRootRegistry());
+
+         Stage newWindow = YoChartMenuController.newSecondaryChartWindow(sessionVisualizer.getToolkit());
+         newWindow.show();
+         newWindow.setX(1100);
+         result = Paths.get(System.getProperty("user.home")).resolve(".ihmc/invertedPendulum2ndWindow.scs2.chart").toFile();
+         if (result.exists())
+         {
+            SessionVisualizerTopics topics = sessionVisualizer.getToolkit().getTopics();
+            sessionVisualizer.getToolkit().getMessager().submitMessage(topics.getYoChartGroupLoadConfiguration(), new Pair<>(newWindow, result));
+         }
       });
 
       //      SessionVisualizerTopics topics = sessionVisualizer.getToolkit().getTopics();
       //      sessionVisualizer.getToolkit().getMessager().submitMessage(topics.getSessionCurrentMode(), SessionMode.RUNNING);
-   }
-
-   private Controller controllerDefinition(ControllerInput controllerInput, ControllerOutput controllerOutput)
-   {
-      this.controllerInput = controllerInput;
-      this.controllerOutput = controllerOutput;
-
-      for (JointReadOnly allJoint : controllerInput.getInput().getAllJoints())
-      {
-         if (allJoint.getName().equals("pin"))
-         {
-            pinJoint = (OneDoFJointReadOnly) allJoint;
-         }
-         else if (allJoint.getName().equals("slider"))
-         {
-            sliderJoint = (OneDoFJointReadOnly) allJoint;
-         }
-      }
-
-      return this::doControl;
-   }
-
-   double last_t = 0.0;
-   double last_ball_y = 0.0;
-   double last_cart_y_desired = 0.0;
-
-   private void doControl()
-   {
-      OneDoFJointStateBasics sliderJointState = controllerOutput.getOneDoFJointOutput(sliderJoint);
-
-      double t = simulationTime.getDoubleValue();
-      double cart_y = sliderJoint.getQ();
-      double cart_dy = sliderJoint.getQd();
-      double pin_theta = pinJoint.getQ();
-      double pin_qtheta = pinJoint.getQd();
-
-      double dt = t - last_t;
-      last_t = t;
-
-      double pin_PItoPI = EuclidCoreTools.trimAngleMinusPiToPi(pin_theta);
-
-      if (pin_PItoPI > 0.5 * Math.PI)
-      {
-         sliderJointState.setEffort(0.0);
-         return;
-      }
-
-      double estimatedRodLength = 1.0;
-      double ball_y = cart_y + estimatedRodLength * Math.sin(pin_PItoPI);
-
-      double ball_dy = (ball_y - last_ball_y) * dt;
-      last_ball_y = ball_y;
-
-      double pendulum_kp = 1.0;
-      double pendulum_kd = 10.0;
-
-      double cart_y_desired = pendulum_kp * ball_y + pendulum_kd * ball_dy;
-
-      double cart_dy_desired = (cart_y_desired - last_cart_y_desired) * dt;
-      last_cart_y_desired = cart_y_desired;
-
-      double cart_error = cart_y_desired - cart_y;
-      double cart_derror = cart_dy_desired - cart_dy;
-
-      double cart_kp = 5.0;
-      double cart_kd = 2.0;
-
-      sliderJointState.setEffort(cart_kp * cart_error + cart_kd * cart_derror);
-
-//      long tfloor = (long) Math.floor(t);
-//      if (tfloor % 2 == 0)
-//      {
-//         controllerOutput.getOneDoFJointOutput(pinJoint).setEffort(1.0);
-//         sliderJointState.setEffort(1.0);
-//      }
-//      else
-//      {
-//         controllerOutput.getOneDoFJointOutput(pinJoint).setEffort(-1.0);
-//         controllerOutput.getOneDoFJointOutput(sliderJoint).setEffort(-1.0);
-//      }
-   }
-
-   private JointStateReadOnly initialJointState(String jointName)
-   {
-      OneDoFJointState pinJoint = new OneDoFJointState();
-      pinJoint.setConfiguration(0.00001);
-      return pinJoint;
    }
 
    public static void main(String[] args)
