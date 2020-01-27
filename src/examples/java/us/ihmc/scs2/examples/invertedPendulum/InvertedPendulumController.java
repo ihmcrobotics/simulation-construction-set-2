@@ -25,10 +25,15 @@ public class InvertedPendulumController implements ControllerDefinition
    private YoDouble cartY;
    private YoDouble cartVelocityY;
    private YoDouble pinAngle;
-   private YoDouble pinAngularVelocity;
    private YoDouble lastBallY;
    private YoDouble lastCartYDesired;
    private YoDouble cartYDesired;
+   private YoDouble cartVelocityYDesired;
+   private YoDouble simulationDT;
+   private YoDouble ballY;
+   private YoDouble ballVelocityY;
+   private YoDouble cartPositionError;
+   private YoDouble cartVelocityError;
 
    public void registerYoVariables(YoVariableRegistry rootRegistry)
    {
@@ -39,10 +44,15 @@ public class InvertedPendulumController implements ControllerDefinition
       cartY = new YoDouble("cartY", registry);
       cartVelocityY = new YoDouble("cartVelocityY", registry);
       pinAngle = new YoDouble("pinAngle", registry);
-      pinAngularVelocity = new YoDouble("pinAngularVelocity", registry);
       lastBallY = new YoDouble("lastBallY", registry);
       lastCartYDesired = new YoDouble("lastCartYDesired", registry);
       cartYDesired = new YoDouble("cartYDesired", registry);
+      simulationDT = new YoDouble("simulationDT", registry);
+      ballY = new YoDouble("ballY", registry);
+      ballVelocityY = new YoDouble("ballVelocityY", registry);
+      cartVelocityYDesired = new YoDouble("cartVelocityYDesired", registry);
+      cartPositionError = new YoDouble("cartPositionError", registry);
+      cartVelocityError = new YoDouble("cartVelocityError", registry);
       rootRegistry.addChild(registry);
    }
 
@@ -53,9 +63,8 @@ public class InvertedPendulumController implements ControllerDefinition
       cartY.set(sliderJoint.getQ());
       cartVelocityY.set(sliderJoint.getQd());
       pinAngle.set(pinJoint.getQ());
-      pinAngularVelocity.set(pinJoint.getQd());
 
-      double dt = simulationTime.getValue() - lastTime.getValue();
+      simulationDT.set(simulationTime.getValue() - lastTime.getValue());
       lastTime.set(simulationTime.getValue());
 
       pinAngle.set(EuclidCoreTools.trimAngleMinusPiToPi(pinAngle.getValue()));
@@ -67,26 +76,26 @@ public class InvertedPendulumController implements ControllerDefinition
       }
 
       double estimatedRodLength = 1.0;
-      double ball_y = cartY.getValue() + estimatedRodLength * Math.sin(pinAngle.getValue());
+      ballY.set(cartY.getValue() - estimatedRodLength * Math.sin(pinAngle.getValue()));
 
-      double ball_dy = (ball_y - lastBallY.getValue()) * dt;
-      lastBallY.set(ball_y);
+//      ballVelocityY.set((ballY.getValue() - lastBallY.getValue()) / simulationDT.getValue());
+      lastBallY.set(ballY.getValue());
 
       double pendulum_kp = 1.0;
-      double pendulum_kd = 10.0;
+      double pendulum_kd = 0.0;
 
-      cartYDesired.set(pendulum_kp * ball_y + pendulum_kd * ball_dy);
+      cartYDesired.set(pendulum_kp * ballY.getValue() + pendulum_kd * ballVelocityY.getValue());
 
-      double cart_dy_desired = (cartYDesired.getValue() - lastCartYDesired.getValue()) * dt;
+      cartVelocityYDesired.set((cartYDesired.getValue() - lastCartYDesired.getValue()) * simulationDT.getValue());
       lastCartYDesired.set(cartYDesired.getValue());
 
-      double cart_error = cartYDesired.getValue() - cartY.getValue();
-      double cart_derror = cart_dy_desired - cartVelocityY.getValue();
+      cartPositionError.set(cartYDesired.getValue() - cartY.getValue());
+      cartVelocityError.set(cartVelocityYDesired.getValue() - cartVelocityY.getValue());
 
       double cart_kp = 5.0;
       double cart_kd = 2.0;
 
-      sliderJointState.setEffort(cart_kp * cart_error + cart_kd * cart_derror);
+      sliderJointState.setEffort(cart_kp * cartPositionError.getValue() + cart_kd * cartVelocityError.getValue());
 
       //      long tfloor = (long) Math.floor(t);
       //      if (tfloor % 2 == 0)
