@@ -581,6 +581,11 @@ public abstract class Session
       return sharedBuffer;
    }
 
+   public YoVariableRegistry getRootRegistry()
+   {
+      return rootRegistry;
+   }
+
    private class SessionTopicListeners
    {
       private final Messager messager;
