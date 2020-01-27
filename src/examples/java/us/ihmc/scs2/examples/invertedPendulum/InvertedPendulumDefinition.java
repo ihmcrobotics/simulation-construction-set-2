@@ -27,7 +27,7 @@ public class InvertedPendulumDefinition extends RobotDefinition
 {
    public InvertedPendulumDefinition()
    {
-      super("invertedPendulum");
+      super("InvertedPendulumRobot");
 
       double rodLength = 1.0;
 
@@ -76,8 +76,8 @@ public class InvertedPendulumDefinition extends RobotDefinition
       SimulationSession simulationSession = new SimulationSession();
       InvertedPendulumController invertedPendulumController = new InvertedPendulumController();
       simulationSession.addRobot(this, invertedPendulumController, invertedPendulumController::initialJointState);
-//      simulationSession.
-//      invertedPendulumController.registerYoVariables(simulationSession.getLinkedYoVariableFactory());
+
+      invertedPendulumController.registerYoVariables(simulationSession.getRootRegistry());
 
       SessionVisualizer sessionVisualizer = new SessionVisualizer();
       double isoCameraZoomOut = 4.0;
@@ -92,18 +92,22 @@ public class InvertedPendulumDefinition extends RobotDefinition
       {
          File result = Paths.get(System.getProperty("user.home")).resolve(".ihmc/invertedPendulum.scs2.chart").toFile();
          Stage mainWindow = sessionVisualizer.getToolkit().getMainWindow();
+         mainWindow.setX(5);
+         mainWindow.setY(200);
+         mainWindow.setWidth(1500);
+         mainWindow.setHeight(1000);
          if (result.exists())
          {
             SessionVisualizerTopics topics = sessionVisualizer.getToolkit().getTopics();
             sessionVisualizer.getToolkit().getMessager().submitMessage(topics.getYoChartGroupLoadConfiguration(), new Pair<>(mainWindow, result));
          }
-         mainWindow.setX(0);
-
-         invertedPendulumController.setupYoVariables(sessionVisualizer.getToolkit().getYoManager().getRootRegistry());
 
          Stage newWindow = YoChartMenuController.newSecondaryChartWindow(sessionVisualizer.getToolkit());
          newWindow.show();
-         newWindow.setX(1100);
+         newWindow.setX(1600);
+         newWindow.setY(200);
+         newWindow.setWidth(1000);
+         newWindow.setHeight(1000);
          result = Paths.get(System.getProperty("user.home")).resolve(".ihmc/invertedPendulum2ndWindow.scs2.chart").toFile();
          if (result.exists())
          {

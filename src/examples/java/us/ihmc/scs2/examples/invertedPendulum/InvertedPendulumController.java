@@ -10,7 +10,6 @@ import us.ihmc.scs2.definition.controller.interfaces.ControllerDefinition;
 import us.ihmc.scs2.definition.state.OneDoFJointState;
 import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
 import us.ihmc.scs2.definition.state.interfaces.OneDoFJointStateBasics;
-import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
@@ -23,26 +22,83 @@ public class InvertedPendulumController implements ControllerDefinition
 
    private YoDouble simulationTime;
    private YoDouble lastTime;
-   double last_t = 0.0;
-   double last_ball_y = 0.0;
-   double last_cart_y_desired = 0.0;
+   private YoDouble cartY;
+   private YoDouble cartVelocityY;
+   private YoDouble pinAngle;
+   private YoDouble pinAngularVelocity;
+   private YoDouble lastBallY;
+   private YoDouble lastCartYDesired;
+   private YoDouble cartYDesired;
 
-   public InvertedPendulumController()
-   {
-   }
-
-   public void registerYoVariables(LinkedYoVariableFactory rootRegistry)
-   {
-//      lastTime = rootRegistry.
-   }
-
-   public void setupYoVariables(YoVariableRegistry rootRegistry)
+   public void registerYoVariables(YoVariableRegistry rootRegistry)
    {
       simulationTime = (YoDouble) rootRegistry.getVariable("simulationTime");
 
-      YoVariableRegistry registry = new YoVariableRegistry("sliderController");
+      YoVariableRegistry registry = new YoVariableRegistry("InvertedPendulumController");
       lastTime = new YoDouble("lastTime", registry);
+      cartY = new YoDouble("cartY", registry);
+      cartVelocityY = new YoDouble("cartVelocityY", registry);
+      pinAngle = new YoDouble("pinAngle", registry);
+      pinAngularVelocity = new YoDouble("pinAngularVelocity", registry);
+      lastBallY = new YoDouble("lastBallY", registry);
+      lastCartYDesired = new YoDouble("lastCartYDesired", registry);
+      cartYDesired = new YoDouble("cartYDesired", registry);
       rootRegistry.addChild(registry);
+   }
+
+   private void doControl()
+   {
+      OneDoFJointStateBasics sliderJointState = controllerOutput.getOneDoFJointOutput(sliderJoint);
+
+      cartY.set(sliderJoint.getQ());
+      cartVelocityY.set(sliderJoint.getQd());
+      pinAngle.set(pinJoint.getQ());
+      pinAngularVelocity.set(pinJoint.getQd());
+
+      double dt = simulationTime.getValue() - lastTime.getValue();
+      lastTime.set(simulationTime.getValue());
+
+      pinAngle.set(EuclidCoreTools.trimAngleMinusPiToPi(pinAngle.getValue()));
+
+      if (pinAngle.getValue() > 0.5 * Math.PI)
+      {
+         sliderJointState.setEffort(0.0);
+         return;
+      }
+
+      double estimatedRodLength = 1.0;
+      double ball_y = cartY.getValue() + estimatedRodLength * Math.sin(pinAngle.getValue());
+
+      double ball_dy = (ball_y - lastBallY.getValue()) * dt;
+      lastBallY.set(ball_y);
+
+      double pendulum_kp = 1.0;
+      double pendulum_kd = 10.0;
+
+      cartYDesired.set(pendulum_kp * ball_y + pendulum_kd * ball_dy);
+
+      double cart_dy_desired = (cartYDesired.getValue() - lastCartYDesired.getValue()) * dt;
+      lastCartYDesired.set(cartYDesired.getValue());
+
+      double cart_error = cartYDesired.getValue() - cartY.getValue();
+      double cart_derror = cart_dy_desired - cartVelocityY.getValue();
+
+      double cart_kp = 5.0;
+      double cart_kd = 2.0;
+
+      sliderJointState.setEffort(cart_kp * cart_error + cart_kd * cart_derror);
+
+      //      long tfloor = (long) Math.floor(t);
+      //      if (tfloor % 2 == 0)
+      //      {
+      //         controllerOutput.getOneDoFJointOutput(pinJoint).setEffort(1.0);
+      //         sliderJointState.setEffort(1.0);
+      //      }
+      //      else
+      //      {
+      //         controllerOutput.getOneDoFJointOutput(pinJoint).setEffort(-1.0);
+      //         controllerOutput.getOneDoFJointOutput(sliderJoint).setEffort(-1.0);
+      //      }
    }
 
    @Override
@@ -64,62 +120,6 @@ public class InvertedPendulumController implements ControllerDefinition
       }
 
       return this::doControl;
-   }
-
-   private void doControl()
-   {
-      OneDoFJointStateBasics sliderJointState = controllerOutput.getOneDoFJointOutput(sliderJoint);
-
-      double t = simulationTime.getValue();
-      double cart_y = sliderJoint.getQ();
-      double cart_dy = sliderJoint.getQd();
-      double pin_theta = pinJoint.getQ();
-      double pin_qtheta = pinJoint.getQd();
-
-      double dt = t - last_t;
-      last_t = t;
-
-      double pin_PItoPI = EuclidCoreTools.trimAngleMinusPiToPi(pin_theta);
-
-      if (pin_PItoPI > 0.5 * Math.PI)
-      {
-         sliderJointState.setEffort(0.0);
-         return;
-      }
-
-      double estimatedRodLength = 1.0;
-      double ball_y = cart_y + estimatedRodLength * Math.sin(pin_PItoPI);
-
-      double ball_dy = (ball_y - last_ball_y) * dt;
-      last_ball_y = ball_y;
-
-      double pendulum_kp = 1.0;
-      double pendulum_kd = 10.0;
-
-      double cart_y_desired = pendulum_kp * ball_y + pendulum_kd * ball_dy;
-
-      double cart_dy_desired = (cart_y_desired - last_cart_y_desired) * dt;
-      last_cart_y_desired = cart_y_desired;
-
-      double cart_error = cart_y_desired - cart_y;
-      double cart_derror = cart_dy_desired - cart_dy;
-
-      double cart_kp = 5.0;
-      double cart_kd = 2.0;
-
-      sliderJointState.setEffort(cart_kp * cart_error + cart_kd * cart_derror);
-
-      //      long tfloor = (long) Math.floor(t);
-      //      if (tfloor % 2 == 0)
-      //      {
-      //         controllerOutput.getOneDoFJointOutput(pinJoint).setEffort(1.0);
-      //         sliderJointState.setEffort(1.0);
-      //      }
-      //      else
-      //      {
-      //         controllerOutput.getOneDoFJointOutput(pinJoint).setEffort(-1.0);
-      //         controllerOutput.getOneDoFJointOutput(sliderJoint).setEffort(-1.0);
-      //      }
    }
 
    public JointStateReadOnly initialJointState(String jointName)
