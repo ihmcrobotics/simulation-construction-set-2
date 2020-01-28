@@ -69,7 +69,7 @@ public class InvertedPendulumController implements ControllerDefinition
 
       pinAngle.set(EuclidCoreTools.trimAngleMinusPiToPi(pinAngle.getValue()));
 
-      if (pinAngle.getValue() > 0.5 * Math.PI)
+      if (simulationDT.getValue() == 0.0 || pinAngle.getValue() > 0.5 * Math.PI)
       {
          sliderJointState.setEffort(0.0);
          return;
@@ -78,7 +78,7 @@ public class InvertedPendulumController implements ControllerDefinition
       double estimatedRodLength = 1.0;
       ballY.set(cartY.getValue() - estimatedRodLength * Math.sin(pinAngle.getValue()));
 
-//      ballVelocityY.set((ballY.getValue() - lastBallY.getValue()) / simulationDT.getValue());
+      ballVelocityY.set((ballY.getValue() - lastBallY.getValue()) / simulationDT.getValue());
       lastBallY.set(ballY.getValue());
 
       double pendulum_kp = 1.0;
@@ -86,7 +86,7 @@ public class InvertedPendulumController implements ControllerDefinition
 
       cartYDesired.set(pendulum_kp * ballY.getValue() + pendulum_kd * ballVelocityY.getValue());
 
-      cartVelocityYDesired.set((cartYDesired.getValue() - lastCartYDesired.getValue()) * simulationDT.getValue());
+      cartVelocityYDesired.set((cartYDesired.getValue() - lastCartYDesired.getValue()) / simulationDT.getValue());
       lastCartYDesired.set(cartYDesired.getValue());
 
       cartPositionError.set(cartYDesired.getValue() - cartY.getValue());
