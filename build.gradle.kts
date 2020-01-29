@@ -20,42 +20,42 @@ mainDependencies {
 }
 
 definitionDependencies {
-   api("us.ihmc:euclid:0.12.1")
-   api("us.ihmc:ihmc-commons:0.26.3")
-   api("us.ihmc:ihmc-yovariables:0.3.11")
-   api("us.ihmc:mecano:0.0.20")
+   api("us.ihmc:euclid:0.12.2")
+   api("us.ihmc:ihmc-commons:0.26.6")
+   api("us.ihmc:ihmc-yovariables:0.4.0")
+   api("us.ihmc:mecano:0.0.22")
 }
 
 sharedMemoryDependencies {
-   api("us.ihmc:ihmc-yovariables:0.3.11")
+   api("us.ihmc:ihmc-yovariables:0.4.0")
 }
 
 sessionDependencies {
    api(ihmc.sourceSetProject("definition"))
    api(ihmc.sourceSetProject("shared-memory"))
 
-   api("us.ihmc:ihmc-messager:0.1.2")
+   api("us.ihmc:ihmc-messager:0.1.3")
 }
 
 simulationDependencies {
    api(ihmc.sourceSetProject("definition"))
    api(ihmc.sourceSetProject("shared-memory"))
    api(ihmc.sourceSetProject("session"))
-   api("us.ihmc:euclid-shape:0.12.1")
+   api("us.ihmc:euclid-shape:0.12.2")
    api("us.ihmc:ihmc-messager:0.1.3")
-   api("us.ihmc:mecano-yovariables:0.0.20")
+   api("us.ihmc:mecano-yovariables:0.0.22")
 }
 
 sessionVisualizerDependencies {
    api(ihmc.sourceSetProject("simulation"))
    api(ihmc.sourceSetProject("session"))
 
-   compile("us.ihmc:ihmc-javafx-toolkit:0.12.11") {
+   compile("us.ihmc:ihmc-javafx-toolkit:0.13.0") {
       exclude(group="us.ihmc", module="jassimp")
    }
-   api("us.ihmc:ihmc-graphics-description:0.12.13")
-   api("us.ihmc:IHMCVideoCodecs:2.1.3")
-   api("us.ihmc:ihmc-robot-data-logger:0.13.0")
+   api("us.ihmc:ihmc-graphics-description:0.13.0")
+   api("us.ihmc:IHMCVideoCodecs:2.1.5")
+   api("us.ihmc:ihmc-robot-data-logger:0.14.0")
    api("us.ihmc:svgloader:0.0")
    api("us.ihmc:ihmc-javafx-extensions:0.0")
 
