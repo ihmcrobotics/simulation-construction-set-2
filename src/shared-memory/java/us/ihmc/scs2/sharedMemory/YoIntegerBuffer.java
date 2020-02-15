@@ -6,16 +6,19 @@ import us.ihmc.yoVariables.variable.YoInteger;
 
 public class YoIntegerBuffer extends YoVariableBuffer<YoInteger>
 {
-   private int[] buffer = new int[0];
+   private int[] buffer;
 
    public YoIntegerBuffer(YoInteger yoInteger, YoBufferPropertiesReadOnly properties)
    {
       super(yoInteger, properties);
+      buffer = new int[properties.getSize()];
    }
 
    @Override
    public void resizeBuffer(int from, int length)
    {
+      if (from == 0 && length == buffer.length)
+         return;
       buffer = BufferTools.ringArrayCopy(buffer, from, length);
    }
 
@@ -41,5 +44,10 @@ public class YoIntegerBuffer extends YoVariableBuffer<YoInteger>
    LinkedYoInteger newLinkedYoVariable(YoInteger variableToLink)
    {
       return new LinkedYoInteger(variableToLink, this);
+   }
+
+   int[] getBuffer()
+   {
+      return buffer;
    }
 }

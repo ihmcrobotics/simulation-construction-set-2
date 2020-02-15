@@ -2,13 +2,11 @@ package us.ihmc.scs2.sharedMemory.tools;
 
 import java.util.Random;
 
-import us.ihmc.scs2.sharedMemory.YoBooleanBuffer;
-import us.ihmc.scs2.sharedMemory.YoBufferProperties;
-import us.ihmc.scs2.sharedMemory.YoDoubleBuffer;
-import us.ihmc.scs2.sharedMemory.YoVariableBuffer;
+import us.ihmc.scs2.sharedMemory.*;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoInteger;
 
 public class YoBufferRandomTools
 {
@@ -40,6 +38,16 @@ public class YoBufferRandomTools
       YoDouble yoDouble = YoRandomTools.nextYoDouble(random, registry);
       YoBufferProperties properties = nextYoBufferProperties(random);
       YoDoubleBuffer next = new YoDoubleBuffer(yoDouble, properties);
+      randomizeYoVariableBuffer(random, properties, next);
+
+      return next;
+   }
+
+   public static YoIntegerBuffer nextYoIntegerBuffer(Random random, YoVariableRegistry registry)
+   {
+      YoInteger yoInteger = YoRandomTools.nextYoInteger(random, registry);
+      YoBufferProperties properties = nextYoBufferProperties(random);
+      YoIntegerBuffer next = new YoIntegerBuffer(yoInteger, properties);
       randomizeYoVariableBuffer(random, properties, next);
 
       return next;
