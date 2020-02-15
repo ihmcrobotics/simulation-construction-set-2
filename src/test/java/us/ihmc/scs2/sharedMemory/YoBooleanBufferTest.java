@@ -137,7 +137,7 @@ public class YoBooleanBufferTest
          assertEquals(length, actualCopy.getSampleLength());
          assertEquals(yoBooleanBuffer.getProperties().getSize(), actualCopy.getBufferSize());
          int to = from + length;
-         if (to > yoBooleanBuffer.getProperties().getSize())
+         if (to >= yoBooleanBuffer.getProperties().getSize())
             to -= yoBooleanBuffer.getProperties().getSize();
          assertEquals(to, actualCopy.getTo());
          assertArrayEquals(expectedCopy, actualCopy.getSample());

@@ -4,9 +4,11 @@ import java.util.Random;
 
 import us.ihmc.scs2.sharedMemory.YoBooleanBuffer;
 import us.ihmc.scs2.sharedMemory.YoBufferProperties;
+import us.ihmc.scs2.sharedMemory.YoDoubleBuffer;
 import us.ihmc.scs2.sharedMemory.YoVariableBuffer;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 public class YoBufferRandomTools
 {
@@ -28,6 +30,16 @@ public class YoBufferRandomTools
       YoBoolean yoBoolean = YoRandomTools.nextYoBoolean(random, registry);
       YoBufferProperties properties = nextYoBufferProperties(random);
       YoBooleanBuffer next = new YoBooleanBuffer(yoBoolean, properties);
+      randomizeYoVariableBuffer(random, properties, next);
+
+      return next;
+   }
+
+   public static YoDoubleBuffer nextYoDoubleBuffer(Random random, YoVariableRegistry registry)
+   {
+      YoDouble yoDouble = YoRandomTools.nextYoDouble(random, registry);
+      YoBufferProperties properties = nextYoBufferProperties(random);
+      YoDoubleBuffer next = new YoDoubleBuffer(yoDouble, properties);
       randomizeYoVariableBuffer(random, properties, next);
 
       return next;

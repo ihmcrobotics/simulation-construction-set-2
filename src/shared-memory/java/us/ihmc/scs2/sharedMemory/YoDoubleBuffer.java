@@ -6,16 +6,19 @@ import us.ihmc.yoVariables.variable.YoDouble;
 
 public class YoDoubleBuffer extends YoVariableBuffer<YoDouble>
 {
-   private double[] buffer = new double[0];
+   private double[] buffer;
 
    public YoDoubleBuffer(YoDouble yoDouble, YoBufferPropertiesReadOnly properties)
    {
       super(yoDouble, properties);
+      buffer = new double[properties.getSize()];
    }
 
    @Override
    public void resizeBuffer(int from, int length)
    {
+      if (from == 0 && length == buffer.length)
+         return;
       buffer = BufferTools.ringArrayCopy(buffer, from, length);
    }
 
@@ -41,5 +44,10 @@ public class YoDoubleBuffer extends YoVariableBuffer<YoDouble>
    LinkedYoDouble newLinkedYoVariable(YoDouble variableToLink)
    {
       return new LinkedYoDouble(variableToLink, this);
+   }
+
+   double[] getBuffer()
+   {
+      return buffer;
    }
 }
