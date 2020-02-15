@@ -30,7 +30,7 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
 
    public void cropBuffer(CropBufferRequest request)
    {
-      int newSize = request.getSize(properties.getSize());
+      int newSize = request.getCroppedSize(properties.getSize());
       registryBuffer.resizeBuffer(request.getFrom(), newSize);
       properties.setSize(newSize);
       properties.setInPointIndex(0);

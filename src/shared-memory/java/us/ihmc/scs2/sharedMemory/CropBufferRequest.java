@@ -1,34 +1,64 @@
 package us.ihmc.scs2.sharedMemory;
 
-public interface CropBufferRequest
+public class CropBufferRequest
 {
-   int getFrom();
+   private final int from, to;
 
-   int getTo();
-
-   default int getSize(int originalBufferSize)
+   public CropBufferRequest(int from, int to)
    {
-      if (getFrom() <= getTo())
-         return getTo() - getFrom() + 1;
-      else
-         return originalBufferSize;
+      this.from = from;
+      this.to = to;
    }
 
-   public static CropBufferRequest toCropBufferRequest(int from, int to)
+   public CropBufferRequest(CropBufferRequest other)
    {
-      return new CropBufferRequest()
-      {
-         @Override
-         public int getFrom()
-         {
-            return from;
-         }
+      this.from = other.from;
+      this.to = other.to;
+   }
 
-         @Override
-         public int getTo()
-         {
-            return to;
-         }
-      };
+   public int getFrom()
+   {
+      return from;
+   }
+
+   public int getTo()
+   {
+      return to;
+   }
+
+   public int getCroppedSize(int originalBufferSize)
+   {
+      int length = getTo() - getFrom() + 1;
+      if (length <= 0)
+         length += originalBufferSize;
+      return length;
+   }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      if (object == this)
+      {
+         return true;
+      }
+      else if (object instanceof CropBufferRequest)
+      {
+         CropBufferRequest other = (CropBufferRequest) object;
+         if (from != other.from)
+            return false;
+         if (to != other.to)
+            return false;
+         return true;
+      }
+      else
+      {
+         return false;
+      }
+   }
+
+   @Override
+   public String toString()
+   {
+      return "from: " + from + ", to: " + to;
    }
 }
