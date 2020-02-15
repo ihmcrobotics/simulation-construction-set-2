@@ -545,7 +545,7 @@ public class YoBufferPropertiesTest
          assertTrue(testProperties.equals(properties1));
          assertTrue(properties1.equals(properties2));
          assertTrue(properties1.equals((YoBufferPropertiesReadOnly) properties2));
-         assertFalse(properties1.equals(properties1));
+         assertTrue(properties1.equals(properties1));
          assertFalse(properties1.equals(null));
          assertFalse(properties1.equals(new ArrayList<>()));
 
