@@ -4,10 +4,7 @@ import java.util.Random;
 
 import us.ihmc.scs2.sharedMemory.*;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
-import us.ihmc.yoVariables.variable.YoBoolean;
-import us.ihmc.yoVariables.variable.YoDouble;
-import us.ihmc.yoVariables.variable.YoInteger;
-import us.ihmc.yoVariables.variable.YoLong;
+import us.ihmc.yoVariables.variable.*;
 
 public class YoBufferRandomTools
 {
@@ -59,6 +56,16 @@ public class YoBufferRandomTools
       YoLong yoLong = YoRandomTools.nextYoLong(random, registry);
       YoBufferProperties properties = nextYoBufferProperties(random);
       YoLongBuffer next = new YoLongBuffer(yoLong, properties);
+      randomizeYoVariableBuffer(random, properties, next);
+
+      return next;
+   }
+
+   public static YoEnumBuffer<?> nextYoEnumBuffer(Random random, YoVariableRegistry registry)
+   {
+      YoEnum<?> yoEnum = YoRandomTools.nextYoEnum(random, registry);
+      YoBufferProperties properties = nextYoBufferProperties(random);
+      YoEnumBuffer<?> next = new YoEnumBuffer<>(yoEnum, properties);
       randomizeYoVariableBuffer(random, properties, next);
 
       return next;
