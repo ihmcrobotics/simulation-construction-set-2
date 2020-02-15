@@ -3,12 +3,7 @@ package us.ihmc.scs2.sharedMemory;
 import java.util.Objects;
 
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.yoVariables.variable.YoBoolean;
-import us.ihmc.yoVariables.variable.YoDouble;
-import us.ihmc.yoVariables.variable.YoEnum;
-import us.ihmc.yoVariables.variable.YoInteger;
-import us.ihmc.yoVariables.variable.YoLong;
-import us.ihmc.yoVariables.variable.YoVariable;
+import us.ihmc.yoVariables.variable.*;
 
 public abstract class LinkedYoVariable<T extends YoVariable<T>> extends LinkedBuffer
 {
@@ -133,9 +128,9 @@ public abstract class LinkedYoVariable<T extends YoVariable<T>> extends LinkedBu
             {
                from = currentBufferProperties.getInPoint();
                length = currentBufferProperties.getActiveBufferLength();
-               
-            if (length <= 0)
-               return;
+
+               if (length <= 0)
+                  return;
             }
          }
 
@@ -195,5 +190,10 @@ public abstract class LinkedYoVariable<T extends YoVariable<T>> extends LinkedBu
    public T getLinkedYoVariable()
    {
       return linkedYoVariable;
+   }
+
+   YoVariableBuffer<T> getBuffer()
+   {
+      return buffer;
    }
 }

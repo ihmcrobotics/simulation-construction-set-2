@@ -145,7 +145,7 @@ public class YoRandomTools
    {
       String description = random.nextBoolean() ? null : nextString(random, 0, 50);
       YoBoolean next = new YoBoolean(name, description, registry);
-      next.set(random.nextBoolean());
+      randomizeYoBoolean(random, next);
       return next;
    }
 
@@ -158,7 +158,7 @@ public class YoRandomTools
    {
       String description = random.nextBoolean() ? null : nextString(random, 0, 50);
       YoDouble next = new YoDouble(name, description, registry);
-      next.set(EuclidCoreRandomTools.nextDouble(random, 1000.0));
+      randomizeYoDouble(random, next);
       return next;
    }
 
@@ -171,7 +171,7 @@ public class YoRandomTools
    {
       String description = random.nextBoolean() ? null : nextString(random, 0, 50);
       YoInteger next = new YoInteger(name, description, registry);
-      next.set(RandomNumbers.nextInt(random, -100000, 100000));
+      randomizeYoInteger(random, next);
       return next;
    }
 
@@ -184,7 +184,7 @@ public class YoRandomTools
    {
       String description = random.nextBoolean() ? null : nextString(random, 0, 50);
       YoLong next = new YoLong(name, description, registry);
-      next.set(RandomNumbers.nextInt(random, -100000, 100000));
+      randomizeYoLong(random, next);
       return next;
    }
 
@@ -207,18 +207,51 @@ public class YoRandomTools
    public static <E extends Enum<E>> YoEnum<E> nextYoEnum(Random random, String name, Class<E> enumType, YoVariableRegistry registry)
    {
       String description = random.nextBoolean() ? null : nextString(random, 0, 50);
-      boolean allowNullValue = random.nextBoolean();
-      YoEnum<E> next = new YoEnum<>(name, description, registry, enumType, allowNullValue);
-      if (allowNullValue)
-      {
-         int ordinal = random.nextInt(enumType.getEnumConstants().length + 1) - 1;
-         next.set(ordinal);
-      }
-      else
-      {
-         next.set(random.nextInt(enumType.getEnumConstants().length));
-      }
+      YoEnum<E> next = new YoEnum<>(name, description, registry, enumType, random.nextBoolean());
+      randomizeYoEnum(random, next);
       return next;
+   }
+
+   public static void randomizeYoVariable(Random random, YoVariable<?> yoVariable)
+   {
+      if (yoVariable instanceof YoBoolean)
+         randomizeYoBoolean(random, (YoBoolean) yoVariable);
+      else if (yoVariable instanceof YoDouble)
+         randomizeYoDouble(random, (YoDouble) yoVariable);
+      else if (yoVariable instanceof YoInteger)
+         randomizeYoInteger(random, (YoInteger) yoVariable);
+      else if (yoVariable instanceof YoLong)
+         randomizeYoLong(random, (YoLong) yoVariable);
+      else if (yoVariable instanceof YoEnum)
+         randomizeYoEnum(random, (YoEnum<?>) yoVariable);
+   }
+
+   public static void randomizeYoBoolean(Random random, YoBoolean yoBoolean)
+   {
+      yoBoolean.set(random.nextBoolean());
+   }
+
+   public static void randomizeYoDouble(Random random, YoDouble yoDouble)
+   {
+      yoDouble.set(EuclidCoreRandomTools.nextDouble(random, 1000.0));
+   }
+
+   public static void randomizeYoInteger(Random random, YoInteger yoInteger)
+   {
+      yoInteger.set(RandomNumbers.nextInt(random, -100000, 100000));
+   }
+
+   public static void randomizeYoLong(Random random, YoLong yoLong)
+   {
+      yoLong.set(RandomNumbers.nextInt(random, -100000, 100000));
+   }
+
+   public static void randomizeYoEnum(Random random, YoEnum<?> yoEnum)
+   {
+      if (yoEnum.getAllowNullValue())
+         yoEnum.set(random.nextInt(yoEnum.getEnumSize() + 1) - 1);
+      else
+         yoEnum.set(random.nextInt(yoEnum.getEnumSize()));
    }
 
    public static YoVariableRegistry nextYoVariableRegistry(Random random, int numberOfVariables)

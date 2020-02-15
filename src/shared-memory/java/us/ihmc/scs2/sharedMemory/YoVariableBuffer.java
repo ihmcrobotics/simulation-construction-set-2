@@ -45,6 +45,11 @@ public abstract class YoVariableBuffer<T extends YoVariable<T>>
       return yoVariable;
    }
 
+   YoBufferPropertiesReadOnly getProperties()
+   {
+      return properties;
+   }
+
    @SuppressWarnings("rawtypes")
    public abstract BufferSample copy(int from, int length);
 

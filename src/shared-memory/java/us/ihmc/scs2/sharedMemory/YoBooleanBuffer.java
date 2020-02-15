@@ -6,16 +6,19 @@ import us.ihmc.yoVariables.variable.YoBoolean;
 
 public class YoBooleanBuffer extends YoVariableBuffer<YoBoolean>
 {
-   private boolean[] buffer = new boolean[0];
+   private boolean[] buffer;
 
    public YoBooleanBuffer(YoBoolean yoBoolean, YoBufferPropertiesReadOnly properties)
    {
       super(yoBoolean, properties);
+      buffer = new boolean[properties.getSize()];
    }
 
    @Override
    public void resizeBuffer(int from, int length)
    {
+      if (from == 0 && length == buffer.length)
+         return;
       buffer = BufferTools.ringArrayCopy(buffer, from, length);
    }
 
@@ -41,5 +44,10 @@ public class YoBooleanBuffer extends YoVariableBuffer<YoBoolean>
    LinkedYoBoolean newLinkedYoVariable(YoBoolean variableToLink)
    {
       return new LinkedYoBoolean(variableToLink, this);
+   }
+
+   boolean[] getBuffer()
+   {
+      return buffer;
    }
 }

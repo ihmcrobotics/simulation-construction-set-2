@@ -2,7 +2,11 @@ package us.ihmc.scs2.sharedMemory.tools;
 
 import java.util.Random;
 
+import us.ihmc.scs2.sharedMemory.YoBooleanBuffer;
 import us.ihmc.scs2.sharedMemory.YoBufferProperties;
+import us.ihmc.scs2.sharedMemory.YoVariableBuffer;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
 
 public class YoBufferRandomTools
 {
@@ -17,5 +21,29 @@ public class YoBufferRandomTools
       next.setInPointIndex(random.nextInt(size));
       next.setOutPointIndex(random.nextInt(size));
       return next;
+   }
+
+   public static YoBooleanBuffer nextYoBooleanBuffer(Random random, YoVariableRegistry registry)
+   {
+      YoBoolean yoBoolean = YoRandomTools.nextYoBoolean(random, registry);
+      YoBufferProperties properties = nextYoBufferProperties(random);
+      YoBooleanBuffer next = new YoBooleanBuffer(yoBoolean, properties);
+      randomizeYoVariableBuffer(random, properties, next);
+
+      return next;
+   }
+
+   public static void randomizeYoVariableBuffer(Random random, YoBufferProperties bufferProperties, YoVariableBuffer<?> yoVariableBuffer)
+   {
+      int originalIndex = bufferProperties.getCurrentIndex();
+
+      for (int i = 0; i < bufferProperties.getSize(); i++)
+      {
+         YoRandomTools.randomizeYoVariable(random, yoVariableBuffer.getYoVariable());
+         bufferProperties.setCurrentIndexUnsafe(i);
+         yoVariableBuffer.writeBuffer();
+      }
+
+      bufferProperties.setCurrentIndexUnsafe(originalIndex);
    }
 }
