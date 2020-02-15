@@ -11,6 +11,12 @@ public class BufferSampleRequest
       this.length = length;
    }
 
+   public BufferSampleRequest(BufferSampleRequest other)
+   {
+      this.from = other.from;
+      this.length = other.length;
+   }
+
    public int getFrom()
    {
       return from;
@@ -19,5 +25,33 @@ public class BufferSampleRequest
    public int getLength()
    {
       return length;
+   }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      if (object == this)
+      {
+         return true;
+      }
+      else if (object instanceof BufferSampleRequest)
+      {
+         BufferSampleRequest other = (BufferSampleRequest) object;
+         if (from != other.from)
+            return false;
+         if (length != other.length)
+            return false;
+         return true;
+      }
+      else
+      {
+         return false;
+      }
+   }
+
+   @Override
+   public String toString()
+   {
+      return "from " + from + ", length " + length;
    }
 }
