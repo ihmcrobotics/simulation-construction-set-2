@@ -12,15 +12,17 @@ public interface YoBufferPropertiesReadOnly
 
    default int getActiveBufferLength()
    {
-      if (getInPoint() <= getOutPoint())
-         return getOutPoint() - getInPoint() + 1;
-      else
-         return getSize();
+      int length = getOutPoint() - getInPoint() + 1;
+      if (length <= 0)
+         length += getSize();
+      return length;
    }
 
    default boolean isIndexBetweenBounds(int indexToCheck)
    {
-      if (getInPoint() <= getOutPoint())
+      if (indexToCheck < 0 || indexToCheck >= getSize())
+         return false;
+      else if (getInPoint() <= getOutPoint())
          return indexToCheck >= getInPoint() && indexToCheck <= getOutPoint();
       else
          return indexToCheck <= getOutPoint() || indexToCheck >= getInPoint();

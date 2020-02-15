@@ -35,7 +35,7 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
       properties.setSize(newSize);
       properties.setInPointIndex(0);
       properties.setOutPointIndex(newSize - 1);
-      properties.setCurrentIndex(0);
+      properties.setCurrentIndexUnsafe(0);
       updateYoVariables();
    }
 
@@ -73,7 +73,7 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
       properties.setSize(newSize);
       properties.setInPointIndex(newInPoint);
       properties.setOutPointIndex(newOutPoint);
-      properties.setCurrentIndex(newCurrentIndex);
+      properties.setCurrentIndexUnsafe(newCurrentIndex);
       return true;
    }
 
@@ -92,7 +92,7 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
 
    public boolean setCurrentIndex(int newIndex)
    {
-      boolean hasChanged = properties.setCurrentIndexSafe(newIndex);
+      boolean hasChanged = properties.setCurrentIndex(newIndex);
       if (hasChanged)
          updateYoVariables();
       return hasChanged;

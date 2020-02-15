@@ -17,7 +17,12 @@ public class YoBufferProperties implements YoBufferPropertiesReadOnly
    public YoBufferProperties(int index, int size)
    {
       setSize(size);
-      setCurrentIndex(index);
+      setCurrentIndexUnsafe(index);
+   }
+
+   public YoBufferProperties(YoBufferPropertiesReadOnly other)
+   {
+      set(other);
    }
 
    @Override
@@ -65,6 +70,17 @@ public class YoBufferProperties implements YoBufferPropertiesReadOnly
       return currentIndex;
    }
 
+   public int decrementIndex()
+   {
+      currentIndex = decrement(currentIndex);
+
+      if (!isIndexBetweenBounds(currentIndex))
+      { // The current index has to remain within the bounds when reading.
+         currentIndex = outPoint;
+      }
+      return currentIndex;
+   }
+
    public int incrementIndex(boolean updateBufferBounds, int stepSize)
    {
       if (stepSize < 0)
@@ -78,15 +94,22 @@ public class YoBufferProperties implements YoBufferPropertiesReadOnly
    public int decrementIndex(int stepSize)
    {
       if (stepSize < 0)
-         return incrementIndex(false, stepSize);
-      
-      currentIndex -= stepSize;
-      if (!isIndexBetweenBounds(currentIndex))
-         currentIndex = outPoint;
+         return incrementIndex(false, -stepSize);
+
+      for (int i = 0; i < stepSize; i++)
+         decrementIndex();
       return currentIndex;
    }
 
-   public boolean setCurrentIndexSafe(int newCurrentIndex)
+   public void set(YoBufferPropertiesReadOnly other)
+   {
+      inPoint = other.getInPoint();
+      outPoint = other.getOutPoint();
+      currentIndex = other.getCurrentIndex();
+      size = other.getSize();
+   }
+
+   public boolean setCurrentIndex(int newCurrentIndex)
    {
       if (newCurrentIndex < 0 || newCurrentIndex >= size || newCurrentIndex == currentIndex)
          return false;
@@ -94,13 +117,15 @@ public class YoBufferProperties implements YoBufferPropertiesReadOnly
       return true;
    }
 
-   public void setCurrentIndex(int currentIndex)
+   public void setCurrentIndexUnsafe(int currentIndex)
    {
       this.currentIndex = currentIndex;
    }
 
    public void setSize(int size)
    {
+      if (size <= 0)
+         throw new IllegalArgumentException("Buffer size has to be strictly greater than 0.");
       this.size = size;
    }
 
@@ -128,6 +153,38 @@ public class YoBufferProperties implements YoBufferPropertiesReadOnly
    private int increment(int index, int stepSize)
    {
       index += stepSize;
-      return index >= size ? 0 : index;
+      if (index >= size)
+         index -= size;
+      return index;
+   }
+
+   private int decrement(int index)
+   {
+      return decrement(index, 1);
+   }
+
+   private int decrement(int index, int stepSize)
+   {
+      index -= stepSize;
+      if (index < 0)
+         index += size;
+      return index;
+   }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      if (object == this)
+         return true;
+      else if (object instanceof YoBufferPropertiesReadOnly)
+         return equals((YoBufferPropertiesReadOnly) object);
+      else
+         return false;
+   }
+
+   @Override
+   public String toString()
+   {
+      return "Size " + size + ", index " + currentIndex + ", in-point " + inPoint + ", out-point " + outPoint;
    }
 }
