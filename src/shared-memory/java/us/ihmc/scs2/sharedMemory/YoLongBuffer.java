@@ -6,16 +6,19 @@ import us.ihmc.yoVariables.variable.YoLong;
 
 public class YoLongBuffer extends YoVariableBuffer<YoLong>
 {
-   private long[] buffer = new long[0];
+   private long[] buffer;
 
    public YoLongBuffer(YoLong yoLong, YoBufferPropertiesReadOnly properties)
    {
       super(yoLong, properties);
+      buffer = new long[properties.getSize()];
    }
 
    @Override
    public void resizeBuffer(int from, int length)
    {
+      if (from == 0 && length == buffer.length)
+         return;
       buffer = BufferTools.ringArrayCopy(buffer, from, length);
    }
 
@@ -41,5 +44,10 @@ public class YoLongBuffer extends YoVariableBuffer<YoLong>
    LinkedYoLong newLinkedYoVariable(YoLong variableToLink)
    {
       return new LinkedYoLong(variableToLink, this);
+   }
+
+   long[] getBuffer()
+   {
+      return buffer;
    }
 }

@@ -7,6 +7,7 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoInteger;
+import us.ihmc.yoVariables.variable.YoLong;
 
 public class YoBufferRandomTools
 {
@@ -48,6 +49,16 @@ public class YoBufferRandomTools
       YoInteger yoInteger = YoRandomTools.nextYoInteger(random, registry);
       YoBufferProperties properties = nextYoBufferProperties(random);
       YoIntegerBuffer next = new YoIntegerBuffer(yoInteger, properties);
+      randomizeYoVariableBuffer(random, properties, next);
+
+      return next;
+   }
+
+   public static YoLongBuffer nextYoLongBuffer(Random random, YoVariableRegistry registry)
+   {
+      YoLong yoLong = YoRandomTools.nextYoLong(random, registry);
+      YoBufferProperties properties = nextYoBufferProperties(random);
+      YoLongBuffer next = new YoLongBuffer(yoLong, properties);
       randomizeYoVariableBuffer(random, properties, next);
 
       return next;
