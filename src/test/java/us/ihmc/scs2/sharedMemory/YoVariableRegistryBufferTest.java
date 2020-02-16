@@ -162,7 +162,7 @@ public class YoVariableRegistryBufferTest
          for (int j = 0; j < 10; j++)
          {
             allYoVariableBuffers.forEach(b -> randomizeBuffer(random, bufferProperties.getCurrentIndex(), b));
-            yoVariableRegistryBuffer.writeBuffer();
+            yoVariableRegistryBuffer.readBuffer();
             for (YoVariable<?> yoVariable : allYoVariables)
             {
                assertBufferCurrentValueEquals(bufferProperties.getCurrentIndex(), yoVariable, yoVariableRegistryBuffer.findYoVariableBuffer(yoVariable));
