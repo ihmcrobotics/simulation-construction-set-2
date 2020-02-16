@@ -294,9 +294,15 @@ public class YoRandomTools
 
    public static YoVariableRegistry[] nextYoVariableRegistryTree(Random random, String namePrefix, int maxNumberOfVariablesPerRegistry, int numberOfRegistries)
    {
-      YoVariableRegistry root = nextYoVariableRegistry(random, namePrefix + "0", random.nextInt(maxNumberOfVariablesPerRegistry + 1));
+      return nextYoVariableRegistryTree(random, new YoVariableRegistry(namePrefix + "0"), namePrefix, maxNumberOfVariablesPerRegistry, numberOfRegistries);
+   }
+
+   public static YoVariableRegistry[] nextYoVariableRegistryTree(Random random, YoVariableRegistry rootRegistry, String namePrefix,
+                                                                 int maxNumberOfVariablesPerRegistry, int numberOfRegistries)
+   {
+      nextYoVariables(random, namePrefix, maxNumberOfVariablesPerRegistry, rootRegistry);
       YoVariableRegistry[] registries = new YoVariableRegistry[numberOfRegistries];
-      registries[0] = root;
+      registries[0] = rootRegistry;
 
       for (int i = 1; i < numberOfRegistries; i++)
       {
