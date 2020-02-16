@@ -22,6 +22,6 @@ public class BooleanPushRequest implements PushRequest<YoBoolean>
    @Override
    public boolean isPushNecessary()
    {
-      return valueToPush != buffer.getYoVariable().getBooleanValue();
+      return valueToPush != buffer.getYoVariable().getValue();
    }
 }

@@ -22,6 +22,6 @@ public class LongPushRequest implements PushRequest<YoLong>
    @Override
    public boolean isPushNecessary()
    {
-      return valueToPush != buffer.getYoVariable().getLongValue();
+      return valueToPush != buffer.getYoVariable().getValue();
    }
 }

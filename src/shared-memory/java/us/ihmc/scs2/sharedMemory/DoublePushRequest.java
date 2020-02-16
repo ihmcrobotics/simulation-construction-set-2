@@ -22,6 +22,6 @@ public class DoublePushRequest implements PushRequest<YoDouble>
    @Override
    public boolean isPushNecessary()
    {
-      return valueToPush != buffer.getYoVariable().getDoubleValue();
+      return valueToPush != buffer.getYoVariable().getValue();
    }
 }

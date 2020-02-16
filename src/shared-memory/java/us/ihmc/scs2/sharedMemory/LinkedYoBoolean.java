@@ -22,13 +22,13 @@ public class LinkedYoBoolean extends LinkedYoVariable<YoBoolean>
    @Override
    BooleanPullRequest toPullRequest()
    {
-      return new BooleanPullRequest(linkedYoVariable, buffer.getYoVariable().getBooleanValue());
+      return new BooleanPullRequest(linkedYoVariable, buffer.getYoVariable().getValue());
    }
 
    @Override
    protected BooleanPushRequest toPushRequest()
    {
-      return new BooleanPushRequest(linkedYoVariable.getBooleanValue(), buffer);
+      return new BooleanPushRequest(linkedYoVariable.getValue(), buffer);
    }
 
    @Override

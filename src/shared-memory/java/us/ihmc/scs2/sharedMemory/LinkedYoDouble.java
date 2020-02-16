@@ -22,13 +22,13 @@ public class LinkedYoDouble extends LinkedYoVariable<YoDouble>
    @Override
    DoublePullRequest toPullRequest()
    {
-      return new DoublePullRequest(linkedYoVariable, buffer.getYoVariable().getDoubleValue());
+      return new DoublePullRequest(linkedYoVariable, buffer.getYoVariable().getValue());
    }
 
    @Override
    protected DoublePushRequest toPushRequest()
    {
-      return new DoublePushRequest(linkedYoVariable.getDoubleValue(), buffer);
+      return new DoublePushRequest(linkedYoVariable.getValue(), buffer);
    }
 
    @Override

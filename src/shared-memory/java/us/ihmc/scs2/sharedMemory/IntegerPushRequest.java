@@ -22,6 +22,6 @@ public class IntegerPushRequest implements PushRequest<YoInteger>
    @Override
    public boolean isPushNecessary()
    {
-      return valueToPush != buffer.getYoVariable().getIntegerValue();
+      return valueToPush != buffer.getYoVariable().getValue();
    }
 }

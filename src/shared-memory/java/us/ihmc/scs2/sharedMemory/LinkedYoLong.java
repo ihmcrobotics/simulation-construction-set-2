@@ -22,13 +22,13 @@ public class LinkedYoLong extends LinkedYoVariable<YoLong>
    @Override
    LongPullRequest toPullRequest()
    {
-      return new LongPullRequest(linkedYoVariable, buffer.getYoVariable().getLongValue());
+      return new LongPullRequest(linkedYoVariable, buffer.getYoVariable().getValue());
    }
 
    @Override
    protected LongPushRequest toPushRequest()
    {
-      return new LongPushRequest(linkedYoVariable.getLongValue(), buffer);
+      return new LongPushRequest(linkedYoVariable.getValue(), buffer);
    }
 
    @Override

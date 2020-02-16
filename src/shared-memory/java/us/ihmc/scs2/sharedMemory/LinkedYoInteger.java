@@ -22,13 +22,13 @@ public class LinkedYoInteger extends LinkedYoVariable<YoInteger>
    @Override
    IntegerPullRequest toPullRequest()
    {
-      return new IntegerPullRequest(linkedYoVariable, buffer.getYoVariable().getIntegerValue());
+      return new IntegerPullRequest(linkedYoVariable, buffer.getYoVariable().getValue());
    }
 
    @Override
    protected IntegerPushRequest toPushRequest()
    {
-      return new IntegerPushRequest(linkedYoVariable.getIntegerValue(), buffer);
+      return new IntegerPushRequest(linkedYoVariable.getValue(), buffer);
    }
 
    @Override
