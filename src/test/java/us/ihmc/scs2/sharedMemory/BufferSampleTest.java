@@ -44,7 +44,7 @@ public class BufferSampleTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         int bufferSize = random.nextInt(100000);
+         int bufferSize = random.nextInt(1000);
          int from = random.nextInt(bufferSize);
          int sampleLength = random.nextInt(bufferSize);
 

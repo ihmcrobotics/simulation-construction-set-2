@@ -57,7 +57,7 @@ public class YoBufferPropertiesTest
 
       for (int i = 0; i < ITERATIONS; i++)
       { // Test incrementIndex(updateBufferBounds == false)
-         int size = random.nextInt(1000000);
+         int size = random.nextInt(10000) + 1;
          int inPoint = random.nextInt(size);
          int index = random.nextInt(size);
          int outPoint = random.nextInt(size);
@@ -72,7 +72,9 @@ public class YoBufferPropertiesTest
          assertEquals(inPoint, properties.getInPoint());
          assertEquals(outPoint, properties.getOutPoint());
 
-         if (properties.isIndexBetweenBounds(index) && properties.isIndexBetweenBounds(index + 1))
+         if (index == size - 1 && properties.isIndexBetweenBounds(0))
+            assertEquals(0, newIndex);
+         else if (properties.isIndexBetweenBounds(index) && properties.isIndexBetweenBounds(index + 1))
             assertEquals(index + 1, newIndex);
          else
             assertEquals(inPoint, newIndex);
@@ -93,7 +95,7 @@ public class YoBufferPropertiesTest
 
       for (int i = 0; i < ITERATIONS; i++)
       { // Test incrementIndex(updateBufferBounds == true)
-         int size = random.nextInt(1000000);
+         int size = random.nextInt(10000) + 2;
          int inPoint = random.nextInt(size);
          int outPoint = random.nextInt(size);
          int index = random.nextInt(size);
@@ -112,7 +114,7 @@ public class YoBufferPropertiesTest
          if (inPoint != newIndex)
             assertEquals(inPoint, properties.getInPoint(), messagePrefix);
          else
-            assertEquals(inPoint + 1, properties.getInPoint(), messagePrefix);
+            assertEquals((inPoint + 1) % size, properties.getInPoint(), messagePrefix);
 
          if (index < size - 1)
             assertEquals(index + 1, newIndex, messagePrefix);
@@ -122,7 +124,7 @@ public class YoBufferPropertiesTest
 
       for (int i = 0; i < ITERATIONS; i++)
       { // Test incrementIndex(updateBufferBounds, stepSize > 0)
-         int size = random.nextInt(1000000);
+         int size = random.nextInt(10000) + 1;
          int inPoint = random.nextInt(size);
          int index = random.nextInt(size);
          int outPoint = random.nextInt(size);
@@ -144,7 +146,7 @@ public class YoBufferPropertiesTest
 
       for (int i = 0; i < ITERATIONS; i++)
       { // Test incrementIndex(updateBufferBounds, stepSize < 0)
-         int size = random.nextInt(1000000);
+         int size = random.nextInt(10000) + 1;
          int inPoint = random.nextInt(size);
          int index = random.nextInt(size);
          int outPoint = random.nextInt(size);
@@ -172,7 +174,7 @@ public class YoBufferPropertiesTest
 
       for (int i = 0; i < ITERATIONS; i++)
       { // Test decrementIndex()
-         int size = random.nextInt(1000000);
+         int size = random.nextInt(10000) + 1;
          int inPoint = random.nextInt(size);
          int index = random.nextInt(size);
          int outPoint = random.nextInt(size);
@@ -210,7 +212,7 @@ public class YoBufferPropertiesTest
 
       for (int i = 0; i < ITERATIONS; i++)
       { // Test decrementIndex(stepSize > 0)
-         int size = random.nextInt(1000000);
+         int size = random.nextInt(10000) + 1;
          int inPoint = random.nextInt(size);
          int index = random.nextInt(size);
          int outPoint = random.nextInt(size);
@@ -231,7 +233,7 @@ public class YoBufferPropertiesTest
 
       for (int i = 0; i < ITERATIONS; i++)
       { // Test decrementIndex(stepSize < 0)
-         int size = random.nextInt(1000000);
+         int size = random.nextInt(10000) + 1;
          int inPoint = random.nextInt(size);
          int index = random.nextInt(size);
          int outPoint = random.nextInt(size);
@@ -324,8 +326,6 @@ public class YoBufferPropertiesTest
          assertEquals(original.getInPoint(), clone.getInPoint());
          assertEquals(original.getOutPoint(), clone.getOutPoint());
 
-         assertThrows(IllegalArgumentException.class, () -> clone.setSize(0));
-         assertThrows(IllegalArgumentException.class, () -> clone.setSize(-1));
          assertThrows(IllegalArgumentException.class, () -> clone.setSize(-random.nextInt(1000)));
       }
    }
@@ -561,7 +561,7 @@ public class YoBufferPropertiesTest
          assertFalse(testProperties.equals(properties1));
          assertFalse(properties1.equals(properties2));
          assertTrue(testProperties.equals(properties2));
-         
+
          testProperties.outPoint--;
          testProperties.currentIndex++;
          properties2.set(testProperties);
