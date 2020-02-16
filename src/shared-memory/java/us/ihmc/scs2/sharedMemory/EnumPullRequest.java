@@ -13,6 +13,7 @@ public class EnumPullRequest<E extends Enum<E>> implements PullRequest<YoEnum<E>
       this.valueToPull = valueToPull;
    }
 
+   @Override
    public void pull()
    {
       variableToUpdate.set(valueToPull);

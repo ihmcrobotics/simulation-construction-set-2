@@ -31,10 +31,11 @@ public class LinkedYoDouble extends LinkedYoVariable<YoDouble>
       return new DoublePushRequest(linkedYoVariable.getDoubleValue(), buffer);
    }
 
+   @Override
    @SuppressWarnings("unchecked")
    public BufferSample<double[]> pollRequestedBufferSample()
    {
-      return (BufferSample<double[]>) super.pollRequestedBufferSample();
+      return super.pollRequestedBufferSample();
    }
 
    @Override

@@ -31,10 +31,11 @@ public class LinkedYoInteger extends LinkedYoVariable<YoInteger>
       return new IntegerPushRequest(linkedYoVariable.getIntegerValue(), buffer);
    }
 
+   @Override
    @SuppressWarnings("unchecked")
    public BufferSample<int[]> pollRequestedBufferSample()
    {
-      return (BufferSample<int[]>) super.pollRequestedBufferSample();
+      return super.pollRequestedBufferSample();
    }
 
    @Override

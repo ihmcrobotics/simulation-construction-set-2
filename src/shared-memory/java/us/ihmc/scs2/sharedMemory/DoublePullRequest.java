@@ -13,6 +13,7 @@ public class DoublePullRequest implements PullRequest<YoDouble>
       this.valueToPull = valueToPull;
    }
 
+   @Override
    public void pull()
    {
       variableToUpdate.set(valueToPull);

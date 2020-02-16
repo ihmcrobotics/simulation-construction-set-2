@@ -1,20 +1,8 @@
 package us.ihmc.scs2.sharedMemory.interfaces;
 
-import us.ihmc.scs2.sharedMemory.LinkedBufferProperties;
-import us.ihmc.scs2.sharedMemory.LinkedYoBoolean;
-import us.ihmc.scs2.sharedMemory.LinkedYoDouble;
-import us.ihmc.scs2.sharedMemory.LinkedYoEnum;
-import us.ihmc.scs2.sharedMemory.LinkedYoInteger;
-import us.ihmc.scs2.sharedMemory.LinkedYoLong;
-import us.ihmc.scs2.sharedMemory.LinkedYoVariable;
-import us.ihmc.scs2.sharedMemory.LinkedYoVariableRegistry;
+import us.ihmc.scs2.sharedMemory.*;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
-import us.ihmc.yoVariables.variable.YoBoolean;
-import us.ihmc.yoVariables.variable.YoDouble;
-import us.ihmc.yoVariables.variable.YoEnum;
-import us.ihmc.yoVariables.variable.YoInteger;
-import us.ihmc.yoVariables.variable.YoLong;
-import us.ihmc.yoVariables.variable.YoVariable;
+import us.ihmc.yoVariables.variable.*;
 
 public interface LinkedYoVariableFactory
 {

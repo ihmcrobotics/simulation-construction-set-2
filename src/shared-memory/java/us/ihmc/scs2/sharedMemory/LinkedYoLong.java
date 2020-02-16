@@ -31,10 +31,11 @@ public class LinkedYoLong extends LinkedYoVariable<YoLong>
       return new LongPushRequest(linkedYoVariable.getLongValue(), buffer);
    }
 
+   @Override
    @SuppressWarnings("unchecked")
    public BufferSample<long[]> pollRequestedBufferSample()
    {
-      return (BufferSample<long[]>) super.pollRequestedBufferSample();
+      return super.pollRequestedBufferSample();
    }
 
    @Override

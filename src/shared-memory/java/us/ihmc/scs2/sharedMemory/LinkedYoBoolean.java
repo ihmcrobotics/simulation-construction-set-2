@@ -31,10 +31,11 @@ public class LinkedYoBoolean extends LinkedYoVariable<YoBoolean>
       return new BooleanPushRequest(linkedYoVariable.getBooleanValue(), buffer);
    }
 
+   @Override
    @SuppressWarnings("unchecked")
    public BufferSample<boolean[]> pollRequestedBufferSample()
    {
-      return (BufferSample<boolean[]>) super.pollRequestedBufferSample();
+      return super.pollRequestedBufferSample();
    }
 
    @Override

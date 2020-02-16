@@ -14,7 +14,9 @@ public class YoMirroredRegistryTools
 {
    public static int duplicateMissingYoVariablesInTarget(YoVariableRegistry original, YoVariableRegistry target)
    {
-      return duplicateMissingYoVariablesInTarget(original, target, yoVariable -> {});
+      return duplicateMissingYoVariablesInTarget(original, target, yoVariable ->
+      {
+      });
    }
 
    public static int duplicateMissingYoVariablesInTarget(YoVariableRegistry original, YoVariableRegistry target, Consumer<YoVariable<?>> newYoVariableConsumer)

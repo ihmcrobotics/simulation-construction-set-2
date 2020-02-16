@@ -27,7 +27,7 @@ public class LinkedYoEnum<E extends Enum<E>> extends LinkedYoVariable<YoEnum<E>>
    @Override
    EnumPullRequest<E> toPullRequest()
    {
-      return new EnumPullRequest<E>(linkedYoVariable, buffer.getYoVariable().getOrdinal());
+      return new EnumPullRequest<>(linkedYoVariable, buffer.getYoVariable().getOrdinal());
    }
 
    @Override
@@ -36,10 +36,11 @@ public class LinkedYoEnum<E extends Enum<E>> extends LinkedYoVariable<YoEnum<E>>
       return new EnumPushRequest<>(linkedYoVariable.getOrdinal(), buffer);
    }
 
+   @Override
    @SuppressWarnings("unchecked")
    public BufferSample<byte[]> pollRequestedBufferSample()
    {
-      return (BufferSample<byte[]>) super.pollRequestedBufferSample();
+      return super.pollRequestedBufferSample();
    }
 
    @Override

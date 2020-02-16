@@ -13,6 +13,7 @@ public class IntegerPullRequest implements PullRequest<YoInteger>
       this.valueToPull = valueToPull;
    }
 
+   @Override
    public void pull()
    {
       variableToUpdate.set(valueToPull);

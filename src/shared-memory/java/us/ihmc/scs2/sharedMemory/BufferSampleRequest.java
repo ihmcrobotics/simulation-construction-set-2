@@ -13,8 +13,8 @@ public class BufferSampleRequest
 
    public BufferSampleRequest(BufferSampleRequest other)
    {
-      this.from = other.from;
-      this.length = other.length;
+      from = other.from;
+      length = other.length;
    }
 
    public int getFrom()

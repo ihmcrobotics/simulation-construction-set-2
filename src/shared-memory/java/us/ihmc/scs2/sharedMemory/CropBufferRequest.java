@@ -12,8 +12,8 @@ public class CropBufferRequest
 
    public CropBufferRequest(CropBufferRequest other)
    {
-      this.from = other.from;
-      this.to = other.to;
+      from = other.from;
+      to = other.to;
    }
 
    public int getFrom()
