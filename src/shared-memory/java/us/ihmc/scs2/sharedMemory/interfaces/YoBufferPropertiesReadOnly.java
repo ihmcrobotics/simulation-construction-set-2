@@ -1,5 +1,7 @@
 package us.ihmc.scs2.sharedMemory.interfaces;
 
+import us.ihmc.scs2.sharedMemory.tools.BufferTools;
+
 public interface YoBufferPropertiesReadOnly
 {
    int getSize();
@@ -12,20 +14,12 @@ public interface YoBufferPropertiesReadOnly
 
    default int getActiveBufferLength()
    {
-      int length = getOutPoint() - getInPoint() + 1;
-      if (length <= 0)
-         length += getSize();
-      return length;
+      return BufferTools.computeSubLength(getInPoint(), getOutPoint(), getSize());
    }
 
    default boolean isIndexBetweenBounds(int indexToCheck)
    {
-      if (indexToCheck < 0 || indexToCheck >= getSize())
-         return false;
-      else if (getInPoint() <= getOutPoint())
-         return indexToCheck >= getInPoint() && indexToCheck <= getOutPoint();
-      else
-         return indexToCheck <= getOutPoint() || indexToCheck >= getInPoint();
+      return BufferTools.isInsideBounds(indexToCheck, getInPoint(), getOutPoint(), getSize());
    }
 
    default YoBufferPropertiesReadOnly copy()

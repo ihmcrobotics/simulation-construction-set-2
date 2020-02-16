@@ -1,5 +1,7 @@
 package us.ihmc.scs2.sharedMemory;
 
+import us.ihmc.scs2.sharedMemory.tools.BufferTools;
+
 public class CropBufferRequest
 {
    private final int from, to;
@@ -28,10 +30,7 @@ public class CropBufferRequest
 
    public int getCroppedSize(int originalBufferSize)
    {
-      int length = getTo() - getFrom() + 1;
-      if (length <= 0)
-         length += originalBufferSize;
-      return length;
+      return BufferTools.computeSubLength(from, to, originalBufferSize);
    }
 
    @Override
