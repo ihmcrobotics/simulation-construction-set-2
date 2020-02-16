@@ -21,6 +21,15 @@ public class YoBufferRandomTools
       return next;
    }
 
+   public static YoVariableBuffer<?> nextYoVariableBuffer(Random random, YoVariable<?> yoVariable)
+   {
+      YoBufferProperties properties = nextYoBufferProperties(random);
+      YoVariableBuffer<?> next = YoVariableBuffer.newYoVariableBuffer(yoVariable, properties);
+      randomizeYoVariableBuffer(random, properties, next);
+
+      return next;
+   }
+
    public static YoBooleanBuffer nextYoBooleanBuffer(Random random, YoVariableRegistry registry)
    {
       YoBoolean yoBoolean = YoRandomTools.nextYoBoolean(random, registry);
