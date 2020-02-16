@@ -1,15 +1,17 @@
 package us.ihmc.scs2.sharedMemory;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Arrays;
 import java.util.Random;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class IntegerPushRequestTest
@@ -29,38 +31,21 @@ public class IntegerPushRequestTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoIntegerBuffer yoIntegerBuffer = YoBufferRandomTools.nextYoIntegerBuffer(random, new YoVariableRegistry("Dummy"));
+         YoInteger bufferYoInteger = YoRandomTools.nextYoInteger(random, new YoVariableRegistry("Dummy"));
          int valueToPush = random.nextInt();
 
-         int currentValue = yoIntegerBuffer.getYoVariable().getValue();
-         int[] currentBufferValue = Arrays.copyOf(yoIntegerBuffer.getBuffer(), yoIntegerBuffer.getProperties().getSize());
+         int currentValue = bufferYoInteger.getValue();
 
-         IntegerPushRequest pushRequest = new IntegerPushRequest(valueToPush, yoIntegerBuffer.getYoVariable());
-         assertEquals(currentValue, yoIntegerBuffer.getYoVariable().getValue());
-         assertArrayEquals(currentBufferValue, yoIntegerBuffer.getBuffer());
+         IntegerPushRequest pushRequest = new IntegerPushRequest(valueToPush, bufferYoInteger);
+         assertEquals(currentValue, bufferYoInteger.getValue());
 
          pushRequest.push();
-         assertEquals(valueToPush, yoIntegerBuffer.getYoVariable().getValue());
-         assertArrayEquals(currentBufferValue, yoIntegerBuffer.getBuffer());
-      }
-   }
+         assertEquals(valueToPush, bufferYoInteger.getValue());
 
-   @Test
-   public void testIsPushNecessary()
-   {
-      Random random = new Random(89734579);
+         assertFalse(pushRequest.push());
 
-      for (int i = 0; i < ITERATIONS; i++)
-      {
-         YoIntegerBuffer yoIntegerBuffer = YoBufferRandomTools.nextYoIntegerBuffer(random, new YoVariableRegistry("Dummy"));
-
-         int currentValue = yoIntegerBuffer.getYoVariable().getValue();
-
-         IntegerPushRequest pushRequest = new IntegerPushRequest(currentValue, yoIntegerBuffer.getYoVariable());
-         assertFalse(pushRequest.isPushNecessary());
-
-         pushRequest = new IntegerPushRequest(currentValue + 1, yoIntegerBuffer.getYoVariable());
-         assertTrue(pushRequest.isPushNecessary());
+         pushRequest = new IntegerPushRequest(valueToPush + 1, bufferYoInteger);
+         assertTrue(pushRequest.push());
       }
    }
 }

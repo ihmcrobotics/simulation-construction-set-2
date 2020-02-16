@@ -14,14 +14,13 @@ public class BooleanPushRequest implements PushRequest<YoBoolean>
    }
 
    @Override
-   public void push()
+   public boolean push()
    {
-      variableToUpdate.set(valueToPush);
-   }
+      if (valueToPush == variableToUpdate.getValue())
+         return false;
 
-   @Override
-   public boolean isPushNecessary()
-   {
-      return valueToPush != variableToUpdate.getValue();
+      variableToUpdate.set(valueToPush);
+
+      return true;
    }
 }

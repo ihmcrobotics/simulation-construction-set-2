@@ -1,15 +1,17 @@
 package us.ihmc.scs2.sharedMemory;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Arrays;
 import java.util.Random;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoLong;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class LongPushRequestTest
@@ -29,38 +31,21 @@ public class LongPushRequestTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoLongBuffer yoLongBuffer = YoBufferRandomTools.nextYoLongBuffer(random, new YoVariableRegistry("Dummy"));
+         YoLong bufferYoLong = YoRandomTools.nextYoLong(random, new YoVariableRegistry("Dummy"));
          long valueToPush = random.nextLong();
 
-         long currentValue = yoLongBuffer.getYoVariable().getValue();
-         long[] currentBufferValue = Arrays.copyOf(yoLongBuffer.getBuffer(), yoLongBuffer.getProperties().getSize());
+         long currentValue = bufferYoLong.getValue();
 
-         LongPushRequest pushRequest = new LongPushRequest(valueToPush, yoLongBuffer.getYoVariable());
-         assertEquals(currentValue, yoLongBuffer.getYoVariable().getValue());
-         assertArrayEquals(currentBufferValue, yoLongBuffer.getBuffer());
+         LongPushRequest pushRequest = new LongPushRequest(valueToPush, bufferYoLong);
+         assertEquals(currentValue, bufferYoLong.getValue());
 
          pushRequest.push();
-         assertEquals(valueToPush, yoLongBuffer.getYoVariable().getValue());
-         assertArrayEquals(currentBufferValue, yoLongBuffer.getBuffer());
-      }
-   }
+         assertEquals(valueToPush, bufferYoLong.getValue());
 
-   @Test
-   public void testIsPushNecessary()
-   {
-      Random random = new Random(89734579);
+         assertFalse(pushRequest.push());
 
-      for (int i = 0; i < ITERATIONS; i++)
-      {
-         YoLongBuffer yoLongBuffer = YoBufferRandomTools.nextYoLongBuffer(random, new YoVariableRegistry("Dummy"));
-
-         long currentValue = yoLongBuffer.getYoVariable().getValue();
-
-         LongPushRequest pushRequest = new LongPushRequest(currentValue, yoLongBuffer.getYoVariable());
-         assertFalse(pushRequest.isPushNecessary());
-
-         pushRequest = new LongPushRequest(currentValue + 1, yoLongBuffer.getYoVariable());
-         assertTrue(pushRequest.isPushNecessary());
+         pushRequest = new LongPushRequest(valueToPush + 1, bufferYoLong);
+         assertTrue(pushRequest.push());
       }
    }
 }

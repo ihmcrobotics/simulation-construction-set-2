@@ -14,14 +14,13 @@ public class EnumPushRequest<E extends Enum<E>> implements PushRequest<YoEnum<E>
    }
 
    @Override
-   public void push()
+   public boolean push()
    {
-      variableToUpdate.set(valueToPush);
-   }
+      if (valueToPush == variableToUpdate.getOrdinal())
+         return false;
 
-   @Override
-   public boolean isPushNecessary()
-   {
-      return valueToPush != variableToUpdate.getOrdinal();
+      variableToUpdate.set(valueToPush);
+
+      return true;
    }
 }

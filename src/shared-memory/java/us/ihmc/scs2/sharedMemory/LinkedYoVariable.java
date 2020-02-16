@@ -71,22 +71,15 @@ public abstract class LinkedYoVariable<T extends YoVariable<T>> extends LinkedBu
    }
 
    @Override
-   void filterPush()
-   {
-      if (pushRequestToProcess != null && !pushRequestToProcess.isPushNecessary())
-         pushRequestToProcess = null;
-   }
-
-   @Override
    boolean processPush()
    {
+      if (pushRequestToProcess == null)
+         return false;
+
       PushRequest<T> push = pushRequestToProcess;
       pushRequestToProcess = null;
 
-      boolean hasPushedSomething = push != null;
-      if (hasPushedSomething)
-         push.push();
-      return hasPushedSomething;
+      return push.push();
    }
 
    @Override

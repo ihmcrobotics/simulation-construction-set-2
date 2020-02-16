@@ -81,15 +81,6 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
    }
 
    @Override
-   void filterPush()
-   {
-      synchronized (linkedYoVariables)
-      {
-         linkedYoVariables.forEach(LinkedYoVariable::filterPush);
-      }
-   }
-
-   @Override
    boolean processPush()
    {
       synchronized (linkedYoVariables)

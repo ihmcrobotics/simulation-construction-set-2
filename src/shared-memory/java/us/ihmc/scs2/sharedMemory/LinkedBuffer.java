@@ -8,10 +8,6 @@ public abstract class LinkedBuffer
 
    public abstract void push();
 
-   void filterPush()
-   {
-   }
-
    abstract boolean processPush();
 
    abstract void prepareForPull(YoBufferPropertiesReadOnly newProperties);

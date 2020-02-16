@@ -1,15 +1,17 @@
 package us.ihmc.scs2.sharedMemory;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Arrays;
 import java.util.Random;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class DoublePushRequestTest
@@ -29,38 +31,21 @@ public class DoublePushRequestTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoDoubleBuffer yoDoubleBuffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoVariableRegistry("Dummy"));
+         YoDouble bufferYoDouble = YoRandomTools.nextYoDouble(random, new YoVariableRegistry("Dummy"));
          double valueToPush = random.nextDouble();
 
-         double currentValue = yoDoubleBuffer.getYoVariable().getValue();
-         double[] currentBufferValue = Arrays.copyOf(yoDoubleBuffer.getBuffer(), yoDoubleBuffer.getProperties().getSize());
+         double currentValue = bufferYoDouble.getValue();
 
-         DoublePushRequest pushRequest = new DoublePushRequest(valueToPush, yoDoubleBuffer.getYoVariable());
-         assertEquals(currentValue, yoDoubleBuffer.getYoVariable().getValue());
-         assertArrayEquals(currentBufferValue, yoDoubleBuffer.getBuffer());
+         DoublePushRequest pushRequest = new DoublePushRequest(valueToPush, bufferYoDouble);
+         assertEquals(currentValue, bufferYoDouble.getValue());
 
          pushRequest.push();
-         assertEquals(valueToPush, yoDoubleBuffer.getYoVariable().getValue());
-         assertArrayEquals(currentBufferValue, yoDoubleBuffer.getBuffer());
-      }
-   }
+         assertEquals(valueToPush, bufferYoDouble.getValue());
 
-   @Test
-   public void testIsPushNecessary()
-   {
-      Random random = new Random(89734579);
+         assertFalse(pushRequest.push());
 
-      for (int i = 0; i < ITERATIONS; i++)
-      {
-         YoDoubleBuffer yoDoubleBuffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoVariableRegistry("Dummy"));
-
-         double currentValue = yoDoubleBuffer.getYoVariable().getValue();
-
-         DoublePushRequest pushRequest = new DoublePushRequest(currentValue, yoDoubleBuffer.getYoVariable());
-         assertFalse(pushRequest.isPushNecessary());
-
-         pushRequest = new DoublePushRequest(currentValue + 1.0, yoDoubleBuffer.getYoVariable());
-         assertTrue(pushRequest.isPushNecessary());
+         pushRequest = new DoublePushRequest(valueToPush + 1, bufferYoDouble);
+         assertTrue(pushRequest.push());
       }
    }
 }

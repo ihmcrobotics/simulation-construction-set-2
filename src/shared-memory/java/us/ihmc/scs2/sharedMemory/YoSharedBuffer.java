@@ -79,9 +79,6 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
 
    public boolean processLinkedRequests()
    {
-      for (LinkedBuffer linkedBuffer : linkedBuffers)
-         linkedBuffer.filterPush();
-
       boolean hasPushedSomething = false;
 
       for (LinkedBuffer linkedBuffer : linkedBuffers)

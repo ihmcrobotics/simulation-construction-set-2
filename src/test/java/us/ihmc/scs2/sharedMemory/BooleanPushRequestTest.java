@@ -1,15 +1,17 @@
 package us.ihmc.scs2.sharedMemory;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Arrays;
 import java.util.Random;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class BooleanPushRequestTest
@@ -29,38 +31,21 @@ public class BooleanPushRequestTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoBooleanBuffer yoBooleanBuffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoVariableRegistry("Dummy"));
+         YoBoolean bufferYoBoolean = YoRandomTools.nextYoBoolean(random, new YoVariableRegistry("Dummy"));
          boolean valueToPush = random.nextBoolean();
 
-         boolean currentValue = yoBooleanBuffer.getYoVariable().getValue();
-         boolean[] currentBufferValue = Arrays.copyOf(yoBooleanBuffer.getBuffer(), yoBooleanBuffer.getProperties().getSize());
+         boolean currentValue = bufferYoBoolean.getValue();
 
-         BooleanPushRequest pushRequest = new BooleanPushRequest(valueToPush, yoBooleanBuffer.getYoVariable());
-         assertEquals(currentValue, yoBooleanBuffer.getYoVariable().getValue());
-         assertArrayEquals(currentBufferValue, yoBooleanBuffer.getBuffer());
+         BooleanPushRequest pushRequest = new BooleanPushRequest(valueToPush, bufferYoBoolean);
+         assertEquals(currentValue, bufferYoBoolean.getValue());
 
          pushRequest.push();
-         assertEquals(valueToPush, yoBooleanBuffer.getYoVariable().getValue());
-         assertArrayEquals(currentBufferValue, yoBooleanBuffer.getBuffer());
-      }
-   }
+         assertEquals(valueToPush, bufferYoBoolean.getValue());
 
-   @Test
-   public void testIsPushNecessary()
-   {
-      Random random = new Random(89734579);
+         assertFalse(pushRequest.push());
 
-      for (int i = 0; i < ITERATIONS; i++)
-      {
-         YoBooleanBuffer yoBooleanBuffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoVariableRegistry("Dummy"));
-
-         boolean currentValue = yoBooleanBuffer.getYoVariable().getValue();
-
-         BooleanPushRequest pushRequest = new BooleanPushRequest(currentValue, yoBooleanBuffer.getYoVariable());
-         assertFalse(pushRequest.isPushNecessary());
-
-         pushRequest = new BooleanPushRequest(!currentValue, yoBooleanBuffer.getYoVariable());
-         assertTrue(pushRequest.isPushNecessary());
+         pushRequest = new BooleanPushRequest(!valueToPush, bufferYoBoolean);
+         assertTrue(pushRequest.push());
       }
    }
 }

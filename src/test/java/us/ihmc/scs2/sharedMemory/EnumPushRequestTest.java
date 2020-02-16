@@ -1,19 +1,17 @@
 package us.ihmc.scs2.sharedMemory;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Arrays;
 import java.util.Random;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
 import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class EnumPushRequestTest
@@ -33,38 +31,26 @@ public class EnumPushRequestTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoEnumBuffer<?> yoEnumBuffer = YoBufferRandomTools.nextYoEnumBuffer(random, new YoVariableRegistry("Dummy"));
-         int valueToPush = YoRandomTools.nextOrdinal(random, yoEnumBuffer.getYoVariable());
+         YoEnum<?> bufferYoEnum = YoRandomTools.nextYoEnum(random, new YoVariableRegistry("Dummy"));
+         int valueToPush = YoRandomTools.nextOrdinal(random, bufferYoEnum);
 
-         int currentValue = yoEnumBuffer.getYoVariable().getOrdinal();
-         byte[] currentBufferValue = Arrays.copyOf(yoEnumBuffer.getBuffer(), yoEnumBuffer.getProperties().getSize());
+         int currentValue = bufferYoEnum.getOrdinal();
 
-         EnumPushRequest<?> pushRequest = new EnumPushRequest<>(valueToPush, yoEnumBuffer.getYoVariable());
-         assertEquals(currentValue, yoEnumBuffer.getYoVariable().getOrdinal());
-         assertArrayEquals(currentBufferValue, yoEnumBuffer.getBuffer());
+         EnumPushRequest<?> pushRequest = new EnumPushRequest<>(valueToPush, bufferYoEnum);
+         assertEquals(currentValue, bufferYoEnum.getOrdinal());
 
          pushRequest.push();
-         assertEquals(valueToPush, yoEnumBuffer.getYoVariable().getOrdinal());
-         assertArrayEquals(currentBufferValue, yoEnumBuffer.getBuffer());
-      }
-   }
+         assertEquals(valueToPush, bufferYoEnum.getOrdinal());
 
-   @Test
-   public void testIsPushNecessary()
-   {
-      Random random = new Random(89734579);
+         assertFalse(pushRequest.push());
 
-      for (int i = 0; i < ITERATIONS; i++)
-      {
-         YoEnumBuffer<?> yoEnumBuffer = YoBufferRandomTools.nextYoEnumBuffer(random, new YoVariableRegistry("Dummy"));
-
-         int currentValue = yoEnumBuffer.getYoVariable().getOrdinal();
-
-         EnumPushRequest<?> pushRequest = new EnumPushRequest<>(currentValue, yoEnumBuffer.getYoVariable());
-         assertFalse(pushRequest.isPushNecessary());
-
-         pushRequest = new EnumPushRequest<>(currentValue + 1, yoEnumBuffer.getYoVariable());
-         assertTrue(pushRequest.isPushNecessary());
+         if (bufferYoEnum.getEnumValuesAsString().length > 1)
+         {
+            while (valueToPush == bufferYoEnum.getOrdinal())
+               valueToPush = YoRandomTools.nextOrdinal(random, bufferYoEnum);
+            pushRequest = new EnumPushRequest<>(valueToPush, bufferYoEnum);
+            assertTrue(pushRequest.push());
+         }
       }
    }
 }
