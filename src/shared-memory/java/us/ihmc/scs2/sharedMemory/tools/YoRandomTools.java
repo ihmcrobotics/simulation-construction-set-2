@@ -8,34 +8,29 @@ import org.apache.commons.lang3.mutable.MutableObject;
 import us.ihmc.commons.RandomNumbers;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
-import us.ihmc.yoVariables.variable.YoBoolean;
-import us.ihmc.yoVariables.variable.YoDouble;
-import us.ihmc.yoVariables.variable.YoEnum;
-import us.ihmc.yoVariables.variable.YoInteger;
-import us.ihmc.yoVariables.variable.YoLong;
-import us.ihmc.yoVariables.variable.YoVariable;
+import us.ihmc.yoVariables.variable.*;
 
 public class YoRandomTools
 {
    public enum EnumTypeA
    {
       A1, A2, A4, A5
-   };
+   }
 
    public enum EnumTypeB
    {
       B1, B2, B4
-   };
+   }
 
    public enum EnumTypeC
    {
       C1, C2
-   };
+   }
 
    public enum EnumTypeD
    {
       D1
-   };
+   }
 
    public static Class<? extends Enum<?>> nextEnumType(Random random)
    {
@@ -76,7 +71,7 @@ public class YoRandomTools
 
    public static String nextAvailableRegistryName(Random random, int minLengthInclusive, int maxLengthInclusive, YoVariableRegistry registry)
    {
-      MutableObject<String> next = new MutableObject<String>(nextAlphanumericString(random, minLengthInclusive, maxLengthInclusive));
+      MutableObject<String> next = new MutableObject<>(nextAlphanumericString(random, minLengthInclusive, maxLengthInclusive));
       while (registry.getChildren().stream().anyMatch(child -> child.getName().equals(next.getValue())))
          next.setValue(nextAlphanumericString(random, minLengthInclusive, maxLengthInclusive));
       return next.getValue();
@@ -248,10 +243,15 @@ public class YoRandomTools
 
    public static void randomizeYoEnum(Random random, YoEnum<?> yoEnum)
    {
+      yoEnum.set(nextOrdinal(random, yoEnum));
+   }
+
+   public static int nextOrdinal(Random random, YoEnum<?> yoEnum)
+   {
       if (yoEnum.getAllowNullValue())
-         yoEnum.set(random.nextInt(yoEnum.getEnumSize() + 1) - 1);
+         return random.nextInt(yoEnum.getEnumSize() + 1) - 1;
       else
-         yoEnum.set(random.nextInt(yoEnum.getEnumSize()));
+         return random.nextInt(yoEnum.getEnumSize());
    }
 
    public static YoVariableRegistry nextYoVariableRegistry(Random random, int numberOfVariables)
