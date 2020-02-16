@@ -5,14 +5,22 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.Arrays;
 import java.util.Random;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class BooleanPushRequestTest
 {
    private static final int ITERATIONS = 1000;
+
+   @BeforeAll
+   public static void disableStackTrace()
+   {
+      YoVariable.SAVE_STACK_TRACE = false;
+   }
 
    @Test
    public void testPush()

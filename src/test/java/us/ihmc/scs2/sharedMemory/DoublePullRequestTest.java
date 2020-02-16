@@ -4,15 +4,23 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Random;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class DoublePullRequestTest
 {
    private static final int ITERATIONS = 1000;
+
+   @BeforeAll
+   public static void disableStackTrace()
+   {
+      YoVariable.SAVE_STACK_TRACE = false;
+   }
 
    @Test
    public void test()
