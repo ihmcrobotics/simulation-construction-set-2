@@ -35,7 +35,7 @@ public class LongPushRequestTest
          long currentValue = yoLongBuffer.getYoVariable().getValue();
          long[] currentBufferValue = Arrays.copyOf(yoLongBuffer.getBuffer(), yoLongBuffer.getProperties().getSize());
 
-         LongPushRequest pushRequest = new LongPushRequest(valueToPush, yoLongBuffer);
+         LongPushRequest pushRequest = new LongPushRequest(valueToPush, yoLongBuffer.getYoVariable());
          assertEquals(currentValue, yoLongBuffer.getYoVariable().getValue());
          assertArrayEquals(currentBufferValue, yoLongBuffer.getBuffer());
 
@@ -56,10 +56,10 @@ public class LongPushRequestTest
 
          long currentValue = yoLongBuffer.getYoVariable().getValue();
 
-         LongPushRequest pushRequest = new LongPushRequest(currentValue, yoLongBuffer);
+         LongPushRequest pushRequest = new LongPushRequest(currentValue, yoLongBuffer.getYoVariable());
          assertFalse(pushRequest.isPushNecessary());
 
-         pushRequest = new LongPushRequest(currentValue + 1, yoLongBuffer);
+         pushRequest = new LongPushRequest(currentValue + 1, yoLongBuffer.getYoVariable());
          assertTrue(pushRequest.isPushNecessary());
       }
    }

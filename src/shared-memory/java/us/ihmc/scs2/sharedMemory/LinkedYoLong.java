@@ -28,7 +28,7 @@ public class LinkedYoLong extends LinkedYoVariable<YoLong>
    @Override
    protected LongPushRequest toPushRequest()
    {
-      return new LongPushRequest(linkedYoVariable.getValue(), buffer);
+      return new LongPushRequest(linkedYoVariable.getValue(), buffer.getYoVariable());
    }
 
    @Override

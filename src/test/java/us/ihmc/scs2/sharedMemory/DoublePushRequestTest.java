@@ -35,7 +35,7 @@ public class DoublePushRequestTest
          double currentValue = yoDoubleBuffer.getYoVariable().getValue();
          double[] currentBufferValue = Arrays.copyOf(yoDoubleBuffer.getBuffer(), yoDoubleBuffer.getProperties().getSize());
 
-         DoublePushRequest pushRequest = new DoublePushRequest(valueToPush, yoDoubleBuffer);
+         DoublePushRequest pushRequest = new DoublePushRequest(valueToPush, yoDoubleBuffer.getYoVariable());
          assertEquals(currentValue, yoDoubleBuffer.getYoVariable().getValue());
          assertArrayEquals(currentBufferValue, yoDoubleBuffer.getBuffer());
 
@@ -56,10 +56,10 @@ public class DoublePushRequestTest
 
          double currentValue = yoDoubleBuffer.getYoVariable().getValue();
 
-         DoublePushRequest pushRequest = new DoublePushRequest(currentValue, yoDoubleBuffer);
+         DoublePushRequest pushRequest = new DoublePushRequest(currentValue, yoDoubleBuffer.getYoVariable());
          assertFalse(pushRequest.isPushNecessary());
 
-         pushRequest = new DoublePushRequest(currentValue + 1.0, yoDoubleBuffer);
+         pushRequest = new DoublePushRequest(currentValue + 1.0, yoDoubleBuffer.getYoVariable());
          assertTrue(pushRequest.isPushNecessary());
       }
    }

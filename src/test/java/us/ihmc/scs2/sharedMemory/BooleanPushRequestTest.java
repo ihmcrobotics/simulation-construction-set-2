@@ -35,7 +35,7 @@ public class BooleanPushRequestTest
          boolean currentValue = yoBooleanBuffer.getYoVariable().getValue();
          boolean[] currentBufferValue = Arrays.copyOf(yoBooleanBuffer.getBuffer(), yoBooleanBuffer.getProperties().getSize());
 
-         BooleanPushRequest pushRequest = new BooleanPushRequest(valueToPush, yoBooleanBuffer);
+         BooleanPushRequest pushRequest = new BooleanPushRequest(valueToPush, yoBooleanBuffer.getYoVariable());
          assertEquals(currentValue, yoBooleanBuffer.getYoVariable().getValue());
          assertArrayEquals(currentBufferValue, yoBooleanBuffer.getBuffer());
 
@@ -56,10 +56,10 @@ public class BooleanPushRequestTest
 
          boolean currentValue = yoBooleanBuffer.getYoVariable().getValue();
 
-         BooleanPushRequest pushRequest = new BooleanPushRequest(currentValue, yoBooleanBuffer);
+         BooleanPushRequest pushRequest = new BooleanPushRequest(currentValue, yoBooleanBuffer.getYoVariable());
          assertFalse(pushRequest.isPushNecessary());
 
-         pushRequest = new BooleanPushRequest(!currentValue, yoBooleanBuffer);
+         pushRequest = new BooleanPushRequest(!currentValue, yoBooleanBuffer.getYoVariable());
          assertTrue(pushRequest.isPushNecessary());
       }
    }

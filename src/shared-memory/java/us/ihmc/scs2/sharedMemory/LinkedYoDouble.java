@@ -28,7 +28,7 @@ public class LinkedYoDouble extends LinkedYoVariable<YoDouble>
    @Override
    protected DoublePushRequest toPushRequest()
    {
-      return new DoublePushRequest(linkedYoVariable.getValue(), buffer);
+      return new DoublePushRequest(linkedYoVariable.getValue(), buffer.getYoVariable());
    }
 
    @Override

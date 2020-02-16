@@ -5,23 +5,23 @@ import us.ihmc.yoVariables.variable.YoLong;
 public class LongPushRequest implements PushRequest<YoLong>
 {
    private final long valueToPush;
-   private final YoVariableBuffer<YoLong> buffer;
+   private final YoLong variableToUpdate;
 
-   public LongPushRequest(long valueToPush, YoVariableBuffer<YoLong> buffer)
+   public LongPushRequest(long valueToPush, YoLong variableToUpdate)
    {
       this.valueToPush = valueToPush;
-      this.buffer = buffer;
+      this.variableToUpdate = variableToUpdate;
    }
 
    @Override
    public void push()
    {
-      buffer.getYoVariable().set(valueToPush);
+      variableToUpdate.set(valueToPush);
    }
 
    @Override
    public boolean isPushNecessary()
    {
-      return valueToPush != buffer.getYoVariable().getValue();
+      return valueToPush != variableToUpdate.getValue();
    }
 }

@@ -33,7 +33,7 @@ public class LinkedYoEnum<E extends Enum<E>> extends LinkedYoVariable<YoEnum<E>>
    @Override
    protected EnumPushRequest<E> toPushRequest()
    {
-      return new EnumPushRequest<>(linkedYoVariable.getOrdinal(), buffer);
+      return new EnumPushRequest<>(linkedYoVariable.getOrdinal(), buffer.getYoVariable());
    }
 
    @Override

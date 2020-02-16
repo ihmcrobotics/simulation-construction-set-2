@@ -5,23 +5,23 @@ import us.ihmc.yoVariables.variable.YoEnum;
 public class EnumPushRequest<E extends Enum<E>> implements PushRequest<YoEnum<E>>
 {
    private final int valueToPush;
-   private final YoVariableBuffer<YoEnum<E>> buffer;
+   private final YoEnum<E> variableToUpdate;
 
-   public EnumPushRequest(int valueToPush, YoVariableBuffer<YoEnum<E>> buffer)
+   public EnumPushRequest(int valueToPush, YoEnum<E> variableToUpdate)
    {
       this.valueToPush = valueToPush;
-      this.buffer = buffer;
+      this.variableToUpdate = variableToUpdate;
    }
 
    @Override
    public void push()
    {
-      buffer.getYoVariable().set(valueToPush);
+      variableToUpdate.set(valueToPush);
    }
 
    @Override
    public boolean isPushNecessary()
    {
-      return valueToPush != buffer.getYoVariable().getOrdinal();
+      return valueToPush != variableToUpdate.getOrdinal();
    }
 }

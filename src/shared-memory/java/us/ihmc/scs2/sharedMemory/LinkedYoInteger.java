@@ -28,7 +28,7 @@ public class LinkedYoInteger extends LinkedYoVariable<YoInteger>
    @Override
    protected IntegerPushRequest toPushRequest()
    {
-      return new IntegerPushRequest(linkedYoVariable.getValue(), buffer);
+      return new IntegerPushRequest(linkedYoVariable.getValue(), buffer.getYoVariable());
    }
 
    @Override

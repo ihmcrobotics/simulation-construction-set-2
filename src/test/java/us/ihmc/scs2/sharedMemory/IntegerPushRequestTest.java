@@ -35,7 +35,7 @@ public class IntegerPushRequestTest
          int currentValue = yoIntegerBuffer.getYoVariable().getValue();
          int[] currentBufferValue = Arrays.copyOf(yoIntegerBuffer.getBuffer(), yoIntegerBuffer.getProperties().getSize());
 
-         IntegerPushRequest pushRequest = new IntegerPushRequest(valueToPush, yoIntegerBuffer);
+         IntegerPushRequest pushRequest = new IntegerPushRequest(valueToPush, yoIntegerBuffer.getYoVariable());
          assertEquals(currentValue, yoIntegerBuffer.getYoVariable().getValue());
          assertArrayEquals(currentBufferValue, yoIntegerBuffer.getBuffer());
 
@@ -56,10 +56,10 @@ public class IntegerPushRequestTest
 
          int currentValue = yoIntegerBuffer.getYoVariable().getValue();
 
-         IntegerPushRequest pushRequest = new IntegerPushRequest(currentValue, yoIntegerBuffer);
+         IntegerPushRequest pushRequest = new IntegerPushRequest(currentValue, yoIntegerBuffer.getYoVariable());
          assertFalse(pushRequest.isPushNecessary());
 
-         pushRequest = new IntegerPushRequest(currentValue + 1, yoIntegerBuffer);
+         pushRequest = new IntegerPushRequest(currentValue + 1, yoIntegerBuffer.getYoVariable());
          assertTrue(pushRequest.isPushNecessary());
       }
    }

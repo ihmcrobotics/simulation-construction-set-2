@@ -39,7 +39,7 @@ public class EnumPushRequestTest
          int currentValue = yoEnumBuffer.getYoVariable().getOrdinal();
          byte[] currentBufferValue = Arrays.copyOf(yoEnumBuffer.getBuffer(), yoEnumBuffer.getProperties().getSize());
 
-         EnumPushRequest<?> pushRequest = new EnumPushRequest<>(valueToPush, yoEnumBuffer);
+         EnumPushRequest<?> pushRequest = new EnumPushRequest<>(valueToPush, yoEnumBuffer.getYoVariable());
          assertEquals(currentValue, yoEnumBuffer.getYoVariable().getOrdinal());
          assertArrayEquals(currentBufferValue, yoEnumBuffer.getBuffer());
 
@@ -60,10 +60,10 @@ public class EnumPushRequestTest
 
          int currentValue = yoEnumBuffer.getYoVariable().getOrdinal();
 
-         EnumPushRequest<?> pushRequest = new EnumPushRequest<>(currentValue, yoEnumBuffer);
+         EnumPushRequest<?> pushRequest = new EnumPushRequest<>(currentValue, yoEnumBuffer.getYoVariable());
          assertFalse(pushRequest.isPushNecessary());
 
-         pushRequest = new EnumPushRequest<>(currentValue + 1, yoEnumBuffer);
+         pushRequest = new EnumPushRequest<>(currentValue + 1, yoEnumBuffer.getYoVariable());
          assertTrue(pushRequest.isPushNecessary());
       }
    }

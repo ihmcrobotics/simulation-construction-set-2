@@ -28,7 +28,7 @@ public class LinkedYoBoolean extends LinkedYoVariable<YoBoolean>
    @Override
    protected BooleanPushRequest toPushRequest()
    {
-      return new BooleanPushRequest(linkedYoVariable.getValue(), buffer);
+      return new BooleanPushRequest(linkedYoVariable.getValue(), buffer.getYoVariable());
    }
 
    @Override
