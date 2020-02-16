@@ -23,4 +23,14 @@ public class EnumPushRequest<E extends Enum<E>> implements PushRequest<YoEnum<E>
 
       return true;
    }
+
+   YoEnum<E> getVariableToUpdate()
+   {
+      return variableToUpdate;
+   }
+
+   int getValueToPush()
+   {
+      return valueToPush;
+   }
 }

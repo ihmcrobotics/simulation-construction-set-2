@@ -23,4 +23,14 @@ public class DoublePushRequest implements PushRequest<YoDouble>
 
       return true;
    }
+
+   YoDouble getVariableToUpdate()
+   {
+      return variableToUpdate;
+   }
+
+   double getValueToPush()
+   {
+      return valueToPush;
+   }
 }

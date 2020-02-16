@@ -23,4 +23,14 @@ public class BooleanPushRequest implements PushRequest<YoBoolean>
 
       return true;
    }
+
+   YoBoolean getVariableToUpdate()
+   {
+      return variableToUpdate;
+   }
+
+   boolean getValueToPush()
+   {
+      return valueToPush;
+   }
 }

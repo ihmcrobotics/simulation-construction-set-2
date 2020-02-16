@@ -23,4 +23,14 @@ public class IntegerPushRequest implements PushRequest<YoInteger>
 
       return true;
    }
+
+   YoInteger getVariableToUpdate()
+   {
+      return variableToUpdate;
+   }
+
+   int getValueToPush()
+   {
+      return valueToPush;
+   }
 }

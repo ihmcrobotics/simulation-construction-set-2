@@ -23,4 +23,14 @@ public class LongPushRequest implements PushRequest<YoLong>
 
       return true;
    }
+
+   YoLong getVariableToUpdate()
+   {
+      return variableToUpdate;
+   }
+
+   long getValueToPush()
+   {
+      return valueToPush;
+   }
 }
