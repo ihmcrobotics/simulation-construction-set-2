@@ -9,16 +9,6 @@ public class LinkedYoInteger extends LinkedYoVariable<YoInteger>
       super(linkedVariable, buffer);
    }
 
-   public int peekCurrentValue(int defaultValue)
-   {
-      IntegerPullRequest pull = (IntegerPullRequest) pullRequest;
-
-      if (pull != null)
-         return pull.getValueToPull();
-      else
-         return defaultValue;
-   }
-
    @Override
    IntegerPullRequest toPullRequest()
    {

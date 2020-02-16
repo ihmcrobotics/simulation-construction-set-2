@@ -130,8 +130,9 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
    public void publish()
    {
       // FIXME hack to get the publish method faster.
-      linkedBuffers.parallelStream().forEach(barrier -> barrier.prepareForPull(properties.copy()));
-      linkedBufferProperties.forEach(linkedProperties -> linkedProperties.prepareForPull(properties.copy()));
+      linkedBuffers.parallelStream().forEach(barrier -> barrier.prepareForPull());
+      YoBufferPropertiesReadOnly newProperties = properties.copy();
+      linkedBufferProperties.forEach(linkedProperties -> linkedProperties.prepareForPull(newProperties));
    }
 
    public boolean hasBufferSampleRequestPending()

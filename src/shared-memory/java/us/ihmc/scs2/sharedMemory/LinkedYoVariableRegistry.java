@@ -2,7 +2,6 @@ package us.ihmc.scs2.sharedMemory;
 
 import java.util.*;
 
-import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.scs2.sharedMemory.tools.YoMirroredRegistryTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -14,8 +13,6 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
 {
    private final YoVariableRegistry rootRegistry;
    private final YoVariableRegistryBuffer yoVariableRegistryBuffer;
-
-   private YoBufferPropertiesReadOnly currentBufferProperties;
 
    private final List<LinkedYoVariable> linkedYoVariables = new ArrayList<>();
    private final Map<YoVariable, LinkedYoVariable> linkedYoVariableMap = new HashMap<>();
@@ -94,12 +91,11 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
    }
 
    @Override
-   void prepareForPull(YoBufferPropertiesReadOnly newProperties)
+   void prepareForPull()
    {
       synchronized (linkedYoVariables)
       {
-         currentBufferProperties = newProperties;
-         linkedYoVariables.forEach(variable -> variable.prepareForPull(newProperties));
+         linkedYoVariables.forEach(LinkedYoVariable::prepareForPull);
       }
    }
 
@@ -115,18 +111,6 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
 
          return hasNewData;
       }
-   }
-
-   public YoBufferPropertiesReadOnly peekCurrentBufferProperties()
-   {
-      return currentBufferProperties;
-   }
-
-   public YoBufferPropertiesReadOnly pollCurrentBufferProperties()
-   {
-      YoBufferPropertiesReadOnly properties = currentBufferProperties;
-      currentBufferProperties = null;
-      return properties;
    }
 
    @Override

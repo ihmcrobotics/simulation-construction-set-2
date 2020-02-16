@@ -9,16 +9,6 @@ public class LinkedYoLong extends LinkedYoVariable<YoLong>
       super(linkedVariable, buffer);
    }
 
-   public long peekCurrentValue(long defaultValue)
-   {
-      LongPullRequest pull = (LongPullRequest) pullRequest;
-
-      if (pull != null)
-         return pull.getValueToPull();
-      else
-         return defaultValue;
-   }
-
    @Override
    LongPullRequest toPullRequest()
    {

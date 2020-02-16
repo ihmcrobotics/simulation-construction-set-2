@@ -2,15 +2,12 @@ package us.ihmc.scs2.sharedMemory;
 
 import java.util.Objects;
 
-import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.yoVariables.variable.*;
 
 public abstract class LinkedYoVariable<T extends YoVariable<T>> extends LinkedBuffer
 {
    protected final T linkedYoVariable;
    protected final YoVariableBuffer<T> buffer;
-
-   protected YoBufferPropertiesReadOnly currentBufferProperties;
 
    protected PushRequest<T> pushRequestToProcess;
    protected PullRequest<T> pullRequest;
@@ -44,12 +41,6 @@ public abstract class LinkedYoVariable<T extends YoVariable<T>> extends LinkedBu
       this.buffer = buffer;
    }
 
-   @Override
-   public void push()
-   {
-      pushRequestToProcess = toPushRequest();
-   }
-
    public void requestEntireBuffer()
    {
       requestBufferWindow(-1, -1);
@@ -71,6 +62,12 @@ public abstract class LinkedYoVariable<T extends YoVariable<T>> extends LinkedBu
    }
 
    @Override
+   public void push()
+   {
+      pushRequestToProcess = toPushRequest();
+   }
+
+   @Override
    boolean processPush()
    {
       if (pushRequestToProcess == null)
@@ -83,13 +80,17 @@ public abstract class LinkedYoVariable<T extends YoVariable<T>> extends LinkedBu
    }
 
    @Override
-   void prepareForPull(YoBufferPropertiesReadOnly newProperties)
+   void prepareForPull()
    {
-      currentBufferProperties = newProperties;
       pullRequest = toPullRequest();
+      consumeBufferSampleRequest();
+   }
 
+   private void consumeBufferSampleRequest()
+   {
       BufferSampleRequest localRequest = bufferSampleRequest;
       bufferSampleRequest = null;
+
       if (localRequest != null)
       {
          int from = localRequest.getFrom();
@@ -99,17 +100,17 @@ public abstract class LinkedYoVariable<T extends YoVariable<T>> extends LinkedBu
             if (from == -1)
             {
                from = 0;
-               length = newProperties.getSize();
+               length = buffer.getProperties().getSize();
             }
             else
             {
-               if (currentBufferProperties.getOutPoint() < from)
+               if (buffer.getProperties().getOutPoint() < from)
                {
-                  length = currentBufferProperties.getOutPoint() - from + currentBufferProperties.getSize();
+                  length = buffer.getProperties().getOutPoint() - from + buffer.getProperties().getSize();
                }
                else
                {
-                  length = currentBufferProperties.getOutPoint() - from + 1;
+                  length = buffer.getProperties().getOutPoint() - from + 1;
                }
             }
          }
@@ -119,8 +120,8 @@ public abstract class LinkedYoVariable<T extends YoVariable<T>> extends LinkedBu
 
             if (length == -2)
             {
-               from = currentBufferProperties.getInPoint();
-               length = currentBufferProperties.getActiveBufferLength();
+               from = buffer.getProperties().getInPoint();
+               length = buffer.getProperties().getActiveBufferLength();
 
                if (length <= 0)
                   return;
@@ -143,18 +144,6 @@ public abstract class LinkedYoVariable<T extends YoVariable<T>> extends LinkedBu
       }
 
       return pull != null;
-   }
-
-   public YoBufferPropertiesReadOnly peekCurrentBufferProperties()
-   {
-      return currentBufferProperties;
-   }
-
-   public YoBufferPropertiesReadOnly pollCurrentBufferProperties()
-   {
-      YoBufferPropertiesReadOnly properties = currentBufferProperties;
-      currentBufferProperties = null;
-      return properties;
    }
 
    @Override

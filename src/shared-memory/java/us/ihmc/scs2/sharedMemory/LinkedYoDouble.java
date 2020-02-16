@@ -9,16 +9,6 @@ public class LinkedYoDouble extends LinkedYoVariable<YoDouble>
       super(linkedVariable, buffer);
    }
 
-   public double peekCurrentValue(double defaultValue)
-   {
-      DoublePullRequest pull = (DoublePullRequest) pullRequest;
-
-      if (pull != null)
-         return pull.getValueToPull();
-      else
-         return defaultValue;
-   }
-
    @Override
    DoublePullRequest toPullRequest()
    {

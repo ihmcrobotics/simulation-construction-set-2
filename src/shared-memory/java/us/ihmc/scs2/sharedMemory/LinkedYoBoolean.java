@@ -9,16 +9,6 @@ public class LinkedYoBoolean extends LinkedYoVariable<YoBoolean>
       super(linkedVariable, buffer);
    }
 
-   public boolean peekCurrentValue(boolean defaultValue)
-   {
-      BooleanPullRequest pull = (BooleanPullRequest) pullRequest;
-
-      if (pull != null)
-         return pull.getValueToPull();
-      else
-         return defaultValue;
-   }
-
    @Override
    BooleanPullRequest toPullRequest()
    {

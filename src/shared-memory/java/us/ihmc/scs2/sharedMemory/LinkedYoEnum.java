@@ -9,21 +9,6 @@ public class LinkedYoEnum<E extends Enum<E>> extends LinkedYoVariable<YoEnum<E>>
       super(linkedVariable, buffer);
    }
 
-   public E peekCurrentValue(E defaultValue)
-   {
-      EnumPullRequest<E> pull = (EnumPullRequest<E>) pullRequest;
-
-      if (pull != null)
-      {
-         int ordinal = pull.getValueToPull();
-         return ordinal < 0 ? null : linkedYoVariable.getEnumValues()[ordinal];
-      }
-      else
-      {
-         return defaultValue;
-      }
-   }
-
    @Override
    EnumPullRequest<E> toPullRequest()
    {

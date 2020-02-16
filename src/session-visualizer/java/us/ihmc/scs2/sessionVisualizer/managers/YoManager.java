@@ -21,6 +21,7 @@ public class YoManager extends AnimationTimer implements Manager
 
    private YoVariableRegistry rootRegistry;
    private LinkedYoVariableRegistry linkedRootRegistry;
+   private LinkedBufferProperties linkedBufferProperties;
    private LinkedYoVariableFactory linkedYoVariableFactory;
 
    private boolean updatingYoVariables = true;
@@ -62,6 +63,7 @@ public class YoManager extends AnimationTimer implements Manager
       rootRegistry = null;
       linkedYoVariableFactory = null;
       linkedRootRegistry = null;
+      linkedBufferProperties = null;
       rootRegistryDatabase = null;
       rootRegistryHashCodeProperty.set(-1L);
    }
@@ -133,10 +135,10 @@ public class YoManager extends AnimationTimer implements Manager
 
    public int getBufferSize()
    {
-      if (linkedRootRegistry == null)
+      if (linkedBufferProperties == null)
          return -1;
-      if (linkedRootRegistry.peekCurrentBufferProperties() == null)
+      if (linkedBufferProperties.peekCurrentBufferProperties() == null)
          return -1;
-      return linkedRootRegistry.peekCurrentBufferProperties().getSize();
+      return linkedBufferProperties.peekCurrentBufferProperties().getSize();
    }
 }
