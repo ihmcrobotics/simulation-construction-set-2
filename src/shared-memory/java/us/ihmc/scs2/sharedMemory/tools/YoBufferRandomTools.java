@@ -10,7 +10,7 @@ public class YoBufferRandomTools
 {
    public static YoBufferProperties nextYoBufferProperties(Random random)
    {
-      return nextYoBufferProperties(random, random.nextInt(100000) + 1);
+      return nextYoBufferProperties(random, random.nextInt(1000) + 1);
    }
 
    public static YoBufferProperties nextYoBufferProperties(Random random, int size)
