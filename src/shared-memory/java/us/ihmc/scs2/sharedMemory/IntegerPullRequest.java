@@ -19,6 +19,11 @@ public class IntegerPullRequest implements PullRequest<YoInteger>
       variableToUpdate.set(valueToPull);
    }
 
+   YoInteger getVariableToUpdate()
+   {
+      return variableToUpdate;
+   }
+
    public int getValueToPull()
    {
       return valueToPull;

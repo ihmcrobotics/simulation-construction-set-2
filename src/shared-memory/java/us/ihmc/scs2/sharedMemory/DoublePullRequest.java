@@ -19,6 +19,11 @@ public class DoublePullRequest implements PullRequest<YoDouble>
       variableToUpdate.set(valueToPull);
    }
 
+   YoDouble getVariableToUpdate()
+   {
+      return variableToUpdate;
+   }
+
    public double getValueToPull()
    {
       return valueToPull;

@@ -19,6 +19,11 @@ public class EnumPullRequest<E extends Enum<E>> implements PullRequest<YoEnum<E>
       variableToUpdate.set(valueToPull);
    }
 
+   YoEnum<E> getVariableToUpdate()
+   {
+      return variableToUpdate;
+   }
+
    public int getValueToPull()
    {
       return valueToPull;

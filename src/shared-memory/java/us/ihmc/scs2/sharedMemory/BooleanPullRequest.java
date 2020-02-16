@@ -19,6 +19,11 @@ public class BooleanPullRequest implements PullRequest<YoBoolean>
       variableToUpdate.set(valueToPull);
    }
 
+   YoBoolean getVariableToUpdate()
+   {
+      return variableToUpdate;
+   }
+
    public boolean getValueToPull()
    {
       return valueToPull;
