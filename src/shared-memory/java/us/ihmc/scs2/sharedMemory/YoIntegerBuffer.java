@@ -46,6 +46,11 @@ public class YoIntegerBuffer extends YoVariableBuffer<YoInteger>
       return new LinkedYoInteger(variableToLink, this);
    }
 
+   int getBufferCurrentValue()
+   {
+      return buffer[properties.getCurrentIndex()];
+   }
+
    int[] getBuffer()
    {
       return buffer;

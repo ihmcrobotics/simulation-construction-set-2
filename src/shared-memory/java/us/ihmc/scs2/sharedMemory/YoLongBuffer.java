@@ -46,6 +46,11 @@ public class YoLongBuffer extends YoVariableBuffer<YoLong>
       return new LinkedYoLong(variableToLink, this);
    }
 
+   long getBufferCurrentValue()
+   {
+      return buffer[properties.getCurrentIndex()];
+   }
+
    long[] getBuffer()
    {
       return buffer;

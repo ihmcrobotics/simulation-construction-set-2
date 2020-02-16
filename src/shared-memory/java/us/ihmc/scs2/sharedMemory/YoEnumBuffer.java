@@ -46,6 +46,11 @@ public class YoEnumBuffer<E extends Enum<E>> extends YoVariableBuffer<YoEnum<E>>
       return new LinkedYoEnum<>(variableToLink, this);
    }
 
+   byte getBufferCurrentValue()
+   {
+      return buffer[properties.getCurrentIndex()];
+   }
+
    byte[] getBuffer()
    {
       return buffer;

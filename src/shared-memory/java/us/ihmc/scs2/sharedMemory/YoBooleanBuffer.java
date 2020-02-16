@@ -46,6 +46,11 @@ public class YoBooleanBuffer extends YoVariableBuffer<YoBoolean>
       return new LinkedYoBoolean(variableToLink, this);
    }
 
+   boolean getBufferCurrentValue()
+   {
+      return buffer[properties.getCurrentIndex()];
+   }
+
    boolean[] getBuffer()
    {
       return buffer;

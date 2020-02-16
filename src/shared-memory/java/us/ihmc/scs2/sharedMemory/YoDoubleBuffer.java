@@ -46,6 +46,11 @@ public class YoDoubleBuffer extends YoVariableBuffer<YoDouble>
       return new LinkedYoDouble(variableToLink, this);
    }
 
+   double getBufferCurrentValue()
+   {
+      return buffer[properties.getCurrentIndex()];
+   }
+
    double[] getBuffer()
    {
       return buffer;
