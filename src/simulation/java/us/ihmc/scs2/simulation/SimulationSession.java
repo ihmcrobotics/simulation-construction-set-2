@@ -44,6 +44,7 @@ public class SimulationSession extends Session
    @Override
    public void initializeSession()
    {
+      super.initializeSession();
       physicsEngine.initialize();
    }
 
@@ -74,7 +75,6 @@ public class SimulationSession extends Session
                         RobotPhysicsEnginePlugin... plugins)
    {
       physicsEngine.addRobot(input, robotControllerDefinition, initialStateProvider, plugins);
-      sharedBuffer.registerMissingBuffers();
    }
 
    public void addTerrainObject(TerrainObjectDefinition terrainObjectDefinition)
