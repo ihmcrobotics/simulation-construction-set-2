@@ -49,13 +49,23 @@ public class YoVariableRegistryBuffer
 
    public void writeBuffer()
    {
+      writeBufferAt(properties.getCurrentIndex());
+   }
+
+   public void writeBufferAt(int index)
+   {
       // FIXME Hack to get the writing faster.
-      yoVariableBuffers.parallelStream().forEach(buffer -> buffer.writeBuffer());
+      yoVariableBuffers.parallelStream().forEach(buffer -> buffer.writeBufferAt(index));
    }
 
    public void readBuffer()
    {
-      yoVariableBuffers.forEach(buffer -> buffer.readBuffer());
+      readBufferAt(properties.getCurrentIndex());
+   }
+
+   public void readBufferAt(int index)
+   {
+      yoVariableBuffers.forEach(buffer -> buffer.readBufferAt(index));
    }
 
    YoVariableBuffer<?> findYoVariableBuffer(YoVariable<?> yoVariable)
@@ -133,5 +143,10 @@ public class YoVariableRegistryBuffer
    public YoVariableRegistry getRootRegistry()
    {
       return rootRegistry;
+   }
+
+   public YoBufferPropertiesReadOnly getProperties()
+   {
+      return properties;
    }
 }

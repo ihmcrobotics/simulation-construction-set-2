@@ -23,32 +23,27 @@ public class YoEnumBuffer<E extends Enum<E>> extends YoVariableBuffer<YoEnum<E>>
    }
 
    @Override
-   public void writeBuffer()
+   public void writeBufferAt(int index)
    {
-      buffer[properties.getCurrentIndex()] = (byte) yoVariable.getOrdinal();
+      buffer[index] = (byte) yoVariable.getOrdinal();
    }
 
    @Override
-   public void readBuffer()
+   public void readBufferAt(int index)
    {
-      yoVariable.set(buffer[properties.getCurrentIndex()]);
+      yoVariable.set(buffer[index]);
    }
 
    @Override
    public BufferSample<byte[]> copy(int from, int length)
    {
-      return new BufferSample<>(from, properties.getSize(), BufferTools.ringArrayCopy(buffer, from, length), length);
+      return new BufferSample<>(from, buffer.length, BufferTools.ringArrayCopy(buffer, from, length), length);
    }
 
    @Override
    LinkedYoEnum<E> newLinkedYoVariable(YoEnum<E> variableToLink)
    {
       return new LinkedYoEnum<>(variableToLink, this);
-   }
-
-   byte getBufferCurrentValue()
-   {
-      return buffer[properties.getCurrentIndex()];
    }
 
    byte[] getBuffer()

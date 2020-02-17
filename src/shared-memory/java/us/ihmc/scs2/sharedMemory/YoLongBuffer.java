@@ -23,32 +23,27 @@ public class YoLongBuffer extends YoVariableBuffer<YoLong>
    }
 
    @Override
-   public void writeBuffer()
+   public void writeBufferAt(int index)
    {
-      buffer[properties.getCurrentIndex()] = yoVariable.getValue();
+      buffer[index] = yoVariable.getValue();
    }
 
    @Override
-   public void readBuffer()
+   public void readBufferAt(int index)
    {
-      yoVariable.set(buffer[properties.getCurrentIndex()]);
+      yoVariable.set(buffer[index]);
    }
 
    @Override
    public BufferSample<long[]> copy(int from, int length)
    {
-      return new BufferSample<>(from, properties.getSize(), BufferTools.ringArrayCopy(buffer, from, length), length);
+      return new BufferSample<>(from, buffer.length, BufferTools.ringArrayCopy(buffer, from, length), length);
    }
 
    @Override
    LinkedYoLong newLinkedYoVariable(YoLong variableToLink)
    {
       return new LinkedYoLong(variableToLink, this);
-   }
-
-   long getBufferCurrentValue()
-   {
-      return buffer[properties.getCurrentIndex()];
    }
 
    long[] getBuffer()

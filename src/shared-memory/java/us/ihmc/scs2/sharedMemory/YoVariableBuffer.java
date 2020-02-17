@@ -21,7 +21,7 @@ public abstract class YoVariableBuffer<T extends YoVariable<T>>
    }
 
    protected final T yoVariable;
-   protected final YoBufferPropertiesReadOnly properties;
+   private final YoBufferPropertiesReadOnly properties;
 
    public YoVariableBuffer(T yoVariable, YoBufferPropertiesReadOnly properties)
    {
@@ -31,16 +31,26 @@ public abstract class YoVariableBuffer<T extends YoVariable<T>>
 
    public abstract void resizeBuffer(int from, int length);
 
-   public abstract void writeBuffer();
+   public final void writeBuffer()
+   {
+      writeBufferAt(properties.getCurrentIndex());
+   }
 
-   public abstract void readBuffer();
+   public abstract void writeBufferAt(int index);
+
+   public final void readBuffer()
+   {
+      readBufferAt(properties.getCurrentIndex());
+   }
+
+   public abstract void readBufferAt(int index);
 
    public T getYoVariable()
    {
       return yoVariable;
    }
 
-   YoBufferPropertiesReadOnly getProperties()
+   public YoBufferPropertiesReadOnly getProperties()
    {
       return properties;
    }

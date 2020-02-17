@@ -23,32 +23,27 @@ public class YoBooleanBuffer extends YoVariableBuffer<YoBoolean>
    }
 
    @Override
-   public void writeBuffer()
+   public void writeBufferAt(int index)
    {
-      buffer[properties.getCurrentIndex()] = yoVariable.getValue();
+      buffer[index] = yoVariable.getValue();
    }
 
    @Override
-   public void readBuffer()
+   public void readBufferAt(int index)
    {
-      yoVariable.set(buffer[properties.getCurrentIndex()]);
+      yoVariable.set(buffer[index]);
    }
 
    @Override
    public BufferSample<boolean[]> copy(int from, int length)
    {
-      return new BufferSample<>(from, properties.getSize(), BufferTools.ringArrayCopy(buffer, from, length), length);
+      return new BufferSample<>(from, buffer.length, BufferTools.ringArrayCopy(buffer, from, length), length);
    }
 
    @Override
    LinkedYoBoolean newLinkedYoVariable(YoBoolean variableToLink)
    {
       return new LinkedYoBoolean(variableToLink, this);
-   }
-
-   boolean getBufferCurrentValue()
-   {
-      return buffer[properties.getCurrentIndex()];
    }
 
    boolean[] getBuffer()
