@@ -25,7 +25,7 @@ public class LinkedYoBooleanTest extends LinkedYoVariableTest<YoBoolean>
    }
 
    @Override
-   YoBoolean nextYoVariable(Random random)
+   YoBoolean nextYoVariable(Random random, int iteration)
    {
       return YoRandomTools.nextYoBoolean(random, new YoVariableRegistry("Dummy"));
    }

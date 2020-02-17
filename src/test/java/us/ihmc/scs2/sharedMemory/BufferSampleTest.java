@@ -27,7 +27,7 @@ public class BufferSampleTest
          BufferSample<double[]> bufferSample = new BufferSample<>(from, bufferSize, sample, sampleLength);
 
          assertEquals(from, bufferSample.getFrom());
-         int to = from + sampleLength;
+         int to = from + sampleLength - 1;
          if (to >= bufferSize)
             to -= bufferSize;
          assertEquals(to, bufferSample.getTo());

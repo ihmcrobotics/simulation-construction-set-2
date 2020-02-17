@@ -143,7 +143,7 @@ public class YoIntegerBufferTest
          assertEquals(from, actualCopy.getFrom());
          assertEquals(length, actualCopy.getSampleLength());
          assertEquals(yoIntegerBuffer.getProperties().getSize(), actualCopy.getBufferSize());
-         int to = from + length;
+         int to = from + length - 1;
          if (to >= yoIntegerBuffer.getProperties().getSize())
             to -= yoIntegerBuffer.getProperties().getSize();
          assertEquals(to, actualCopy.getTo());

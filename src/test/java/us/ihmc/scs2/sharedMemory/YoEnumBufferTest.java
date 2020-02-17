@@ -142,7 +142,7 @@ public class YoEnumBufferTest
          assertEquals(from, actualCopy.getFrom());
          assertEquals(length, actualCopy.getSampleLength());
          assertEquals(yoEnumBuffer.getProperties().getSize(), actualCopy.getBufferSize());
-         int to = from + length;
+         int to = from + length - 1;
          if (to >= yoEnumBuffer.getProperties().getSize())
             to -= yoEnumBuffer.getProperties().getSize();
          assertEquals(to, actualCopy.getTo());

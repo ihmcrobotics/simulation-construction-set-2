@@ -2,6 +2,8 @@ package us.ihmc.scs2.sharedMemory;
 
 import java.util.Arrays;
 
+import us.ihmc.scs2.sharedMemory.tools.BufferTools;
+
 public class BufferSample<D>
 {
    private final int from;
@@ -32,7 +34,7 @@ public class BufferSample<D>
 
    public int getTo()
    {
-      return (from + sampleLength) % bufferSize;
+      return BufferTools.computeEndIndex(from, sampleLength, bufferSize);
    }
 
    public int getBufferSize()

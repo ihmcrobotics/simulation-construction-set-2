@@ -143,7 +143,7 @@ public class YoLongBufferTest
          assertEquals(from, actualCopy.getFrom());
          assertEquals(length, actualCopy.getSampleLength());
          assertEquals(yoLongBuffer.getProperties().getSize(), actualCopy.getBufferSize());
-         int to = from + length;
+         int to = from + length - 1;
          if (to >= yoLongBuffer.getProperties().getSize())
             to -= yoLongBuffer.getProperties().getSize();
          assertEquals(to, actualCopy.getTo());

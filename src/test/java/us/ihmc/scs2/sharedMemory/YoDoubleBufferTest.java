@@ -143,7 +143,7 @@ public class YoDoubleBufferTest
          assertEquals(from, actualCopy.getFrom());
          assertEquals(length, actualCopy.getSampleLength());
          assertEquals(yoDoubleBuffer.getProperties().getSize(), actualCopy.getBufferSize());
-         int to = from + length;
+         int to = from + length - 1;
          if (to >= yoDoubleBuffer.getProperties().getSize())
             to -= yoDoubleBuffer.getProperties().getSize();
          assertEquals(to, actualCopy.getTo());

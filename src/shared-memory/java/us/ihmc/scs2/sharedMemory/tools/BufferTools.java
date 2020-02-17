@@ -22,6 +22,22 @@ public class BufferTools
    }
 
    /**
+    * Calculates the end point of an interval defined in a ring buffer.
+    * 
+    * @param from      the (inclusive) start of the interval.
+    * @param subLength the number of elements in the interval.
+    * @param length    the number of elements of the entire ring buffer.
+    * @return the index of the interval's end point.
+    */
+   public static int computeEndIndex(int from, int subLength, int length)
+   {
+      int end = from + subLength - 1;
+      if (end >= length)
+         end -= length;
+      return end;
+   }
+
+   /**
     * Tests whether the {@code query} is contained within the sub-interval of a buffer defined by
     * [{@code start}, {@code to}].
     * 

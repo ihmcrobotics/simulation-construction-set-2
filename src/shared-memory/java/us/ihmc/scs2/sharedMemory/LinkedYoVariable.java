@@ -2,6 +2,8 @@ package us.ihmc.scs2.sharedMemory;
 
 import java.util.Objects;
 
+import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
+import us.ihmc.scs2.sharedMemory.tools.BufferTools;
 import us.ihmc.yoVariables.variable.*;
 
 public abstract class LinkedYoVariable<T extends YoVariable<T>> extends LinkedBuffer
@@ -88,48 +90,42 @@ public abstract class LinkedYoVariable<T extends YoVariable<T>> extends LinkedBu
 
    private void consumeBufferSampleRequest()
    {
+      if (bufferSampleRequest == null)
+         return;
+
       BufferSampleRequest localRequest = bufferSampleRequest;
       bufferSampleRequest = null;
 
-      if (localRequest != null)
+      int from = localRequest.getFrom();
+      int length = localRequest.getLength();
+
+      YoBufferPropertiesReadOnly properties = buffer.getProperties();
+
+      if (length == -1)
       {
-         int from = localRequest.getFrom();
-         int length = localRequest.getLength();
-         if (length == -1)
-         {
-            if (from == -1)
-            {
-               from = 0;
-               length = buffer.getProperties().getSize();
-            }
-            else
-            {
-               if (buffer.getProperties().getOutPoint() < from)
-               {
-                  length = buffer.getProperties().getOutPoint() - from + buffer.getProperties().getSize();
-               }
-               else
-               {
-                  length = buffer.getProperties().getOutPoint() - from + 1;
-               }
-            }
-         }
-         else if (from == -1)
+         if (from == -1)
          {
             from = 0;
-
-            if (length == -2)
-            {
-               from = buffer.getProperties().getInPoint();
-               length = buffer.getProperties().getActiveBufferLength();
-
-               if (length <= 0)
-                  return;
-            }
+            length = properties.getSize();
          }
-
-         bufferSample = buffer.copy(from, length);
+         else if (from >= 0)
+         {
+            length = BufferTools.computeSubLength(from, properties.getOutPoint(), properties.getSize());
+         }
       }
+      else if (length == -2 && from == -1)
+      {
+         from = properties.getInPoint();
+         length = properties.getActiveBufferLength();
+      }
+
+      if (length == 0)
+         return;
+
+      if (from < 0 || from >= properties.getSize() || length < 0 || length > properties.getSize())
+         throw new IllegalArgumentException("Invalid request: from = " + from + ", length = " + length);
+
+      bufferSample = buffer.copy(from, length);
    }
 
    @Override
