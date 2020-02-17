@@ -88,7 +88,7 @@ public class YoBufferRandomTools
 
    public static YoSharedBuffer nextYoSharedBuffer(Random random, YoVariableRegistry rootRegistry)
    {
-      YoSharedBuffer next = new YoSharedBuffer(rootRegistry, random.nextInt(1000) + 1);
+      YoSharedBuffer next = new YoSharedBuffer(rootRegistry, random.nextInt(500) + 2);
       randomizeYoSharedBuffer(random, next);
       return next;
    }
