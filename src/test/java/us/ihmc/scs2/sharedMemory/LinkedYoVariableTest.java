@@ -239,7 +239,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable<T>>
             assertFalse(linkedYoVariable.isRequestedBufferSampleAvailable());
 
             assertEquals(start, bufferSample.getFrom());
-            assertEquals(BufferTools.computeEndIndex(start, length, properties.getSize()), bufferSample.getTo());
+            assertEquals(BufferTools.computeToIndex(start, length, properties.getSize()), bufferSample.getTo());
             assertEquals(length, bufferSample.getSampleLength());
             assertEquals(buffer.copy(start, bufferSample.getSampleLength()), bufferSample);
          }

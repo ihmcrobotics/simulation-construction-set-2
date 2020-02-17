@@ -34,7 +34,7 @@ public class BufferSample<D>
 
    public int getTo()
    {
-      return BufferTools.computeEndIndex(from, sampleLength, bufferSize);
+      return BufferTools.computeToIndex(from, sampleLength, bufferSize);
    }
 
    public int getBufferSize()

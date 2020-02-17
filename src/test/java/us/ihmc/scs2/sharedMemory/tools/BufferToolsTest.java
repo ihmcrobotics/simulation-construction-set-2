@@ -1,5 +1,9 @@
 package us.ihmc.scs2.sharedMemory.tools;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.util.Arrays;
 import java.util.Random;
 
@@ -8,11 +12,95 @@ import org.junit.jupiter.api.Test;
 import us.ihmc.commons.RandomNumbers;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 public class BufferToolsTest
 {
    private static final int ITERATIONS = 1000;
+
+   @Test
+   public void testComputeSubLength()
+   {
+      Random random = new Random(34536);
+
+      { // Test exceptions
+         assertThrows(IllegalArgumentException.class, () -> BufferTools.computeSubLength(0, 10, 0));
+         assertThrows(IllegalArgumentException.class, () -> BufferTools.computeSubLength(0, 10, -1));
+         assertThrows(IndexOutOfBoundsException.class, () -> BufferTools.computeSubLength(0, 10, 5));
+         assertThrows(IndexOutOfBoundsException.class, () -> BufferTools.computeSubLength(5, 4, 5));
+         assertThrows(IndexOutOfBoundsException.class, () -> BufferTools.computeSubLength(-1, 4, 5));
+         assertThrows(IndexOutOfBoundsException.class, () -> BufferTools.computeSubLength(0, -1, 5));
+      }
+
+      for (int i = 0; i < ITERATIONS; i++)
+      {
+         int length = random.nextInt(1000) + 1;
+         int from = random.nextInt(length);
+         int to = random.nextInt(length);
+         int subLength = BufferTools.computeSubLength(from, to, length);
+
+         // Use naive approach to measure the length
+
+         int index = from;
+         int expectedSubLength = 1;
+
+         while (index != to)
+         {
+            index++;
+            if (index >= length)
+               index = 0;
+            expectedSubLength++;
+         }
+
+         assertEquals(expectedSubLength, subLength);
+      }
+   }
+
+   @Test
+   public void testComputeFromIndex()
+   {
+      Random random = new Random(2456);
+
+      { // Test exceptions
+         assertThrows(IllegalArgumentException.class, () -> BufferTools.computeFromIndex(9, 1, 0));
+         assertThrows(IllegalArgumentException.class, () -> BufferTools.computeFromIndex(9, 0, 1));
+         assertThrows(IllegalArgumentException.class, () -> BufferTools.computeFromIndex(9, 2, 1));
+         assertThrows(IndexOutOfBoundsException.class, () -> BufferTools.computeFromIndex(11, 10, 11));
+         assertThrows(IndexOutOfBoundsException.class, () -> BufferTools.computeFromIndex(-1, 10, 11));
+      }
+
+      for (int i = 0; i < ITERATIONS; i++)
+      {
+         int length = random.nextInt(1000) + 1;
+         int to = random.nextInt(length);
+         int subLength = random.nextInt(length - 1) + 1;
+         int from = BufferTools.computeFromIndex(to, subLength, length);
+
+         assertEquals(subLength, BufferTools.computeSubLength(from, to, length));
+      }
+   }
+
+   @Test
+   public void testComputeToIndex()
+   {
+      Random random = new Random(2456);
+
+      { // Test exceptions
+         assertThrows(IllegalArgumentException.class, () -> BufferTools.computeToIndex(9, 1, 0));
+         assertThrows(IllegalArgumentException.class, () -> BufferTools.computeToIndex(9, 0, 1));
+         assertThrows(IllegalArgumentException.class, () -> BufferTools.computeToIndex(9, 2, 1));
+         assertThrows(IndexOutOfBoundsException.class, () -> BufferTools.computeToIndex(11, 10, 11));
+         assertThrows(IndexOutOfBoundsException.class, () -> BufferTools.computeToIndex(-1, 10, 11));
+      }
+
+      for (int i = 0; i < ITERATIONS; i++)
+      {
+         int length = random.nextInt(1000) + 1;
+         int from = random.nextInt(length);
+         int subLength = random.nextInt(length - 1) + 1;
+         int to = BufferTools.computeToIndex(from, subLength, length);
+
+         assertEquals(subLength, BufferTools.computeSubLength(from, to, length));
+      }
+   }
 
    @Test
    public void testRingArrayCopyWithBoolean()
