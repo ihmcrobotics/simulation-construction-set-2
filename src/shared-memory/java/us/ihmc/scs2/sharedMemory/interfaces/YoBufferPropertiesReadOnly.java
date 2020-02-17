@@ -65,6 +65,12 @@ public interface YoBufferPropertiesReadOnly
             else
                return false;
          }
+
+         @Override
+         public String toString()
+         {
+            return "Size " + size + ", index " + currentIndex + ", in-point " + inPoint + ", out-point " + outPoint;
+         }
       };
    }
 
