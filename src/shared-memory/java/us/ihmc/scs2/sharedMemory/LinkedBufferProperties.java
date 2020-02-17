@@ -6,19 +6,11 @@ public class LinkedBufferProperties
 {
    private final YoBufferProperties bufferProperties;
 
-   private YoBufferProperties requestedBufferProperties;
    private YoBufferPropertiesReadOnly currentBufferProperties;
 
    LinkedBufferProperties(YoBufferProperties bufferProperties)
    {
       this.bufferProperties = bufferProperties;
-   }
-
-   YoBufferPropertiesReadOnly pollBufferPropertiesRequest()
-   {
-      YoBufferPropertiesReadOnly newRequest = requestedBufferProperties;
-      requestedBufferProperties = null;
-      return newRequest;
    }
 
    void prepareForPull()

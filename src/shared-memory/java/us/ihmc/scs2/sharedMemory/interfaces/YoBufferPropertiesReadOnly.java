@@ -54,6 +54,17 @@ public interface YoBufferPropertiesReadOnly
          {
             return outPoint;
          }
+
+         @Override
+         public boolean equals(Object object)
+         {
+            if (object == this)
+               return true;
+            else if (object instanceof YoBufferPropertiesReadOnly)
+               return equals((YoBufferPropertiesReadOnly) object);
+            else
+               return false;
+         }
       };
    }
 
