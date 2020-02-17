@@ -77,16 +77,6 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
       return true;
    }
 
-   public boolean processLinkedRequests()
-   {
-      boolean hasPushedSomething = false;
-
-      for (LinkedBuffer linkedBuffer : linkedBuffers)
-         hasPushedSomething |= linkedBuffer.processPush();
-
-      return hasPushedSomething;
-   }
-
    public boolean setCurrentIndex(int newIndex)
    {
       boolean hasChanged = properties.setCurrentIndex(newIndex);
@@ -103,6 +93,16 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
    public boolean setOutPoint(int newOutPoint)
    {
       return properties.setOutPointIndex(newOutPoint);
+   }
+
+   public boolean processLinkedRequests()
+   {
+      boolean hasPushedSomething = false;
+
+      for (LinkedBuffer linkedBuffer : linkedBuffers)
+         hasPushedSomething |= linkedBuffer.processPush();
+
+      return hasPushedSomething;
    }
 
    public void updateYoVariablesAndPublish()
@@ -157,6 +157,16 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
    public YoBufferPropertiesReadOnly getProperties()
    {
       return properties;
+   }
+
+   public YoVariableRegistry getRootRegistry()
+   {
+      return registryBuffer.getRootRegistry();
+   }
+
+   public YoVariableRegistryBuffer getRegistryBuffer()
+   {
+      return registryBuffer;
    }
 
    @Override
