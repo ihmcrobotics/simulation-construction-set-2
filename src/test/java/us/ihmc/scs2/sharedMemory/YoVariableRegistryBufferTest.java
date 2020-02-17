@@ -223,6 +223,44 @@ public class YoVariableRegistryBufferTest
       }
    }
 
+   @Test
+   public void testNewLinkedYoVariableRegistry()
+   {
+      Random random = new Random(978345);
+
+      for (int i = 0; i < ITERATIONS; i++)
+      {
+         YoVariableRegistry[] allRegistries = YoRandomTools.nextYoVariableRegistryTree(random, 5, 5);
+         YoVariableRegistry rootRegistry = allRegistries[0];
+         YoBufferProperties bufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
+         YoVariableRegistryBuffer yoVariableRegistryBuffer = new YoVariableRegistryBuffer(rootRegistry, bufferProperties);
+
+         LinkedYoVariableRegistry linkedRootRegistry = yoVariableRegistryBuffer.newLinkedYoVariableRegistry();
+         assertEquals(rootRegistry.getName(), linkedRootRegistry.getRootRegistry().getName());
+         for (YoVariableRegistry registry : allRegistries)
+         {
+            YoVariableRegistry linkedRegistry = linkedRootRegistry.getRootRegistry().getRegistry(registry.getNameSpace());
+            assertNotNull(linkedRegistry);
+            assertEquals(linkedRegistry.getChildren().size(), registry.getChildren().size());
+            assertEquals(linkedRegistry.getAllVariablesInThisListOnly().size(), registry.getAllVariablesInThisListOnly().size());
+         }
+
+         YoVariableRegistry subTreeRootRegistry = allRegistries[random.nextInt(allRegistries.length)];
+         YoVariableRegistry linkedSubTreeRootRegistry = YoMirroredRegistryTools.newEmptyCloneRegistry(subTreeRootRegistry);
+
+         LinkedYoVariableRegistry linkedSubTreeRegistry = yoVariableRegistryBuffer.newLinkedYoVariableRegistry(linkedSubTreeRootRegistry);
+         assertTrue(linkedSubTreeRootRegistry == linkedSubTreeRegistry.getRootRegistry());
+
+         for (YoVariableRegistry registry : subTreeRootRegistry.getAllRegistriesIncludingChildren())
+         {
+            YoVariableRegistry linkedRegistry = linkedSubTreeRootRegistry.getRegistry(registry.getNameSpace());
+            assertNotNull(linkedRegistry);
+            assertEquals(linkedRegistry.getChildren().size(), registry.getChildren().size());
+            assertEquals(linkedRegistry.getAllVariablesInThisListOnly().size(), registry.getAllVariablesInThisListOnly().size());
+         }
+      }
+   }
+
    private static void assertBufferCurrentValueEquals(int currentIndex, YoVariable<?> expectedValue, YoVariableBuffer<?> yoVariableBuffer)
    {
       if (expectedValue instanceof YoBoolean)
