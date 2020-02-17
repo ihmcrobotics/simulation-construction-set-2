@@ -2,6 +2,7 @@ package us.ihmc.scs2.sharedMemory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.YoMirroredRegistryTools;
 import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.*;
@@ -168,6 +170,56 @@ public class YoVariableRegistryBufferTest
                assertBufferCurrentValueEquals(bufferProperties.getCurrentIndex(), yoVariable, yoVariableRegistryBuffer.findYoVariableBuffer(yoVariable));
             }
          }
+      }
+   }
+
+   @Test
+   public void testFindOrCreateYoVariableBuffer()
+   {
+      Random random = new Random(78924);
+
+      for (int i = 0; i < ITERATIONS; i++)
+      {
+         YoVariableRegistry[] allRegistries = YoRandomTools.nextYoVariableRegistryTree(random, 5, 5);
+         YoVariableRegistry rootRegistry = allRegistries[0];
+         YoBufferProperties bufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
+         YoVariableRegistryBuffer yoVariableRegistryBuffer = new YoVariableRegistryBuffer(rootRegistry, bufferProperties);
+
+         // Create a mirror of the registries
+         YoVariableRegistry rootMirrorRegistry = new YoVariableRegistry(rootRegistry.getName());
+         YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(rootRegistry, rootMirrorRegistry);
+
+         // Add a YoVariable to one of the existing registries
+         YoVariableRegistry yoVariableRegistry = rootMirrorRegistry.getAllRegistriesIncludingChildren().get(random.nextInt(allRegistries.length - 1));
+         YoVariable<?> newYoVariable = YoRandomTools.nextYoVariable(random, yoVariableRegistry);
+         assertNull(yoVariableRegistryBuffer.findYoVariableBuffer(newYoVariable));
+         assertNull(rootRegistry.getVariable(newYoVariable.getFullNameWithNameSpace()));
+         YoVariableBuffer<?> newBuffer = yoVariableRegistryBuffer.findOrCreateYoVariableBuffer(newYoVariable);
+         assertEquals(newYoVariable.getFullNameWithNameSpace(), newBuffer.getYoVariable().getFullNameWithNameSpace());
+         assertNotNull(yoVariableRegistryBuffer.findYoVariableBuffer(newYoVariable));
+         assertNotNull(rootRegistry.getVariable(newYoVariable.getFullNameWithNameSpace()));
+         assertEquals(newYoVariable.getClass(), rootRegistry.getVariable(newYoVariable.getFullNameWithNameSpace()).getClass());
+
+         // Add a YoVariable with new registries to one of the existing registries.
+         List<YoVariableRegistry> newRegistries = new ArrayList<>();
+
+         for (int j = 0; j < random.nextInt(10) + 1; j++)
+         {
+            YoVariableRegistry newChild = new YoVariableRegistry(YoRandomTools.nextAvailableRegistryName(random, 10, 20, yoVariableRegistry));
+            yoVariableRegistry.addChild(newChild);
+            newRegistries.add(newChild);
+            yoVariableRegistry = newChild;
+         }
+
+         newYoVariable = YoRandomTools.nextYoVariable(random, yoVariableRegistry);
+         assertNull(yoVariableRegistryBuffer.findYoVariableBuffer(newYoVariable));
+         assertNull(rootRegistry.getVariable(newYoVariable.getFullNameWithNameSpace()));
+         newBuffer = yoVariableRegistryBuffer.findOrCreateYoVariableBuffer(newYoVariable);
+         assertEquals(newYoVariable.getFullNameWithNameSpace(), newBuffer.getYoVariable().getFullNameWithNameSpace());
+         assertNotNull(yoVariableRegistryBuffer.findYoVariableBuffer(newYoVariable));
+         assertNotNull(rootRegistry.getVariable(newYoVariable.getFullNameWithNameSpace()));
+         assertEquals(newYoVariable.getClass(), rootRegistry.getVariable(newYoVariable.getFullNameWithNameSpace()).getClass());
+         newRegistries.forEach(newRegistry -> assertNotNull(rootRegistry.getRegistry(newRegistry.getNameSpace())));
       }
    }
 
