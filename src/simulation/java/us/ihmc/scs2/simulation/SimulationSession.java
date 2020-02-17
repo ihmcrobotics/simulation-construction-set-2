@@ -105,5 +105,4 @@ public class SimulationSession extends Session
    {
       return physicsEngine.getTerrainObjectDefinitions();
    }
-
 }
