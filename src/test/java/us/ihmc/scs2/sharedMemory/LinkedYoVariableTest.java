@@ -163,20 +163,20 @@ public abstract class LinkedYoVariableTest<T extends YoVariable<T>>
          {
             linkedYoVariable.prepareForPull();
             linkedYoVariable.pull();
-            assertFalse(linkedYoVariable.hasBufferSampleRequestPending());
+            assertFalse(linkedYoVariable.hasRequestPending());
             assertFalse(linkedYoVariable.isRequestedBufferSampleAvailable());
             assertNull(linkedYoVariable.pollRequestedBufferSample());
          }
 
          // Request entire buffer.
          linkedYoVariable.requestEntireBuffer();
-         assertTrue(linkedYoVariable.hasBufferSampleRequestPending());
+         assertTrue(linkedYoVariable.hasRequestPending());
          assertFalse(linkedYoVariable.isRequestedBufferSampleAvailable());
          linkedYoVariable.prepareForPull();
-         assertFalse(linkedYoVariable.hasBufferSampleRequestPending());
+         assertFalse(linkedYoVariable.hasRequestPending());
          assertTrue(linkedYoVariable.isRequestedBufferSampleAvailable());
          BufferSample bufferSample = linkedYoVariable.pollRequestedBufferSample();
-         assertFalse(linkedYoVariable.hasBufferSampleRequestPending());
+         assertFalse(linkedYoVariable.hasRequestPending());
          assertFalse(linkedYoVariable.isRequestedBufferSampleAvailable());
 
          assertEquals(0, bufferSample.getFrom());
@@ -186,13 +186,13 @@ public abstract class LinkedYoVariableTest<T extends YoVariable<T>>
 
          // Request the active part of the buffer.
          linkedYoVariable.requestActiveBufferOnly();
-         assertTrue(linkedYoVariable.hasBufferSampleRequestPending());
+         assertTrue(linkedYoVariable.hasRequestPending());
          assertFalse(linkedYoVariable.isRequestedBufferSampleAvailable());
          linkedYoVariable.prepareForPull();
-         assertFalse(linkedYoVariable.hasBufferSampleRequestPending());
+         assertFalse(linkedYoVariable.hasRequestPending());
          assertTrue(linkedYoVariable.isRequestedBufferSampleAvailable());
          bufferSample = linkedYoVariable.pollRequestedBufferSample();
-         assertFalse(linkedYoVariable.hasBufferSampleRequestPending());
+         assertFalse(linkedYoVariable.hasRequestPending());
          assertFalse(linkedYoVariable.isRequestedBufferSampleAvailable());
 
          assertEquals(properties.getInPoint(), bufferSample.getFrom());
@@ -203,13 +203,13 @@ public abstract class LinkedYoVariableTest<T extends YoVariable<T>>
          // Request a part of the buffer starting from a given index to the latest out-point
          int start = random.nextInt(properties.getSize());
          linkedYoVariable.requestBufferStartingFrom(start);
-         assertTrue(linkedYoVariable.hasBufferSampleRequestPending());
+         assertTrue(linkedYoVariable.hasRequestPending());
          assertFalse(linkedYoVariable.isRequestedBufferSampleAvailable());
          linkedYoVariable.prepareForPull();
-         assertFalse(linkedYoVariable.hasBufferSampleRequestPending());
+         assertFalse(linkedYoVariable.hasRequestPending());
          assertTrue(linkedYoVariable.isRequestedBufferSampleAvailable());
          bufferSample = linkedYoVariable.pollRequestedBufferSample();
-         assertFalse(linkedYoVariable.hasBufferSampleRequestPending());
+         assertFalse(linkedYoVariable.hasRequestPending());
          assertFalse(linkedYoVariable.isRequestedBufferSampleAvailable());
 
          assertEquals(start, bufferSample.getFrom());
@@ -221,10 +221,10 @@ public abstract class LinkedYoVariableTest<T extends YoVariable<T>>
          start = random.nextInt(properties.getSize());
          int length = random.nextInt(properties.getSize());
          linkedYoVariable.requestBufferWindow(start, length);
-         assertTrue(linkedYoVariable.hasBufferSampleRequestPending());
+         assertTrue(linkedYoVariable.hasRequestPending());
          assertFalse(linkedYoVariable.isRequestedBufferSampleAvailable());
          linkedYoVariable.prepareForPull();
-         assertFalse(linkedYoVariable.hasBufferSampleRequestPending());
+         assertFalse(linkedYoVariable.hasRequestPending());
 
          if (length == 0)
          {
@@ -235,7 +235,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable<T>>
          {
             assertTrue(linkedYoVariable.isRequestedBufferSampleAvailable());
             bufferSample = linkedYoVariable.pollRequestedBufferSample();
-            assertFalse(linkedYoVariable.hasBufferSampleRequestPending());
+            assertFalse(linkedYoVariable.hasRequestPending());
             assertFalse(linkedYoVariable.isRequestedBufferSampleAvailable());
 
             assertEquals(start, bufferSample.getFrom());

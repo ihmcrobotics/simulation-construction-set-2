@@ -1,6 +1,8 @@
 package us.ihmc.scs2.sharedMemory;
 
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 import us.ihmc.scs2.sharedMemory.tools.YoMirroredRegistryTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
@@ -14,6 +16,7 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
    private final YoVariableRegistry rootRegistry;
    private final YoVariableRegistryBuffer yoVariableRegistryBuffer;
 
+   private final ReentrantLock lock = new ReentrantLock();
    private final List<LinkedYoVariable> linkedYoVariables = new ArrayList<>();
    private final Map<YoVariable, LinkedYoVariable> linkedYoVariableMap = new HashMap<>();
 
@@ -21,105 +24,144 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
    {
       this.rootRegistry = rootRegistry;
       this.yoVariableRegistryBuffer = yoVariableRegistryBuffer;
-      List<YoVariable<?>> allVariables = rootRegistry.getAllVariablesIncludingDescendants();
-      allVariables.forEach(this::setupNewLinkedYoVariable);
+      linkNewYoVariables();
    }
 
+   /**
+    * Requests all {@code YoVariable}s declared in the main buffer to duplicate and link them in this
+    * linked registry.
+    *
+    * @return the number of {@code YoVariable}s that were created.
+    */
    public int pullMissingYoVariables()
    {
-      synchronized (linkedYoVariables)
+      YoVariableRegistry bufferRootRegistry = yoVariableRegistryBuffer.getRootRegistry();
+
+      int numberOfNewVariables = 0;
+
+      lock.lock();
+
+      try
       {
-         int numberOfNewYoVariables = YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(yoVariableRegistryBuffer.getRootRegistry(),
-                                                                                                  rootRegistry,
-                                                                                                  this::setupNewLinkedYoVariable);
-         return numberOfNewYoVariables;
+         yoVariableRegistryBuffer.registerMissingBuffers();
+         numberOfNewVariables = YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(bufferRootRegistry, rootRegistry, this::setupNewLinkedYoVariable);
       }
+      finally
+      {
+         lock.unlock();
+      }
+
+      return numberOfNewVariables;
    }
 
    public void linkNewYoVariables()
    {
-      synchronized (linkedYoVariables)
+      ArrayList<YoVariable<?>> allYoVariables = rootRegistry.getAllVariables();
+
+      if (allYoVariables.size() == linkedYoVariables.size())
+         return;
+
+      List<YoVariable<?>> variablesMissingLink = allYoVariables.stream().filter(v -> !linkedYoVariableMap.containsKey(v)).collect(Collectors.toList());
+
+      lock.lock();
+
+      try
       {
-         List<YoVariable<?>> allYoVariables = rootRegistry.getAllVariables();
-
-         if (allYoVariables.size() != linkedYoVariables.size())
-         {
-            for (YoVariable<?> yoVariable : allYoVariables)
-            {
-               LinkedYoVariable linkedYoVariable = linkedYoVariableMap.get(yoVariable);
-
-               if (linkedYoVariable == null)
-                  setupNewLinkedYoVariable(yoVariable);
-            }
-         }
+         variablesMissingLink.forEach(this::setupNewLinkedYoVariable);
+      }
+      finally
+      {
+         lock.unlock();
       }
    }
 
-   private void setupNewLinkedYoVariable(YoVariable<?> variableToLink)
+   private LinkedYoVariable<?> setupNewLinkedYoVariable(YoVariable<?> variableToLink)
    {
       YoVariableBuffer yoVariableBuffer = yoVariableRegistryBuffer.findOrCreateYoVariableBuffer(variableToLink);
-      LinkedYoVariable linkedYoVariable = yoVariableBuffer.newLinkedYoVariable(variableToLink);
-      linkedYoVariables.add(linkedYoVariable);
-      linkedYoVariableMap.put(variableToLink, linkedYoVariable);
+      LinkedYoVariable newLinkedYoVariable = yoVariableBuffer.newLinkedYoVariable(variableToLink);
+      linkedYoVariables.add(newLinkedYoVariable);
+      linkedYoVariableMap.put(newLinkedYoVariable.getLinkedYoVariable(), newLinkedYoVariable);
+      return newLinkedYoVariable;
    }
 
+   // Operation for the buffer consumers only.
    public void push(YoVariable<?>... yoVariablesToPush)
    {
       Arrays.asList(yoVariablesToPush).stream().map(linkedYoVariableMap::get).filter(v -> v != null).forEach(LinkedYoVariable::push);
    }
 
+   // Operation for the buffer consumers only.
    @Override
    public void push()
    {
-      synchronized (linkedYoVariables)
-      {
-         linkedYoVariables.forEach(LinkedYoVariable::push);
-      }
+      linkedYoVariables.forEach(LinkedYoVariable::push);
    }
 
-   @Override
-   boolean processPush()
-   {
-      synchronized (linkedYoVariables)
-      {
-         boolean hasPushedSomething = false;
-         for (LinkedYoVariable<?> linkedYoVariable : linkedYoVariables)
-            hasPushedSomething |= linkedYoVariable.processPush();
-
-         return hasPushedSomething;
-      }
-   }
-
-   @Override
-   void prepareForPull()
-   {
-      synchronized (linkedYoVariables)
-      {
-         linkedYoVariables.forEach(LinkedYoVariable::prepareForPull);
-      }
-   }
-
+   // Operation for the buffer consumers only.
    @Override
    public boolean pull()
    {
-      synchronized (linkedYoVariables)
+      boolean hasNewData = false;
+
+      for (LinkedYoVariable linkedYoVariable : linkedYoVariables)
+         hasNewData |= linkedYoVariable.pull();
+
+      return hasNewData;
+   }
+
+   // Operation for the buffer manager only.
+   @Override
+   boolean processPush()
+   {
+      boolean hasPushedSomething = false;
+
+      lock.lock();
+      try
       {
-         boolean hasNewData = false;
+         for (LinkedYoVariable<?> linkedYoVariable : linkedYoVariables)
+            hasPushedSomething |= linkedYoVariable.processPush();
+      }
+      finally
+      {
+         lock.unlock();
+      }
 
-         for (LinkedYoVariable linkedYoVariable : linkedYoVariables)
-            hasNewData |= linkedYoVariable.pull();
+      return hasPushedSomething;
+   }
 
-         return hasNewData;
+   // Operation for the buffer manager only.
+   @Override
+   void prepareForPull()
+   {
+      lock.lock();
+      try
+      {
+         linkedYoVariables.forEach(LinkedYoVariable::prepareForPull);
+      }
+      finally
+      {
+         lock.unlock();
       }
    }
 
+   // Operation for the buffer manager only.
    @Override
    boolean hasRequestPending()
    {
-      synchronized (linkedYoVariables)
+      boolean hasRequestPending = false;
+
+      lock.lock();
+
+      try
       {
-         return linkedYoVariables.stream().anyMatch(LinkedYoVariable::hasRequestPending);
+         hasRequestPending = linkedYoVariables.stream().anyMatch(LinkedYoVariable::hasRequestPending);
       }
+      finally
+      {
+         lock.unlock();
+      }
+
+      return hasRequestPending;
    }
 
    public LinkedYoVariable<? extends YoVariable<?>> getLinkedYoVariable(YoVariable<?> yoVariable)
