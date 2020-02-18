@@ -447,7 +447,7 @@ public abstract class Session
          sharedBuffer.updateBuffer();
       shouldPublish |= processBufferRequests(true);
       if (!shouldPublish)
-         shouldPublish = sharedBuffer.hasBufferSampleRequestPending();
+         shouldPublish = sharedBuffer.hasRequestPending();
 
       return shouldPublish;
    }

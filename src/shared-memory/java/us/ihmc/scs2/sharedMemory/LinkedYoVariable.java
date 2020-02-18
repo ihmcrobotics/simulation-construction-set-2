@@ -143,7 +143,7 @@ public abstract class LinkedYoVariable<T extends YoVariable<T>> extends LinkedBu
    }
 
    @Override
-   public boolean hasBufferSampleRequestPending()
+   public boolean hasRequestPending()
    {
       return bufferSampleRequest != null;
    }

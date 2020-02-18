@@ -239,9 +239,9 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
       linkedBufferProperties.forEach(LinkedBufferProperties::prepareForPull);
    }
 
-   public boolean hasBufferSampleRequestPending()
+   public boolean hasRequestPending()
    {
-      return linkedBuffers.stream().anyMatch(LinkedBuffer::hasBufferSampleRequestPending);
+      return linkedBuffers.stream().anyMatch(LinkedBuffer::hasRequestPending);
    }
 
    public int incrementBufferIndex(boolean updateBufferBounds)

@@ -114,11 +114,11 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
    }
 
    @Override
-   boolean hasBufferSampleRequestPending()
+   boolean hasRequestPending()
    {
       synchronized (linkedYoVariables)
       {
-         return linkedYoVariables.stream().anyMatch(LinkedYoVariable::hasBufferSampleRequestPending);
+         return linkedYoVariables.stream().anyMatch(LinkedYoVariable::hasRequestPending);
       }
    }
 
