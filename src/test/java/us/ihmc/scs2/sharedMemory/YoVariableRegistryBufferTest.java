@@ -91,10 +91,11 @@ public class YoVariableRegistryBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoVariableRegistry[] allRegistries = YoRandomTools.nextYoVariableRegistryTree(random, 5, 5);
+         YoVariableRegistry[] allRegistries = YoRandomTools.nextYoVariableRegistryTree(random, 2, 2);
          YoVariableRegistry rootRegistry = allRegistries[0];
          YoBufferProperties bufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
          YoVariableRegistryBuffer yoVariableRegistryBuffer = new YoVariableRegistryBuffer(rootRegistry, bufferProperties);
+         YoBufferRandomTools.randomizeYoVariableRegistryBuffer(random, yoVariableRegistryBuffer);
 
          List<YoVariable<?>> allYoVariables = rootRegistry.getAllVariables();
          List<YoVariableBuffer<?>> allYoVariableBuffers = new ArrayList<>();
@@ -114,7 +115,10 @@ public class YoVariableRegistryBufferTest
 
          for (int j = 0; j < allYoVariables.size(); j++)
          {
-            assertEquals(allSamples.get(j), allYoVariableBuffers.get(j).copy(0, length));
+            BufferSample<?> expected = allYoVariableBuffers.get(j).copy(0, length);
+            expected = new BufferSample<>(expected.getFrom(), bufferProperties.getSize(), expected.getSample(), expected.getSampleLength());
+            BufferSample<?> actual = allSamples.get(j);
+            assertEquals(expected, actual);
          }
       }
    }
@@ -237,6 +241,12 @@ public class YoVariableRegistryBufferTest
 
          LinkedYoVariableRegistry linkedRootRegistry = yoVariableRegistryBuffer.newLinkedYoVariableRegistry();
          assertEquals(rootRegistry.getName(), linkedRootRegistry.getRootRegistry().getName());
+         assertEquals(1, linkedRootRegistry.getRootRegistry().getAllRegistriesIncludingChildren().size());
+         assertEquals(0, linkedRootRegistry.getRootRegistry().getAllVariables().size());
+
+         // Need to populate variables and registries.
+         linkedRootRegistry.linkManagerVariables();
+
          for (YoVariableRegistry registry : allRegistries)
          {
             YoVariableRegistry linkedRegistry = linkedRootRegistry.getRootRegistry().getRegistry(registry.getNameSpace());
@@ -250,6 +260,8 @@ public class YoVariableRegistryBufferTest
 
          LinkedYoVariableRegistry linkedSubTreeRegistry = yoVariableRegistryBuffer.newLinkedYoVariableRegistry(linkedSubTreeRootRegistry);
          assertTrue(linkedSubTreeRootRegistry == linkedSubTreeRegistry.getRootRegistry());
+
+         linkedSubTreeRegistry.linkManagerVariables();
 
          for (YoVariableRegistry registry : subTreeRootRegistry.getAllRegistriesIncludingChildren())
          {

@@ -135,7 +135,7 @@ public class YoLongBufferTest
       {
          YoLongBuffer yoLongBuffer = YoBufferRandomTools.nextYoLongBuffer(random, new YoVariableRegistry("Dummy"));
          int from = random.nextInt(yoLongBuffer.getProperties().getSize());
-         int length = random.nextInt(yoLongBuffer.getProperties().getSize());
+         int length = random.nextInt(yoLongBuffer.getProperties().getSize() - 1) + 1;
 
          long[] expectedCopy = BufferTools.ringArrayCopy(yoLongBuffer.getBuffer(), from, length);
          BufferSample<long[]> actualCopy = yoLongBuffer.copy(from, length);

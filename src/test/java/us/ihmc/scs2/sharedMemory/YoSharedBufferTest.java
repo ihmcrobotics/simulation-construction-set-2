@@ -35,12 +35,6 @@ public class YoSharedBufferTest
          assertEquals(0, newProperties.getInPoint());
          assertEquals(newProperties.getSize() - 1, newProperties.getOutPoint());
          assertEquals(newProperties.getInPoint(), newProperties.getCurrentIndex());
-
-         for (YoVariable<?> variable : yoSharedBuffer.getRootRegistry().getAllVariables())
-         {
-            YoVariableBuffer<?> variableBuffer = yoSharedBuffer.getRegistryBuffer().findYoVariableBuffer(variable);
-            assertVariableEqualsBufferAt(variable, variableBuffer, newProperties.getCurrentIndex());
-         }
       }
    }
 
@@ -80,12 +74,6 @@ public class YoSharedBufferTest
          {
             assertEquals(newProperties.getOutPoint(), newProperties.getCurrentIndex());
          }
-
-         for (YoVariable<?> variable : yoSharedBuffer.getRootRegistry().getAllVariables())
-         {
-            YoVariableBuffer<?> variableBuffer = yoSharedBuffer.getRegistryBuffer().findYoVariableBuffer(variable);
-            assertVariableEqualsBufferAt(variable, variableBuffer, newProperties.getCurrentIndex());
-         }
       }
 
       for (int i = 0; i < ITERATIONS; i++)
@@ -115,12 +103,6 @@ public class YoSharedBufferTest
          {
             assertEquals(newProperties.getOutPoint(), newProperties.getCurrentIndex());
          }
-
-         for (YoVariable<?> variable : yoSharedBuffer.getRootRegistry().getAllVariables())
-         {
-            YoVariableBuffer<?> variableBuffer = yoSharedBuffer.getRegistryBuffer().findYoVariableBuffer(variable);
-            assertVariableEqualsBufferAt(variable, variableBuffer, newProperties.getCurrentIndex());
-         }
       }
 
       for (int i = 0; i < ITERATIONS; i++)
@@ -144,12 +126,6 @@ public class YoSharedBufferTest
             assertEquals(newProperties.getOutPoint(), newProperties.getCurrentIndex());
          else
             assertEquals(expectedNewCurrentIndex, newProperties.getCurrentIndex());
-
-         for (YoVariable<?> variable : yoSharedBuffer.getRootRegistry().getAllVariables())
-         {
-            YoVariableBuffer<?> variableBuffer = yoSharedBuffer.getRegistryBuffer().findYoVariableBuffer(variable);
-            assertVariableEqualsBufferAt(variable, variableBuffer, newProperties.getCurrentIndex());
-         }
       }
    }
 
@@ -173,12 +149,6 @@ public class YoSharedBufferTest
 
          assertEquals(newCurrentIndex, properties.getCurrentIndex());
          assertFalse(yoSharedBuffer.setCurrentIndex(newCurrentIndex));
-
-         for (YoVariable<?> variable : yoSharedBuffer.getRootRegistry().getAllVariables())
-         {
-            YoVariableBuffer<?> variableBuffer = yoSharedBuffer.getRegistryBuffer().findYoVariableBuffer(variable);
-            assertVariableEqualsBufferAt(variable, variableBuffer, properties.getCurrentIndex());
-         }
       }
    }
 

@@ -92,7 +92,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable<T>>
          assertYoEquals(prePushLinkedValue, linkedVariable);
          assertYoEquals(prePushBufferValue, buffer.getYoVariable());
          YoRandomTools.randomizeYoVariable(random, linkedVariable); // Simulates that the user is further modifying his local variable.
-         linkedYoVariable.processPush(); // The buffer manager is actually applying the push.
+         linkedYoVariable.processPush(false); // The buffer manager is actually applying the push.
          assertYoEquals(prePushLinkedValue, buffer.getYoVariable());
 
          // Multiple pushes happen before the buffer manager is able to apply its first one.
@@ -108,7 +108,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable<T>>
             expectedUpdate = copy(linkedVariable);
          }
 
-         linkedYoVariable.processPush(); // The buffer manager is actually applying the requested change.
+         linkedYoVariable.processPush(false); // The buffer manager is actually applying the requested change.
          assertYoEquals(expectedUpdate, buffer.getYoVariable());
 
          // No push, the buffer's variable does not change in value even if the linked variable is changing.
@@ -116,7 +116,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable<T>>
          for (int j = 0; j < random.nextInt(20) + 1; j++)
          {
             YoRandomTools.randomizeYoVariable(random, linkedVariable);
-            linkedYoVariable.processPush();
+            linkedYoVariable.processPush(false);
             assertYoEquals(prePushBufferValue, buffer.getYoVariable());
          }
       }

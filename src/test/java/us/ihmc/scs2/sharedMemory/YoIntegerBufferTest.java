@@ -135,7 +135,7 @@ public class YoIntegerBufferTest
       {
          YoIntegerBuffer yoIntegerBuffer = YoBufferRandomTools.nextYoIntegerBuffer(random, new YoVariableRegistry("Dummy"));
          int from = random.nextInt(yoIntegerBuffer.getProperties().getSize());
-         int length = random.nextInt(yoIntegerBuffer.getProperties().getSize());
+         int length = random.nextInt(yoIntegerBuffer.getProperties().getSize() - 1) + 1;
 
          int[] expectedCopy = BufferTools.ringArrayCopy(yoIntegerBuffer.getBuffer(), from, length);
          BufferSample<int[]> actualCopy = yoIntegerBuffer.copy(from, length);

@@ -134,7 +134,7 @@ public class YoEnumBufferTest
       {
          YoEnumBuffer<?> yoEnumBuffer = YoBufferRandomTools.nextYoEnumBuffer(random, new YoVariableRegistry("Dummy"));
          int from = random.nextInt(yoEnumBuffer.getProperties().getSize());
-         int length = random.nextInt(yoEnumBuffer.getProperties().getSize());
+         int length = random.nextInt(yoEnumBuffer.getProperties().getSize() - 1) + 1;
 
          byte[] expectedCopy = BufferTools.ringArrayCopy(yoEnumBuffer.getBuffer(), from, length);
          BufferSample<byte[]> actualCopy = yoEnumBuffer.copy(from, length);

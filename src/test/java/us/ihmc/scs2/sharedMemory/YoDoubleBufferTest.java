@@ -135,7 +135,7 @@ public class YoDoubleBufferTest
       {
          YoDoubleBuffer yoDoubleBuffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoVariableRegistry("Dummy"));
          int from = random.nextInt(yoDoubleBuffer.getProperties().getSize());
-         int length = random.nextInt(yoDoubleBuffer.getProperties().getSize());
+         int length = random.nextInt(yoDoubleBuffer.getProperties().getSize() - 1) + 1;
 
          double[] expectedCopy = BufferTools.ringArrayCopy(yoDoubleBuffer.getBuffer(), from, length);
          BufferSample<double[]> actualCopy = yoDoubleBuffer.copy(from, length);

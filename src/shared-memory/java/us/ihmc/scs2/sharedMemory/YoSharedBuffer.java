@@ -94,17 +94,17 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
       registryBuffer.registerMissingBuffers();
    }
 
-   // TODO Should we read the buffer
    /**
     * Consumes a request for cropping the size of the buffers, i.e. resizing the buffers to only keep
     * the part that is in between the {@code from} and {@code to} points as defined in the given
     * {@code request}.
     * <p>
-    * Operation for the buffer manager only.
+    * This operation does not update the {@code YoVariable}'s value, to do so a call to
+    * {@link #readBuffer()} is needed after calling this method in the case the index was successfully
+    * set.
     * </p>
     * <p>
-    * Upon completion, the current index is set to the in-point and {@code YoVariable}s are reloaded
-    * from the buffers.
+    * Operation for the buffer manager only.
     * </p>
     * 
     * @param request request defining the new size as well as the part of the buffer to preserve.
@@ -117,10 +117,8 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
       properties.setInPointIndex(0);
       properties.setOutPointIndex(newSize - 1);
       properties.setCurrentIndexUnsafe(0);
-      readBuffer();
    }
 
-   // TODO Should we read the buffer
    /**
     * Resize the buffer. This is typically used to increase its size.
     * <p>
@@ -128,11 +126,12 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
     * points, and the position of the current index relative to the in and out points.
     * </p>
     * <p>
-    * Operation for the buffer manager only.
+    * This operation does not update the {@code YoVariable}'s value, to do so a call to
+    * {@link #readBuffer()} is needed after calling this method in the case the buffer was successfully
+    * resized.
     * </p>
     * <p>
-    * Upon completion, the current index is set to the in-point and {@code YoVariable}s are reloaded
-    * from the buffers.
+    * Operation for the buffer manager only.
     * </p>
     * 
     * @param newSize the new size for this buffer.
@@ -180,14 +179,16 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
       properties.setInPointIndex(newInPoint);
       properties.setOutPointIndex(newOutPoint);
       properties.setCurrentIndexUnsafe(newCurrentIndex);
-      readBuffer();
       return true;
    }
 
-   // FIXME Inconsistent with incrementIndex
    /**
-    * Changes the current position in the buffer and load data from the buffers at the new index into
-    * the {@code YoVariable}s.
+    * Changes the current position in the buffer.
+    * <p>
+    * This operation does not update the {@code YoVariable}'s value, to do so a call to
+    * {@link #readBuffer()} is needed after calling this method in the case the index was successfully
+    * set.
+    * </p>
     * <p>
     * Operation for the buffer manager only.
     * </p>
@@ -197,10 +198,7 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
     */
    public boolean setCurrentIndex(int newIndex)
    {
-      boolean hasChanged = properties.setCurrentIndex(newIndex);
-      if (hasChanged)
-         readBuffer();
-      return hasChanged;
+      return properties.setCurrentIndex(newIndex);
    }
 
    /**
@@ -244,25 +242,32 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
    /**
     * Applies the changes requested from the difference linked variables and registries to the buffers.
     * <p>
-    * When a change of value of a {@code YoVariable} is requested, it is applied to the
-    * {@code YoVariable} not the buffer. So when this operation results in a actual modification, i.e.
-    * this methods returns {@code true}, the buffers need to be updated by calling
+    * If {@code writeBuffer == false} and a change of value of a {@code YoVariable} is requested, it is
+    * applied to the {@code YoVariable} not the buffer. So when this operation results in a actual
+    * modification, i.e. this methods returns {@code true}, the buffers need to be updated by calling
     * {@link #writeBuffer()}.
+    * </p>
+    * <p>
+    * If {@code writeBuffer == true} any change will be applied to both the corresponding
+    * {@code YoVariable} and buffer, no need to call {@link #writeBuffer()}.
     * </p>
     * <p>
     * Operation for the buffer manager only.
     * </p>
     * 
+    * @param writeBuffer when {@code true} any actual modification is written in both at the current
+    *                    reading index in the buffer and in the buffer's {@code YoVariable}. When
+    *                    {@code false}, the value is pushed only to the buffer's {@code YoVariable},
+    *                    the buffer remains unchanged.
     * @return {@code true} if this operation actually resulted in at least one modification,
     *         {@code false} otherwise.
     */
-   public boolean processLinkedPushRequests()
+   public boolean processLinkedPushRequests(boolean writeBuffer)
    {
-      // TODO Should the linked buffers write their changes into the buffers?
       boolean hasPushedSomething = false;
 
       for (LinkedBuffer linkedBuffer : linkedBuffers)
-         hasPushedSomething |= linkedBuffer.processPush();
+         hasPushedSomething |= linkedBuffer.processPush(writeBuffer);
 
       return hasPushedSomething;
    }
@@ -333,19 +338,16 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
       return linkedBuffers.stream().anyMatch(LinkedBuffer::hasRequestPending);
    }
 
-   // TODO Should we read buffers?
    public int incrementBufferIndex(boolean updateBufferBounds)
    {
       return properties.incrementIndex(updateBufferBounds);
    }
 
-   // TODO Should we read buffers?
    public int incrementBufferIndex(boolean updateBufferBounds, int stepSize)
    {
       return properties.incrementIndex(updateBufferBounds, stepSize);
    }
 
-   // TODO Should we read buffers?
    public int decrementBufferIndex(int stepSize)
    {
       return properties.decrementIndex(stepSize);

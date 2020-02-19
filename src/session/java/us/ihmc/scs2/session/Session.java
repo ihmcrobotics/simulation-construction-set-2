@@ -331,7 +331,7 @@ public abstract class Session
          firstRunTick = false;
       }
 
-      sharedBuffer.processLinkedPushRequests();
+      sharedBuffer.processLinkedPushRequests(false);
    }
 
    protected abstract void doSpecificRunTick();
@@ -442,9 +442,7 @@ public abstract class Session
    {
       boolean shouldPublish = firstPauseTick;
       firstPauseTick = false;
-      shouldPublish |= sharedBuffer.processLinkedPushRequests();
-      if (shouldPublish)
-         sharedBuffer.writeBuffer();
+      shouldPublish |= sharedBuffer.processLinkedPushRequests(true);
       shouldPublish |= processBufferRequests(true);
       if (!shouldPublish)
          shouldPublish = sharedBuffer.hasRequestPending();

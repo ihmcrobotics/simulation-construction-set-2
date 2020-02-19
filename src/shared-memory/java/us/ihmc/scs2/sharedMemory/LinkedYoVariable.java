@@ -70,7 +70,7 @@ public abstract class LinkedYoVariable<T extends YoVariable<T>> extends LinkedBu
    }
 
    @Override
-   boolean processPush()
+   boolean processPush(boolean writeBuffer)
    {
       if (pushRequestToProcess == null)
          return false;
@@ -78,7 +78,12 @@ public abstract class LinkedYoVariable<T extends YoVariable<T>> extends LinkedBu
       PushRequest<T> push = pushRequestToProcess;
       pushRequestToProcess = null;
 
-      return push.push();
+      boolean modified = push.push();
+
+      if (modified && writeBuffer)
+         buffer.writeBuffer();
+
+      return modified;
    }
 
    @Override

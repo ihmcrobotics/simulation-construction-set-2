@@ -1,6 +1,10 @@
 package us.ihmc.scs2.sharedMemory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
@@ -8,8 +12,6 @@ import us.ihmc.scs2.sharedMemory.tools.YoMirroredRegistryTools;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
-// FIXME the implementation is not right. Needs to consider pushing/pulling data from multiple
-// threads.
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class LinkedYoVariableRegistry extends LinkedBuffer
 {
@@ -28,14 +30,21 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
    }
 
    /**
-    * Requests all {@code YoVariable}s declared in the main buffer to duplicate and link them in this
-    * linked registry.
+    * Blocking operation that registers all {@code YoVariable}s declared in the buffer as linked
+    * variables in this linked registry.
+    * <p>
+    * The newly created linked variables can then be used to perform read/write operations with the
+    * buffer.
+    * </p>
+    * <p>
+    * Operation for the buffer consumers only.
+    * </p>
     *
     * @return the number of {@code YoVariable}s that were created.
     */
    public int linkManagerVariables()
    {
-      YoVariableRegistry bufferRootRegistry = yoVariableRegistryBuffer.getRootRegistry();
+      YoVariableRegistry bufferRootRegistry = yoVariableRegistryBuffer.getRootRegistry().getRegistry(rootRegistry.getNameSpace());
 
       int numberOfNewVariables = 0;
 
@@ -54,6 +63,16 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
       return numberOfNewVariables;
    }
 
+   /**
+    * Blocking operation that pushes locally created {@code YoVariable}s to the buffer so they get a
+    * buffer attributed.
+    * <p>
+    * The variables can then be used to perform read/write operations with the buffer.
+    * </p>
+    * <p>
+    * Operation for the buffer consumers only.
+    * </p>
+    */
    public void linkConsumerVariables()
    {
       ArrayList<YoVariable<?>> allYoVariables = rootRegistry.getAllVariables();
@@ -75,21 +94,25 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
       }
    }
 
-   private LinkedYoVariable<?> setupNewLinkedYoVariable(YoVariable<?> variableToLink)
+   /**
+    * Creates a new {@code LinkedYoVariable} for the given {@code variableToLink}, ensures a buffer
+    * exists for that variable, and adds the newly create linked variable to {@link #linkedYoVariables}
+    * and {@link #linkedYoVariableMap}.
+    * <p>
+    * This operation requires the consumer and manager threads to be synchronized.
+    * </p>
+    *
+    * @param variableToLink the variable to be linked to the buffer.
+    */
+   private void setupNewLinkedYoVariable(YoVariable<?> variableToLink)
    {
       YoVariableBuffer yoVariableBuffer = yoVariableRegistryBuffer.findOrCreateYoVariableBuffer(variableToLink);
       LinkedYoVariable newLinkedYoVariable = yoVariableBuffer.newLinkedYoVariable(variableToLink);
       linkedYoVariables.add(newLinkedYoVariable);
       linkedYoVariableMap.put(newLinkedYoVariable.getLinkedYoVariable(), newLinkedYoVariable);
-      return newLinkedYoVariable;
    }
 
-   // Operation for the buffer consumers only.
-   public void push(YoVariable<?>... yoVariablesToPush)
-   {
-      Arrays.asList(yoVariablesToPush).stream().map(linkedYoVariableMap::get).filter(v -> v != null).forEach(LinkedYoVariable::push);
-   }
-
+   /** {@inheritDoc} */
    // Operation for the buffer consumers only.
    @Override
    public void push()
@@ -97,7 +120,22 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
       linkedYoVariables.forEach(LinkedYoVariable::push);
    }
 
-   // Operation for the buffer consumers only.
+   /**
+    * Creates request for modifying the buffer when possible on a sub-selection of variables. This is
+    * typically used to push the value of a linked {@code YoVariable} that has been changed in a buffer
+    * consumer thread.
+    * <p>
+    * Operation for the buffer consumers only.
+    * </p>
+    *
+    * @param yoVariablesToPush the variables to push their value to the buffer.
+    */
+   public void push(YoVariable<?>... yoVariablesToPush)
+   {
+      Arrays.asList(yoVariablesToPush).stream().map(linkedYoVariableMap::get).filter(v -> v != null).forEach(LinkedYoVariable::push);
+   }
+
+   /** {@inheritDoc} */
    @Override
    public boolean pull()
    {
@@ -109,9 +147,10 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
       return hasNewData;
    }
 
+   /** {@inheritDoc} */
    // Operation for the buffer manager only.
    @Override
-   boolean processPush()
+   boolean processPush(boolean writeBuffer)
    {
       boolean hasPushedSomething = false;
 
@@ -119,7 +158,7 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
       try
       {
          for (LinkedYoVariable<?> linkedYoVariable : linkedYoVariables)
-            hasPushedSomething |= linkedYoVariable.processPush();
+            hasPushedSomething |= linkedYoVariable.processPush(writeBuffer);
       }
       finally
       {
@@ -148,6 +187,7 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
       }
    }
 
+   /** {@inheritDoc} */
    // Operation for the buffer manager only.
    @Override
    void prepareForPull()
@@ -163,6 +203,7 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
       }
    }
 
+   /** {@inheritDoc} */
    // Operation for the buffer manager only.
    @Override
    boolean hasRequestPending()
@@ -181,11 +222,6 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
       }
 
       return hasRequestPending;
-   }
-
-   public LinkedYoVariable<? extends YoVariable<?>> getLinkedYoVariable(YoVariable<?> yoVariable)
-   {
-      return linkedYoVariableMap.get(yoVariable);
    }
 
    public YoVariableRegistry getRootRegistry()

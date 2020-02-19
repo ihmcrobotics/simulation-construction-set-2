@@ -136,7 +136,7 @@ public class YoBooleanBufferTest
       {
          YoBooleanBuffer yoBooleanBuffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoVariableRegistry("Dummy"));
          int from = random.nextInt(yoBooleanBuffer.getProperties().getSize());
-         int length = random.nextInt(yoBooleanBuffer.getProperties().getSize());
+         int length = random.nextInt(yoBooleanBuffer.getProperties().getSize() - 1) + 1;
 
          boolean[] expectedCopy = BufferTools.ringArrayCopy(yoBooleanBuffer.getBuffer(), from, length);
          BufferSample<boolean[]> actualCopy = yoBooleanBuffer.copy(from, length);
