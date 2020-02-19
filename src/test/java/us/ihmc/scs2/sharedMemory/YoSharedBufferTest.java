@@ -161,7 +161,7 @@ public class YoSharedBufferTest
       for (int i = 0; i < ITERATIONS; i++)
       {
          YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
-         yoSharedBuffer.updateYoVariables();
+         yoSharedBuffer.readBuffer();
 
          YoBufferPropertiesReadOnly properties = yoSharedBuffer.getProperties();
 
@@ -190,7 +190,7 @@ public class YoSharedBufferTest
       for (int i = 0; i < ITERATIONS; i++)
       {
          YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
-         yoSharedBuffer.updateYoVariables();
+         yoSharedBuffer.readBuffer();
 
          YoBufferPropertiesReadOnly properties = yoSharedBuffer.getProperties();
 

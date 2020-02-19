@@ -115,7 +115,8 @@ public class LogSession extends Session
             robotStateUpdater.run();
 
          sharedBuffer.incrementBufferIndex(true);
-         sharedBuffer.updateBufferAndPublish();
+         sharedBuffer.writeBuffer();
+         sharedBuffer.prepareLinkedBuffersForPull();
          publishBufferProperties(sharedBuffer.getProperties());
       }
    }

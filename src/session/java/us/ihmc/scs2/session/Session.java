@@ -331,20 +331,20 @@ public abstract class Session
          firstRunTick = false;
       }
 
-      sharedBuffer.processLinkedRequests();
+      sharedBuffer.processLinkedPushRequests();
    }
 
    protected abstract void doSpecificRunTick();
 
    protected void finalizeRunTick()
    {
-      sharedBuffer.updateBuffer();
+      sharedBuffer.writeBuffer();
 
       long currentTimestamp = System.nanoTime();
 
       if (currentTimestamp - lastPublishedBufferTimestamp > desiredBufferPublishPeriod.get())
       {
-         sharedBuffer.publish();
+         sharedBuffer.prepareLinkedBuffersForPull();
          lastPublishedBufferTimestamp = currentTimestamp;
       }
 
@@ -396,8 +396,7 @@ public abstract class Session
 
    protected void initializePlaybackTick()
    {
-      sharedBuffer.processLinkedRequests();
-      sharedBuffer.updateYoVariables();
+      sharedBuffer.readBuffer();
    }
 
    protected void doSpecificPlaybackTick()
@@ -411,7 +410,7 @@ public abstract class Session
 
       if (currentTimestamp - lastPublishedBufferTimestamp > desiredBufferPublishPeriod.get())
       {
-         sharedBuffer.publish();
+         sharedBuffer.prepareLinkedBuffersForPull();
          lastPublishedBufferTimestamp = currentTimestamp;
       }
 
@@ -442,9 +441,9 @@ public abstract class Session
    {
       boolean shouldPublish = firstPauseTick;
       firstPauseTick = false;
-      shouldPublish |= sharedBuffer.processLinkedRequests();
+      shouldPublish |= sharedBuffer.processLinkedPushRequests();
       if (shouldPublish)
-         sharedBuffer.updateBuffer();
+         sharedBuffer.writeBuffer();
       shouldPublish |= processBufferRequests(true);
       if (!shouldPublish)
          shouldPublish = sharedBuffer.hasRequestPending();
@@ -460,7 +459,10 @@ public abstract class Session
    protected void finalizePauseTick(boolean shouldPublishBuffer)
    {
       if (shouldPublishBuffer)
-         sharedBuffer.updateYoVariablesAndPublish();
+      {
+         sharedBuffer.readBuffer();
+         sharedBuffer.prepareLinkedBuffersForPull();
+      }
       publishBufferProperties(sharedBuffer.getProperties());
    }
 

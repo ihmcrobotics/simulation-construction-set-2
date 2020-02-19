@@ -131,7 +131,7 @@ public class RemoteSession extends Session
       }
       else
       {
-         sharedBuffer.updateBuffer();
+         sharedBuffer.writeBuffer();
          sharedBuffer.incrementBufferIndex(true);
          processBufferRequests(false);
          publishBufferProperties(sharedBuffer.getProperties());
