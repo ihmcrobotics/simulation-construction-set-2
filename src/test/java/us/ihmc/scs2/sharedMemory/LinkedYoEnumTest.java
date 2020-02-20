@@ -14,20 +14,22 @@ import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.yoVariables.variable.YoVariable;
 
-public class LinkedYoEnumTest extends LinkedYoVariableTest<YoEnum<?>>
+public class LinkedYoEnumTest<E extends Enum<E>> extends LinkedYoVariableTest<YoEnum<E>>
 {
+   @SuppressWarnings({"rawtypes", "unchecked"})
    @Override
-   YoEnum<?> copy(YoEnum<?> original)
+   YoEnum<E> copy(YoEnum<E> original)
    {
-      YoEnum<?> copy = new YoEnum<>(original.getName() + "Copy", new YoVariableRegistry("Dummy"), original.getEnumType(), original.getAllowNullValue());
+      YoEnum copy = new YoEnum<>(original.getName() + "Copy", new YoVariableRegistry("Dummy"), original.getEnumType(), original.getAllowNullValue());
       copy.set(original.getOrdinal());
       return copy;
    }
 
+   @SuppressWarnings({"rawtypes", "unchecked"})
    @Override
-   YoEnum<?> nextYoVariable(Random random, int iteration)
+   YoEnum<E> nextYoVariable(Random random, int iteration)
    {
-      YoEnum<?> next = YoRandomTools.nextYoEnum(new Random(iteration), new YoVariableRegistry("Dummy"));
+      YoEnum next = YoRandomTools.nextYoEnum(new Random(iteration), new YoVariableRegistry("Dummy"));
       YoRandomTools.randomizeYoEnum(random, next);
       return next;
    }
