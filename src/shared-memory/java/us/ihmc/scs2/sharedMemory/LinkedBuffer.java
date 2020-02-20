@@ -31,6 +31,14 @@ public abstract class LinkedBuffer
    abstract boolean processPush();
 
    /**
+    * Discards any push request registered to this linked buffer.
+    * <p>
+    * Operation for the buffer manager only.
+    * </p>
+    */
+   abstract void flushPush();
+
+   /**
     * Called by the buffer manager when wrapping writing operations on the buffers, this is where next
     * data available to the linked variables and registries is stored.
     * <p>

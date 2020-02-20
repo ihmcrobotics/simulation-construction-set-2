@@ -82,6 +82,12 @@ public abstract class LinkedYoVariable<T extends YoVariable<T>> extends LinkedBu
    }
 
    @Override
+   void flushPush()
+   {
+      pushRequestToProcess = null;
+   }
+
+   @Override
    void prepareForPull()
    {
       pullRequest = toPullRequest();

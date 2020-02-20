@@ -266,7 +266,18 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
 
       return hasPushedSomething;
    }
-   // TODO Add method to flush push requests in case of read-only access.
+
+   /**
+    * Discards all push requested from buffer consumers for all the internal buffer.
+    * <p>
+    * Operation for the buffer manager only.
+    * </p>
+    */
+   public void flushLinkedPushRequests()
+   {
+      for (LinkedBuffer linkedBuffer : linkedBuffers)
+         linkedBuffer.flushPush();
+   }
 
    /**
     * Reads the buffers at the current index, i.e. {@code properties.getCurrentIndex()}, and update

@@ -396,6 +396,7 @@ public abstract class Session
 
    protected void initializePlaybackTick()
    {
+      sharedBuffer.flushLinkedPushRequests();
       sharedBuffer.readBuffer();
    }
 

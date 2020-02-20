@@ -129,6 +129,25 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
       return hasPushedSomething;
    }
 
+   /** {@inheritDoc} */
+   // Operation for the buffer manager only.
+   @Override
+   void flushPush()
+   {
+      lock.lock();
+      try
+      {
+         for (LinkedYoVariable<?> linkedYoVariable : linkedYoVariables)
+         {
+            linkedYoVariable.flushPush();
+         }
+      }
+      finally
+      {
+         lock.unlock();
+      }
+   }
+
    // Operation for the buffer manager only.
    @Override
    void prepareForPull()
