@@ -6,40 +6,54 @@ import us.ihmc.yoVariables.variable.YoBoolean;
 
 public class YoBooleanBuffer extends YoVariableBuffer<YoBoolean>
 {
-   private boolean[] buffer = new boolean[0];
+   private boolean[] buffer;
 
    public YoBooleanBuffer(YoBoolean yoBoolean, YoBufferPropertiesReadOnly properties)
    {
       super(yoBoolean, properties);
+      buffer = new boolean[properties.getSize()];
    }
 
    @Override
    public void resizeBuffer(int from, int length)
    {
+      if (from == 0 && length == buffer.length)
+         return;
       buffer = BufferTools.ringArrayCopy(buffer, from, length);
    }
 
    @Override
-   public void writeBuffer()
+   public void writeBufferAt(int index)
    {
-      buffer[properties.getCurrentIndex()] = yoVariable.getValue();
+      buffer[index] = yoVariable.getValue();
    }
 
    @Override
-   public void readBuffer()
+   public void readBufferAt(int index)
    {
-      yoVariable.set(buffer[properties.getCurrentIndex()]);
+      yoVariable.set(buffer[index]);
+   }
+
+   @Override
+   long getValueAsLongBits(int index)
+   {
+      return buffer[index] ? 1 : 0;
    }
 
    @Override
    public BufferSample<boolean[]> copy(int from, int length)
    {
-      return new BufferSample<>(from, properties.getSize(), BufferTools.ringArrayCopy(buffer, from, length), length);
+      return new BufferSample<>(from, buffer.length, BufferTools.ringArrayCopy(buffer, from, length), length);
    }
 
    @Override
    LinkedYoBoolean newLinkedYoVariable(YoBoolean variableToLink)
    {
       return new LinkedYoBoolean(variableToLink, this);
+   }
+
+   boolean[] getBuffer()
+   {
+      return buffer;
    }
 }

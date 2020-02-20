@@ -5,23 +5,32 @@ import us.ihmc.yoVariables.variable.YoDouble;
 public class DoublePushRequest implements PushRequest<YoDouble>
 {
    private final double valueToPush;
-   private final YoVariableBuffer<YoDouble> buffer;
+   private final YoDouble variableToUpdate;
 
-   public DoublePushRequest(double valueToPush, YoVariableBuffer<YoDouble> buffer)
+   public DoublePushRequest(double valueToPush, YoDouble variableToUpdate)
    {
       this.valueToPush = valueToPush;
-      this.buffer = buffer;
+      this.variableToUpdate = variableToUpdate;
    }
 
    @Override
-   public void push()
+   public boolean push()
    {
-      buffer.getYoVariable().set(valueToPush);
+      if (valueToPush == variableToUpdate.getValue())
+         return false;
+
+      variableToUpdate.set(valueToPush);
+
+      return true;
    }
 
-   @Override
-   public boolean isPushNecessary()
+   YoDouble getVariableToUpdate()
    {
-      return valueToPush != buffer.getYoVariable().getDoubleValue();
+      return variableToUpdate;
+   }
+
+   double getValueToPush()
+   {
+      return valueToPush;
    }
 }

@@ -1,12 +1,7 @@
 package us.ihmc.scs2.sharedMemory;
 
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.yoVariables.variable.YoBoolean;
-import us.ihmc.yoVariables.variable.YoDouble;
-import us.ihmc.yoVariables.variable.YoEnum;
-import us.ihmc.yoVariables.variable.YoInteger;
-import us.ihmc.yoVariables.variable.YoLong;
-import us.ihmc.yoVariables.variable.YoVariable;
+import us.ihmc.yoVariables.variable.*;
 
 public abstract class YoVariableBuffer<T extends YoVariable<T>>
 {
@@ -26,7 +21,7 @@ public abstract class YoVariableBuffer<T extends YoVariable<T>>
    }
 
    protected final T yoVariable;
-   protected final YoBufferPropertiesReadOnly properties;
+   private final YoBufferPropertiesReadOnly properties;
 
    public YoVariableBuffer(T yoVariable, YoBufferPropertiesReadOnly properties)
    {
@@ -36,14 +31,36 @@ public abstract class YoVariableBuffer<T extends YoVariable<T>>
 
    public abstract void resizeBuffer(int from, int length);
 
-   public abstract void writeBuffer();
+   public final void writeBuffer()
+   {
+      writeBufferAt(properties.getCurrentIndex());
+   }
 
-   public abstract void readBuffer();
+   public abstract void writeBufferAt(int index);
+
+   public final void readBuffer()
+   {
+      readBufferAt(properties.getCurrentIndex());
+   }
+
+   public abstract void readBufferAt(int index);
 
    public T getYoVariable()
    {
       return yoVariable;
    }
+
+   public YoBufferPropertiesReadOnly getProperties()
+   {
+      return properties;
+   }
+
+   long getValueAsLongBits()
+   {
+      return getValueAsLongBits(properties.getCurrentIndex());
+   }
+
+   abstract long getValueAsLongBits(int index);
 
    @SuppressWarnings("rawtypes")
    public abstract BufferSample copy(int from, int length);

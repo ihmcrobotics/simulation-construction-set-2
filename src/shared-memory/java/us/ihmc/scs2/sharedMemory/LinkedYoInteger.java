@@ -9,32 +9,23 @@ public class LinkedYoInteger extends LinkedYoVariable<YoInteger>
       super(linkedVariable, buffer);
    }
 
-   public int peekCurrentValue(int defaultValue)
-   {
-      IntegerPullRequest pull = (IntegerPullRequest) pullRequest;
-
-      if (pull != null)
-         return pull.getValueToPull();
-      else
-         return defaultValue;
-   }
-
    @Override
    IntegerPullRequest toPullRequest()
    {
-      return new IntegerPullRequest(linkedYoVariable, buffer.getYoVariable().getIntegerValue());
+      return new IntegerPullRequest(linkedYoVariable, buffer.getYoVariable().getValue());
    }
 
    @Override
    protected IntegerPushRequest toPushRequest()
    {
-      return new IntegerPushRequest(linkedYoVariable.getIntegerValue(), buffer);
+      return new IntegerPushRequest(linkedYoVariable.getValue(), buffer.getYoVariable());
    }
 
+   @Override
    @SuppressWarnings("unchecked")
    public BufferSample<int[]> pollRequestedBufferSample()
    {
-      return (BufferSample<int[]>) super.pollRequestedBufferSample();
+      return super.pollRequestedBufferSample();
    }
 
    @Override

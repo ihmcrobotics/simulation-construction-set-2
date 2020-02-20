@@ -5,23 +5,32 @@ import us.ihmc.yoVariables.variable.YoBoolean;
 public class BooleanPushRequest implements PushRequest<YoBoolean>
 {
    private final boolean valueToPush;
-   private final YoVariableBuffer<YoBoolean> buffer;
+   private final YoBoolean variableToUpdate;
 
-   public BooleanPushRequest(boolean valueToPush, YoVariableBuffer<YoBoolean> buffer)
+   public BooleanPushRequest(boolean valueToPush, YoBoolean variableToUpdate)
    {
       this.valueToPush = valueToPush;
-      this.buffer = buffer;
+      this.variableToUpdate = variableToUpdate;
    }
 
    @Override
-   public void push()
+   public boolean push()
    {
-      buffer.getYoVariable().set(valueToPush);
+      if (valueToPush == variableToUpdate.getValue())
+         return false;
+
+      variableToUpdate.set(valueToPush);
+
+      return true;
    }
 
-   @Override
-   public boolean isPushNecessary()
+   YoBoolean getVariableToUpdate()
    {
-      return valueToPush != buffer.getYoVariable().getBooleanValue();
+      return variableToUpdate;
+   }
+
+   boolean getValueToPush()
+   {
+      return valueToPush;
    }
 }

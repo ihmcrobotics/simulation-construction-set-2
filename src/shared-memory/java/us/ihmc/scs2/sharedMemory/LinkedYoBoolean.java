@@ -9,32 +9,23 @@ public class LinkedYoBoolean extends LinkedYoVariable<YoBoolean>
       super(linkedVariable, buffer);
    }
 
-   public boolean peekCurrentValue(boolean defaultValue)
-   {
-      BooleanPullRequest pull = (BooleanPullRequest) pullRequest;
-
-      if (pull != null)
-         return pull.getValueToPull();
-      else
-         return defaultValue;
-   }
-
    @Override
    BooleanPullRequest toPullRequest()
    {
-      return new BooleanPullRequest(linkedYoVariable, buffer.getYoVariable().getBooleanValue());
+      return new BooleanPullRequest(linkedYoVariable, buffer.getYoVariable().getValue());
    }
 
    @Override
    protected BooleanPushRequest toPushRequest()
    {
-      return new BooleanPushRequest(linkedYoVariable.getBooleanValue(), buffer);
+      return new BooleanPushRequest(linkedYoVariable.getValue(), buffer.getYoVariable());
    }
 
+   @Override
    @SuppressWarnings("unchecked")
    public BufferSample<boolean[]> pollRequestedBufferSample()
    {
-      return (BufferSample<boolean[]>) super.pollRequestedBufferSample();
+      return super.pollRequestedBufferSample();
    }
 
    @Override

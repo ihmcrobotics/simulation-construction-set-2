@@ -75,6 +75,8 @@ public class LogSession extends Session
    @Override
    protected void initializeRunTick()
    {
+      sharedBuffer.incrementBufferIndex(true);
+
       if (firstRunTick)
       {
          sharedBuffer.setInPoint(sharedBuffer.getProperties().getCurrentIndex());
@@ -115,7 +117,8 @@ public class LogSession extends Session
             robotStateUpdater.run();
 
          sharedBuffer.incrementBufferIndex(true);
-         sharedBuffer.updateBufferAndPublish();
+         sharedBuffer.writeBuffer();
+         sharedBuffer.prepareLinkedBuffersForPull();
          publishBufferProperties(sharedBuffer.getProperties());
       }
    }

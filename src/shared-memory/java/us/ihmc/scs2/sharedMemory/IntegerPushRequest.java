@@ -5,23 +5,32 @@ import us.ihmc.yoVariables.variable.YoInteger;
 public class IntegerPushRequest implements PushRequest<YoInteger>
 {
    private final int valueToPush;
-   private final YoVariableBuffer<YoInteger> buffer;
+   private final YoInteger variableToUpdate;
 
-   public IntegerPushRequest(int valueToPush, YoVariableBuffer<YoInteger> buffer)
+   public IntegerPushRequest(int valueToPush, YoInteger variableToUpdate)
    {
       this.valueToPush = valueToPush;
-      this.buffer = buffer;
+      this.variableToUpdate = variableToUpdate;
    }
 
    @Override
-   public void push()
+   public boolean push()
    {
-      buffer.getYoVariable().setValueFromLongBits(valueToPush);
+      if (valueToPush == variableToUpdate.getValue())
+         return false;
+
+      variableToUpdate.set(valueToPush);
+
+      return true;
    }
 
-   @Override
-   public boolean isPushNecessary()
+   YoInteger getVariableToUpdate()
    {
-      return valueToPush != buffer.getYoVariable().getIntegerValue();
+      return variableToUpdate;
+   }
+
+   int getValueToPush()
+   {
+      return valueToPush;
    }
 }

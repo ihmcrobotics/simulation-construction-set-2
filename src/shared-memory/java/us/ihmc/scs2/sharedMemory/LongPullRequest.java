@@ -13,9 +13,15 @@ public class LongPullRequest implements PullRequest<YoLong>
       this.valueToPull = valueToPull;
    }
 
+   @Override
    public void pull()
    {
       variableToUpdate.setValueFromLongBits(valueToPull);
+   }
+
+   YoLong getVariableToUpdate()
+   {
+      return variableToUpdate;
    }
 
    public long getValueToPull()

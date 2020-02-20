@@ -81,8 +81,6 @@ testDependencies {
    api(ihmc.sourceSetProject("simulation"))
    api(ihmc.sourceSetProject("session-visualizer"))
    api(ihmc.sourceSetProject("examples"))
-
-   api("org.junit.platform:junit-platform-commons:1.5.2")
 }
 
 ihmc.jarWithLibFolder()

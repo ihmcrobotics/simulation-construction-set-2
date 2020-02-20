@@ -9,37 +9,23 @@ public class LinkedYoEnum<E extends Enum<E>> extends LinkedYoVariable<YoEnum<E>>
       super(linkedVariable, buffer);
    }
 
-   public E peekCurrentValue(E defaultValue)
-   {
-      EnumPullRequest<E> pull = (EnumPullRequest<E>) pullRequest;
-
-      if (pull != null)
-      {
-         int ordinal = pull.getValueToPull();
-         return ordinal < 0 ? null : linkedYoVariable.getEnumValues()[ordinal];
-      }
-      else
-      {
-         return defaultValue;
-      }
-   }
-
    @Override
    EnumPullRequest<E> toPullRequest()
    {
-      return new EnumPullRequest<E>(linkedYoVariable, buffer.getYoVariable().getOrdinal());
+      return new EnumPullRequest<>(linkedYoVariable, buffer.getYoVariable().getOrdinal());
    }
 
    @Override
    protected EnumPushRequest<E> toPushRequest()
    {
-      return new EnumPushRequest<>(linkedYoVariable.getOrdinal(), buffer);
+      return new EnumPushRequest<>(linkedYoVariable.getOrdinal(), buffer.getYoVariable());
    }
 
+   @Override
    @SuppressWarnings("unchecked")
    public BufferSample<byte[]> pollRequestedBufferSample()
    {
-      return (BufferSample<byte[]>) super.pollRequestedBufferSample();
+      return super.pollRequestedBufferSample();
    }
 
    @Override

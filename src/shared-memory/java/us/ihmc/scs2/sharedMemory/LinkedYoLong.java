@@ -9,32 +9,23 @@ public class LinkedYoLong extends LinkedYoVariable<YoLong>
       super(linkedVariable, buffer);
    }
 
-   public long peekCurrentValue(long defaultValue)
-   {
-      LongPullRequest pull = (LongPullRequest) pullRequest;
-
-      if (pull != null)
-         return pull.getValueToPull();
-      else
-         return defaultValue;
-   }
-
    @Override
    LongPullRequest toPullRequest()
    {
-      return new LongPullRequest(linkedYoVariable, buffer.getYoVariable().getLongValue());
+      return new LongPullRequest(linkedYoVariable, buffer.getYoVariable().getValue());
    }
 
    @Override
    protected LongPushRequest toPushRequest()
    {
-      return new LongPushRequest(linkedYoVariable.getLongValue(), buffer);
+      return new LongPushRequest(linkedYoVariable.getValue(), buffer.getYoVariable());
    }
 
+   @Override
    @SuppressWarnings("unchecked")
    public BufferSample<long[]> pollRequestedBufferSample()
    {
-      return (BufferSample<long[]>) super.pollRequestedBufferSample();
+      return super.pollRequestedBufferSample();
    }
 
    @Override

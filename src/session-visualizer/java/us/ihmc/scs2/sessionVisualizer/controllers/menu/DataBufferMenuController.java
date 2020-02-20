@@ -81,8 +81,7 @@ public class DataBufferMenuController
    {
       if (bufferProperties.getValue() != null)
       {
-         CropBufferRequest cropBufferRequest = CropBufferRequest.toCropBufferRequest(bufferProperties.getValue().getInPoint(),
-                                                                                     bufferProperties.getValue().getOutPoint());
+         CropBufferRequest cropBufferRequest = new CropBufferRequest(bufferProperties.getValue().getInPoint(), bufferProperties.getValue().getOutPoint());
          messager.submitMessage(topics.getYoBufferCropRequest(), cropBufferRequest);
       }
    }

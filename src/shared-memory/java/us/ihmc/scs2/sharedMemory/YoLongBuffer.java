@@ -6,40 +6,54 @@ import us.ihmc.yoVariables.variable.YoLong;
 
 public class YoLongBuffer extends YoVariableBuffer<YoLong>
 {
-   private long[] buffer = new long[0];
+   private long[] buffer;
 
    public YoLongBuffer(YoLong yoLong, YoBufferPropertiesReadOnly properties)
    {
       super(yoLong, properties);
+      buffer = new long[properties.getSize()];
    }
 
    @Override
    public void resizeBuffer(int from, int length)
    {
+      if (from == 0 && length == buffer.length)
+         return;
       buffer = BufferTools.ringArrayCopy(buffer, from, length);
    }
 
    @Override
-   public void writeBuffer()
+   public void writeBufferAt(int index)
    {
-      buffer[properties.getCurrentIndex()] = yoVariable.getValue();
+      buffer[index] = yoVariable.getValue();
    }
 
    @Override
-   public void readBuffer()
+   public void readBufferAt(int index)
    {
-      yoVariable.set(buffer[properties.getCurrentIndex()]);
+      yoVariable.set(buffer[index]);
+   }
+
+   @Override
+   long getValueAsLongBits(int index)
+   {
+      return buffer[index];
    }
 
    @Override
    public BufferSample<long[]> copy(int from, int length)
    {
-      return new BufferSample<>(from, properties.getSize(), BufferTools.ringArrayCopy(buffer, from, length), length);
+      return new BufferSample<>(from, buffer.length, BufferTools.ringArrayCopy(buffer, from, length), length);
    }
 
    @Override
    LinkedYoLong newLinkedYoVariable(YoLong variableToLink)
    {
       return new LinkedYoLong(variableToLink, this);
+   }
+
+   long[] getBuffer()
+   {
+      return buffer;
    }
 }

@@ -9,32 +9,23 @@ public class LinkedYoDouble extends LinkedYoVariable<YoDouble>
       super(linkedVariable, buffer);
    }
 
-   public double peekCurrentValue(double defaultValue)
-   {
-      DoublePullRequest pull = (DoublePullRequest) pullRequest;
-
-      if (pull != null)
-         return pull.getValueToPull();
-      else
-         return defaultValue;
-   }
-
    @Override
    DoublePullRequest toPullRequest()
    {
-      return new DoublePullRequest(linkedYoVariable, buffer.getYoVariable().getDoubleValue());
+      return new DoublePullRequest(linkedYoVariable, buffer.getYoVariable().getValue());
    }
 
    @Override
    protected DoublePushRequest toPushRequest()
    {
-      return new DoublePushRequest(linkedYoVariable.getDoubleValue(), buffer);
+      return new DoublePushRequest(linkedYoVariable.getValue(), buffer.getYoVariable());
    }
 
+   @Override
    @SuppressWarnings("unchecked")
    public BufferSample<double[]> pollRequestedBufferSample()
    {
-      return (BufferSample<double[]>) super.pollRequestedBufferSample();
+      return super.pollRequestedBufferSample();
    }
 
    @Override

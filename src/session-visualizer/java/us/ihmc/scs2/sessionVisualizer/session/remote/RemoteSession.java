@@ -84,7 +84,7 @@ public class RemoteSession extends Session
 
    public void receivedTimestampAndData(long timestamp)
    {
-      if (!hasSessionStarted())
+      if (!hasSessionStarted() || getActiveMode() != SessionMode.RUNNING)
          return;
       latestDataTimestamp.set(timestamp);
       runTick();
@@ -131,8 +131,7 @@ public class RemoteSession extends Session
       }
       else
       {
-         sharedBuffer.updateBuffer();
-         sharedBuffer.incrementBufferIndex(true);
+         sharedBuffer.writeBuffer();
          processBufferRequests(false);
          publishBufferProperties(sharedBuffer.getProperties());
       }

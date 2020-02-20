@@ -4,23 +4,18 @@ import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 
 public class LinkedBufferProperties
 {
-   private YoBufferProperties requestedBufferProperties;
+   private final YoBufferProperties bufferProperties;
+
    private YoBufferPropertiesReadOnly currentBufferProperties;
 
-   LinkedBufferProperties()
+   LinkedBufferProperties(YoBufferProperties bufferProperties)
    {
+      this.bufferProperties = bufferProperties;
    }
 
-   YoBufferPropertiesReadOnly pollBufferPropertiesRequest()
+   void prepareForPull()
    {
-      YoBufferPropertiesReadOnly newRequest = requestedBufferProperties;
-      requestedBufferProperties = null;
-      return newRequest;
-   }
-
-   void prepareForPull(YoBufferPropertiesReadOnly newProperties)
-   {
-      currentBufferProperties = newProperties;
+      currentBufferProperties = bufferProperties.copy();
    }
 
    public YoBufferPropertiesReadOnly peekCurrentBufferProperties()

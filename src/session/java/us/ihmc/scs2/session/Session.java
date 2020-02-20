@@ -287,6 +287,7 @@ public abstract class Session
     */
    public void initializeSession()
    {
+      sharedBuffer.registerMissingBuffers();
    }
 
    protected long computeRunTaskPeriod()
@@ -324,30 +325,31 @@ public abstract class Session
 
    protected void initializeRunTick()
    {
+      sharedBuffer.incrementBufferIndex(true);
+
       if (firstRunTick)
       {
          sharedBuffer.setInPoint(sharedBuffer.getProperties().getCurrentIndex());
          firstRunTick = false;
       }
 
-      sharedBuffer.processLinkedRequests();
+      sharedBuffer.processLinkedPushRequests(false);
    }
 
    protected abstract void doSpecificRunTick();
 
    protected void finalizeRunTick()
    {
-      sharedBuffer.updateBuffer();
+      sharedBuffer.writeBuffer();
 
       long currentTimestamp = System.nanoTime();
 
       if (currentTimestamp - lastPublishedBufferTimestamp > desiredBufferPublishPeriod.get())
       {
-         sharedBuffer.publish();
+         sharedBuffer.prepareLinkedBuffersForPull();
          lastPublishedBufferTimestamp = currentTimestamp;
       }
 
-      sharedBuffer.incrementBufferIndex(true);
       processBufferRequests(false);
       publishBufferProperties(sharedBuffer.getProperties());
    }
@@ -370,6 +372,7 @@ public abstract class Session
       if (!sessionInitialized)
       {
          initializeSession();
+         sharedBuffer.writeBuffer();
          sessionInitialized = true;
       }
 
@@ -395,8 +398,8 @@ public abstract class Session
 
    protected void initializePlaybackTick()
    {
-      sharedBuffer.processLinkedRequests();
-      sharedBuffer.updateYoVariables();
+      sharedBuffer.flushLinkedPushRequests();
+      sharedBuffer.readBuffer();
    }
 
    protected void doSpecificPlaybackTick()
@@ -410,7 +413,7 @@ public abstract class Session
 
       if (currentTimestamp - lastPublishedBufferTimestamp > desiredBufferPublishPeriod.get())
       {
-         sharedBuffer.publish();
+         sharedBuffer.prepareLinkedBuffersForPull();
          lastPublishedBufferTimestamp = currentTimestamp;
       }
 
@@ -429,6 +432,7 @@ public abstract class Session
       if (!sessionInitialized)
       {
          initializeSession();
+         sharedBuffer.writeBuffer();
          sessionInitialized = true;
       }
 
@@ -441,12 +445,10 @@ public abstract class Session
    {
       boolean shouldPublish = firstPauseTick;
       firstPauseTick = false;
-      shouldPublish |= sharedBuffer.processLinkedRequests();
-      if (shouldPublish)
-         sharedBuffer.updateBuffer();
+      shouldPublish |= sharedBuffer.processLinkedPushRequests(true);
       shouldPublish |= processBufferRequests(true);
       if (!shouldPublish)
-         shouldPublish = sharedBuffer.hasBufferSampleRequestPending();
+         shouldPublish = sharedBuffer.hasRequestPending();
 
       return shouldPublish;
    }
@@ -459,7 +461,10 @@ public abstract class Session
    protected void finalizePauseTick(boolean shouldPublishBuffer)
    {
       if (shouldPublishBuffer)
-         sharedBuffer.updateYoVariablesAndPublish();
+      {
+         sharedBuffer.readBuffer();
+         sharedBuffer.prepareLinkedBuffersForPull();
+      }
       publishBufferProperties(sharedBuffer.getProperties());
    }
 

@@ -1,13 +1,8 @@
 package us.ihmc.scs2.sharedMemory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.scs2.sharedMemory.tools.YoMirroredRegistryTools;
 import us.ihmc.yoVariables.registry.NameSpace;
 import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -39,7 +34,6 @@ public class YoVariableRegistryBuffer
                continue;
 
             YoVariableBuffer<?> yoVariableBuffer = YoVariableBuffer.newYoVariableBuffer(yoVariable, properties);
-            yoVariableBuffer.resizeBuffer(0, properties.getSize());
             yoVariableBuffers.add(yoVariableBuffer);
             yoVariableFullnameToBufferMap.put(fullName, yoVariableBuffer);
          }
@@ -53,13 +47,23 @@ public class YoVariableRegistryBuffer
 
    public void writeBuffer()
    {
+      writeBufferAt(properties.getCurrentIndex());
+   }
+
+   public void writeBufferAt(int index)
+   {
       // FIXME Hack to get the writing faster.
-      yoVariableBuffers.parallelStream().forEach(buffer -> buffer.writeBuffer());
+      yoVariableBuffers.parallelStream().forEach(buffer -> buffer.writeBufferAt(index));
    }
 
    public void readBuffer()
    {
-      yoVariableBuffers.forEach(buffer -> buffer.readBuffer());
+      readBufferAt(properties.getCurrentIndex());
+   }
+
+   public void readBufferAt(int index)
+   {
+      yoVariableBuffers.forEach(buffer -> buffer.readBufferAt(index));
    }
 
    YoVariableBuffer<?> findYoVariableBuffer(YoVariable<?> yoVariable)
@@ -85,7 +89,6 @@ public class YoVariableRegistryBuffer
             duplicate = yoVariable.duplicate(registry);
 
          yoVariableBuffer = YoVariableBuffer.newYoVariableBuffer(duplicate, properties);
-         yoVariableBuffer.resizeBuffer(0, properties.getSize());
          yoVariableBuffers.add(yoVariableBuffer);
          yoVariableFullnameToBufferMap.put(variableFullName, yoVariableBuffer);
       }
@@ -118,24 +121,21 @@ public class YoVariableRegistryBuffer
 
    LinkedYoVariableRegistry newLinkedYoVariableRegistry(YoVariableRegistry registryToLink)
    {
-      YoVariableRegistry bufferRegistry = rootRegistry.getRegistry(registryToLink.getNameSpace());
-      YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(registryToLink, bufferRegistry);
-      registerMissingBuffers();
-
       return new LinkedYoVariableRegistry(registryToLink, this);
    }
 
    LinkedYoVariableRegistry newLinkedYoVariableRegistry()
    {
-      YoVariableRegistry linkedRegistry = new YoVariableRegistry(rootRegistry.getName());
-      YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(rootRegistry, linkedRegistry);
-      registerMissingBuffers();
-
-      return new LinkedYoVariableRegistry(linkedRegistry, this);
+      return new LinkedYoVariableRegistry(new YoVariableRegistry(rootRegistry.getName()), this);
    }
 
    public YoVariableRegistry getRootRegistry()
    {
       return rootRegistry;
+   }
+
+   public YoBufferPropertiesReadOnly getProperties()
+   {
+      return properties;
    }
 }
