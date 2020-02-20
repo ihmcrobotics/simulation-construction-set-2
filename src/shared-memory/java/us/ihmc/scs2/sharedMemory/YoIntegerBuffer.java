@@ -35,6 +35,12 @@ public class YoIntegerBuffer extends YoVariableBuffer<YoInteger>
    }
 
    @Override
+   long getValueAsLongBits(int index)
+   {
+      return buffer[index];
+   }
+
+   @Override
    public BufferSample<int[]> copy(int from, int length)
    {
       return new BufferSample<>(from, buffer.length, BufferTools.ringArrayCopy(buffer, from, length), length);

@@ -55,6 +55,13 @@ public abstract class YoVariableBuffer<T extends YoVariable<T>>
       return properties;
    }
 
+   long getValueAsLongBits()
+   {
+      return getValueAsLongBits(properties.getCurrentIndex());
+   }
+
+   abstract long getValueAsLongBits(int index);
+
    @SuppressWarnings("rawtypes")
    public abstract BufferSample copy(int from, int length);
 

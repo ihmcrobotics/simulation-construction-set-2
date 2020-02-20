@@ -35,6 +35,12 @@ public class YoEnumBuffer<E extends Enum<E>> extends YoVariableBuffer<YoEnum<E>>
    }
 
    @Override
+   long getValueAsLongBits(int index)
+   {
+      return buffer[index];
+   }
+
+   @Override
    public BufferSample<byte[]> copy(int from, int length)
    {
       return new BufferSample<>(from, buffer.length, BufferTools.ringArrayCopy(buffer, from, length), length);

@@ -338,31 +338,120 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
       return linkedBuffers.stream().anyMatch(LinkedBuffer::hasRequestPending);
    }
 
+   /**
+    * Increments the position of the current read index by 1.
+    * <p>
+    * The two following scenarios should be considered:
+    * <ol>
+    * <li>The buffer manager is currently recording data into the buffer. In such case,
+    * {@code updateBufferBounds} should be {@code true}, allowing the reading index to push the
+    * out-point back.
+    * <li>The buffer manager is currently playing back data from the buffer. In such case,
+    * {@code updateBufferBounds} should be {@code false}, when the current reading index is about to
+    * pass the out-point, it is sent to the in-point causing the playback to cycle through the data
+    * that is in between the in and out points.
+    * </ol>
+    * </p>
+    * <p>
+    * Operation for the buffer manager only.
+    * </p>
+    * 
+    * @param updateBufferBounds when {@code true} the out-point will automatically be pushed back by
+    *                           the current index. Usually {@code true} when the buffer manager is
+    *                           writing into the buffer and usually {@code false} when data is being
+    *                           played back from the buffer.
+    * @return the new position of the reading index.
+    */
    public int incrementBufferIndex(boolean updateBufferBounds)
    {
       return properties.incrementIndex(updateBufferBounds);
    }
 
+   /**
+    * Increments the position of the current read index by {@code stepSize}.
+    * <p>
+    * The two following scenarios should be considered:
+    * <ol>
+    * <li>The buffer manager is currently recording data into the buffer. In such case,
+    * {@code updateBufferBounds} should be {@code true}, allowing the reading index to push the
+    * out-point back.
+    * <li>The buffer manager is currently playing back data from the buffer. In such case,
+    * {@code updateBufferBounds} should be {@code false}, when the current reading index is about to
+    * pass the out-point, it is sent to the in-point causing the playback to cycle through the data
+    * that is in between the in and out points.
+    * </ol>
+    * </p>
+    * <p>
+    * Note that if the given {@code stepSize} is negative, the reading position index is decremented
+    * instead.
+    * </p>
+    * <p>
+    * Operation for the buffer manager only.
+    * </p>
+    * 
+    * @param updateBufferBounds when {@code true} the out-point will automatically be pushed back by
+    *                           the current index. Usually {@code true} when the buffer manager is
+    *                           writing into the buffer and usually {@code false} when data is being
+    *                           played back from the buffer.
+    * @param stepSize           the size of the increment to apply to the reading position.
+    * @return the new position of the reading index.
+    */
    public int incrementBufferIndex(boolean updateBufferBounds, int stepSize)
    {
       return properties.incrementIndex(updateBufferBounds, stepSize);
    }
 
+   /**
+    * Decrements the position of the current read index by {@code stepSize}.
+    * <p>
+    * This methods is usually used when playing back data from the buffer in reverse.
+    * </ol>
+    * </p>
+    * <p>
+    * Note that if the given {@code stepSize} is negative, the reading position index is incremented
+    * instead.
+    * </p>
+    * <p>
+    * Operation for the buffer manager only.
+    * </p>
+    * 
+    * @param stepSize the size of the decrement to apply to the reading position.
+    * @return the new position of the reading index.
+    */
    public int decrementBufferIndex(int stepSize)
    {
       return properties.decrementIndex(stepSize);
    }
 
+   /**
+    * Gets the read-only reference to this buffer properties.
+    * <p>
+    * Properties include information about the current reading index, in point, out point, and buffer
+    * size.
+    * </p>
+    * 
+    * @return the properties of this buffer.
+    */
    public YoBufferPropertiesReadOnly getProperties()
    {
       return properties;
    }
 
+   /**
+    * Gets the root registry this buffer was created for.
+    * 
+    * @return the root registry.
+    */
    public YoVariableRegistry getRootRegistry()
    {
       return registryBuffer.getRootRegistry();
    }
 
+   /**
+    * Gets the internal buffer holder.
+    * 
+    * @return the root registry buffer listing the buffer for every {@code YoVariable}.
+    */
    public YoVariableRegistryBuffer getRegistryBuffer()
    {
       return registryBuffer;

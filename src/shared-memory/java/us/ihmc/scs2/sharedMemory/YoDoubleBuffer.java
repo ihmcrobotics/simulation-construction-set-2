@@ -35,6 +35,12 @@ public class YoDoubleBuffer extends YoVariableBuffer<YoDouble>
    }
 
    @Override
+   long getValueAsLongBits(int index)
+   {
+      return Double.doubleToLongBits(buffer[index]);
+   }
+
+   @Override
    public BufferSample<double[]> copy(int from, int length)
    {
       return new BufferSample<>(from, buffer.length, BufferTools.ringArrayCopy(buffer, from, length), length);

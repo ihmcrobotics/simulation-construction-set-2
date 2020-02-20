@@ -35,6 +35,12 @@ public class YoBooleanBuffer extends YoVariableBuffer<YoBoolean>
    }
 
    @Override
+   long getValueAsLongBits(int index)
+   {
+      return buffer[index] ? 1 : 0;
+   }
+
+   @Override
    public BufferSample<boolean[]> copy(int from, int length)
    {
       return new BufferSample<>(from, buffer.length, BufferTools.ringArrayCopy(buffer, from, length), length);

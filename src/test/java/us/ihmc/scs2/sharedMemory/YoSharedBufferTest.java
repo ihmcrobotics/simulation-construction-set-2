@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import java.util.Random;
 
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,9 @@ import org.junit.jupiter.api.Test;
 import us.ihmc.commons.RandomNumbers;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.YoMirroredRegistryTools;
+import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
+import us.ihmc.yoVariables.registry.YoVariableRegistry;
 import us.ihmc.yoVariables.variable.*;
 
 public class YoSharedBufferTest
@@ -177,13 +181,202 @@ public class YoSharedBufferTest
          // Test setInPoint
          assertFalse(yoSharedBuffer.setOutPoint(-1));
          assertFalse(yoSharedBuffer.setOutPoint(properties.getSize()));
-         
+
          int newOutPoint = random.nextInt(properties.getSize());
          assertEquals(newOutPoint != properties.getOutPoint(), yoSharedBuffer.setOutPoint(newOutPoint));
-         
+
          assertEquals(newOutPoint, properties.getOutPoint());
          assertFalse(yoSharedBuffer.setOutPoint(newOutPoint));
       }
+   }
+
+   @Test
+   public void testProcessLinkedPushRequests()
+   {
+      Random random = new Random(4566);
+
+      for (int i = 0; i < ITERATIONS; i++)
+      {
+         YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
+         yoSharedBuffer.readBuffer();
+
+         YoBufferPropertiesReadOnly properties = yoSharedBuffer.getProperties();
+         YoVariableRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
+
+         List<YoVariable<?>> allBufferYoVariables = bufferRootRegistry.getAllVariables();
+         if (allBufferYoVariables.isEmpty())
+         {
+            i--;
+            continue;
+         }
+         YoVariable<?> bufferYoVariable = allBufferYoVariables.get(random.nextInt(allBufferYoVariables.size()));
+         YoVariableRegistry consumerRegistry = YoMirroredRegistryTools.newEmptyCloneRegistry(bufferYoVariable.getYoVariableRegistry());
+         YoVariable<?> consumerYoVariable = bufferYoVariable.duplicate(consumerRegistry);
+         LinkedYoVariable<?> linkedYoVariable = yoSharedBuffer.newLinkedYoVariable(consumerYoVariable);
+
+         YoRandomTools.randomizeYoVariable(random, consumerYoVariable);
+         linkedYoVariable.push();
+
+         boolean writeBuffer = random.nextBoolean();
+         yoSharedBuffer.processLinkedPushRequests(writeBuffer);
+
+         assertYoEquals(consumerYoVariable, bufferYoVariable);
+
+         if (writeBuffer)
+            assertVariableEqualsBufferAt(bufferYoVariable,
+                                         yoSharedBuffer.getRegistryBuffer().findYoVariableBuffer(bufferYoVariable),
+                                         properties.getCurrentIndex());
+      }
+   }
+
+   @Test
+   public void testFlushLinkedPushRequests()
+   {
+      Random random = new Random(4566);
+
+      for (int i = 0; i < ITERATIONS; i++)
+      {
+         YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
+         yoSharedBuffer.readBuffer();
+
+         YoVariableRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
+
+         List<YoVariable<?>> allBufferYoVariables = bufferRootRegistry.getAllVariables();
+         if (allBufferYoVariables.isEmpty())
+         {
+            i--;
+            continue;
+         }
+         YoVariable<?> bufferYoVariable = allBufferYoVariables.get(random.nextInt(allBufferYoVariables.size()));
+         YoVariableRegistry consumerRegistry = YoMirroredRegistryTools.newEmptyCloneRegistry(bufferYoVariable.getYoVariableRegistry());
+         YoVariable<?> consumerYoVariable = bufferYoVariable.duplicate(consumerRegistry);
+         LinkedYoVariable<?> linkedYoVariable = yoSharedBuffer.newLinkedYoVariable(consumerYoVariable);
+
+         YoRandomTools.randomizeYoVariable(random, consumerYoVariable);
+         linkedYoVariable.push();
+
+         yoSharedBuffer.flushLinkedPushRequests();
+
+         assertFalse(linkedYoVariable.processPush(true));
+      }
+   }
+
+   @Test
+   public void testReadBuffer()
+   {
+      Random random = new Random(4566);
+
+      for (int i = 0; i < ITERATIONS; i++)
+      {
+         YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
+
+         YoVariableRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
+         YoVariableRegistryBuffer registryBuffer = yoSharedBuffer.getRegistryBuffer();
+         YoBufferPropertiesReadOnly properties = yoSharedBuffer.getProperties();
+
+         List<YoVariable<?>> allBufferYoVariables = bufferRootRegistry.getAllVariables();
+         if (allBufferYoVariables.isEmpty())
+         {
+            i--;
+            continue;
+         }
+
+         long[] bufferBackedUp = allBufferYoVariables.stream().map(v -> registryBuffer.findYoVariableBuffer(v)).mapToLong(b -> b.getValueAsLongBits())
+                                                     .toArray();
+         yoSharedBuffer.readBuffer();
+
+         for (int j = 0; j < allBufferYoVariables.size(); j++)
+         {
+            YoVariable<?> bufferYoVariable = allBufferYoVariables.get(j);
+            YoVariableBuffer<?> buffer = registryBuffer.findYoVariableBuffer(bufferYoVariable);
+            assertVariableEqualsBufferAt(bufferYoVariable, buffer, properties.getCurrentIndex());
+            assertEquals(bufferBackedUp[j], buffer.getValueAsLongBits());
+         }
+      }
+   }
+
+   @Test
+   public void testWriteBuffer()
+   {
+      Random random = new Random(4566);
+
+      for (int i = 0; i < ITERATIONS; i++)
+      {
+         YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
+
+         YoVariableRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
+         YoVariableRegistryBuffer registryBuffer = yoSharedBuffer.getRegistryBuffer();
+         YoBufferPropertiesReadOnly properties = yoSharedBuffer.getProperties();
+
+         List<YoVariable<?>> allBufferYoVariables = bufferRootRegistry.getAllVariables();
+         if (allBufferYoVariables.isEmpty())
+         {
+            i--;
+            continue;
+         }
+
+         long[] variableBackedUp = allBufferYoVariables.stream().mapToLong(YoVariable::getValueAsLongBits).toArray();
+         yoSharedBuffer.writeBuffer();
+
+         for (int j = 0; j < allBufferYoVariables.size(); j++)
+         {
+            YoVariable<?> bufferYoVariable = allBufferYoVariables.get(j);
+            YoVariableBuffer<?> buffer = registryBuffer.findYoVariableBuffer(bufferYoVariable);
+            assertVariableEqualsBufferAt(bufferYoVariable, buffer, properties.getCurrentIndex());
+            assertEquals(variableBackedUp[j], bufferYoVariable.getValueAsLongBits());
+         }
+      }
+   }
+
+   @Test
+   public void testPrepareLinkedBuffersForPull()
+   {
+      Random random = new Random(2356);
+
+      for (int i = 0; i < ITERATIONS; i++)
+      {
+         YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
+
+         YoVariableRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
+
+         List<YoVariable<?>> allBufferYoVariables = bufferRootRegistry.getAllVariables();
+         if (allBufferYoVariables.isEmpty())
+         {
+            i--;
+            continue;
+         }
+
+         LinkedYoVariableRegistry linkedYoVariableRegistry = yoSharedBuffer.newLinkedYoVariableRegistry();
+         linkedYoVariableRegistry.linkManagerVariables();
+
+         List<YoVariable<?>> allConsumerYoVariables = linkedYoVariableRegistry.getRootRegistry().getAllVariables();
+
+         allBufferYoVariables.forEach(v -> YoRandomTools.randomizeYoVariable(random, v));
+         long[] bufferVariableBackedUp = allBufferYoVariables.stream().mapToLong(YoVariable::getValueAsLongBits).toArray();
+         yoSharedBuffer.prepareLinkedBuffersForPull();
+
+         for (int j = 0; j < allBufferYoVariables.size(); j++)
+         {
+            YoVariable<?> bufferYoVariable = allBufferYoVariables.get(j);
+            assertEquals(bufferVariableBackedUp[j], bufferYoVariable.getValueAsLongBits());
+         }
+
+         linkedYoVariableRegistry.pull();
+
+         for (int j = 0; j < allBufferYoVariables.size(); j++)
+         {
+            YoVariable<?> bufferYoVariable = allBufferYoVariables.get(j);
+            YoVariable<?> consumerYoVariable = allConsumerYoVariables.get(j);
+            assertEquals(bufferVariableBackedUp[j], bufferYoVariable.getValueAsLongBits());
+            assertYoEquals(bufferYoVariable, consumerYoVariable);
+         }
+      }
+   }
+
+   private static void assertYoEquals(YoVariable<?> expected, YoVariable<?> actual)
+   {
+      assertTrue(expected.getClass() == actual.getClass());
+      assertEquals(expected.getValueAsLongBits(), actual.getValueAsLongBits());
    }
 
    private static void assertVariableEqualsBufferAt(YoVariable<?> yoVariable, YoVariableBuffer<?> buffer, int index)
