@@ -75,6 +75,8 @@ public class LogSession extends Session
    @Override
    protected void initializeRunTick()
    {
+      sharedBuffer.incrementBufferIndex(true);
+
       if (firstRunTick)
       {
          sharedBuffer.setInPoint(sharedBuffer.getProperties().getCurrentIndex());

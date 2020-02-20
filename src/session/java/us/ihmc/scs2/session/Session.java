@@ -325,6 +325,8 @@ public abstract class Session
 
    protected void initializeRunTick()
    {
+      sharedBuffer.incrementBufferIndex(true);
+
       if (firstRunTick)
       {
          sharedBuffer.setInPoint(sharedBuffer.getProperties().getCurrentIndex());
@@ -348,7 +350,6 @@ public abstract class Session
          lastPublishedBufferTimestamp = currentTimestamp;
       }
 
-      sharedBuffer.incrementBufferIndex(true);
       processBufferRequests(false);
       publishBufferProperties(sharedBuffer.getProperties());
    }
@@ -371,6 +372,7 @@ public abstract class Session
       if (!sessionInitialized)
       {
          initializeSession();
+         sharedBuffer.writeBuffer();
          sessionInitialized = true;
       }
 
@@ -430,6 +432,7 @@ public abstract class Session
       if (!sessionInitialized)
       {
          initializeSession();
+         sharedBuffer.writeBuffer();
          sessionInitialized = true;
       }
 
