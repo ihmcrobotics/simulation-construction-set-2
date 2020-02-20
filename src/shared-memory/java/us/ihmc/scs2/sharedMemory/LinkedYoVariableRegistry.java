@@ -24,7 +24,7 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
    {
       this.rootRegistry = rootRegistry;
       this.yoVariableRegistryBuffer = yoVariableRegistryBuffer;
-      linkNewYoVariables();
+      linkConsumerVariables();
    }
 
    /**
@@ -33,7 +33,7 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
     *
     * @return the number of {@code YoVariable}s that were created.
     */
-   public int pullMissingYoVariables()
+   public int linkManagerVariables()
    {
       YoVariableRegistry bufferRootRegistry = yoVariableRegistryBuffer.getRootRegistry();
 
@@ -54,7 +54,7 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
       return numberOfNewVariables;
    }
 
-   public void linkNewYoVariables()
+   public void linkConsumerVariables()
    {
       ArrayList<YoVariable<?>> allYoVariables = rootRegistry.getAllVariables();
 

@@ -48,8 +48,8 @@ public class YoManager extends AnimationTimer implements Manager
       linkedRootRegistry = linkedYoVariableFactory.newLinkedYoVariableRegistry(rootRegistry);
 
       updatingYoVariables = true;
-      linkedRootRegistry.linkNewYoVariables();
-      linkedRootRegistry.pullMissingYoVariables();
+      linkedRootRegistry.linkConsumerVariables();
+      linkedRootRegistry.linkManagerVariables();
       rootRegistryHashCodeProperty.set(YoVariableTools.hashCode(rootRegistry));
       rootRegistryDatabase = new YoVariableDatabase(rootRegistry);
       updatingYoVariables = false;
@@ -87,7 +87,7 @@ public class YoManager extends AnimationTimer implements Manager
    public void linkNewYoVariables()
    {
       updatingYoVariables = true;
-      linkedRootRegistry.linkNewYoVariables();
+      linkedRootRegistry.linkConsumerVariables();
       rootRegistryHashCodeProperty.set(YoVariableTools.hashCode(rootRegistry));
       updatingYoVariables = false;
    }
@@ -95,7 +95,7 @@ public class YoManager extends AnimationTimer implements Manager
    public void pullMissingYoVariables()
    {
       updatingYoVariables = true;
-      linkedRootRegistry.pullMissingYoVariables();
+      linkedRootRegistry.linkManagerVariables();
       rootRegistryHashCodeProperty.set(YoVariableTools.hashCode(rootRegistry));
       updatingYoVariables = false;
    }
