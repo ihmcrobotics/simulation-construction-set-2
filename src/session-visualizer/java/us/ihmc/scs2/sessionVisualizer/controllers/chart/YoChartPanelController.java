@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import com.jfoenix.controls.JFXButton;
-import com.sun.javafx.scene.control.skin.LabeledText;
+import com.sun.javafx.scene.control.LabeledText;
 
 import de.gsi.chart.XYChart;
 import de.gsi.chart.plugins.XValueIndicator;
