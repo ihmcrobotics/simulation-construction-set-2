@@ -18,7 +18,7 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
    private final YoVariableRegistry rootRegistry;
    private final YoVariableRegistryBuffer yoVariableRegistryBuffer;
 
-   private final ReentrantLock lock = new ReentrantLock();
+   private final ReentrantLock lock;
    private final List<LinkedYoVariable> linkedYoVariables = new ArrayList<>();
    private final Map<YoVariable, LinkedYoVariable> linkedYoVariableMap = new HashMap<>();
 
@@ -26,6 +26,7 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
    {
       this.rootRegistry = rootRegistry;
       this.yoVariableRegistryBuffer = yoVariableRegistryBuffer;
+      lock = yoVariableRegistryBuffer.getLock();
       linkConsumerVariables();
    }
 

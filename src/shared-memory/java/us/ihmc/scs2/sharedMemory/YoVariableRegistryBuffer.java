@@ -1,6 +1,7 @@
 package us.ihmc.scs2.sharedMemory;
 
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.yoVariables.registry.NameSpace;
@@ -13,6 +14,8 @@ public class YoVariableRegistryBuffer
    private final List<YoVariableBuffer<?>> yoVariableBuffers = new ArrayList<>();
    private final Map<String, YoVariableBuffer<?>> yoVariableFullnameToBufferMap = new HashMap<>();
    private final YoBufferPropertiesReadOnly properties;
+
+   private final ReentrantLock lock = new ReentrantLock();
 
    public YoVariableRegistryBuffer(YoVariableRegistry rootRegistry, YoBufferPropertiesReadOnly properties)
    {
@@ -127,6 +130,11 @@ public class YoVariableRegistryBuffer
    LinkedYoVariableRegistry newLinkedYoVariableRegistry()
    {
       return new LinkedYoVariableRegistry(new YoVariableRegistry(rootRegistry.getName()), this);
+   }
+
+   ReentrantLock getLock()
+   {
+      return lock;
    }
 
    public YoVariableRegistry getRootRegistry()
