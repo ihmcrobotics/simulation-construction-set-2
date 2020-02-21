@@ -1,21 +1,11 @@
 package us.ihmc.scs2.sessionVisualizer.definition;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -39,13 +29,7 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Material;
 import javafx.scene.paint.PhongMaterial;
-import javafx.scene.shape.Box;
-import javafx.scene.shape.Cylinder;
-import javafx.scene.shape.Mesh;
-import javafx.scene.shape.MeshView;
-import javafx.scene.shape.Shape3D;
-import javafx.scene.shape.Sphere;
-import javafx.scene.shape.TriangleMesh;
+import javafx.scene.shape.*;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
@@ -56,19 +40,7 @@ import us.ihmc.graphicsDescription.MeshDataGenerator;
 import us.ihmc.javaFXToolkit.JavaFXTools;
 import us.ihmc.javaFXToolkit.graphics.JavaFXMeshDataInterpreter;
 import us.ihmc.log.LogTools;
-import us.ihmc.scs2.definition.geometry.ArcTorusGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.BoxGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.CapsuleGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.ConeGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.CylinderGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.EllipsoidGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.GenTruncatedConeGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.GeometryDefinition;
-import us.ihmc.scs2.definition.geometry.HemiEllipsoidGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.ModelFileGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.SphereGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.TorusGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.WedgeGeometryDefinition;
+import us.ihmc.scs2.definition.geometry.*;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition.MaterialDefinition;
@@ -128,7 +100,12 @@ public class JavaFXVisualTools
 
    public static Node collectNodes(List<VisualDefinition> visualDefinitions)
    {
-      List<Node> nodes = visualDefinitions.stream().map(JavaFXVisualTools::toNode).filter(node -> node != null).collect(Collectors.toList());
+      return collectNodes(visualDefinitions, null);
+   }
+
+   public static Node collectNodes(List<VisualDefinition> visualDefinitions, ClassLoader resourceClassLoader)
+   {
+      List<Node> nodes = visualDefinitions.stream().map(definition -> toNode(definition, resourceClassLoader)).filter(node -> node != null).collect(Collectors.toList());
 
       if (nodes.isEmpty())
          return null;
@@ -138,9 +115,9 @@ public class JavaFXVisualTools
          return new Group(nodes);
    }
 
-   public static Node toNode(VisualDefinition visualDefinition)
+   public static Node toNode(VisualDefinition visualDefinition, ClassLoader resourceClassLoader)
    {
-      Node node = toShape3D(visualDefinition.getGeometryDefinition(), visualDefinition.getMaterialDefinition());
+      Node node = toShape3D(visualDefinition.getGeometryDefinition(), visualDefinition.getMaterialDefinition(), resourceClassLoader);
 
       if (node != null && visualDefinition.getOriginPose() != null)
       {
@@ -151,7 +128,7 @@ public class JavaFXVisualTools
       return node;
    }
 
-   public static Node toShape3D(GeometryDefinition geometryDefinition, MaterialDefinition materialDefinition)
+   public static Node toShape3D(GeometryDefinition geometryDefinition, MaterialDefinition materialDefinition, ClassLoader resourceClassLoader)
    {
       if (geometryDefinition == null)
       {
@@ -225,7 +202,7 @@ public class JavaFXVisualTools
       }
       else if (geometryDefinition instanceof ModelFileGeometryDefinition)
       {
-         Node[] nodes = importModel((ModelFileGeometryDefinition) geometryDefinition);
+         Node[] nodes = importModel((ModelFileGeometryDefinition) geometryDefinition, resourceClassLoader);
          if (nodes == null)
             return null;
 
@@ -379,14 +356,16 @@ public class JavaFXVisualTools
       return meshView;
    }
 
-   public static Node[] importModel(ModelFileGeometryDefinition geometryDefinition)
+   public static Node[] importModel(ModelFileGeometryDefinition geometryDefinition, ClassLoader resourceClassLoader)
    {
       if (geometryDefinition == null || geometryDefinition.getFileName() == null)
          return DEFAULT_MESH_VIEWS;
 
       String filename = geometryDefinition.getFileName();
 
-      URL fileURL = JavaFXTools.class.getClassLoader().getResource(filename);
+      if (resourceClassLoader == null)
+         resourceClassLoader = JavaFXTools.class.getClassLoader();
+      URL fileURL = resourceClassLoader.getResource(filename);
 
       if (fileURL == null)
       {

@@ -4,12 +4,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -26,31 +21,12 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DBasics;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.yawPitchRoll.YawPitchRoll;
-import us.ihmc.scs2.definition.geometry.BoxGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.CylinderGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.GeometryDefinition;
-import us.ihmc.scs2.definition.geometry.ModelFileGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.SphereGeometryDefinition;
-import us.ihmc.scs2.definition.robot.FixedJointDefinition;
-import us.ihmc.scs2.definition.robot.JointDefinition;
-import us.ihmc.scs2.definition.robot.OneDoFJointDefinition;
-import us.ihmc.scs2.definition.robot.PlanarJointDefinition;
-import us.ihmc.scs2.definition.robot.PrismaticJointDefinition;
-import us.ihmc.scs2.definition.robot.RevoluteJointDefinition;
-import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
-import us.ihmc.scs2.definition.robot.RobotDefinition;
-import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
-import us.ihmc.scs2.definition.robot.sdf.items.SDFGeometry;
-import us.ihmc.scs2.definition.robot.sdf.items.SDFInertia;
-import us.ihmc.scs2.definition.robot.sdf.items.SDFJoint;
+import us.ihmc.scs2.definition.geometry.*;
+import us.ihmc.scs2.definition.robot.*;
+import us.ihmc.scs2.definition.robot.sdf.items.*;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFJoint.SDFAxis;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFJoint.SDFAxis.SDFLimit;
-import us.ihmc.scs2.definition.robot.sdf.items.SDFLink;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFLink.SDFInertial;
-import us.ihmc.scs2.definition.robot.sdf.items.SDFModel;
-import us.ihmc.scs2.definition.robot.sdf.items.SDFRoot;
-import us.ihmc.scs2.definition.robot.sdf.items.SDFURIHolder;
-import us.ihmc.scs2.definition.robot.sdf.items.SDFVisual;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFVisual.SDFMaterial;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
@@ -97,28 +73,36 @@ public class SDFTools
       return sdfRoot;
    }
 
-   public static SDFRoot loadSDFRoot(InputStream inputStream, Collection<String> resourceDirectories) throws JAXBException
+   public static SDFRoot loadSDFRoot(InputStream inputStream, Collection<String> resourceDirectories, ClassLoader resourceClassLoader) throws JAXBException
    {
       JAXBContext context = JAXBContext.newInstance(SDFRoot.class);
       Unmarshaller um = context.createUnmarshaller();
       SDFRoot sdfRoot = (SDFRoot) um.unmarshal(inputStream);
 
-      resolvePaths(sdfRoot, resourceDirectories);
+      resolvePaths(sdfRoot, resourceDirectories, resourceClassLoader);
 
       return sdfRoot;
    }
 
    public static void resolvePaths(SDFRoot sdfRoot, Collection<String> resourceDirectories)
    {
+      resolvePaths(sdfRoot, resourceDirectories, null);
+   }
+
+   public static void resolvePaths(SDFRoot sdfRoot, Collection<String> resourceDirectories, ClassLoader resourceClassLoader)
+   {
       List<SDFURIHolder> uriHolders = sdfRoot.getURIHolders();
+
+      if (resourceClassLoader == null)
+         resourceClassLoader = SDFTools.class.getClassLoader();
 
       for (SDFURIHolder sdfURIHolder : uriHolders)
       {
-         sdfURIHolder.setUri(tryToConvertToPath(sdfURIHolder.getUri(), resourceDirectories));
+         sdfURIHolder.setUri(tryToConvertToPath(sdfURIHolder.getUri(), resourceDirectories, resourceClassLoader));
       }
    }
 
-   public static String tryToConvertToPath(String filename, Collection<String> resourceDirectories)
+   public static String tryToConvertToPath(String filename, Collection<String> resourceDirectories, ClassLoader resourceClassLoader)
    {
       try
       {
@@ -130,7 +114,7 @@ public class SDFTools
          {
             String fullname = resourceDirectory + authority + uri.getPath();
             // Path relative to class root
-            if (SDFTools.class.getClassLoader().getResource(fullname) != null)
+            if (resourceClassLoader.getResource(fullname) != null)
             {
                return fullname;
             }
@@ -161,7 +145,7 @@ public class SDFTools
             if (!resourceDirectories.contains(newResource))
             {
                resourceDirectories.add(newResource);
-               return tryToConvertToPath(filename, resourceDirectories);
+               return tryToConvertToPath(filename, resourceDirectories, resourceClassLoader);
             }
          }
       }

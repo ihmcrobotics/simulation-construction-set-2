@@ -18,6 +18,8 @@ public class RobotDefinition
    private RigidBodyDefinition rootBodyDefinition;
    private List<JointDefinition> definitionsOfJointsToIgnore = new ArrayList<>();
 
+   private ClassLoader resourceClassLoader;
+
    public RobotDefinition()
    {
    }
@@ -35,6 +37,11 @@ public class RobotDefinition
    public void setRootBodyDefinition(RigidBodyDefinition rootBodyDefinition)
    {
       this.rootBodyDefinition = rootBodyDefinition;
+   }
+
+   public void setResourceClassLoader(ClassLoader resourceClassLoader)
+   {
+      this.resourceClassLoader = resourceClassLoader;
    }
 
    public String getName()
@@ -67,6 +74,11 @@ public class RobotDefinition
    public List<JointDefinition> getAllJoints()
    {
       return collectSubtreeJointDefinitions(rootBodyDefinition);
+   }
+
+   public ClassLoader getResourceClassLoader()
+   {
+      return resourceClassLoader;
    }
 
    private static List<JointDefinition> collectSubtreeJointDefinitions(RigidBodyDefinition start)
