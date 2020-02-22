@@ -203,4 +203,52 @@ public class BufferTools
       }
       return bufferCopy;
    }
+
+   public static double[] toDoubleArray(boolean[] array)
+   {
+      if (array == null)
+         return null;
+
+      double[] doubleArray = new double[array.length];
+
+      for (int i = 0; i < array.length; i++)
+         doubleArray[i] = array[i] ? 1.0 : 0.0;
+      return doubleArray;
+   }
+
+   public static double[] toDoubleArray(int[] array)
+   {
+      if (array == null)
+         return null;
+
+      double[] doubleArray = new double[array.length];
+
+      for (int i = 0; i < array.length; i++)
+         doubleArray[i] = array[i];
+      return doubleArray;
+   }
+
+   public static double[] toDoubleArray(long[] array)
+   {
+      if (array == null)
+         return null;
+
+      double[] doubleArray = new double[array.length];
+
+      for (int i = 0; i < array.length; i++)
+         doubleArray[i] = array[i];
+      return doubleArray;
+   }
+
+   public static double[] toDoubleArray(byte[] array)
+   {
+      if (array == null)
+         return null;
+
+      double[] doubleArray = new double[array.length];
+
+      for (int i = 0; i < array.length; i++)
+         doubleArray[i] = array[i];
+      return doubleArray;
+   }
 }

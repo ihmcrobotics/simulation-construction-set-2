@@ -6,6 +6,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
+import de.gsi.dataset.DataSet2D;
+import de.gsi.dataset.spi.DoubleDataSet;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -13,14 +15,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
-import us.ihmc.scs2.sharedMemory.BufferSample;
-import us.ihmc.scs2.sharedMemory.LinkedYoBoolean;
-import us.ihmc.scs2.sharedMemory.LinkedYoDouble;
-import us.ihmc.scs2.sharedMemory.LinkedYoEnum;
-import us.ihmc.scs2.sharedMemory.LinkedYoInteger;
-import us.ihmc.scs2.sharedMemory.LinkedYoLong;
-import us.ihmc.scs2.sharedMemory.LinkedYoVariable;
-import us.ihmc.scs2.sharedMemory.YoBufferProperties;
+import us.ihmc.scs2.sharedMemory.*;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -38,9 +33,9 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
    private final Property<ChartIntegerBounds> chartBoundsProperty = new SimpleObjectProperty<ChartIntegerBounds>(this, "chartBounds", null);
    private final BooleanProperty publishChartData = new SimpleBooleanProperty(this, "publishChartData", false);
 
-   private DataEntry lastChartData;
+   private DataSet2D lastChartData;
    private final Queue<Object> callerIDs = new ConcurrentLinkedQueue<>();
-   private final Map<Object, DataEntry> newChartData = new ConcurrentHashMap<>();
+   private final Map<Object, DataSet2D> newChartData = new ConcurrentHashMap<>();
 
    @SuppressWarnings({"rawtypes", "unchecked"})
    public static YoVariableChartData<?, ?> newYoVariableChartData(JavaFXMessager messager, SessionVisualizerTopics topics, LinkedYoVariable<?> linkedYoVariable)
@@ -102,27 +97,11 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       if (!publishChartData.get())
          return;
 
-      DataEntry chartData;
       BufferSample rawData = rawDataProperty.getValue();
-      if (rawData == null)
+      if (rawData == null || rawData.getSampleLength() == 0)
          return;
-      ChartIntegerBounds bounds = chartBoundsProperty.getValue();
 
-      if (lastChartData == null || lastProperties == null || bounds == null)
-      {
-         chartData = extractChartData(rawData, 0.001);
-      }
-      else
-      {
-         int lower = bounds.getLower();
-         int upper = bounds.getUpper();
-         // Add a little more than needed so when shifting the chart, some data is already available.
-         int length = upper - lower;
-         int margin = Math.max(length / 20, 1);
-         lower = Math.max(0, lower - margin);
-         upper = Math.min(rawData.getBufferSize() - 1, upper + margin);
-         chartData = extractChartData(rawData, lower, upper, 0.001);
-      }
+      DataSet2D chartData = updateLineChartData(lastChartData, toDoubleBuffer(rawData));
 
       if (chartData != null)
       {
@@ -133,12 +112,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       publishChartData.set(false);
    }
 
-   protected DataEntry extractChartData(BufferSample<B> yoVariableBuffer, double epsilon)
-   {
-      return extractChartData(yoVariableBuffer, 0, yoVariableBuffer.getBufferSize() - 1, epsilon);
-   }
-
-   protected abstract DataEntry extractChartData(BufferSample<B> yoVariableBuffer, int startIndex, int endIndex, double epsilon);
+   protected abstract BufferSample<double[]> toDoubleBuffer(BufferSample<B> yoVariableBuffer);
 
    public void registerCaller(Object callerID)
    {
@@ -158,7 +132,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       return newChartData.get(callerID) != null;
    }
 
-   public DataEntry pollChartData(Object callerID)
+   public DataSet2D pollChartData(Object callerID)
    {
       return newChartData.remove(callerID);
    }
@@ -176,5 +150,34 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
    public Property<ChartIntegerBounds> chartBoundsProperty()
    {
       return chartBoundsProperty;
+   }
+
+   public static DataSet2D updateLineChartData(DataSet2D dataToUpdate, BufferSample<double[]> bufferSample)
+   {
+      double[] sample = bufferSample.getSample();
+      int sampleLength = bufferSample.getSampleLength();
+      int bufferSize = bufferSample.getBufferSize();
+
+      if (bufferSample == null || sampleLength == 0)
+         return null;
+
+      String name = "Unknown";
+      DoubleDataSet dataSet = new DoubleDataSet(name, bufferSize);
+
+      for (int bufferIndex = 0; bufferIndex < sampleLength; bufferIndex++)
+      {
+         int x = bufferIndex + bufferSample.getFrom();
+         if (x >= bufferSample.getBufferSize())
+            x -= bufferSample.getBufferSize();
+
+         double y = sample[bufferIndex];
+
+         if (!Double.isFinite(y)) // TODO Kinda hackish but it appears that JavaFX chart doesn't handle them properly.
+            y = 0.0;
+
+         dataSet.add(x, y);
+      }
+
+      return dataSet;
    }
 }

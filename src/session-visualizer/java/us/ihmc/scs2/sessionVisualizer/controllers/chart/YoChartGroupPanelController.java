@@ -2,11 +2,7 @@ package us.ihmc.scs2.sessionVisualizer.controllers.chart;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
@@ -17,6 +13,7 @@ import javax.xml.bind.Unmarshaller;
 
 import com.jfoenix.controls.JFXButton;
 
+import de.gsi.chart.XYChart;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -53,7 +50,6 @@ import us.ihmc.scs2.sessionVisualizer.charts.ChartGroupLayout;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartGroupModel;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartGroupTools;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartIdentifier;
-import us.ihmc.scs2.sessionVisualizer.charts.DynamicLineChart;
 import us.ihmc.scs2.sessionVisualizer.controllers.TableSizeQuickAccess;
 import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.managers.YoCompositeSearchManager;
@@ -310,7 +306,7 @@ public class YoChartGroupPanelController
          AnchorPane graphNode = loader.load();
          YoChartPanelController controller = loader.getController();
          controller.initialize(toolkit, owner);
-         DynamicLineChart chartNode = controller.getLineChart();
+         XYChart chartNode = controller.getLineChart();
          chartNode.setOnDragOver(e -> handleDragOver(e, controller));
          chartNode.setOnDragDropped(e -> handleDragDropped(e, controller));
          chartNode.setOnDragEntered(e -> handleDragEntered(e, controller));
