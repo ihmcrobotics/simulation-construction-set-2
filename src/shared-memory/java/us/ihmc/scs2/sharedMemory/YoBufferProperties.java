@@ -1,6 +1,7 @@
 package us.ihmc.scs2.sharedMemory;
 
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
+import us.ihmc.scs2.sharedMemory.tools.BufferTools;
 
 public class YoBufferProperties implements YoBufferPropertiesReadOnly
 {
@@ -51,7 +52,7 @@ public class YoBufferProperties implements YoBufferPropertiesReadOnly
 
    public int incrementIndex(boolean updateBufferBounds)
    {
-      currentIndex = increment(currentIndex);
+      currentIndex = BufferTools.increment(currentIndex, 1, getSize());
 
       if (updateBufferBounds)
       {
@@ -60,7 +61,7 @@ public class YoBufferProperties implements YoBufferPropertiesReadOnly
 
          if (outPoint == inPoint)
          { // Push the in-point
-            inPoint = increment(inPoint);
+            inPoint = BufferTools.increment(inPoint, 1, getSize());
          }
       }
       else if (!isIndexBetweenBounds(currentIndex))
@@ -72,7 +73,7 @@ public class YoBufferProperties implements YoBufferPropertiesReadOnly
 
    public int decrementIndex()
    {
-      currentIndex = decrement(currentIndex);
+      currentIndex = BufferTools.decrement(currentIndex, 1, getSize());
 
       if (!isIndexBetweenBounds(currentIndex))
       { // The current index has to remain within the bounds when reading.
@@ -143,32 +144,6 @@ public class YoBufferProperties implements YoBufferPropertiesReadOnly
          return false;
       outPoint = newOutPointIndex;
       return true;
-   }
-
-   private int increment(int index)
-   {
-      return increment(index, 1);
-   }
-
-   private int increment(int index, int stepSize)
-   {
-      index += stepSize;
-      if (index >= size)
-         index -= size;
-      return index;
-   }
-
-   private int decrement(int index)
-   {
-      return decrement(index, 1);
-   }
-
-   private int decrement(int index, int stepSize)
-   {
-      index -= stepSize;
-      if (index < 0)
-         index += size;
-      return index;
    }
 
    @Override

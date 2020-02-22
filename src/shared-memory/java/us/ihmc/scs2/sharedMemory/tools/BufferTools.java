@@ -4,6 +4,22 @@ import java.util.Arrays;
 
 public class BufferTools
 {
+   public static int increment(int index, int stepSize, int size)
+   {
+      index += stepSize;
+      if (index >= size)
+         index -= size;
+      return index;
+   }
+
+   public static int decrement(int index, int stepSize, int size)
+   {
+      index -= stepSize;
+      if (index < 0)
+         index += size;
+      return index;
+   }
+
    /**
     * Calculates the sub-length defined by the interval [{@code from}, {@code to}] in a ring buffer of
     * size {@code length}.
