@@ -156,7 +156,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
    {
       double[] sample = bufferSample.getSample();
       int sampleLength = bufferSample.getSampleLength();
-      int bufferSize = bufferSample.getBufferSize();
+      int bufferSize = bufferSample.getBufferProperties().getSize();
 
       if (bufferSample == null || sampleLength == 0)
          return null;
@@ -167,8 +167,8 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       for (int bufferIndex = 0; bufferIndex < sampleLength; bufferIndex++)
       {
          int x = bufferIndex + bufferSample.getFrom();
-         if (x >= bufferSample.getBufferSize())
-            x -= bufferSample.getBufferSize();
+         if (x >= bufferSize)
+            x -= bufferSize;
 
          double y = sample[bufferIndex];
 

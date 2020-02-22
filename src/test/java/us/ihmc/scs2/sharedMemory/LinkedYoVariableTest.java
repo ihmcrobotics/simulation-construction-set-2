@@ -182,7 +182,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable<T>>
          assertEquals(0, bufferSample.getFrom());
          assertEquals(properties.getSize() - 1, bufferSample.getTo());
          assertEquals(properties.getSize(), bufferSample.getSampleLength());
-         assertEquals(buffer.copy(0, properties.getSize()), bufferSample);
+         assertEquals(buffer.copy(0, properties.getSize(), properties.copy()), bufferSample);
 
          // Request the active part of the buffer.
          linkedYoVariable.requestActiveBufferOnly();
@@ -198,7 +198,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable<T>>
          assertEquals(properties.getInPoint(), bufferSample.getFrom());
          assertEquals(properties.getOutPoint(), bufferSample.getTo());
          assertEquals(properties.getActiveBufferLength(), bufferSample.getSampleLength());
-         assertEquals(buffer.copy(properties.getInPoint(), properties.getActiveBufferLength()), bufferSample);
+         assertEquals(buffer.copy(properties.getInPoint(), properties.getActiveBufferLength(), properties.copy()), bufferSample);
 
          // Request a part of the buffer starting from a given index to the latest out-point
          int start = random.nextInt(properties.getSize());
@@ -215,7 +215,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable<T>>
          assertEquals(start, bufferSample.getFrom());
          assertEquals(properties.getOutPoint(), bufferSample.getTo());
          assertEquals(BufferTools.computeSubLength(start, properties.getOutPoint(), properties.getSize()), bufferSample.getSampleLength());
-         assertEquals(buffer.copy(start, bufferSample.getSampleLength()), bufferSample);
+         assertEquals(buffer.copy(start, bufferSample.getSampleLength(), properties.copy()), bufferSample);
 
          // Request a part of the buffer given the starting point and the length of the sample
          start = random.nextInt(properties.getSize());
@@ -241,7 +241,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable<T>>
             assertEquals(start, bufferSample.getFrom());
             assertEquals(BufferTools.computeToIndex(start, length, properties.getSize()), bufferSample.getTo());
             assertEquals(length, bufferSample.getSampleLength());
-            assertEquals(buffer.copy(start, bufferSample.getSampleLength()), bufferSample);
+            assertEquals(buffer.copy(start, bufferSample.getSampleLength(), properties.copy()), bufferSample);
          }
       }
    }

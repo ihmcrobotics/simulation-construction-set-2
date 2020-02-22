@@ -108,15 +108,15 @@ public class YoVariableRegistryBufferTest
          {
             YoVariableBuffer<?> yoVariableBuffer = yoVariableRegistryBuffer.findYoVariableBuffer(yoVariable);
             allYoVariableBuffers.add(yoVariableBuffer);
-            allSamples.add(new BufferSample<>(0, bufferProperties.getSize(), yoVariableBuffer.copy(from, length).getSample(), length));
+            allSamples.add(new BufferSample<>(0, yoVariableBuffer.copy(from, length, bufferProperties.copy()).getSample(), length, bufferProperties));
          }
 
          yoVariableRegistryBuffer.resizeBuffer(from, length);
 
          for (int j = 0; j < allYoVariables.size(); j++)
          {
-            BufferSample<?> expected = allYoVariableBuffers.get(j).copy(0, length);
-            expected = new BufferSample<>(expected.getFrom(), bufferProperties.getSize(), expected.getSample(), expected.getSampleLength());
+            BufferSample<?> expected = allYoVariableBuffers.get(j).copy(0, length, bufferProperties.copy());
+            expected = new BufferSample<>(expected.getFrom(), expected.getSample(), expected.getSampleLength(), bufferProperties);
             BufferSample<?> actual = allSamples.get(j);
             assertEquals(expected, actual);
          }

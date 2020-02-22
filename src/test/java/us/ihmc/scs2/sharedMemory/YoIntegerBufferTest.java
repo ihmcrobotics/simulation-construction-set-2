@@ -138,11 +138,11 @@ public class YoIntegerBufferTest
          int length = random.nextInt(yoIntegerBuffer.getProperties().getSize() - 1) + 1;
 
          int[] expectedCopy = BufferTools.ringArrayCopy(yoIntegerBuffer.getBuffer(), from, length);
-         BufferSample<int[]> actualCopy = yoIntegerBuffer.copy(from, length);
+         BufferSample<int[]> actualCopy = yoIntegerBuffer.copy(from, length, yoIntegerBuffer.getProperties().copy());
 
          assertEquals(from, actualCopy.getFrom());
          assertEquals(length, actualCopy.getSampleLength());
-         assertEquals(yoIntegerBuffer.getProperties().getSize(), actualCopy.getBufferSize());
+         assertEquals(yoIntegerBuffer.getProperties(), actualCopy.getBufferProperties());
          int to = from + length - 1;
          if (to >= yoIntegerBuffer.getProperties().getSize())
             to -= yoIntegerBuffer.getProperties().getSize();
