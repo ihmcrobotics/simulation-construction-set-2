@@ -67,6 +67,7 @@ sessionVisualizerDependencies {
    api("de.jensd:fontawesomefx:8.9")
    api("com.jfoenix:jfoenix:8.0.9")
    api("org.apache.commons:commons-text:1.4")
+   api("de.gsi.chart:chartfx-chart:8.1.1")
 
    api(fileTree(mapOf("dir" to "src/session-visualizer/libs/JavaFXModelImporters", "include" to "*.jar")))
 }
