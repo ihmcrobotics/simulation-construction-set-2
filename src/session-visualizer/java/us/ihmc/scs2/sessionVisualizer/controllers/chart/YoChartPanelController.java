@@ -11,9 +11,9 @@ import com.sun.javafx.scene.control.skin.LabeledText;
 import de.gsi.chart.XYChart;
 import de.gsi.chart.axes.spi.NumericAxis;
 import de.gsi.chart.plugins.XValueIndicator;
-import de.gsi.chart.renderer.spi.ReducingLineRenderer;
+import de.gsi.chart.renderer.ErrorStyle;
+import de.gsi.chart.renderer.spi.ErrorDataSetRenderer;
 import de.gsi.dataset.DataSet2D;
-import de.gsi.dataset.spi.DoubleDataSet;
 import javafx.animation.AnimationTimer;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -107,10 +107,17 @@ public class YoChartPanelController extends AnimationTimer
       bufferPropertiesForScrolling = messager.createInput(topics.getYoBufferCurrentProperties());
 
       lineChart = new XYChart(xAxis, yAxis);
+      lineChart.setLegend(new YoChartLegend());
+      // TODO Workaround to get the legend to show up. Remove when fixed.
+      lineChart.setLegendVisible(false);
+      lineChart.setLegendVisible(true);
       lineChart.setAnimated(false);
       lineChart.setHorizontalGridLinesVisible(false);
       lineChart.setVerticalGridLinesVisible(false);
-      lineChart.getRenderers().setAll(new ReducingLineRenderer());
+      ErrorDataSetRenderer errorDataSetRenderer = new ErrorDataSetRenderer();
+      errorDataSetRenderer.drawMarkerProperty().set(false);
+      errorDataSetRenderer.errorStyleProperty().set(ErrorStyle.NONE);
+      lineChart.getRenderers().setAll(errorDataSetRenderer);
 
       xAxis.set(0.0, 1000.0);
       xAxis.setMinorTickVisible(false);
@@ -673,7 +680,7 @@ public class YoChartPanelController extends AnimationTimer
    {
       private final YoVariable<?> yoVariable;
       private final YoNumberSeries series;
-      private final DoubleDataSet doubleDataSet;
+      private final YoDoubleDataSet yoDataSet;
       private final YoVariableChartData<?, ?> chartData;
       private final Object callerID = YoChartPanelController.this;
 
@@ -682,14 +689,14 @@ public class YoChartPanelController extends AnimationTimer
          this.yoVariable = yoVariable;
          series = new YoNumberSeries(yoVariable);
          chartData = chartDataManager.getYoVariableChartData(callerID, yoVariable);
-         doubleDataSet = new DoubleDataSet(series.getSeriesName());
-         doubleDataSet.add(0.0, 0.0);
-         lineChart.getDatasets().add(doubleDataSet);
+         yoDataSet = new YoDoubleDataSet(yoVariable, 1);
+         yoDataSet.add(0.0, 0.0);
+         lineChart.getDatasets().add(yoDataSet);
       }
 
       public void updateLegend()
       {
-         doubleDataSet.setName(series.getSeriesName() + " " + LineChartTools.defaultYoVariableValueFormatter(yoVariable));
+         yoDataSet.setName(series.getSeriesName() + " " + LineChartTools.defaultYoVariableValueFormatter(yoVariable));
          lineChart.getLegend().updateLegend(lineChart.getDatasets(), lineChart.getRenderers(), true);
       }
 
@@ -698,7 +705,7 @@ public class YoChartPanelController extends AnimationTimer
          DataSet2D newData = chartData.pollChartData(callerID);
          if (newData != null)
          {
-            doubleDataSet.set(newData);
+            yoDataSet.set(newData);
          }
       }
 
@@ -714,7 +721,7 @@ public class YoChartPanelController extends AnimationTimer
 
       public void close()
       {
-         lineChart.getDatasets().remove(doubleDataSet);
+         lineChart.getDatasets().remove(yoDataSet);
          chartData.removeCaller(callerID);
       }
    }
