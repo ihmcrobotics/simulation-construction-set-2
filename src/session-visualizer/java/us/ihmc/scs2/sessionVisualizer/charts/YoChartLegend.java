@@ -263,9 +263,31 @@ public class YoChartLegend extends FlowPane implements Legend
    /** A item to be displayed on a Legend */
    public static class YoLegendItem extends HBox
    {
-      private final Label nameLabel = new Label();
-      private final Label currentValueLabel = new Label();
       private final YoVariable<?> yoVariable;
+      private final Label nameLabel = new Label();
+      private final Label currentValueLabel = new Label()
+      {
+         private double previousPrefWidth = -1;
+
+         /**
+          * Performs a request to the parent only for growing the size the label. When the text is shorter,
+          * only the label is updated not the parent. This is to prevent unnecessary redraws of the chart.
+          */
+         @Override
+         public void requestLayout()
+         {
+            double newPrefWidth = computePrefWidth(prefHeight(-1));
+
+            if (previousPrefWidth > newPrefWidth)
+            {
+               setNeedsLayout(true);
+               return;
+            }
+
+            super.requestLayout();
+            previousPrefWidth = newPrefWidth;
+         }
+      };
 
       public YoLegendItem(final YoDoubleDataSet series, Paint textFill)
       {
@@ -288,7 +310,8 @@ public class YoChartLegend extends FlowPane implements Legend
          if (currentValue != lastValueDisplayed)
          {
             lastValueDisplayed = currentValue;
-            currentValueLabel.setText(LineChartTools.defaultYoVariableValueFormatter(yoVariable));
+            String newValueAsString = LineChartTools.defaultYoVariableValueFormatter(yoVariable);
+            currentValueLabel.setText(newValueAsString);
          }
       }
 
