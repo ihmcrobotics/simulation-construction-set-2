@@ -13,7 +13,6 @@ import de.gsi.chart.axes.spi.NumericAxis;
 import de.gsi.chart.plugins.XValueIndicator;
 import de.gsi.chart.renderer.ErrorStyle;
 import de.gsi.chart.renderer.spi.ErrorDataSetRenderer;
-import de.gsi.dataset.DataSet2D;
 import javafx.animation.AnimationTimer;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -43,6 +42,7 @@ import us.ihmc.scs2.definition.yoChart.YoChartConfigurationDefinition;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.charts.*;
+import us.ihmc.scs2.sessionVisualizer.charts.YoVariableChartData.ChartDataUpdate;
 import us.ihmc.scs2.sessionVisualizer.managers.ChartDataManager;
 import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.managers.YoCompositeSearchManager;
@@ -700,12 +700,15 @@ public class YoChartPanelController extends AnimationTimer
          lineChart.getLegend().updateLegend(lineChart.getDatasets(), lineChart.getRenderers(), true);
       }
 
+      private int lastUpdateEndIndex = -1;
+
       public void updateChart()
       {
-         DataSet2D newData = chartData.pollChartData(callerID);
+         ChartDataUpdate newData = chartData.pollChartData(callerID);
          if (newData != null)
          {
-            yoDataSet.set(newData);
+            newData.readUpdate(yoDataSet, lastUpdateEndIndex);
+            lastUpdateEndIndex = newData.getUpdateEndIndex();
          }
       }
 
