@@ -4,7 +4,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
-import de.gsi.chart.axes.spi.NumericAxis;
+import de.gsi.chart.XYChart;
 import de.gsi.chart.plugins.ChartPlugin;
 import de.gsi.chart.plugins.MouseEventsHelper;
 import javafx.event.EventHandler;
@@ -16,7 +16,7 @@ import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 
-public class BufferScrubber extends ChartPlugin
+public class ChartScrubber extends ChartPlugin
 {
    public static final Predicate<MouseEvent> DEFAULT_MOUSE_FILTER = event -> MouseEventsHelper.isOnlyPrimaryButtonDown(event);
 
@@ -24,13 +24,11 @@ public class BufferScrubber extends ChartPlugin
    private final EventHandler<MouseEvent> setBufferIndexHandler = event -> handleMouseEvent(event);
 
    private final AtomicReference<YoBufferPropertiesReadOnly> bufferProperties;
-   private final NumericAxis xAxis;
    private final SessionVisualizerTopics topics;
    private final JavaFXMessager messager;
 
-   public BufferScrubber(SessionVisualizerToolkit toolkit, NumericAxis xAxis)
+   public ChartScrubber(SessionVisualizerToolkit toolkit)
    {
-      this.xAxis = xAxis;
       topics = toolkit.getTopics();
       messager = toolkit.getMessager();
       bufferProperties = messager.createInput(topics.getYoBufferCurrentProperties());
@@ -40,7 +38,8 @@ public class BufferScrubber extends ChartPlugin
    }
 
    /**
-    * Sets the filter determining whether given {@link MouseEvent} should start scrubbing through the data.
+    * Sets the filter determining whether given {@link MouseEvent} should start scrubbing through the
+    * data.
     * <p>
     * By default it is initialized to {@link #DEFAULT_MOUSE_FILTER}.
     * </p>
@@ -66,6 +65,9 @@ public class BufferScrubber extends ChartPlugin
 
    private void handleMouseEvent(MouseEvent event)
    {
+      if (!(getChart() instanceof XYChart))
+         return;
+
       if (bufferProperties.get() == null)
          return;
 
@@ -76,19 +78,19 @@ public class BufferScrubber extends ChartPlugin
          if (intersectedNode == null)
             return;
 
-         int index = screenToBufferIndex(event.getScreenX(), event.getScreenY());
+         double xLocal = getLocationInPlotArea(event).getX();
+         int index = (int) Math.round(((XYChart) getChart()).getXAxis().getValueForDisplay(xLocal));
+         index = MathTools.clamp(index, 0, bufferProperties.get().getSize());
+
          messager.submitMessage(topics.getYoBufferCurrentIndexRequest(), index);
          // TODO Not sure if the event should be consumed. Check if interfering with closing the context menu.
          event.consume();
       }
    }
 
-   private int screenToBufferIndex(double screenX, double screenY)
+   @Override
+   protected void finalize() throws Throwable
    {
-      if (bufferProperties.get() == null)
-         return -1;
-      double xLocal = xAxis.screenToLocal(screenX, screenY).getX();
-      int index = (int) Math.round(xAxis.getValueForDisplay(xLocal));
-      return MathTools.clamp(index, 0, bufferProperties.get().getSize());
+      messager.removeInput(topics.getYoBufferCurrentProperties(), bufferProperties);
    }
 }

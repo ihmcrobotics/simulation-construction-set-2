@@ -17,7 +17,7 @@ import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
 
-public class HorizontalPanner extends ChartPlugin
+public class ChartHorizontalPanner extends ChartPlugin
 {
    /**
     * Default pan mouse filter passing on left mouse button with {@link MouseEvent#isControlDown()
@@ -25,7 +25,7 @@ public class HorizontalPanner extends ChartPlugin
     */
    public static final Predicate<MouseEvent> DEFAULT_MOUSE_FILTER = event -> MouseEventsHelper.isOnlySecondaryButtonDown(event);
 
-   private Predicate<MouseEvent> mouseFilter = HorizontalPanner.DEFAULT_MOUSE_FILTER;
+   private Predicate<MouseEvent> mouseFilter = ChartHorizontalPanner.DEFAULT_MOUSE_FILTER;
    private Point2D previousMouseLocation = null;
 
    private Cursor originalCursor;
@@ -62,7 +62,7 @@ public class HorizontalPanner extends ChartPlugin
    private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
 
-   public HorizontalPanner(SessionVisualizerToolkit toolkit)
+   public ChartHorizontalPanner(SessionVisualizerToolkit toolkit)
    {
       topics = toolkit.getTopics();
       messager = toolkit.getMessager();

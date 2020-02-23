@@ -76,8 +76,7 @@ public class YoChartPanelController extends AnimationTimer
    private ChartDataManager chartDataManager;
    private final ObservableList<YoNumberSeries> yoNumberSeriesList = FXCollections.observableArrayList();
    private final ObservableMap<YoVariable<?>, YoVariableChartPackage> charts = FXCollections.observableMap(new LinkedHashMap<>());
-   private AtomicReference<YoBufferPropertiesReadOnly> bufferPropertiesForMarkers;
-   private AtomicReference<YoBufferPropertiesReadOnly> bufferPropertiesForScrolling;
+   private AtomicReference<YoBufferPropertiesReadOnly> bufferPropertiesInput;
    private final TopicListener<int[]> keyFrameMarkerListener = newKeyFrames -> updateKeyFrameMarkers(newKeyFrames);
 
    private final SimpleObjectProperty<ContextMenu> contextMenuProperty = new SimpleObjectProperty<ContextMenu>(this, "graphContextMenu", null);
@@ -98,8 +97,7 @@ public class YoChartPanelController extends AnimationTimer
       yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
       topics = toolkit.getTopics();
 
-      bufferPropertiesForMarkers = messager.createInput(topics.getYoBufferCurrentProperties());
-      bufferPropertiesForScrolling = messager.createInput(topics.getYoBufferCurrentProperties());
+      bufferPropertiesInput = messager.createInput(topics.getYoBufferCurrentProperties());
 
       lineChart = new XYChart(xAxis, yAxis);
       // Removing the side-tools, we won't use them.
@@ -202,8 +200,9 @@ public class YoChartPanelController extends AnimationTimer
       lineChart.setOnScroll(this::handleScroll);
       lineChart.addEventHandler(MouseEvent.MOUSE_PRESSED, this::handleMouseMiddleClick);
 
-      lineChart.getPlugins().add(new BufferScrubber(toolkit, xAxis));
-      lineChart.getPlugins().add(new HorizontalPanner(toolkit));
+      lineChart.getPlugins().add(new ChartScrubber(toolkit));
+      lineChart.getPlugins().add(new ChartHorizontalPanner(toolkit));
+      lineChart.getPlugins().add(new ChartScroller(toolkit));
 
       contextMenuProperty.addListener((ChangeListener<ContextMenu>) (observable, oldValue, newValue) ->
       {
@@ -373,8 +372,7 @@ public class YoChartPanelController extends AnimationTimer
       charts.clear();
       chartsCopy.forEach(YoVariableChartPackage::close);
 
-      messager.removeInput(topics.getYoBufferCurrentProperties(), bufferPropertiesForMarkers);
-      messager.removeInput(topics.getYoBufferCurrentProperties(), bufferPropertiesForScrolling);
+      messager.removeInput(topics.getYoBufferCurrentProperties(), bufferPropertiesInput);
       messager.removeJavaFXSyncedTopicListener(topics.getCurrentKeyFrames(), keyFrameMarkerListener);
    }
 
@@ -406,23 +404,24 @@ public class YoChartPanelController extends AnimationTimer
    public void handle(long now)
    {
       ChartIntegerBounds chartsBounds = chartDataManager.chartBoundsProperty().getValue();
-      YoBufferPropertiesReadOnly bufferProperties = bufferPropertiesForMarkers.getAndSet(null);
+      YoBufferPropertiesReadOnly newProperties = bufferPropertiesInput.getAndSet(null);
 
-      if (bufferProperties != null)
+      if (newProperties != null)
       {
-         if (bufferProperties.getInPoint() != inPointIndicator.getValue())
-            inPointIndicator.setValue(bufferProperties.getInPoint());
-         if (bufferProperties.getOutPoint() != outPointIndicator.getValue())
-            outPointIndicator.setValue(bufferProperties.getOutPoint());
-         if (bufferProperties.getCurrentIndex() != bufferIndexIndicator.getValue())
-            bufferIndexIndicator.setValue(bufferProperties.getCurrentIndex());
+         if (newProperties.getInPoint() != inPointIndicator.getValue())
+            inPointIndicator.setValue(newProperties.getInPoint());
+         if (newProperties.getOutPoint() != outPointIndicator.getValue())
+            outPointIndicator.setValue(newProperties.getOutPoint());
+         if (newProperties.getCurrentIndex() != bufferIndexIndicator.getValue())
+            bufferIndexIndicator.setValue(newProperties.getCurrentIndex());
+
          if (chartsBounds == null)
          {
             double scale = 0.001;
-            xAxis.set(-scale * bufferProperties.getSize(), (1.0 + scale) * bufferProperties.getSize());
+            xAxis.set(-scale * newProperties.getSize(), (1.0 + scale) * newProperties.getSize());
          }
 
-         bufferProperties = null;
+         newProperties = null;
       }
 
       if (chartsBounds != null)
@@ -504,19 +503,7 @@ public class YoChartPanelController extends AnimationTimer
 
    private void handleScroll(ScrollEvent event)
    {
-      if (bufferPropertiesForScrolling.get() != null)
-      {
-         int scrollDelta = event.isControlDown() ? 10 : 1;
-         if (event.getDeltaY() == 0.0)
-            return;
-
-         hideContextMenu();
-
-         if (event.getDeltaY() < 0.0)
-            messager.submitMessage(topics.getYoBufferDecrementCurrentIndexRequest(), scrollDelta);
-         else
-            messager.submitMessage(topics.getYoBufferIncrementCurrentIndexRequest(), scrollDelta);
-      }
+      hideContextMenu();
    }
 
    public void handleDragDetected(MouseEvent event)
