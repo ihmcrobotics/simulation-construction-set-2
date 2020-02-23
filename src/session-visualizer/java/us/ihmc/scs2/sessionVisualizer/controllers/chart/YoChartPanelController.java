@@ -11,7 +11,6 @@ import com.sun.javafx.scene.control.skin.LabeledText;
 import de.gsi.chart.XYChart;
 import de.gsi.chart.axes.spi.NumericAxis;
 import de.gsi.chart.plugins.XValueIndicator;
-import de.gsi.chart.renderer.ErrorStyle;
 import de.gsi.chart.renderer.spi.ErrorDataSetRenderer;
 import de.gsi.chart.ui.geometry.Side;
 import javafx.animation.AnimationTimer;
@@ -117,7 +116,6 @@ public class YoChartPanelController extends AnimationTimer
       lineChart.setVerticalGridLinesVisible(false);
       ErrorDataSetRenderer errorDataSetRenderer = new ErrorDataSetRenderer();
       errorDataSetRenderer.drawMarkerProperty().set(false);
-      errorDataSetRenderer.errorStyleProperty().set(ErrorStyle.NONE);
       lineChart.getRenderers().setAll(errorDataSetRenderer);
       // We won't use the title, removing it to save some space.
       lineChart.getTitleLegendPane(Side.TOP).getChildren().clear();
