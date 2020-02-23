@@ -30,9 +30,6 @@ import javafx.scene.input.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.shape.Line;
 import javafx.stage.Window;
-import us.ihmc.commons.MathTools;
-import us.ihmc.euclid.tuple2D.Point2D;
-import us.ihmc.euclid.tuple2D.interfaces.Tuple2DReadOnly;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.log.LogTools;
 import us.ihmc.messager.TopicListener;
@@ -178,7 +175,8 @@ public class YoChartPanelController extends AnimationTimer
       outPointIndicator.getChartChildren().removeIf(node -> node.getClass() != Line.class);
       bufferIndexIndicator.getChartChildren().removeIf(node -> node.getClass() != Line.class);
       lineChart.getPlugins().addAll(inPointIndicator, outPointIndicator, bufferIndexIndicator);
-      //
+
+      // TODO Re-implement the y-axis for y=0.
       //      Data<Number, Number> origin = new Data<>(0.0, 0.0);
       //      ChangeListener<? super ChartStyle> originMarkerUpdater = (o, oldValue, newValue) ->
       //      {
@@ -207,6 +205,7 @@ public class YoChartPanelController extends AnimationTimer
       lineChart.addEventHandler(MouseEvent.MOUSE_PRESSED, this::handleMouseMiddleClick);
 
       lineChart.getPlugins().add(new BufferScrubber(toolkit, xAxis));
+      lineChart.getPlugins().add(new HorizontalPanner(toolkit));
 
       contextMenuProperty.addListener((ChangeListener<ContextMenu>) (observable, oldValue, newValue) ->
       {
@@ -475,29 +474,16 @@ public class YoChartPanelController extends AnimationTimer
       }
    }
 
-   private Point2D lastMouseScreenPosition = null;
-
    private void handleMouseDrag(MouseEvent event)
    {
       handleMousePressed(event);
 
       if (event.isSecondaryButtonDown())
       {
-         Point2D newMouseScreenPosition = new Point2D(event.getScreenX(), event.getScreenY());
-
          if (!event.isStillSincePress())
          {
             hideContextMenu();
-
-            if (lastMouseScreenPosition != null)
-            {
-               int drag = screenToBufferIndex(lastMouseScreenPosition) - screenToBufferIndex(newMouseScreenPosition);
-               messager.submitMessage(topics.getYoChartRequestShift(), drag);
-            }
          }
-
-         lastMouseScreenPosition = newMouseScreenPosition;
-         event.consume();
       }
    }
 
@@ -505,8 +491,6 @@ public class YoChartPanelController extends AnimationTimer
    {
       if (event.getButton() == MouseButton.SECONDARY)
       {
-         lastMouseScreenPosition = null;
-
          if (event.isStillSincePress())
          {
             ContextMenu contextMenu = newGraphContextMenu();
@@ -518,20 +502,6 @@ public class YoChartPanelController extends AnimationTimer
             event.consume();
          }
       }
-   }
-
-   private int screenToBufferIndex(Tuple2DReadOnly screenPosition)
-   {
-      return screenToBufferIndex(screenPosition.getX(), screenPosition.getY());
-   }
-
-   private int screenToBufferIndex(double screenX, double screenY)
-   {
-      if (bufferPropertiesForScrolling.get() == null)
-         return -1;
-      double xLocal = xAxis.screenToLocal(screenX, screenY).getX();
-      int index = (int) Math.round(xAxis.getValueForDisplay(xLocal));
-      return MathTools.clamp(index, 0, bufferPropertiesForScrolling.get().getSize());
    }
 
    private void handleScroll(ScrollEvent event)
