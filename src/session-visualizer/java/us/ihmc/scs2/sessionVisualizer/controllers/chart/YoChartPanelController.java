@@ -25,7 +25,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.*;
 import javafx.scene.layout.AnchorPane;
@@ -197,6 +196,8 @@ public class YoChartPanelController extends AnimationTimer
       lineChart.setOnMouseReleased(this::handleMouseReleased);
       lineChart.setOnScroll(this::handleScroll);
       lineChart.addEventHandler(MouseEvent.MOUSE_PRESSED, this::handleMouseMiddleClick);
+
+      lineChart.getPlugins().add(new BufferScrubber(toolkit, xAxis));
 
       contextMenuProperty.addListener((ChangeListener<ContextMenu>) (observable, oldValue, newValue) ->
       {
@@ -450,22 +451,7 @@ public class YoChartPanelController extends AnimationTimer
    private void handleMousePressed(MouseEvent event)
    {
       if (event.getButton() == MouseButton.PRIMARY)
-      {
          hideContextMenu();
-
-         if (bufferPropertiesForScrolling.get() != null)
-         {
-            Node intersectedNode = event.getPickResult().getIntersectedNode();
-
-            if (intersectedNode == null || intersectedNode instanceof DynamicChartLegend || intersectedNode instanceof LabeledText
-                  || intersectedNode instanceof Label)
-               return; // Don't perform scroll when clicking on the legend
-
-            int index = screenToBufferIndex(event.getScreenX(), event.getScreenY());
-            messager.submitMessage(topics.getYoBufferCurrentIndexRequest(), index);
-            event.consume();
-         }
-      }
    }
 
    private void handleMouseMiddleClick(MouseEvent e)
