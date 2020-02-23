@@ -48,7 +48,6 @@ import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.tools.DragAndDropTools;
-import us.ihmc.scs2.sessionVisualizer.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.yoComposite.CompositePropertyTools.YoVariableDatabase;
 import us.ihmc.scs2.sessionVisualizer.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.yoComposite.YoCompositeTools;
@@ -71,6 +70,7 @@ public class YoChartPanelController extends AnimationTimer
    private final NumericAxis xAxis = new NumericAxis();
    private final NumericAxis yAxis = new NumericAxis();
    private XYChart lineChart;
+   private final YoChartLegend yoLegend = new YoChartLegend();
 
    private XValueIndicator inPointIndicator, outPointIndicator, bufferIndexIndicator;
 
@@ -107,7 +107,7 @@ public class YoChartPanelController extends AnimationTimer
       bufferPropertiesForScrolling = messager.createInput(topics.getYoBufferCurrentProperties());
 
       lineChart = new XYChart(xAxis, yAxis);
-      lineChart.setLegend(new YoChartLegend());
+      lineChart.setLegend(yoLegend);
       // TODO Workaround to get the legend to show up. Remove when fixed.
       lineChart.setLegendVisible(false);
       lineChart.setLegendVisible(true);
@@ -202,8 +202,6 @@ public class YoChartPanelController extends AnimationTimer
             yoNumberSeriesList.add(change.getValueAdded().getSeries());
          else if (change.wasRemoved())
             yoNumberSeriesList.remove(change.getValueRemoved().getSeries());
-
-         JavaFXMissingTools.runNFramesLater(1, () -> charts.values().forEach(YoVariableChartPackage::updateLegend));
       });
 
       chartMainPane.getChildren().add(lineChart);
@@ -411,8 +409,6 @@ public class YoChartPanelController extends AnimationTimer
             xAxis.setMinorTickLength(0);
          }
 
-         charts.values().forEach(YoVariableChartPackage::updateLegend);
-
          bufferProperties = null;
       }
 
@@ -422,6 +418,7 @@ public class YoChartPanelController extends AnimationTimer
          xAxis.set(chartsBounds.getLower() - scale * chartsBounds.length(), chartsBounds.getUpper() + scale * chartsBounds.length());
       }
 
+      yoLegend.updateValueFields();
       charts.values().forEach(YoVariableChartPackage::updateChart);
    }
 
@@ -678,7 +675,6 @@ public class YoChartPanelController extends AnimationTimer
 
    private class YoVariableChartPackage
    {
-      private final YoVariable<?> yoVariable;
       private final YoNumberSeries series;
       private final YoDoubleDataSet yoDataSet;
       private final YoVariableChartData<?, ?> chartData;
@@ -686,18 +682,11 @@ public class YoChartPanelController extends AnimationTimer
 
       public YoVariableChartPackage(YoVariable<?> yoVariable)
       {
-         this.yoVariable = yoVariable;
          series = new YoNumberSeries(yoVariable);
          chartData = chartDataManager.getYoVariableChartData(callerID, yoVariable);
          yoDataSet = new YoDoubleDataSet(yoVariable, 1);
          yoDataSet.add(0.0, 0.0);
          lineChart.getDatasets().add(yoDataSet);
-      }
-
-      public void updateLegend()
-      {
-         yoDataSet.setName(series.getSeriesName() + " " + LineChartTools.defaultYoVariableValueFormatter(yoVariable));
-         lineChart.getLegend().updateLegend(lineChart.getDatasets(), lineChart.getRenderers(), true);
       }
 
       private int lastUpdateEndIndex = -1;
@@ -714,7 +703,7 @@ public class YoChartPanelController extends AnimationTimer
 
       public YoVariable<?> getYoVariable()
       {
-         return series.getYoVariable();
+         return yoDataSet.getYoVariable();
       }
 
       public YoNumberSeries getSeries()

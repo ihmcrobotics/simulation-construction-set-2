@@ -8,6 +8,7 @@ import de.gsi.chart.XYChartCss;
 import de.gsi.chart.legend.Legend;
 import de.gsi.chart.renderer.Renderer;
 import de.gsi.chart.renderer.spi.utils.DefaultRenderColorScheme;
+import de.gsi.chart.utils.FXUtils;
 import de.gsi.chart.utils.StyleParser;
 import de.gsi.dataset.DataSet;
 import de.gsi.dataset.utils.AssertUtils;
@@ -163,6 +164,12 @@ public class YoChartLegend extends FlowPane implements Legend
       vertical.set(value);
    }
 
+   public void updateValueFields()
+   {
+      FXUtils.assertJavaFxThread();
+      getItems().forEach(YoLegendItem::updateValueField);
+   }
+
    @Override
    public void updateLegend(final List<DataSet> dataSets, final List<Renderer> renderers, final boolean forceUpdate)
    {
@@ -272,9 +279,17 @@ public class YoChartLegend extends FlowPane implements Legend
          nameLabel.setText(yoVariable.getName());
       }
 
+      private long lastValueDisplayed = Long.MIN_VALUE;
+
       public void updateValueField()
       {
-         currentValueLabel.setText(LineChartTools.defaultYoVariableValueFormatter(yoVariable));
+         long currentValue = yoVariable.getValueAsLongBits();
+
+         if (currentValue != lastValueDisplayed)
+         {
+            lastValueDisplayed = currentValue;
+            currentValueLabel.setText(LineChartTools.defaultYoVariableValueFormatter(yoVariable));
+         }
       }
 
       public final String getName()
