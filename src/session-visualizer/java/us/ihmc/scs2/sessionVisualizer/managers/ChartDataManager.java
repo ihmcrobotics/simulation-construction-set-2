@@ -232,7 +232,6 @@ public class ChartDataManager extends AnimationTimer implements Manager
       {
          yoVariableChartData = YoVariableChartData.newYoVariableChartData(messager, topics, getLinkedYoVariable(yoVariable));
          yoVariableChartData.registerCaller(callerID);
-         yoVariableChartData.chartBoundsProperty().bind(currentBoundsProperty);
          chartDataMap.put(yoVariable, yoVariableChartData);
       }
       else

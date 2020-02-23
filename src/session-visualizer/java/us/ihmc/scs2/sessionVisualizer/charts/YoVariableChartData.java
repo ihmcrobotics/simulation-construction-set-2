@@ -30,7 +30,6 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
 
    @SuppressWarnings("rawtypes")
    private final Property<BufferSample> rawDataProperty = new SimpleObjectProperty<BufferSample>(this, "chartRawData", null);
-   private final Property<ChartIntegerBounds> chartBoundsProperty = new SimpleObjectProperty<ChartIntegerBounds>(this, "chartBounds", null);
    private final BooleanProperty publishChartData = new SimpleBooleanProperty(this, "publishChartData", false);
 
    private int lastUpdateEndIndex = -1;
@@ -63,7 +62,6 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       currentBufferProperties = messager.createInput(topics.getYoBufferCurrentProperties(), new YoBufferProperties());
 
       rawDataProperty.addListener((o, oldValue, newValue) -> publishChartData.set(true));
-      chartBoundsProperty.addListener((o, oldValue, newValue) -> publishChartData.set(true));
    }
 
    @SuppressWarnings("rawtypes")
@@ -174,11 +172,6 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
    public boolean isCurrentlyInUse()
    {
       return !callerIDs.isEmpty();
-   }
-
-   public Property<ChartIntegerBounds> chartBoundsProperty()
-   {
-      return chartBoundsProperty;
    }
 
    public static DoubleArray2D updateDataSet(DoubleArray2D lastDataSet, BufferSample<double[]> bufferSample)
