@@ -28,6 +28,7 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.*;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.shape.Line;
 import javafx.stage.Window;
 import us.ihmc.commons.MathTools;
 import us.ihmc.euclid.tuple2D.Point2D;
@@ -168,6 +169,14 @@ public class YoChartPanelController extends AnimationTimer
             line.getStyleClass().add(CURRENT_INDEX_MARKER_STYLECLASS);
          }
       };
+      // The default implementation allows to drag the indicators with the mouse.
+      inPointIndicator.setEditable(false);
+      outPointIndicator.setEditable(false);
+      bufferIndexIndicator.setEditable(false);
+      // The default implementation comes with an optional label and a top triangle that we won't use.
+      inPointIndicator.getChartChildren().removeIf(node -> node.getClass() != Line.class);
+      outPointIndicator.getChartChildren().removeIf(node -> node.getClass() != Line.class);
+      bufferIndexIndicator.getChartChildren().removeIf(node -> node.getClass() != Line.class);
       lineChart.getPlugins().addAll(inPointIndicator, outPointIndicator, bufferIndexIndicator);
       //
       //      Data<Number, Number> origin = new Data<>(0.0, 0.0);
