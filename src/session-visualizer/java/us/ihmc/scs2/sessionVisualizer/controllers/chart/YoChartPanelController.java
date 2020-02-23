@@ -13,6 +13,7 @@ import de.gsi.chart.axes.spi.NumericAxis;
 import de.gsi.chart.plugins.XValueIndicator;
 import de.gsi.chart.renderer.ErrorStyle;
 import de.gsi.chart.renderer.spi.ErrorDataSetRenderer;
+import de.gsi.chart.ui.geometry.Side;
 import javafx.animation.AnimationTimer;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -105,6 +106,11 @@ public class YoChartPanelController extends AnimationTimer
       bufferPropertiesForScrolling = messager.createInput(topics.getYoBufferCurrentProperties());
 
       lineChart = new XYChart(xAxis, yAxis);
+      // Removing the side-tools, we won't use them.
+      lineChart.setTop(null);
+      lineChart.setBottom(null);
+      lineChart.setLeft(null);
+      lineChart.setRight(null);
       lineChart.setLegend(yoLegend);
       // TODO Workaround to get the legend to show up. Remove when fixed.
       lineChart.setLegendVisible(false);
@@ -116,6 +122,8 @@ public class YoChartPanelController extends AnimationTimer
       errorDataSetRenderer.drawMarkerProperty().set(false);
       errorDataSetRenderer.errorStyleProperty().set(ErrorStyle.NONE);
       lineChart.getRenderers().setAll(errorDataSetRenderer);
+      // We won't use the title, removing it to save some space.
+      lineChart.getTitleLegendPane(Side.TOP).getChildren().clear();
 
       xAxis.set(0.0, 1000.0);
       xAxis.setMinorTickLength(0);
