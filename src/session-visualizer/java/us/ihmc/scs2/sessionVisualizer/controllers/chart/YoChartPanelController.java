@@ -18,8 +18,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -120,6 +118,7 @@ public class YoChartPanelController extends AnimationTimer
       lineChart.getRenderers().setAll(errorDataSetRenderer);
 
       xAxis.set(0.0, 1000.0);
+      xAxis.setMinorTickLength(0);
       xAxis.setMinorTickVisible(false);
       xAxis.setTickLabelsVisible(false);
       xAxis.setTickMarkVisible(false);
@@ -406,7 +405,6 @@ public class YoChartPanelController extends AnimationTimer
          {
             double scale = 0.001;
             xAxis.set(-scale * bufferProperties.getSize(), (1.0 + scale) * bufferProperties.getSize());
-            xAxis.setMinorTickLength(0);
          }
 
          bufferProperties = null;
