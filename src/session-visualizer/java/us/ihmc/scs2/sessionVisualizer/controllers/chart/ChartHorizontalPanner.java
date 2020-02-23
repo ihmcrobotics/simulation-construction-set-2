@@ -7,8 +7,12 @@ import de.gsi.chart.XYChart;
 import de.gsi.chart.axes.Axis;
 import de.gsi.chart.plugins.ChartPlugin;
 import de.gsi.chart.plugins.MouseEventsHelper;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
 import javafx.geometry.Point2D;
 import javafx.scene.Cursor;
@@ -28,35 +32,33 @@ public class ChartHorizontalPanner extends ChartPlugin
    private Predicate<MouseEvent> mouseFilter = ChartHorizontalPanner.DEFAULT_MOUSE_FILTER;
    private Point2D previousMouseLocation = null;
 
-   private Cursor originalCursor;
-
    private final ObjectProperty<Cursor> dragCursor = new SimpleObjectProperty<>(this, "dragCursor");
+   private final BooleanProperty isPanOngoing = new SimpleBooleanProperty(this, "isPanOngoingProperty", false);
 
    private final EventHandler<MouseEvent> panStartHandler = event ->
    {
       if (mouseFilter == null || mouseFilter.test(event))
       {
-         panStarted(event);
-         event.consume();
+         previousMouseLocation = getLocationInPlotArea(event);
       }
    };
 
    private final EventHandler<MouseEvent> panDragHandler = event ->
    {
-      if (panOngoing())
+      if (previousMouseLocation != null && (mouseFilter == null || mouseFilter.test(event)))
       {
-         panDragged(event);
+         isPanOngoing.set(true);
+         Point2D mouseLocation = getLocationInPlotArea(event);
+         panChart(getChart(), mouseLocation);
+         previousMouseLocation = mouseLocation;
          event.consume();
       }
    };
 
    private final EventHandler<MouseEvent> panEndHandler = event ->
    {
-      if (panOngoing())
-      {
-         panEnded();
-         event.consume();
-      }
+      previousMouseLocation = null;
+      isPanOngoing.set(false);
    };
 
    private SessionVisualizerTopics topics;
@@ -66,6 +68,29 @@ public class ChartHorizontalPanner extends ChartPlugin
    {
       topics = toolkit.getTopics();
       messager = toolkit.getMessager();
+
+      isPanOngoing.addListener(new ChangeListener<Boolean>()
+      {
+         private Cursor originalCursor;
+
+         @Override
+         public void changed(ObservableValue<? extends Boolean> o, Boolean oldValue, Boolean newValue)
+         {
+            if (newValue.equals(oldValue))
+               return;
+
+            if (newValue)
+            {
+               originalCursor = getChart().getCursor();
+               if (getDragCursor() != null)
+                  getChart().setCursor(getDragCursor());
+            }
+            else
+            {
+               getChart().setCursor(originalCursor);
+            }
+         }
+      });
 
       setDragCursor(Cursor.CLOSED_HAND);
       registerMouseHandlers();
@@ -102,15 +127,6 @@ public class ChartHorizontalPanner extends ChartPlugin
       return mouseFilter;
    }
 
-   private void installCursor()
-   {
-      originalCursor = getChart().getCursor();
-      if (getDragCursor() != null)
-      {
-         getChart().setCursor(getDragCursor());
-      }
-   }
-
    private void panChart(final Chart chart, final Point2D mouseLocation)
    {
       if (!(chart instanceof XYChart))
@@ -124,30 +140,6 @@ public class ChartHorizontalPanner extends ChartPlugin
       final double offset = prevData - newData;
 
       messager.submitMessage(topics.getYoChartRequestShift(), (int) offset);
-   }
-
-   private void panDragged(final MouseEvent event)
-   {
-      final Point2D mouseLocation = getLocationInPlotArea(event);
-      panChart(getChart(), mouseLocation);
-      previousMouseLocation = mouseLocation;
-   }
-
-   private void panEnded()
-   {
-      previousMouseLocation = null;
-      uninstallCursor();
-   }
-
-   private boolean panOngoing()
-   {
-      return previousMouseLocation != null;
-   }
-
-   private void panStarted(final MouseEvent event)
-   {
-      previousMouseLocation = getLocationInPlotArea(event);
-      installCursor();
    }
 
    private void registerMouseHandlers()
@@ -179,10 +171,5 @@ public class ChartHorizontalPanner extends ChartPlugin
    public void setMouseFilter(final Predicate<MouseEvent> mouseFilter)
    {
       this.mouseFilter = mouseFilter;
-   }
-
-   private void uninstallCursor()
-   {
-      getChart().setCursor(originalCursor);
    }
 }

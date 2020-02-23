@@ -16,8 +16,9 @@ import de.gsi.chart.ui.geometry.Side;
 import javafx.animation.AnimationTimer;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -78,8 +79,6 @@ public class YoChartPanelController extends AnimationTimer
    private final ObservableMap<YoVariable<?>, YoVariableChartPackage> charts = FXCollections.observableMap(new LinkedHashMap<>());
    private AtomicReference<YoBufferPropertiesReadOnly> bufferPropertiesInput;
    private final TopicListener<int[]> keyFrameMarkerListener = newKeyFrames -> updateKeyFrameMarkers(newKeyFrames);
-
-   private final SimpleObjectProperty<ContextMenu> contextMenuProperty = new SimpleObjectProperty<ContextMenu>(this, "graphContextMenu", null);
 
    private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
@@ -194,21 +193,13 @@ public class YoChartPanelController extends AnimationTimer
       lineChart.setOnDragDropped(this::handleDragDropped);
       lineChart.setOnDragEntered(this::handleDragEntered);
       lineChart.setOnDragExited(this::handleDragExited);
-      lineChart.setOnMousePressed(this::handleMousePressed);
-      lineChart.setOnMouseDragged(this::handleMouseDrag);
-      lineChart.setOnMouseReleased(this::handleMouseReleased);
-      lineChart.setOnScroll(this::handleScroll);
       lineChart.addEventHandler(MouseEvent.MOUSE_PRESSED, this::handleMouseMiddleClick);
 
+      lineChart.getPlugins().add(new ChartContextMenu(this::newGraphContextMenu));
       lineChart.getPlugins().add(new ChartScrubber(toolkit));
       lineChart.getPlugins().add(new ChartHorizontalPanner(toolkit));
       lineChart.getPlugins().add(new ChartScroller(toolkit));
 
-      contextMenuProperty.addListener((ChangeListener<ContextMenu>) (observable, oldValue, newValue) ->
-      {
-         if (oldValue != null)
-            oldValue.hide();
-      });
       charts.addListener((MapChangeListener<YoVariable<?>, YoVariableChartPackage>) change ->
       {
          if (change.wasAdded())
@@ -447,18 +438,6 @@ public class YoChartPanelController extends AnimationTimer
       return contextMenu;
    }
 
-   private void hideContextMenu()
-   {
-      if (contextMenuProperty.get() != null)
-         contextMenuProperty.set(null);
-   }
-
-   private void handleMousePressed(MouseEvent event)
-   {
-      if (event.getButton() == MouseButton.PRIMARY)
-         hideContextMenu();
-   }
-
    private void handleMouseMiddleClick(MouseEvent e)
    {
       if (e.isMiddleButtonDown() && e.getPickResult().getIntersectedNode() instanceof LabeledText)
@@ -469,41 +448,6 @@ public class YoChartPanelController extends AnimationTimer
          if (chartData.isPresent())
             removeYoVariableFromPlot(chartData.get().getYoVariable());
       }
-   }
-
-   private void handleMouseDrag(MouseEvent event)
-   {
-      handleMousePressed(event);
-
-      if (event.isSecondaryButtonDown())
-      {
-         if (!event.isStillSincePress())
-         {
-            hideContextMenu();
-         }
-      }
-   }
-
-   private void handleMouseReleased(MouseEvent event)
-   {
-      if (event.getButton() == MouseButton.SECONDARY)
-      {
-         if (event.isStillSincePress())
-         {
-            ContextMenu contextMenu = newGraphContextMenu();
-            if (!contextMenu.getItems().isEmpty())
-            {
-               contextMenuProperty.set(contextMenu);
-               contextMenu.show(lineChart, event.getScreenX(), event.getScreenY());
-            }
-            event.consume();
-         }
-      }
-   }
-
-   private void handleScroll(ScrollEvent event)
-   {
-      hideContextMenu();
    }
 
    public void handleDragDetected(MouseEvent event)
