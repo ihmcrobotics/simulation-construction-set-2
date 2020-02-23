@@ -208,7 +208,7 @@ public class YoChartPanelController extends AnimationTimer
             yoNumberSeriesList.remove(change.getValueRemoved().getSeries());
       });
 
-      chartMainPane.getChildren().add(lineChart);
+      chartMainPane.getChildren().add(0, lineChart);
       AnchorPane.setTopAnchor(lineChart, 0.0);
       AnchorPane.setBottomAnchor(lineChart, 0.0);
       AnchorPane.setLeftAnchor(lineChart, 0.0);
