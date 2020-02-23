@@ -33,6 +33,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
    private final Property<ChartIntegerBounds> chartBoundsProperty = new SimpleObjectProperty<ChartIntegerBounds>(this, "chartBounds", null);
    private final BooleanProperty publishChartData = new SimpleBooleanProperty(this, "publishChartData", false);
 
+   private int lastUpdateEndIndex = -1;
    private DataSet2D lastChartData;
    private final Queue<Object> callerIDs = new ConcurrentLinkedQueue<>();
    private final Map<Object, DataSet2D> newChartData = new ConcurrentHashMap<>();
@@ -70,17 +71,42 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       // Always prepare new data
       BufferSample newRawData = linkedYoVariable.pollRequestedBufferSample();
       if (newRawData != null)
+      {
          rawDataProperty.setValue(newRawData);
+         if (newRawData.getSampleLength() == newRawData.getBufferProperties().getSize())
+            lastUpdateEndIndex = newRawData.getBufferProperties().getOutPoint();
+         else
+            lastUpdateEndIndex = newRawData.getTo();
+      }
+
       // Now check if a new request should be submitted.
       if (callerIDs.stream().anyMatch(callerID -> !hasNewChartData(callerID)))
       {// Only request data if JFX is keeping up with the rendering.
-         if (currentSessionMode.get() == SessionMode.RUNNING || currentSessionMode.get() != lastSessionModeStatus)
-         { // Only request data when the session is running or when the session state changes.
+         if (lastProperties == null)
+         { // First time requesting data.
             linkedYoVariable.requestEntireBuffer();
          }
-         else if (lastProperties == null || currentBufferProperties.get().getOutPoint() != lastProperties.getOutPoint()
-               || currentBufferProperties.get().getSize() != lastProperties.getSize())
-         {
+         else if (lastSessionModeStatus == SessionMode.RUNNING && currentSessionMode.get() != SessionMode.RUNNING)
+         { // The session just stopped running, need to ensure we have all the data up to the out-point.
+            linkedYoVariable.requestBufferStartingFrom(lastUpdateEndIndex);
+         }
+         else if (lastSessionModeStatus != SessionMode.RUNNING && currentSessionMode.get() == SessionMode.RUNNING)
+         { // The session just start running, need to ensure we have all the data since it started running.
+            linkedYoVariable.requestActiveBufferOnly();
+         }
+         else if (currentSessionMode.get() == SessionMode.RUNNING)
+         { // Request data from the last update point to the most recent out-point.
+            if (lastUpdateEndIndex == -1)
+               linkedYoVariable.requestActiveBufferOnly();
+            else
+               linkedYoVariable.requestBufferStartingFrom(lastUpdateEndIndex);
+         }
+         else if (currentBufferProperties.get().getSize() != lastProperties.getSize())
+         { // Buffer was either resized or cropped, data has been shifted around, need to get a complete update.
+            linkedYoVariable.requestEntireBuffer();
+         }
+         else if (currentBufferProperties.get().getInPoint() != lastProperties.getInPoint() && currentBufferProperties.get().getOutPoint() != lastProperties.getOutPoint())
+         { // When cropping without actually changing the size of the buffer, the data is still being shifted around.
             linkedYoVariable.requestEntireBuffer();
          }
       }
@@ -101,7 +127,8 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       if (rawData == null || rawData.getSampleLength() == 0)
          return;
 
-      DataSet2D chartData = updateLineChartData(lastChartData, toDoubleBuffer(rawData));
+      BufferSample newBufferSample = toDoubleBuffer(rawData);
+      DataSet2D chartData = updateLineChartData(lastChartData, newBufferSample);
 
       if (chartData != null)
       {
@@ -152,7 +179,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       return chartBoundsProperty;
    }
 
-   public static DataSet2D updateLineChartData(DataSet2D dataToUpdate, BufferSample<double[]> bufferSample)
+   public static DataSet2D updateLineChartData(DataSet2D lastDataSet, BufferSample<double[]> bufferSample)
    {
       double[] sample = bufferSample.getSample();
       int sampleLength = bufferSample.getSampleLength();
@@ -164,15 +191,33 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       String name = "Unknown";
       DoubleDataSet dataSet = new DoubleDataSet(name, bufferSize);
 
-      for (int bufferIndex = 0; bufferIndex < sampleLength; bufferIndex++)
+      int sampleStart = bufferSample.getFrom();
+      int sampleEnd = bufferSample.getTo();
+
+      for (int i = 0; i < bufferSize; i++)
       {
-         int x = bufferIndex + bufferSample.getFrom();
-         if (x >= bufferSize)
-            x -= bufferSize;
+         double x = i;
+         double y = 0.0;
 
-         double y = sample[bufferIndex];
+         if (sampleStart <= sampleEnd)
+         {
+            if (i >= sampleStart && i <= sampleEnd)
+               y = sample[i - sampleStart];
+            else if (lastDataSet != null)
+               y = lastDataSet.getY(i);
+         }
+         else
+         {
+            if (i <= sampleEnd)
+               y = sample[i - sampleStart + bufferSize];
+            else if (i >= sampleStart)
+               y = sample[i - sampleStart];
+            else if (lastDataSet != null)
+               y = lastDataSet.getY(i);
+         }
 
-         if (!Double.isFinite(y)) // TODO Kinda hackish but it appears that JavaFX chart doesn't handle them properly.
+         // TODO Need to check if chart-fx handles NaN.
+         if (!Double.isFinite(y))
             y = 0.0;
 
          dataSet.add(x, y);
