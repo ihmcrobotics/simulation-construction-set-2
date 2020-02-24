@@ -38,6 +38,7 @@ import us.ihmc.scs2.definition.yoChart.YoChartConfigurationDefinition;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.charts.*;
+import us.ihmc.scs2.sessionVisualizer.charts.DynamicLineChart.ChartStyle;
 import us.ihmc.scs2.sessionVisualizer.charts.YoVariableChartData.ChartDataUpdate;
 import us.ihmc.scs2.sessionVisualizer.managers.ChartDataManager;
 import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
@@ -69,22 +70,21 @@ public class YoChartPanelController extends AnimationTimer
    private final YoChartLegend yoLegend = new YoChartLegend();
 
    private XValueIndicator inPointIndicator, outPointIndicator, bufferIndexIndicator;
-
    private final List<XValueIndicator> keyFrameIndicators = new ArrayList<>();
 
-   private YoCompositeSearchManager yoCompositeSearchManager;
-
-   private ChartDataManager chartDataManager;
-   private final ObservableList<YoNumberSeries> yoNumberSeriesList = FXCollections.observableArrayList();
-   private final ObservableMap<YoVariable<?>, YoVariableChartPackage> charts = FXCollections.observableMap(new LinkedHashMap<>());
    private AtomicReference<YoBufferPropertiesReadOnly> bufferPropertiesInput;
+   private final ObjectProperty<ChartStyle> chartStyleProperty = new SimpleObjectProperty<>(this, "chartStyle", ChartStyle.RAW);
+   private final ObservableList<YoDoubleDataSet> yoDataSetList = FXCollections.observableArrayList();
+   private final ObservableMap<YoVariable<?>, YoVariableChartPackage> charts = FXCollections.observableMap(new LinkedHashMap<>());
    private final TopicListener<int[]> keyFrameMarkerListener = newKeyFrames -> updateKeyFrameMarkers(newKeyFrames);
 
-   private SessionVisualizerTopics topics;
-   private JavaFXMessager messager;
-   private YoManager yoManager;
-   private SessionVisualizerToolkit toolkit;
    private Window parentWindow;
+   private YoManager yoManager;
+   private JavaFXMessager messager;
+   private SessionVisualizerTopics topics;
+   private SessionVisualizerToolkit toolkit;
+   private ChartDataManager chartDataManager;
+   private YoCompositeSearchManager yoCompositeSearchManager;
 
    public void initialize(SessionVisualizerToolkit toolkit, Window parentWindow)
    {
@@ -97,6 +97,8 @@ public class YoChartPanelController extends AnimationTimer
       topics = toolkit.getTopics();
 
       bufferPropertiesInput = messager.createInput(topics.getYoBufferCurrentProperties());
+
+      chartStyleProperty.addListener((o, oldValue, newValue) -> yoDataSetList.forEach(dataSet -> dataSet.setNormalized(newValue == ChartStyle.NORMALIZED)));
 
       lineChart = new XYChart(xAxis, yAxis);
       // Removing the side-tools, we won't use them.
@@ -203,9 +205,9 @@ public class YoChartPanelController extends AnimationTimer
       charts.addListener((MapChangeListener<YoVariable<?>, YoVariableChartPackage>) change ->
       {
          if (change.wasAdded())
-            yoNumberSeriesList.add(change.getValueAdded().getSeries());
+            yoDataSetList.add(change.getValueAdded().getYoDataSet());
          else if (change.wasRemoved())
-            yoNumberSeriesList.remove(change.getValueRemoved().getSeries());
+            yoDataSetList.remove(change.getValueRemoved().getYoDataSet());
       });
 
       chartMainPane.getChildren().add(0, lineChart);
@@ -227,8 +229,7 @@ public class YoChartPanelController extends AnimationTimer
       }
       else
       {
-         // TODO
-         //         dynamicLineChart.setChartStyle(ChartStyle.RAW);
+         chartStyleProperty.set(ChartStyle.RAW);
          return;
       }
 
@@ -236,19 +237,16 @@ public class YoChartPanelController extends AnimationTimer
       {
          try
          {
-            // TODO
-            //            dynamicLineChart.setChartStyle(ChartStyle.valueOf(definition.getChartStyle()));
+            chartStyleProperty.set(ChartStyle.valueOf(definition.getChartStyle()));
          }
          catch (IllegalArgumentException e)
          {
-            // TOOD
-            //            dynamicLineChart.setChartStyle(ChartStyle.RAW);
+            chartStyleProperty.set(ChartStyle.RAW);
          }
       }
       else
       {
-         // TODO
-         //         dynamicLineChart.setChartStyle(ChartStyle.RAW);
+         chartStyleProperty.set(ChartStyle.RAW);
       }
 
       for (YoVariableChartPackage pack : charts.values())
@@ -260,13 +258,13 @@ public class YoChartPanelController extends AnimationTimer
          if (definition.getYBounds() != null && definition.getYBounds().size() > definitionIndex)
          {
             ChartDoubleBoundsDefinition yBounds = definition.getYBounds().get(definitionIndex);
-            pack.series.setCustomYBounds(YoChartTools.toChartDoubleBounds(yBounds));
+            pack.yoDataSet.setCustomYBounds(YoChartTools.toChartDoubleBounds(yBounds));
          }
 
          if (definition.getNegates() != null && definition.getNegates().size() > definitionIndex)
          {
             Boolean negate = definition.getNegates().get(definitionIndex);
-            pack.series.setNegated(negate);
+            pack.yoDataSet.setNegated(negate);
          }
       }
    }
@@ -280,8 +278,7 @@ public class YoChartPanelController extends AnimationTimer
    {
       if (activeChartOptionControllerProperty.get() != null)
       {
-         // TODO
-         //         activeChartOptionControllerProperty.get().setInput(yoNumberSeriesList, dynamicLineChart.chartStyleProperty());
+         activeChartOptionControllerProperty.get().setInput(yoDataSetList, chartStyleProperty);
          activeChartOptionControllerProperty.get().showWindow();
          return;
       }
@@ -292,8 +289,7 @@ public class YoChartPanelController extends AnimationTimer
          loader.load();
          YoChartOptionController controller = loader.getController();
          controller.initialize(toolkit, parentWindow);
-         // TODO
-         //         controller.setInput(yoNumberSeriesList, dynamicLineChart.chartStyleProperty());
+         controller.setInput(yoDataSetList, chartStyleProperty);
          activeChartOptionControllerProperty.set(controller);
          controller.showWindow();
       }
@@ -443,7 +439,7 @@ public class YoChartPanelController extends AnimationTimer
       if (e.isMiddleButtonDown() && e.getPickResult().getIntersectedNode() instanceof LabeledText)
       { // TODO The legend's name needs to be unique within a single graph
          String pickedName = ((LabeledText) e.getPickResult().getIntersectedNode()).getText();
-         Optional<YoVariableChartPackage> chartData = charts.values().stream().filter(dataPackage -> dataPackage.series.getSeriesName().equals(pickedName))
+         Optional<YoVariableChartPackage> chartData = charts.values().stream().filter(dataPackage -> dataPackage.yoDataSet.getName().equals(pickedName))
                                                             .findFirst();
          if (chartData.isPresent())
             removeYoVariableFromPlot(chartData.get().getYoVariable());
@@ -565,27 +561,26 @@ public class YoChartPanelController extends AnimationTimer
    {
       YoChartConfigurationDefinition definition = new YoChartConfigurationDefinition();
       definition.setIdentifier(YoChartTools.toYoChartIdentifierDefinition(chartIdentifier));
-      definition.setChartStyle("RAW"); // TODO Re-add chart style
+      definition.setChartStyle(chartStyleProperty.get().name());
       definition.setYoVariables(charts.keySet().stream().map(YoVariable::getFullNameWithNameSpace).collect(Collectors.toList()));
-      definition.setYBounds(charts.values().stream().map(pack -> YoChartTools.toChartDoubleBoundsDefinition(pack.getSeries().getCustomYBounds()))
+      definition.setYBounds(charts.values().stream().map(pack -> YoChartTools.toChartDoubleBoundsDefinition(pack.getYoDataSet().getCustomYBounds()))
                                   .collect(Collectors.toList()));
-      definition.setNegates(charts.values().stream().map(pack -> pack.getSeries().isNegated()).collect(Collectors.toList()));
+      definition.setNegates(charts.values().stream().map(pack -> pack.getYoDataSet().isNegated()).collect(Collectors.toList()));
       return definition;
    }
 
    private class YoVariableChartPackage
    {
-      private final YoNumberSeries series;
       private final YoDoubleDataSet yoDataSet;
       private final YoVariableChartData<?, ?> chartData;
       private final Object callerID = YoChartPanelController.this;
 
       public YoVariableChartPackage(YoVariable<?> yoVariable)
       {
-         series = new YoNumberSeries(yoVariable);
          chartData = chartDataManager.getYoVariableChartData(callerID, yoVariable);
          yoDataSet = new YoDoubleDataSet(yoVariable, 1);
-         yoDataSet.add(0.0, 0.0);
+         yoDataSet.getRawDataSet().add(0.0, 0.0);
+         yoDataSet.setNormalized(chartStyleProperty.get() == ChartStyle.NORMALIZED);
          lineChart.getDatasets().add(yoDataSet);
       }
 
@@ -606,9 +601,9 @@ public class YoChartPanelController extends AnimationTimer
          return yoDataSet.getYoVariable();
       }
 
-      public YoNumberSeries getSeries()
+      public YoDoubleDataSet getYoDataSet()
       {
-         return series;
+         return yoDataSet;
       }
 
       public void close()

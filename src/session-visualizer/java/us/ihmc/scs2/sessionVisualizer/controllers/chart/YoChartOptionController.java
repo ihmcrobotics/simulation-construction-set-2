@@ -36,6 +36,7 @@ import javafx.util.Duration;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartDoubleBounds;
 import us.ihmc.scs2.sessionVisualizer.charts.DynamicLineChart.ChartStyle;
+import us.ihmc.scs2.sessionVisualizer.charts.YoDoubleDataSet;
 import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.tools.NumberFormatTools;
 import us.ihmc.scs2.sessionVisualizer.tools.ScientificDoubleStringConverter;
@@ -64,7 +65,7 @@ public class YoChartOptionController
    private SessionVisualizerToolkit toolkit;
    private Stage window;
    private ObservableList<YoChartVariableOptionController> subControllers = FXCollections.observableArrayList();
-   private ObservableList<YoNumberSeries> yoNumberSeriesList = null;
+   private ObservableList<YoDoubleDataSet> yoDataSetList = null;
    private ObjectProperty<ChartStyle> chartStyleProperty;
 
    private final ObjectProperty<ChartDoubleBounds> actualYBoundsProperty = new SimpleObjectProperty<>(this, "actualYBounds", null);
@@ -105,7 +106,7 @@ public class YoChartOptionController
    };
 
    private final ChangeListener<ChartDoubleBounds> customBoundsUpdater = (o, oldValue,
-                                                                          newValue) -> yoNumberSeriesList.forEach(series -> series.setCustomYBounds(newValue));
+                                                                          newValue) -> yoDataSetList.forEach(series -> series.setCustomYBounds(newValue));
 
    private final ChangeListener<ChartScalingMode> scalingModeListener = (o, oldValue, newValue) ->
    {
@@ -128,9 +129,9 @@ public class YoChartOptionController
 
       if (newValue == ChartScalingMode.AUTO)
       {
-         if (yoNumberSeriesList != null)
+         if (yoDataSetList != null)
          {
-            yoNumberSeriesList.forEach(series ->
+            yoDataSetList.forEach(series ->
             {
                series.customYBoundsProperty().unbind();
                series.setCustomYBounds(null);
@@ -223,14 +224,14 @@ public class YoChartOptionController
       window.close();
    }
 
-   public void setInput(ObservableList<YoNumberSeries> yoNumberSeriesList, ObjectProperty<ChartStyle> chartStyleProperty)
+   public void setInput(ObservableList<YoDoubleDataSet> yoDataSetList, ObjectProperty<ChartStyle> chartStyleProperty)
    {
-      this.yoNumberSeriesList = yoNumberSeriesList;
+      this.yoDataSetList = yoDataSetList;
       this.chartStyleProperty = chartStyleProperty;
 
-      yoNumberSeriesList.forEach(series -> series.dataYBoundsProperty().addListener(actualBoundsUpdater));
+      yoDataSetList.forEach(series -> series.dataYBoundsProperty().addListener(actualBoundsUpdater));
 
-      yoNumberSeriesList.addListener((ListChangeListener<YoNumberSeries>) change ->
+      yoDataSetList.addListener((ListChangeListener<YoDoubleDataSet>) change ->
       {
          while (change.next())
          {
@@ -244,7 +245,7 @@ public class YoChartOptionController
 
       if (chartStyleProperty.get() == ChartStyle.RAW)
       {
-         Optional<ChartDoubleBounds> customBounds = yoNumberSeriesList.stream().map(YoNumberSeries::getCustomYBounds).filter(Objects::nonNull).findFirst();
+         Optional<ChartDoubleBounds> customBounds = yoDataSetList.stream().map(YoDoubleDataSet::getCustomYBounds).filter(Objects::nonNull).findFirst();
          manualYBoundsProperty.set(customBounds.isPresent() ? customBounds.get() : null);
          scalingComboBox.setValue(customBounds.isPresent() ? ChartScalingMode.MANUAL : ChartScalingMode.AUTO);
       }
@@ -255,9 +256,9 @@ public class YoChartOptionController
 
       subControllers.clear();
 
-      yoNumberSeriesList.forEach(this::loadAndInitializeSubController);
+      yoDataSetList.forEach(this::loadAndInitializeSubController);
 
-      yoNumberSeriesList.addListener((ListChangeListener<YoNumberSeries>) change ->
+      yoDataSetList.addListener((ListChangeListener<YoDoubleDataSet>) change ->
       {
          while (change.next())
          {
@@ -293,9 +294,9 @@ public class YoChartOptionController
    {
       ChartDoubleBounds newBounds = null;
 
-      for (YoNumberSeries series : yoNumberSeriesList)
+      for (YoDoubleDataSet yoDataSet : yoDataSetList)
       {
-         ChartDoubleBounds dataYBounds = series.getDataYBounds();
+         ChartDoubleBounds dataYBounds = yoDataSet.getDataYBounds();
          if (dataYBounds == null)
             continue;
          if (newBounds == null)
@@ -307,7 +308,7 @@ public class YoChartOptionController
       actualYBoundsProperty.set(newBounds);
    }
 
-   private void unloadController(YoNumberSeries series)
+   private void unloadController(YoDoubleDataSet yoDataSet)
    {
       Iterator<YoChartVariableOptionController> iterator = subControllers.iterator();
 
@@ -315,7 +316,7 @@ public class YoChartOptionController
       {
          YoChartVariableOptionController subController = iterator.next();
 
-         if (subController.getSeries() == series)
+         if (subController.getYoDataSet() == yoDataSet)
          {
             iterator.remove();
             return;
@@ -323,16 +324,16 @@ public class YoChartOptionController
       }
    }
 
-   private void loadAndInitializeSubController(YoNumberSeries series)
+   private void loadAndInitializeSubController(YoDoubleDataSet yoDataSet)
    {
-      loadAndInitializeSubController(series, subControllers.size());
+      loadAndInitializeSubController(yoDataSet, subControllers.size());
    }
 
-   private void loadAndInitializeSubController(YoNumberSeries series, int insertionIndex)
+   private void loadAndInitializeSubController(YoDoubleDataSet yoDataSet, int insertionIndex)
    {
       YoChartVariableOptionController subController = loadSubController();
       subController.initialize(toolkit);
-      subController.setInput(series, scalingComboBox.valueProperty());
+      subController.setInput(yoDataSet, scalingComboBox.valueProperty());
       subControllers.add(insertionIndex, subController);
    }
 
