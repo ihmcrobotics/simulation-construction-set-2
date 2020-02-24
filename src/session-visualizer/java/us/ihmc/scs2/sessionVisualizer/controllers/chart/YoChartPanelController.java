@@ -136,6 +136,7 @@ public class YoChartPanelController extends AnimationTimer
       yAxis.setAnimated(false);
       yAxis.setAutoRanging(true);
       yAxis.setForceZeroInRange(false);
+      yAxis.setAutoRangePadding(0.025);
 
       // TODO Make custom indicator without label or triangle?
       inPointIndicator = YoChartTools.readOnlyLineOnlyXValueIndicator(xAxis, 0.0, INPOINT_MARKER_STYLECLASS);
