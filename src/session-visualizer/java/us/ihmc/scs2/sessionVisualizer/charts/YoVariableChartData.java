@@ -162,7 +162,10 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
 
    public ChartDataUpdate pollChartData(Object callerID)
    {
-      return newChartDataUpdate.remove(callerID);
+      if (newChartDataUpdate.isEmpty())
+         return null;
+      else
+         return newChartDataUpdate.remove(callerID);
    }
 
    public YoVariable<?> getYoVariable()
