@@ -278,7 +278,7 @@ public class YoChartLegend extends FlowPane implements Legend
          {
             double newPrefWidth = computePrefWidth(prefHeight(-1));
 
-            if (previousPrefWidth > newPrefWidth)
+            if (previousPrefWidth >= newPrefWidth - 1.0e-10)
             {
                setNeedsLayout(true);
                return;
