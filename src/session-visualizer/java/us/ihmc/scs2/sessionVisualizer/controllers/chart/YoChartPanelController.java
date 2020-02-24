@@ -11,11 +11,13 @@ import com.sun.javafx.scene.control.skin.LabeledText;
 import de.gsi.chart.XYChart;
 import de.gsi.chart.axes.spi.NumericAxis;
 import de.gsi.chart.plugins.XValueIndicator;
+import de.gsi.chart.plugins.YValueIndicator;
 import de.gsi.chart.renderer.spi.ErrorDataSetRenderer;
 import de.gsi.chart.ui.geometry.Side;
 import javafx.animation.AnimationTimer;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
@@ -28,7 +30,6 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.*;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.shape.Line;
 import javafx.stage.Window;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.log.LogTools;
@@ -70,6 +71,7 @@ public class YoChartPanelController extends AnimationTimer
    private final YoChartLegend yoLegend = new YoChartLegend();
 
    private XValueIndicator inPointIndicator, outPointIndicator, bufferIndexIndicator;
+   private YValueIndicator originIndicator;
    private final List<XValueIndicator> keyFrameIndicators = new ArrayList<>();
 
    private AtomicReference<YoBufferPropertiesReadOnly> bufferPropertiesInput;
@@ -90,9 +92,9 @@ public class YoChartPanelController extends AnimationTimer
    {
       this.toolkit = toolkit;
       this.parentWindow = parentWindow;
-      this.messager = toolkit.getMessager();
-      this.chartDataManager = toolkit.getChartDataManager();
-      this.yoManager = toolkit.getYoManager();
+      messager = toolkit.getMessager();
+      chartDataManager = toolkit.getChartDataManager();
+      yoManager = toolkit.getYoManager();
       yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
       topics = toolkit.getTopics();
 
@@ -136,59 +138,21 @@ public class YoChartPanelController extends AnimationTimer
       yAxis.setForceZeroInRange(false);
 
       // TODO Make custom indicator without label or triangle?
-      inPointIndicator = new XValueIndicator(xAxis, 0.0)
-      {
-         @Override
-         public void updateStyleClass()
-         {
-            //            super.updateStyleClass();
-            line.getStyleClass().add(INPOINT_MARKER_STYLECLASS);
-         }
-      };
-      outPointIndicator = new XValueIndicator(xAxis, 0.0)
-      {
-         @Override
-         public void updateStyleClass()
-         {
-            //            super.updateStyleClass();
-            line.getStyleClass().add(OUTPOINT_MARKER_STYLECLASS);
-         }
-      };
-      bufferIndexIndicator = new XValueIndicator(xAxis, 0.0)
-      {
-         @Override
-         public void updateStyleClass()
-         {
-            //            super.updateStyleClass();
-            line.getStyleClass().add(CURRENT_INDEX_MARKER_STYLECLASS);
-         }
-      };
-      // The default implementation allows to drag the indicators with the mouse.
-      inPointIndicator.setEditable(false);
-      outPointIndicator.setEditable(false);
-      bufferIndexIndicator.setEditable(false);
-      // The default implementation comes with an optional label and a top triangle that we won't use.
-      inPointIndicator.getChartChildren().removeIf(node -> node.getClass() != Line.class);
-      outPointIndicator.getChartChildren().removeIf(node -> node.getClass() != Line.class);
-      bufferIndexIndicator.getChartChildren().removeIf(node -> node.getClass() != Line.class);
+      inPointIndicator = YoChartTools.readOnlyLineOnlyXValueIndicator(xAxis, 0.0, INPOINT_MARKER_STYLECLASS);
+      outPointIndicator = YoChartTools.readOnlyLineOnlyXValueIndicator(xAxis, 0.0, OUTPOINT_MARKER_STYLECLASS);
+      bufferIndexIndicator = YoChartTools.readOnlyLineOnlyXValueIndicator(xAxis, 0.0, CURRENT_INDEX_MARKER_STYLECLASS);
       lineChart.getPlugins().addAll(inPointIndicator, outPointIndicator, bufferIndexIndicator);
 
-      // TODO Re-implement the y-axis for y=0.
-      //      Data<Number, Number> origin = new Data<>(0.0, 0.0);
-      //      ChangeListener<? super ChartStyle> originMarkerUpdater = (o, oldValue, newValue) ->
-      //      {
-      //         if (newValue == ChartStyle.RAW)
-      //         {
-      //            ChartMarker originMarker = dynamicLineChart.addMarker(origin);
-      //            originMarker.getStyleClass().add(ORIGIN_MARKER_STYLECLASS);
-      //         }
-      //         else
-      //         {
-      //            dynamicLineChart.removeMarker(origin);
-      //         }
-      //      };
-      //      dynamicLineChart.chartStyleProperty().addListener(originMarkerUpdater);
-      //      originMarkerUpdater.changed(null, null, dynamicLineChart.chartStyleProperty().get());
+      originIndicator = YoChartTools.readOnlyLineOnlyYValueIndicator(yAxis, 0.0, ORIGIN_MARKER_STYLECLASS);
+      ChangeListener<? super ChartStyle> originMarkerUpdater = (o, oldValue, newValue) ->
+      {
+         if (newValue == ChartStyle.RAW)
+            lineChart.getPlugins().add(originIndicator);
+         else
+            lineChart.getPlugins().remove(originIndicator);
+      };
+      chartStyleProperty.addListener(originMarkerUpdater);
+      originMarkerUpdater.changed(null, null, chartStyleProperty.get());
 
       lineChart.setOnDragDetected(this::handleDragDetected);
       lineChart.setOnDragOver(this::handleDragOver);
