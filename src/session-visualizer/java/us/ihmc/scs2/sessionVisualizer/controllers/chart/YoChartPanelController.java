@@ -9,7 +9,6 @@ import com.jfoenix.controls.JFXButton;
 import com.sun.javafx.scene.control.skin.LabeledText;
 
 import de.gsi.chart.XYChart;
-import de.gsi.chart.axes.spi.NumericAxis;
 import de.gsi.chart.plugins.XValueIndicator;
 import de.gsi.chart.plugins.YValueIndicator;
 import de.gsi.chart.renderer.spi.ErrorDataSetRenderer;
@@ -65,8 +64,8 @@ public class YoChartPanelController extends AnimationTimer
    @FXML
    private JFXButton closeButton;
 
-   private final NumericAxis xAxis = new NumericAxis();
-   private final NumericAxis yAxis = new NumericAxis();
+   private final InvisibleNumericAxis xAxis = new InvisibleNumericAxis();
+   private final InvisibleNumericAxis yAxis = new InvisibleNumericAxis();
    private XYChart lineChart;
    private final YoChartLegend yoLegend = new YoChartLegend();
 
