@@ -38,7 +38,6 @@ import us.ihmc.scs2.definition.yoChart.YoChartConfigurationDefinition;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.charts.*;
-import us.ihmc.scs2.sessionVisualizer.charts.DynamicLineChart.ChartStyle;
 import us.ihmc.scs2.sessionVisualizer.charts.YoVariableChartData.ChartDataUpdate;
 import us.ihmc.scs2.sessionVisualizer.managers.ChartDataManager;
 import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
@@ -58,6 +57,11 @@ public class YoChartPanelController extends AnimationTimer
    private static final String CURRENT_INDEX_MARKER_STYLECLASS = "chart-current-index-marker";
    private static final String ORIGIN_MARKER_STYLECLASS = "chart-origin-marker";
    private static final String KEYFRAME_MARKER_STYLECLASS = "chart-keyframe-marker";
+
+   public enum ChartStyle
+   {
+      RAW, NORMALIZED
+   };
 
    @FXML
    private AnchorPane chartMainPane;
