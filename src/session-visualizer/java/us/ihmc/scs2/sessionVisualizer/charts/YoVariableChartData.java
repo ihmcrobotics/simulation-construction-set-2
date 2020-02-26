@@ -1,6 +1,5 @@
 package us.ihmc.scs2.sessionVisualizer.charts;
 
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -83,10 +82,6 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
          { // First time requesting data.
             linkedYoVariable.requestEntireBuffer();
          }
-         else if (lastSessionModeStatus == SessionMode.RUNNING && currentSessionMode.get() != SessionMode.RUNNING)
-         { // The session just stopped running, need to ensure we have all the data up to the out-point.
-            linkedYoVariable.requestBufferStartingFrom(lastUpdateEndIndex);
-         }
          else if (lastSessionModeStatus != SessionMode.RUNNING && currentSessionMode.get() == SessionMode.RUNNING)
          { // The session just start running, need to ensure we have all the data since it started running.
             linkedYoVariable.requestActiveBufferOnly();
@@ -108,6 +103,10 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
             linkedYoVariable.requestEntireBuffer();
          }
       }
+      else if (lastSessionModeStatus == SessionMode.RUNNING && currentSessionMode.get() != SessionMode.RUNNING)
+      { // The session just stopped running, need to ensure we have all the data up to the out-point.
+         linkedYoVariable.requestBufferStartingFrom(lastUpdateEndIndex);
+      }
 
       lastSessionModeStatus = currentSessionMode.get();
       lastProperties = currentBufferProperties.get();
@@ -127,8 +126,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
 
       BufferSample newBufferSample = toDoubleBuffer(rawData);
       DoubleArray2D newDataSet = updateDataSet(lastDataSet, newBufferSample);
-      boolean isPartialUpdate = rawData.getSampleLength() < rawData.getBufferProperties().getSize();
-      ChartDataUpdate chartDataUpdate = new ChartDataUpdate(newDataSet, isPartialUpdate, rawData.getBufferProperties());
+      ChartDataUpdate chartDataUpdate = new ChartDataUpdate(newDataSet, rawData.getBufferProperties());
       lastChartDataUpdate = chartDataUpdate;
 
       if (newDataSet != null)
@@ -236,13 +234,11 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
    public static class ChartDataUpdate
    {
       private final DoubleArray2D dataSet;
-      private final boolean isPartialUpdate;
       private final YoBufferPropertiesReadOnly bufferProperties;
 
-      public ChartDataUpdate(DoubleArray2D dataSet, boolean isPartialUpdate, YoBufferPropertiesReadOnly bufferProperties)
+      public ChartDataUpdate(DoubleArray2D dataSet, YoBufferPropertiesReadOnly bufferProperties)
       {
          this.dataSet = dataSet;
-         this.isPartialUpdate = isPartialUpdate;
          this.bufferProperties = bufferProperties;
       }
 
@@ -255,36 +251,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
 
       public void readUpdate(DoubleDataSet chartDataSet, int lastUpdateEndIndex)
       {
-         if (!isPartialUpdate || lastUpdateEndIndex == -1)
-         { // Refresh the entire dataSet
-            chartDataSet.set(0, dataSet.x, dataSet.y);
-         }
-         else
-         { // Refresh only a small portion of the dataSet: ]lastUpdateEndIndex, updateEndIndex].
-            int updateEndIndex = bufferProperties.getOutPoint();
-
-            if (lastUpdateEndIndex == updateEndIndex)
-            {
-               return;
-            }
-
-            if (lastUpdateEndIndex < updateEndIndex)
-            { // Simple case, can be done in a single copy.
-               double[] xValues = Arrays.copyOfRange(dataSet.x, lastUpdateEndIndex + 1, updateEndIndex + 1);
-               double[] yValues = Arrays.copyOfRange(dataSet.y, lastUpdateEndIndex + 1, updateEndIndex + 1);
-               chartDataSet.set(lastUpdateEndIndex + 1, xValues, yValues);
-            }
-            else
-            { // The update is wrapping over the buffer.
-               double[] xValues = Arrays.copyOfRange(dataSet.x, lastUpdateEndIndex + 1, dataSet.x.length);
-               double[] yValues = Arrays.copyOfRange(dataSet.y, lastUpdateEndIndex + 1, dataSet.y.length);
-               chartDataSet.set(lastUpdateEndIndex + 1, xValues, yValues);
-
-               xValues = Arrays.copyOfRange(dataSet.x, 0, updateEndIndex + 1);
-               yValues = Arrays.copyOfRange(dataSet.y, 0, updateEndIndex + 1);
-               chartDataSet.set(0, xValues, yValues);
-            }
-         }
+         chartDataSet.set(0, dataSet.x, dataSet.y);
       }
 
       public int getUpdateEndIndex()
