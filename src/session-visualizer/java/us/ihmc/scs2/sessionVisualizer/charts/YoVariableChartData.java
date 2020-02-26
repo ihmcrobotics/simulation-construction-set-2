@@ -251,6 +251,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
 
       public void readUpdate(DoubleDataSet chartDataSet, int lastUpdateEndIndex)
       {
+         // FIXME This call is expensive.
          chartDataSet.set(0, dataSet.x, dataSet.y);
       }
 
