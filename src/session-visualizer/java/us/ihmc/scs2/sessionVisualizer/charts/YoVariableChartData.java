@@ -76,7 +76,11 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       }
 
       // Now check if a new request should be submitted.
-      if (callerIDs.stream().anyMatch(callerID -> !hasNewChartData(callerID)))
+      if (lastSessionModeStatus == SessionMode.RUNNING && currentSessionMode.get() != SessionMode.RUNNING)
+      { // The session just stopped running, need to ensure we have all the data up to the out-point.
+         linkedYoVariable.requestBufferStartingFrom(lastUpdateEndIndex);
+      }
+      else if (callerIDs.stream().anyMatch(callerID -> !hasNewChartData(callerID)))
       {// Only request data if JFX is keeping up with the rendering.
          if (lastProperties == null)
          { // First time requesting data.
@@ -102,10 +106,6 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
          { // When cropping without actually changing the size of the buffer, the data is still being shifted around.
             linkedYoVariable.requestEntireBuffer();
          }
-      }
-      else if (lastSessionModeStatus == SessionMode.RUNNING && currentSessionMode.get() != SessionMode.RUNNING)
-      { // The session just stopped running, need to ensure we have all the data up to the out-point.
-         linkedYoVariable.requestBufferStartingFrom(lastUpdateEndIndex);
       }
 
       lastSessionModeStatus = currentSessionMode.get();
