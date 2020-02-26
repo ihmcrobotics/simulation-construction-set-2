@@ -96,6 +96,8 @@ public class YoChartMenuController
             stage.close();
             toolkit.removeSecondaryWindow(stage);
             toolkit.removeYoChartGroupController(chartGroupController);
+            chartGroupController.stop();
+            chartGroupController.scheduleMessagerCleanup();
          });
          toolkit.getMessager().registerJavaFXSyncedTopicListener(toolkit.getTopics().getSessionCurrentState(), state ->
          {
