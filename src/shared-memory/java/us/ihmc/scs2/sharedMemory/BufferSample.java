@@ -7,7 +7,7 @@ import us.ihmc.scs2.sharedMemory.tools.BufferTools;
 
 public class BufferSample<D>
 {
-   private final int from;
+   private final int from, to;
    private final D sample;
    private final int sampleLength;
    private final YoBufferPropertiesReadOnly bufferProperties;
@@ -18,6 +18,8 @@ public class BufferSample<D>
       this.sample = sample;
       this.sampleLength = sampleLength;
       this.bufferProperties = bufferProperties;
+
+      to = BufferTools.computeToIndex(from, sampleLength, bufferProperties.getSize());
    }
 
    public BufferSample(BufferSample<D> other)
@@ -26,6 +28,8 @@ public class BufferSample<D>
       this.sample = other.sample;
       this.sampleLength = other.sampleLength;
       this.bufferProperties = other.bufferProperties;
+
+      to = BufferTools.computeToIndex(from, sampleLength, bufferProperties.getSize());
    }
 
    public int getFrom()
@@ -35,7 +39,7 @@ public class BufferSample<D>
 
    public int getTo()
    {
-      return BufferTools.computeToIndex(from, sampleLength, bufferProperties.getSize());
+      return to;
    }
 
    public D getSample()

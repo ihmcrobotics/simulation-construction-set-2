@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 import de.gsi.dataset.AxisDescription;
+import de.gsi.dataset.event.UpdateEvent;
 import de.gsi.dataset.spi.DoubleDataSet;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
@@ -178,7 +179,6 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
 
    public static DoubleArray2D updateDataSet(DoubleArray2D lastDataSet, BufferSample<double[]> bufferSample)
    {
-      double[] sample = bufferSample.getSample();
       int sampleLength = bufferSample.getSampleLength();
       int bufferSize = bufferSample.getBufferProperties().getSize();
 
@@ -186,49 +186,58 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
          return null;
 
       DoubleArray2D dataSet = new DoubleArray2D(bufferSize);
-      dataSet.initializeX();
 
-      int sampleStart = bufferSample.getFrom();
-      int sampleEnd = bufferSample.getTo();
+      double yCurrent = getValueAt(0, lastDataSet, bufferSample);
+      dataSet.values[0] = yCurrent;
+      double yMin = yCurrent;
+      double yMax = yCurrent;
 
-      double yMin = Double.POSITIVE_INFINITY;
-      double yMax = Double.NEGATIVE_INFINITY;
-
-      for (int i = 0; i < bufferSize; i++)
+      for (int i = 1; i < bufferSize; i++)
       {
-         double y = 0.0;
-
-         if (sampleStart <= sampleEnd)
-         {
-            if (i >= sampleStart && i <= sampleEnd)
-               y = sample[i - sampleStart];
-            else if (lastDataSet != null)
-               y = lastDataSet.y[i];
-         }
-         else
-         {
-            if (i <= sampleEnd)
-               y = sample[i - sampleStart + bufferSize];
-            else if (i >= sampleStart)
-               y = sample[i - sampleStart];
-            else if (lastDataSet != null)
-               y = lastDataSet.y[i];
-         }
-
-         // TODO Need to check if chart-fx handles NaN.
-         if (!Double.isFinite(y))
-            y = 0.0;
-
-         dataSet.y[i] = y;
-
-         yMin = Math.min(yMin, y);
-         yMax = Math.max(yMax, y);
+         yCurrent = getValueAt(i, lastDataSet, bufferSample);
+         dataSet.values[i] = yCurrent;
+         yMin = Math.min(yMin, yCurrent);
+         yMax = Math.max(yMax, yCurrent);
       }
 
-      dataSet.yMin = yMin;
-      dataSet.yMax = yMax;
+      dataSet.size = bufferSize;
+      dataSet.valueMin = yMin;
+      dataSet.valueMax = yMax;
 
       return dataSet;
+   }
+
+   private static double getValueAt(int index, DoubleArray2D completeDataSet, BufferSample<double[]> partialBufferSample)
+   {
+      double[] sample = partialBufferSample.getSample();
+      int sampleStart = partialBufferSample.getFrom();
+      int sampleEnd = partialBufferSample.getTo();
+      int bufferSize = partialBufferSample.getBufferProperties().getSize();
+
+      double y = 0.0;
+
+      if (sampleStart <= sampleEnd)
+      {
+         if (index >= sampleStart && index <= sampleEnd)
+            y = sample[index - sampleStart];
+         else if (completeDataSet != null)
+            y = completeDataSet.values[index];
+      }
+      else
+      {
+         if (index <= sampleEnd)
+            y = sample[index - sampleStart + bufferSize];
+         else if (index >= sampleStart)
+            y = sample[index - sampleStart];
+         else if (completeDataSet != null)
+            y = completeDataSet.values[index];
+      }
+
+      // TODO Need to check if chart-fx handles NaN.
+      if (!Double.isFinite(y))
+         y = 0.0;
+
+      return y;
    }
 
    public static class ChartDataUpdate
@@ -245,14 +254,25 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       public void readUpdate(YoDoubleDataSet chartDataSet, int lastUpdateEndIndex)
       {
          readUpdate(chartDataSet.getRawDataSet(), lastUpdateEndIndex);
-         chartDataSet.setRange(dataSet.xMin, dataSet.xMax, dataSet.yMin, dataSet.yMax);
-         chartDataSet.getAxisDescriptions().forEach(AxisDescription::clear);
+         chartDataSet.setRange(0, dataSet.size - 1, dataSet.valueMin, dataSet.valueMax);
       }
 
       public void readUpdate(DoubleDataSet chartDataSet, int lastUpdateEndIndex)
       {
-         // FIXME This call is expensive.
-         chartDataSet.set(0, dataSet.x, dataSet.y);
+         if (chartDataSet.getDataCount() != dataSet.size)
+            chartDataSet.resize(dataSet.size);
+
+         double[] xValues = chartDataSet.getXValues();
+         double[] yValues = chartDataSet.getYValues();
+
+         chartDataSet.lock().writeLockGuard(() ->
+         {
+            for (int i = 0; i < dataSet.size; i++)
+               xValues[i] = i;
+            System.arraycopy(dataSet.values, 0, yValues, 0, dataSet.size);
+            chartDataSet.getAxisDescriptions().forEach(AxisDescription::clear);
+         });
+         chartDataSet.fireInvalidated(new UpdateEvent(chartDataSet));
       }
 
       public int getUpdateEndIndex()
@@ -263,23 +283,14 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
 
    private static class DoubleArray2D
    {
-      private final double[] x, y;
-      private double xMin, xMax, yMin, yMax;
+      private int size;
+      private final double[] values;
+      private double valueMin, valueMax;
 
       public DoubleArray2D(int size)
       {
-         x = new double[size];
-         y = new double[size];
-      }
-
-      public void initializeX()
-      {
-         for (int i = 0; i < x.length; i++)
-         {
-            x[i] = i;
-         }
-         xMin = 0;
-         xMax = x.length - 1;
+         this.size = size;
+         values = new double[size];
       }
    }
 }
