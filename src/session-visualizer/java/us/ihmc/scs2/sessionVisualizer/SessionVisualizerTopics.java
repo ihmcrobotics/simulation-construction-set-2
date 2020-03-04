@@ -42,7 +42,6 @@ public class SessionVisualizerTopics
    private Topic<Boolean> yoChartRequestZoomIn, yoChartRequestZoomOut;
    private Topic<Integer> yoChartRequestShift;
 
-   private Topic<Boolean> yoChartRequestCurrentBounds;
    private Topic<Pair<Window, File>> yoChartGroupSaveConfiguration;
    private Topic<Pair<Window, File>> yoChartGroupLoadConfiguration;
 
@@ -93,8 +92,6 @@ public class SessionVisualizerTopics
       yoChartRequestShift = SessionVisualizerMessagerAPI.YoChart.YoChartRequestShift;
       yoChartGroupSaveConfiguration = SessionVisualizerMessagerAPI.YoChart.YoChartGroupSaveConfiguration;
       yoChartGroupLoadConfiguration = SessionVisualizerMessagerAPI.YoChart.YoChartGroupLoadConfiguration;
-
-      yoChartRequestCurrentBounds = SessionVisualizerMessagerAPI.YoChart.YoChartRequestCurrentBounds;
 
       sessionCurrentState = SessionMessagerAPI.SessionCurrentState;
       sessionCurrentMode = SessionMessagerAPI.SessionCurrentMode;
@@ -227,11 +224,6 @@ public class SessionVisualizerTopics
    public Topic<Integer> getYoChartRequestShift()
    {
       return yoChartRequestShift;
-   }
-
-   public Topic<Boolean> getYoChartRequestCurrentBounds()
-   {
-      return yoChartRequestCurrentBounds;
    }
 
    public Topic<Pair<Window, File>> getYoChartGroupLoadConfiguration()
