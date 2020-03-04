@@ -139,11 +139,11 @@ public class YoBooleanBufferTest
          int length = random.nextInt(yoBooleanBuffer.getProperties().getSize() - 1) + 1;
 
          boolean[] expectedCopy = BufferTools.ringArrayCopy(yoBooleanBuffer.getBuffer(), from, length);
-         BufferSample<boolean[]> actualCopy = yoBooleanBuffer.copy(from, length);
+         BufferSample<boolean[]> actualCopy = yoBooleanBuffer.copy(from, length, yoBooleanBuffer.getProperties().copy());
 
          assertEquals(from, actualCopy.getFrom());
          assertEquals(length, actualCopy.getSampleLength());
-         assertEquals(yoBooleanBuffer.getProperties().getSize(), actualCopy.getBufferSize());
+         assertEquals(yoBooleanBuffer.getProperties(), actualCopy.getBufferProperties());
          int to = from + length - 1;
          if (to >= yoBooleanBuffer.getProperties().getSize())
             to -= yoBooleanBuffer.getProperties().getSize();

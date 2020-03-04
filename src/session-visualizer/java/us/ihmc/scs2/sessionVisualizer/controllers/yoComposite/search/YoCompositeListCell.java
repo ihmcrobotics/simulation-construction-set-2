@@ -42,6 +42,7 @@ import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.yoVariables.variable.YoLong;
 import us.ihmc.yoVariables.variable.YoVariable;
 
+// FIXME Need to manually do some cleanup when the cell is being updated.
 public class YoCompositeListCell extends ListCell<YoComposite>
 {
    private static final double GRAPHIC_PREF_WIDTH = 100.0;

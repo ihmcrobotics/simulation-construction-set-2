@@ -7,22 +7,21 @@ import javafx.animation.AnimationTimer;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import us.ihmc.scs2.session.Session;
-import us.ihmc.scs2.sessionVisualizer.charts.NumberSeriesLayer;
 
 public class ChartRenderManager extends AnimationTimer implements Manager
 {
-   private final IntegerProperty numberOfLayersToRenderPerUpdate = new SimpleIntegerProperty(this, "numberOfLayersToRenderPerUpdate", 15);
-   private final Deque<NumberSeriesLayer> layersToRender = new ArrayDeque<>();
+   private final IntegerProperty numberOfLayersToRenderPerUpdate = new SimpleIntegerProperty(this, "numberOfLayersToRenderPerUpdate", 10);
+   private final Deque<Runnable> chartUpdaterToCall = new ArrayDeque<>();
 
-   public void submitRenderRequest(NumberSeriesLayer layer)
+   public void submitRenderRequest(Runnable chartUpdater)
    {
-      if (!layersToRender.contains(layer))
-         layersToRender.add(layer);
+      if (!chartUpdaterToCall.contains(chartUpdater))
+         chartUpdaterToCall.add(chartUpdater);
    }
 
    public void clearRequests()
    {
-      layersToRender.clear();
+      chartUpdaterToCall.clear();
    }
 
    @Override
@@ -30,14 +29,14 @@ public class ChartRenderManager extends AnimationTimer implements Manager
    {
       int numberOfLayers = numberOfLayersToRenderPerUpdate.get();
       if (numberOfLayers <= 0)
-         numberOfLayers = layersToRender.size();
+         numberOfLayers = chartUpdaterToCall.size();
 
       for (int i = 0; i < numberOfLayers; i++)
       {
-         NumberSeriesLayer layer = layersToRender.poll();
+         Runnable layer = chartUpdaterToCall.poll();
          if (layer == null)
             return;
-         layer.render();
+         layer.run();
       }
    }
 

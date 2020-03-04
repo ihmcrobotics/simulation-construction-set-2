@@ -9,7 +9,6 @@ import us.ihmc.scs2.session.SessionMessagerAPI;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.session.SessionState;
 import us.ihmc.scs2.session.YoSharedBufferMessagerAPI;
-import us.ihmc.scs2.sessionVisualizer.charts.ChartIntegerBounds;
 import us.ihmc.scs2.sessionVisualizer.controllers.yoComposite.search.SearchEngines;
 import us.ihmc.scs2.sessionVisualizer.yoGraphic.YoGroupFX;
 import us.ihmc.scs2.sharedMemory.CropBufferRequest;
@@ -43,8 +42,6 @@ public class SessionVisualizerTopics
    private Topic<Boolean> yoChartRequestZoomIn, yoChartRequestZoomOut;
    private Topic<Integer> yoChartRequestShift;
 
-   private Topic<Boolean> yoChartRequestCurrentBounds;
-   private Topic<ChartIntegerBounds> yoChartCurrentBounds;
    private Topic<Pair<Window, File>> yoChartGroupSaveConfiguration;
    private Topic<Pair<Window, File>> yoChartGroupLoadConfiguration;
 
@@ -95,9 +92,6 @@ public class SessionVisualizerTopics
       yoChartRequestShift = SessionVisualizerMessagerAPI.YoChart.YoChartRequestShift;
       yoChartGroupSaveConfiguration = SessionVisualizerMessagerAPI.YoChart.YoChartGroupSaveConfiguration;
       yoChartGroupLoadConfiguration = SessionVisualizerMessagerAPI.YoChart.YoChartGroupLoadConfiguration;
-
-      yoChartRequestCurrentBounds = SessionVisualizerMessagerAPI.YoChart.YoChartRequestCurrentBounds;
-      yoChartCurrentBounds = SessionVisualizerMessagerAPI.YoChart.YoChartCurrentBounds;
 
       sessionCurrentState = SessionMessagerAPI.SessionCurrentState;
       sessionCurrentMode = SessionMessagerAPI.SessionCurrentMode;
@@ -230,16 +224,6 @@ public class SessionVisualizerTopics
    public Topic<Integer> getYoChartRequestShift()
    {
       return yoChartRequestShift;
-   }
-
-   public Topic<Boolean> getYoChartRequestCurrentBounds()
-   {
-      return yoChartRequestCurrentBounds;
-   }
-
-   public Topic<ChartIntegerBounds> getYoChartCurrentBounds()
-   {
-      return yoChartCurrentBounds;
    }
 
    public Topic<Pair<Window, File>> getYoChartGroupLoadConfiguration()

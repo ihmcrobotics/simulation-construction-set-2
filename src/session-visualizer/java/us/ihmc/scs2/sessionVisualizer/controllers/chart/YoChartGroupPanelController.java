@@ -2,11 +2,7 @@ package us.ihmc.scs2.sessionVisualizer.controllers.chart;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
@@ -17,6 +13,7 @@ import javax.xml.bind.Unmarshaller;
 
 import com.jfoenix.controls.JFXButton;
 
+import de.gsi.chart.XYChart;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -39,6 +36,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.stage.Popup;
+import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Pair;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
@@ -53,7 +51,6 @@ import us.ihmc.scs2.sessionVisualizer.charts.ChartGroupLayout;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartGroupModel;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartGroupTools;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartIdentifier;
-import us.ihmc.scs2.sessionVisualizer.charts.DynamicLineChart;
 import us.ihmc.scs2.sessionVisualizer.controllers.TableSizeQuickAccess;
 import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.managers.YoCompositeSearchManager;
@@ -92,7 +89,7 @@ public class YoChartGroupPanelController
    private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
 
-   public void initialize(SessionVisualizerToolkit toolkit, Window owner)
+   public void initialize(SessionVisualizerToolkit toolkit, Stage owner)
    {
       this.toolkit = toolkit;
       this.owner = owner;
@@ -112,6 +109,16 @@ public class YoChartGroupPanelController
       messager.registerJavaFXSyncedTopicListener(topics.getYoChartGroupLoadConfiguration(), loadChartGroupConfigurationListener);
       messager.registerJavaFXSyncedTopicListener(topics.getYoChartGroupSaveConfiguration(), saveChartGroupConfigurationListener);
       messager.registerJavaFXSyncedTopicListener(topics.getSessionCurrentState(), stopSessionListener);
+
+      owner.iconifiedProperty().addListener((o, oldValue, newValue) ->
+      {
+         if (newValue != isRunning.get())
+            return;
+         if (newValue)
+            stop();
+         else
+            start();
+      });
    }
 
    public void setChartGroupConfiguration(YoChartGroupConfigurationDefinition definition)
@@ -257,7 +264,6 @@ public class YoChartGroupPanelController
 
    private void closeChart(YoChartPanelController chartToClose)
    {
-      chartToClose.stop();
       chartToClose.close();
       gridPane.getChildren().remove(chartToClose.getMainPane());
       chartControllers.remove(chartToClose);
@@ -310,7 +316,7 @@ public class YoChartGroupPanelController
          AnchorPane graphNode = loader.load();
          YoChartPanelController controller = loader.getController();
          controller.initialize(toolkit, owner);
-         DynamicLineChart chartNode = controller.getLineChart();
+         XYChart chartNode = controller.getLineChart();
          chartNode.setOnDragOver(e -> handleDragOver(e, controller));
          chartNode.setOnDragDropped(e -> handleDragDropped(e, controller));
          chartNode.setOnDragEntered(e -> handleDragEntered(e, controller));
@@ -347,6 +353,13 @@ public class YoChartGroupPanelController
    {
       isRunning.set(false);
       chartControllers.forEach(YoChartPanelController::stop);
+   }
+
+   public void close()
+   {
+      isRunning.set(false);
+      chartControllers.forEach(YoChartPanelController::close);
+      scheduleMessagerCleanup();
    }
 
    @FXML

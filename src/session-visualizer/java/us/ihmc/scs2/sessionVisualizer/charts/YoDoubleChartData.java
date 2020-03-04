@@ -13,8 +13,8 @@ public class YoDoubleChartData extends YoVariableChartData<LinkedYoDouble, doubl
    }
 
    @Override
-   protected DataEntry extractChartData(BufferSample<double[]> yoVariableBuffer, int startIndex, int endIndex, double epsilon)
+   protected BufferSample<double[]> toDoubleBuffer(BufferSample<double[]> yoVariableBuffer)
    {
-      return LineChartTools.fromDoubleBufferSampleToLineChartData(yoVariableBuffer, startIndex, endIndex, epsilon);
+      return yoVariableBuffer;
    }
 }

@@ -63,7 +63,7 @@ public abstract class YoVariableBuffer<T extends YoVariable<T>>
    abstract long getValueAsLongBits(int index);
 
    @SuppressWarnings("rawtypes")
-   public abstract BufferSample copy(int from, int length);
+   public abstract BufferSample copy(int from, int length, YoBufferPropertiesReadOnly properties);
 
    abstract LinkedYoVariable<T> newLinkedYoVariable(T variableToLink);
 }

@@ -138,11 +138,11 @@ public class YoLongBufferTest
          int length = random.nextInt(yoLongBuffer.getProperties().getSize() - 1) + 1;
 
          long[] expectedCopy = BufferTools.ringArrayCopy(yoLongBuffer.getBuffer(), from, length);
-         BufferSample<long[]> actualCopy = yoLongBuffer.copy(from, length);
+         BufferSample<long[]> actualCopy = yoLongBuffer.copy(from, length, yoLongBuffer.getProperties().copy());
 
          assertEquals(from, actualCopy.getFrom());
          assertEquals(length, actualCopy.getSampleLength());
-         assertEquals(yoLongBuffer.getProperties().getSize(), actualCopy.getBufferSize());
+         assertEquals(yoLongBuffer.getProperties(), actualCopy.getBufferProperties());
          int to = from + length - 1;
          if (to >= yoLongBuffer.getProperties().getSize())
             to -= yoLongBuffer.getProperties().getSize();

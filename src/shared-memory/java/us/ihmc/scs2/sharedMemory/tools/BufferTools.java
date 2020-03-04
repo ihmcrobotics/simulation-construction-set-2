@@ -4,6 +4,22 @@ import java.util.Arrays;
 
 public class BufferTools
 {
+   public static int increment(int index, int stepSize, int size)
+   {
+      index += stepSize;
+      if (index >= size)
+         index -= size;
+      return index;
+   }
+
+   public static int decrement(int index, int stepSize, int size)
+   {
+      index -= stepSize;
+      if (index < 0)
+         index += size;
+      return index;
+   }
+
    /**
     * Calculates the sub-length defined by the interval [{@code from}, {@code to}] in a ring buffer of
     * size {@code length}.
@@ -202,5 +218,53 @@ public class BufferTools
          System.arraycopy(ringArray, 0, bufferCopy, lengthOfFirstCopy, length - lengthOfFirstCopy);
       }
       return bufferCopy;
+   }
+
+   public static double[] toDoubleArray(boolean[] array)
+   {
+      if (array == null)
+         return null;
+
+      double[] doubleArray = new double[array.length];
+
+      for (int i = 0; i < array.length; i++)
+         doubleArray[i] = array[i] ? 1.0 : 0.0;
+      return doubleArray;
+   }
+
+   public static double[] toDoubleArray(int[] array)
+   {
+      if (array == null)
+         return null;
+
+      double[] doubleArray = new double[array.length];
+
+      for (int i = 0; i < array.length; i++)
+         doubleArray[i] = array[i];
+      return doubleArray;
+   }
+
+   public static double[] toDoubleArray(long[] array)
+   {
+      if (array == null)
+         return null;
+
+      double[] doubleArray = new double[array.length];
+
+      for (int i = 0; i < array.length; i++)
+         doubleArray[i] = array[i];
+      return doubleArray;
+   }
+
+   public static double[] toDoubleArray(byte[] array)
+   {
+      if (array == null)
+         return null;
+
+      double[] doubleArray = new double[array.length];
+
+      for (int i = 0; i < array.length; i++)
+         doubleArray[i] = array[i];
+      return doubleArray;
    }
 }

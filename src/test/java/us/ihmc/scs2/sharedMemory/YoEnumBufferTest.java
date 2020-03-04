@@ -137,11 +137,11 @@ public class YoEnumBufferTest
          int length = random.nextInt(yoEnumBuffer.getProperties().getSize() - 1) + 1;
 
          byte[] expectedCopy = BufferTools.ringArrayCopy(yoEnumBuffer.getBuffer(), from, length);
-         BufferSample<byte[]> actualCopy = yoEnumBuffer.copy(from, length);
+         BufferSample<byte[]> actualCopy = yoEnumBuffer.copy(from, length, yoEnumBuffer.getProperties().copy());
 
          assertEquals(from, actualCopy.getFrom());
          assertEquals(length, actualCopy.getSampleLength());
-         assertEquals(yoEnumBuffer.getProperties().getSize(), actualCopy.getBufferSize());
+         assertEquals(yoEnumBuffer.getProperties(), actualCopy.getBufferProperties());
          int to = from + length - 1;
          if (to >= yoEnumBuffer.getProperties().getSize())
             to -= yoEnumBuffer.getProperties().getSize();

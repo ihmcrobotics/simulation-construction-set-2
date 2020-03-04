@@ -41,9 +41,9 @@ public class YoEnumBuffer<E extends Enum<E>> extends YoVariableBuffer<YoEnum<E>>
    }
 
    @Override
-   public BufferSample<byte[]> copy(int from, int length)
+   public BufferSample<byte[]> copy(int from, int length, YoBufferPropertiesReadOnly properties)
    {
-      return new BufferSample<>(from, buffer.length, BufferTools.ringArrayCopy(buffer, from, length), length);
+      return new BufferSample<>(from, BufferTools.ringArrayCopy(buffer, from, length), length, properties);
    }
 
    @Override

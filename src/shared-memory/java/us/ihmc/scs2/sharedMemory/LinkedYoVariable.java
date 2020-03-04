@@ -136,7 +136,7 @@ public abstract class LinkedYoVariable<T extends YoVariable<T>> extends LinkedBu
       if (from < 0 || from >= properties.getSize() || length < 0 || length > properties.getSize())
          throw new IllegalArgumentException("Invalid request: from = " + from + ", length = " + length);
 
-      bufferSample = buffer.copy(from, length);
+      bufferSample = buffer.copy(from, length, properties.copy());
    }
 
    @Override

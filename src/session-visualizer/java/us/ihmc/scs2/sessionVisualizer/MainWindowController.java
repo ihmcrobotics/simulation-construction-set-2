@@ -1,5 +1,7 @@
 package us.ihmc.scs2.sessionVisualizer;
 
+import java.time.Duration;
+
 import com.jfoenix.controls.JFXDrawer;
 import com.jfoenix.controls.JFXHamburger;
 import com.jfoenix.controls.events.JFXDrawerEvent;
@@ -18,11 +20,7 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import us.ihmc.commons.Conversions;
@@ -163,7 +161,7 @@ public class MainWindowController extends AnimationTimer
    }
 
    private long timeLast = -1;
-   private int numberOfFramesPerUpdate = 25;
+   private long timeIntervalBetweenUpdates = Duration.ofMillis(500).toNanos();
    private int frameCounter = 0;
    private double goodFPSLowerThreshold = 40.0;
    private double mediumFPSLowerThreshold = 20.0;
@@ -180,10 +178,13 @@ public class MainWindowController extends AnimationTimer
          frameCounter = 0;
          return;
       }
-      if (frameCounter++ < numberOfFramesPerUpdate)
+
+      frameCounter++;
+
+      if (timeNow - timeLast < timeIntervalBetweenUpdates)
          return;
 
-      double framesPerSecond = numberOfFramesPerUpdate / Conversions.nanosecondsToSeconds(timeNow - timeLast);
+      double framesPerSecond = frameCounter / Conversions.nanosecondsToSeconds(timeNow - timeLast);
       fpsLabel.setText(String.format("%6.2f FPS", framesPerSecond));
       if (framesPerSecond >= goodFPSLowerThreshold)
          fpsLabel.setTextFill(goodFPSColor);
@@ -207,7 +208,7 @@ public class MainWindowController extends AnimationTimer
    public void stop()
    {
       super.stop();
-      yoChartGroupPanelController.stop();
+      yoChartGroupPanelController.close();
    }
 
    public AnchorPane getMainPane()
