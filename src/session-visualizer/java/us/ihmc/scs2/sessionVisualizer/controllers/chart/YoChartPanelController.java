@@ -39,10 +39,7 @@ import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.charts.*;
 import us.ihmc.scs2.sessionVisualizer.charts.YoVariableChartData.ChartDataUpdate;
-import us.ihmc.scs2.sessionVisualizer.managers.ChartDataManager;
-import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
-import us.ihmc.scs2.sessionVisualizer.managers.YoCompositeSearchManager;
-import us.ihmc.scs2.sessionVisualizer.managers.YoManager;
+import us.ihmc.scs2.sessionVisualizer.managers.*;
 import us.ihmc.scs2.sessionVisualizer.tools.DragAndDropTools;
 import us.ihmc.scs2.sessionVisualizer.yoComposite.CompositePropertyTools.YoVariableDatabase;
 import us.ihmc.scs2.sessionVisualizer.yoComposite.YoComposite;
@@ -61,7 +58,7 @@ public class YoChartPanelController extends AnimationTimer
    public enum ChartStyle
    {
       RAW, NORMALIZED
-   };
+   }
 
    @FXML
    private AnchorPane chartMainPane;
@@ -105,7 +102,19 @@ public class YoChartPanelController extends AnimationTimer
 
       chartStyleProperty.addListener((o, oldValue, newValue) -> yoDataSetList.forEach(dataSet -> dataSet.setNormalized(newValue == ChartStyle.NORMALIZED)));
 
-      lineChart = new XYChart(xAxis, yAxis);
+      ChartRenderManager chartRenderManager = toolkit.getChartRenderManager();
+
+      lineChart = new XYChart(xAxis, yAxis)
+      {
+         private final Runnable chartUpdater = () -> super.redrawCanvas();
+
+         @Override
+         public void redrawCanvas()
+         {
+            chartRenderManager.submitRenderRequest(chartUpdater);
+         }
+      };
+
       // Removing the side-tools, we won't use them.
       lineChart.setTop(null);
       lineChart.setBottom(null);
@@ -318,6 +327,7 @@ public class YoChartPanelController extends AnimationTimer
          chart.close();
    }
 
+   @Override
    public void stop()
    {
       super.stop();

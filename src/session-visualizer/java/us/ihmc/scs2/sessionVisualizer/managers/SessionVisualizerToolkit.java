@@ -30,6 +30,7 @@ public class SessionVisualizerToolkit extends AnimationTimer
 
    private final YoManager yoManager = new YoManager();
    private final ChartDataManager chartDataManager;
+   private final ChartRenderManager chartRenderManager = new ChartRenderManager();
    private final YoGraphicFXManager yoGraphicFXManager;
    private final YoCompositeSearchManager yoCompositeSearchManager;
    private final SnapshotManager snapshotManager;
@@ -84,6 +85,7 @@ public class SessionVisualizerToolkit extends AnimationTimer
          yoRobotFXManager.startSession(session);
          environmentManager.startSession(session);
          chartDataManager.startSession(session);
+         chartRenderManager.startSession(session);
          yoGraphicFXManager.startSession(session);
          yoCompositeSearchManager.startSession(session);
          keyFrameManager.startSession(session);
@@ -119,6 +121,7 @@ public class SessionVisualizerToolkit extends AnimationTimer
       yoManager.stopSession();
       yoRobotFXManager.stopSession();
       chartDataManager.stopSession();
+      chartRenderManager.stopSession();
       yoGraphicFXManager.stopSession();
       referenceFrameManager.stopSession();
       yoCompositeSearchManager.stopSession();
@@ -236,6 +239,11 @@ public class SessionVisualizerToolkit extends AnimationTimer
    public ChartDataManager getChartDataManager()
    {
       return chartDataManager;
+   }
+
+   public ChartRenderManager getChartRenderManager()
+   {
+      return chartRenderManager;
    }
 
    public YoCompositeSearchManager getYoCompositeSearchManager()
