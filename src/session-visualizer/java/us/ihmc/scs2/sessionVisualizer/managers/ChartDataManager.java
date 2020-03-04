@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import javafx.animation.AnimationTimer;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
@@ -30,7 +31,7 @@ public class ChartDataManager extends AnimationTimer implements Manager
    private final YoManager yoManager;
    private final BackgroundExecutorManager backgroundExecutorManager;
 
-   private final Property<ChartIntegerBounds> currentBoundsProperty;
+   private final Property<ChartIntegerBounds> currentBoundsProperty = new SimpleObjectProperty<>(this, "currentBoundsProperty", null);
    private final Property<Double> zoomFactorProperty;
    private final Property<YoBufferPropertiesReadOnly> currentBufferPropertiesProperty;
    private Future<?> activeTask;
@@ -48,7 +49,6 @@ public class ChartDataManager extends AnimationTimer implements Manager
       this.backgroundExecutorManager = backgroundExecutorManager;
 
       zoomFactorProperty = messager.createPropertyInput(topics.getYoChartZoomFactor(), 2.0);
-      currentBoundsProperty = messager.createPropertyInput(topics.getYoChartCurrentBounds(), null);
       currentBufferPropertiesProperty = messager.createPropertyInput(topics.getYoBufferCurrentProperties());
       messager.registerTopicListener(topics.getYoChartRequestZoomIn(), m -> processZoomInRequest());
       messager.registerTopicListener(topics.getYoChartRequestZoomOut(), m -> processZoomOutRequest());

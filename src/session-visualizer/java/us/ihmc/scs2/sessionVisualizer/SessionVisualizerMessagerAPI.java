@@ -5,13 +5,7 @@ import java.io.File;
 import javafx.stage.Window;
 import javafx.util.Pair;
 import us.ihmc.messager.MessagerAPIFactory;
-import us.ihmc.messager.MessagerAPIFactory.Category;
-import us.ihmc.messager.MessagerAPIFactory.CategoryTheme;
-import us.ihmc.messager.MessagerAPIFactory.MessagerAPI;
-import us.ihmc.messager.MessagerAPIFactory.Topic;
-import us.ihmc.messager.MessagerAPIFactory.TopicTheme;
-import us.ihmc.messager.MessagerAPIFactory.TypedTopicTheme;
-import us.ihmc.scs2.sessionVisualizer.charts.ChartIntegerBounds;
+import us.ihmc.messager.MessagerAPIFactory.*;
 import us.ihmc.scs2.sessionVisualizer.controllers.yoComposite.search.SearchEngines;
 import us.ihmc.scs2.sessionVisualizer.yoGraphic.YoGroupFX;
 
@@ -114,7 +108,6 @@ public class SessionVisualizerMessagerAPI
       public static final Topic<Pair<Window, File>> YoChartGroupLoadConfiguration = APIRoot.child(YoChart).child(Group).child(Configuration).topic(Load);
 
       public static final Topic<Boolean> YoChartRequestCurrentBounds = APIRoot.child(YoChart).child(Bound).topic(Request);
-      public static final Topic<ChartIntegerBounds> YoChartCurrentBounds = APIRoot.child(YoChart).child(Bound).topic(Data);
    }
 
    public static class Session
