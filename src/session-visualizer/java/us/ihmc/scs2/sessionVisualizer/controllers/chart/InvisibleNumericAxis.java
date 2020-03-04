@@ -165,6 +165,11 @@ public final class InvisibleNumericAxis extends AbstractAxis
       return new AxisRange(minValue, maxValue, axisLength, calculateNewScale(axisLength, minValue, maxValue), 1.0);
    }
 
+   @Override
+   protected void updateAxisLabelAndUnit()
+   {
+   }
+
    /**
     * When {@code true} zero is always included in the visible range. This only has effect if
     * {@link #autoRangingProperty() auto-ranging} is on.
