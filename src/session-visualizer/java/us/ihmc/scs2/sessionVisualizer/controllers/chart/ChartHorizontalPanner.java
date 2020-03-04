@@ -23,10 +23,6 @@ import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
 
 public class ChartHorizontalPanner extends ChartPlugin
 {
-   /**
-    * Default pan mouse filter passing on left mouse button with {@link MouseEvent#isControlDown()
-    * control key down}.
-    */
    public static final Predicate<MouseEvent> DEFAULT_MOUSE_FILTER = event -> MouseEventsHelper.isOnlySecondaryButtonDown(event);
 
    private Predicate<MouseEvent> mouseFilter = ChartHorizontalPanner.DEFAULT_MOUSE_FILTER;
