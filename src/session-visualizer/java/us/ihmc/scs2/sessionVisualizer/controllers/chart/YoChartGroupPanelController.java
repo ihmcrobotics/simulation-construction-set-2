@@ -36,6 +36,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.stage.Popup;
+import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Pair;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
@@ -88,7 +89,7 @@ public class YoChartGroupPanelController
    private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
 
-   public void initialize(SessionVisualizerToolkit toolkit, Window owner)
+   public void initialize(SessionVisualizerToolkit toolkit, Stage owner)
    {
       this.toolkit = toolkit;
       this.owner = owner;
@@ -108,6 +109,16 @@ public class YoChartGroupPanelController
       messager.registerJavaFXSyncedTopicListener(topics.getYoChartGroupLoadConfiguration(), loadChartGroupConfigurationListener);
       messager.registerJavaFXSyncedTopicListener(topics.getYoChartGroupSaveConfiguration(), saveChartGroupConfigurationListener);
       messager.registerJavaFXSyncedTopicListener(topics.getSessionCurrentState(), stopSessionListener);
+
+      owner.iconifiedProperty().addListener((o, oldValue, newValue) ->
+      {
+         if (newValue != isRunning.get())
+            return;
+         if (newValue)
+            stop();
+         else
+            start();
+      });
    }
 
    public void setChartGroupConfiguration(YoChartGroupConfigurationDefinition definition)
@@ -253,7 +264,6 @@ public class YoChartGroupPanelController
 
    private void closeChart(YoChartPanelController chartToClose)
    {
-      chartToClose.stop();
       chartToClose.close();
       gridPane.getChildren().remove(chartToClose.getMainPane());
       chartControllers.remove(chartToClose);
@@ -343,6 +353,13 @@ public class YoChartGroupPanelController
    {
       isRunning.set(false);
       chartControllers.forEach(YoChartPanelController::stop);
+   }
+
+   public void close()
+   {
+      isRunning.set(false);
+      chartControllers.forEach(YoChartPanelController::close);
+      scheduleMessagerCleanup();
    }
 
    @FXML

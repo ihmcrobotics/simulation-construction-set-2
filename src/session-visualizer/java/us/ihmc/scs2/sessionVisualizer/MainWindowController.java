@@ -208,7 +208,7 @@ public class MainWindowController extends AnimationTimer
    public void stop()
    {
       super.stop();
-      yoChartGroupPanelController.stop();
+      yoChartGroupPanelController.close();
    }
 
    public AnchorPane getMainPane()

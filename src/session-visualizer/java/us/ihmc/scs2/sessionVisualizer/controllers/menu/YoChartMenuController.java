@@ -15,9 +15,9 @@ import javafx.stage.WindowEvent;
 import javafx.util.Pair;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.session.SessionState;
-import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.SecondaryWindowController;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.controllers.chart.YoChartGroupPanelController;
 import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
 
@@ -96,8 +96,7 @@ public class YoChartMenuController
             stage.close();
             toolkit.removeSecondaryWindow(stage);
             toolkit.removeYoChartGroupController(chartGroupController);
-            chartGroupController.stop();
-            chartGroupController.scheduleMessagerCleanup();
+            chartGroupController.close();
          });
          toolkit.getMessager().registerJavaFXSyncedTopicListener(toolkit.getTopics().getSessionCurrentState(), state ->
          {
@@ -107,8 +106,7 @@ public class YoChartMenuController
                stage.close();
                toolkit.removeSecondaryWindow(stage);
                toolkit.removeYoChartGroupController(chartGroupController);
-               chartGroupController.stop();
-               chartGroupController.scheduleMessagerCleanup();
+               chartGroupController.close();
             }
          });
          toolkit.addSecondaryWindow(stage);

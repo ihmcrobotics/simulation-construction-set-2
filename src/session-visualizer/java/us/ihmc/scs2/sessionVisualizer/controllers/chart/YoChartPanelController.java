@@ -327,16 +327,10 @@ public class YoChartPanelController extends AnimationTimer
          chart.close();
    }
 
-   @Override
-   public void stop()
-   {
-      super.stop();
-
-      close();
-   }
-
    public void close()
    {
+      stop();
+
       if (activeChartOptionControllerProperty.get() != null)
          activeChartOptionControllerProperty.get().close();
 
