@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
+import de.gsi.dataset.AxisDescription;
 import de.gsi.dataset.spi.DoubleDataSet;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
@@ -266,8 +267,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
          for (int i = 0; i < dataSet.size; i++)
             xValues[i] = i;
          System.arraycopy(dataSet.values, 0, yValues, 0, dataSet.size);
-         chartDataSet.getAxisDescription(0).set(0, dataSet.size);
-         chartDataSet.getAxisDescription(1).set(dataSet.valueMin, dataSet.valueMax);
+         chartDataSet.getAxisDescriptions().forEach(AxisDescription::clear);
       }
 
       public int getUpdateEndIndex()
