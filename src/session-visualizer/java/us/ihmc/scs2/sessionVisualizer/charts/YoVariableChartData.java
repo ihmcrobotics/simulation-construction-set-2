@@ -33,7 +33,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
    private final BooleanProperty publishChartData = new SimpleBooleanProperty(this, "publishChartData", false);
 
    private int lastUpdateEndIndex = -1;
-   private DoubleArray2D lastDataSet;
+   private DoubleArray lastDataSet;
    private ChartDataUpdate lastChartDataUpdate;
    private final Queue<Object> callerIDs = new ConcurrentLinkedQueue<>();
    private final Map<Object, ChartDataUpdate> newChartDataUpdate = new ConcurrentHashMap<>();
@@ -125,7 +125,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
          return;
 
       BufferSample newBufferSample = toDoubleBuffer(rawData);
-      DoubleArray2D newDataSet = updateDataSet(lastDataSet, newBufferSample);
+      DoubleArray newDataSet = updateDataSet(lastDataSet, newBufferSample);
       ChartDataUpdate chartDataUpdate = new ChartDataUpdate(newDataSet, rawData.getBufferProperties());
       lastChartDataUpdate = chartDataUpdate;
 
@@ -176,7 +176,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       return !callerIDs.isEmpty();
    }
 
-   public static DoubleArray2D updateDataSet(DoubleArray2D lastDataSet, BufferSample<double[]> bufferSample)
+   public static DoubleArray updateDataSet(DoubleArray lastDataSet, BufferSample<double[]> bufferSample)
    {
       int sampleLength = bufferSample.getSampleLength();
       int bufferSize = bufferSample.getBufferProperties().getSize();
@@ -184,7 +184,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       if (bufferSample == null || sampleLength == 0)
          return null;
 
-      DoubleArray2D dataSet = new DoubleArray2D(bufferSize);
+      DoubleArray dataSet = new DoubleArray(bufferSize);
 
       double yCurrent = getValueAt(0, lastDataSet, bufferSample);
       dataSet.values[0] = yCurrent;
@@ -206,7 +206,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       return dataSet;
    }
 
-   private static double getValueAt(int index, DoubleArray2D completeDataSet, BufferSample<double[]> partialBufferSample)
+   private static double getValueAt(int index, DoubleArray completeDataSet, BufferSample<double[]> partialBufferSample)
    {
       double[] sample = partialBufferSample.getSample();
       int sampleStart = partialBufferSample.getFrom();
@@ -241,10 +241,10 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
 
    public static class ChartDataUpdate
    {
-      private final DoubleArray2D dataSet;
+      private final DoubleArray dataSet;
       private final YoBufferPropertiesReadOnly bufferProperties;
 
-      public ChartDataUpdate(DoubleArray2D dataSet, YoBufferPropertiesReadOnly bufferProperties)
+      public ChartDataUpdate(DoubleArray dataSet, YoBufferPropertiesReadOnly bufferProperties)
       {
          this.dataSet = dataSet;
          this.bufferProperties = bufferProperties;
@@ -276,13 +276,13 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       }
    }
 
-   private static class DoubleArray2D
+   private static class DoubleArray
    {
       private int size;
       private final double[] values;
       private double valueMin, valueMax;
 
-      public DoubleArray2D(int size)
+      public DoubleArray(int size)
       {
          this.size = size;
          values = new double[size];
