@@ -43,13 +43,6 @@ import us.ihmc.yoVariables.variable.YoLong;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 // FIXME Need to manually do some cleanup when the cell is being updated.
-
-// FIXME Fix the tooltips. The old approach fails as follows:
-// Exception in thread "JavaFX Application Thread" java.lang.RuntimeException: FakeFocusTextField.tooltip : A bound value cannot be set.
-//    at javafx.beans.property.ObjectPropertyBase.set(ObjectPropertyBase.java:143)
-//    at javafx.beans.property.ObjectProperty.setValue(ObjectProperty.java:72)
-//    at javafx.scene.control.Control.setTooltip(Control.java:380)
-//    at us.ihmc.scs2.sessionVisualizer.controllers.yoComposite.search.YoCompositeListCell.createYoLongControl(YoCompositeListCell.java:212)
 public class YoCompositeListCell extends ListCell<YoComposite>
 {
    private static final double DOUBLE_SPINNER_STEP_SIZE = 0.1;
