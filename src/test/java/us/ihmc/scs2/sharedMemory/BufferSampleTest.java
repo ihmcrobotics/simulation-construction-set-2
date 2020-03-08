@@ -10,6 +10,7 @@ import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
+import us.ihmc.commons.MathTools;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
 
@@ -26,7 +27,7 @@ public class BufferSampleTest
       {
          YoBufferProperties bufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
          int from = random.nextInt(bufferProperties.getSize());
-         int sampleLength = random.nextInt(bufferProperties.getSize());
+         int sampleLength = random.nextInt(bufferProperties.getSize() - 1) + 1;
          double[] sample = new double[sampleLength];
          for (int j = 0; j < sampleLength; j++)
             sample[j] = random.nextDouble();
@@ -52,7 +53,7 @@ public class BufferSampleTest
       {
          YoBufferPropertiesReadOnly bufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
          int from = random.nextInt(bufferProperties.getSize());
-         int sampleLength = random.nextInt(bufferProperties.getSize());
+         int sampleLength = random.nextInt(bufferProperties.getSize() - 1) + 1;
 
          boolean[] booleans = new boolean[sampleLength];
          double[] doubles = new double[sampleLength];
@@ -80,40 +81,61 @@ public class BufferSampleTest
          assertFalse(booleanSample.equals(null));
          assertTrue(booleanSample.equals(booleanSample));
          assertTrue(booleanSample.equals(new BufferSample<>(booleanSample)));
-         assertFalse(booleanSample.equals(new BufferSample<>(from + 1, booleans, sampleLength, bufferProperties)));
-         assertFalse(booleanSample.equals(new BufferSample<>(from, booleans, sampleLength, bufferProperties2)));
+         assertFalse(booleanSample.equals(new BufferSample<>(from < bufferProperties.getSize() - 1 ? from + 1 : from - 1,
+                                                             booleans,
+                                                             sampleLength,
+                                                             bufferProperties)));
+         assertFalse(booleanSample.equals(new BufferSample<>(MathTools.clamp(from, 0, bufferProperties2.getSize() - 1),
+                                                             booleans,
+                                                             MathTools.clamp(sampleLength, 0, bufferProperties2.getSize()),
+                                                             bufferProperties2)));
          assertFalse(booleanSample.equals(new BufferSample<>(from, booleans, sampleLength + 1, bufferProperties)));
          assertFalse(booleanSample.equals(new Object()));
 
          assertFalse(doubleSample.equals(null));
          assertTrue(doubleSample.equals(doubleSample));
          assertTrue(doubleSample.equals(new BufferSample<>(doubleSample)));
-         assertFalse(doubleSample.equals(new BufferSample<>(from + 1, doubles, sampleLength, bufferProperties)));
-         assertFalse(doubleSample.equals(new BufferSample<>(from, doubles, sampleLength, bufferProperties2)));
+         assertFalse(doubleSample.equals(new BufferSample<>(from < bufferProperties.getSize() - 1 ? from + 1 : from - 1,
+                                                            doubles,
+                                                            sampleLength,
+                                                            bufferProperties)));
+         assertFalse(doubleSample.equals(new BufferSample<>(MathTools.clamp(from, 0, bufferProperties2.getSize() - 1),
+                                                            doubles,
+                                                            MathTools.clamp(sampleLength, 0, bufferProperties2.getSize()),
+                                                            bufferProperties2)));
          assertFalse(doubleSample.equals(new BufferSample<>(from, doubles, sampleLength + 1, bufferProperties)));
          assertFalse(doubleSample.equals(new Object()));
 
          assertFalse(intSample.equals(null));
          assertTrue(intSample.equals(intSample));
          assertTrue(intSample.equals(new BufferSample<>(intSample)));
-         assertFalse(intSample.equals(new BufferSample<>(from + 1, ints, sampleLength, bufferProperties)));
-         assertFalse(intSample.equals(new BufferSample<>(from, ints, sampleLength, bufferProperties2)));
+         assertFalse(intSample.equals(new BufferSample<>(from < bufferProperties.getSize() - 1 ? from + 1 : from - 1, ints, sampleLength, bufferProperties)));
+         assertFalse(intSample.equals(new BufferSample<>(MathTools.clamp(from, 0, bufferProperties2.getSize() - 1),
+                                                         ints,
+                                                         MathTools.clamp(sampleLength, 0, bufferProperties2.getSize()),
+                                                         bufferProperties2)));
          assertFalse(intSample.equals(new BufferSample<>(from, ints, sampleLength + 1, bufferProperties)));
          assertFalse(intSample.equals(new Object()));
 
          assertFalse(longSample.equals(null));
          assertTrue(longSample.equals(longSample));
          assertTrue(longSample.equals(new BufferSample<>(longSample)));
-         assertFalse(longSample.equals(new BufferSample<>(from + 1, longs, sampleLength, bufferProperties)));
-         assertFalse(longSample.equals(new BufferSample<>(from, longs, sampleLength, bufferProperties2)));
+         assertFalse(longSample.equals(new BufferSample<>(from < bufferProperties.getSize() - 1 ? from + 1 : from - 1, longs, sampleLength, bufferProperties)));
+         assertFalse(longSample.equals(new BufferSample<>(MathTools.clamp(from, 0, bufferProperties2.getSize() - 1),
+                                                          longs,
+                                                          MathTools.clamp(sampleLength, 0, bufferProperties2.getSize()),
+                                                          bufferProperties2)));
          assertFalse(longSample.equals(new BufferSample<>(from, longs, sampleLength + 1, bufferProperties)));
          assertFalse(longSample.equals(new Object()));
 
          assertFalse(byteSample.equals(null));
          assertTrue(byteSample.equals(byteSample));
          assertTrue(byteSample.equals(new BufferSample<>(byteSample)));
-         assertFalse(byteSample.equals(new BufferSample<>(from + 1, bytes, sampleLength, bufferProperties)));
-         assertFalse(byteSample.equals(new BufferSample<>(from, bytes, sampleLength, bufferProperties2)));
+         assertFalse(byteSample.equals(new BufferSample<>(from < bufferProperties.getSize() - 1 ? from + 1 : from - 1, bytes, sampleLength, bufferProperties)));
+         assertFalse(byteSample.equals(new BufferSample<>(MathTools.clamp(from, 0, bufferProperties2.getSize() - 1),
+                                                          bytes,
+                                                          MathTools.clamp(sampleLength, 0, bufferProperties2.getSize()),
+                                                          bufferProperties2)));
          assertFalse(byteSample.equals(new BufferSample<>(from, bytes, sampleLength + 1, bufferProperties)));
          assertFalse(byteSample.equals(new Object()));
 

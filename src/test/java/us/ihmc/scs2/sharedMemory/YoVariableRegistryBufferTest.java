@@ -102,7 +102,7 @@ public class YoVariableRegistryBufferTest
          List<BufferSample<?>> allSamples = new ArrayList<>();
 
          int from = random.nextInt(bufferProperties.getSize());
-         int length = random.nextInt(bufferProperties.getSize());
+         int length = random.nextInt(bufferProperties.getSize() - 1) + 1;
 
          for (YoVariable<?> yoVariable : allYoVariables)
          {
