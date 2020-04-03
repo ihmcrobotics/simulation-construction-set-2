@@ -20,7 +20,7 @@ public class SlopeGroundDefinition extends TerrainObjectDefinition
    {
       super();
       RigidBodyTransform originPose = new RigidBodyTransform();
-      originPose.setRotationPitch(slopeAngle);
+      originPose.getRotation().setToPitchOrientation(slopeAngle);
       originPose.appendTranslation(0.0, 0.0, -0.25);
 
       GeometryDefinition groundGeometryDefinition = new BoxGeometryDefinition(10000.0, 10000.0, 0.50);

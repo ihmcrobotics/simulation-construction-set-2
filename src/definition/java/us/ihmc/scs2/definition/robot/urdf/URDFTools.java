@@ -446,8 +446,8 @@ public class URDFTools
          origin = new URDFOrigin();
 
       RigidBodyTransform rigidBodyTransform = new RigidBodyTransform();
-      rigidBodyTransform.setTranslation(parseVector3D(origin.getXYZ(), DEFAULT_ORIGIN_XYZ));
-      rigidBodyTransform.setRotationEuler(parseVector3D(origin.getRPY(), DEFAULT_ORIGIN_RPY));
+      rigidBodyTransform.getTranslation().set(parseVector3D(origin.getXYZ(), DEFAULT_ORIGIN_XYZ));
+      rigidBodyTransform.getRotation().setEuler(parseVector3D(origin.getRPY(), DEFAULT_ORIGIN_RPY));
       return rigidBodyTransform;
    }
 

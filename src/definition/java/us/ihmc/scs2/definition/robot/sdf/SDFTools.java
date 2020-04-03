@@ -321,7 +321,7 @@ public class SDFTools
             transformToParentJoint.setAndInvert(parentJointPose);
             transformToParentJoint.multiply(jointPose);
 
-            jointDefinition.getTransformToParent().setRotationToZero();
+            jointDefinition.getTransformToParent().getRotation().setToZero();
             parentLinkPose.transform(jointDefinition.getTransformToParent().getTranslation());
 
             RigidBodyDefinition childDefinition = rigidBodyDefinitionMap.get(childSDFLink.getName());
@@ -330,7 +330,7 @@ public class SDFTools
             childLinkPose.transform(comOffset);
             inertiaPose.transform(childDefinition.getMomentOfInertia());
             childLinkPose.transform(childDefinition.getMomentOfInertia());
-            inertiaPose.setRotationToZero();
+            inertiaPose.getRotation().setToZero();
             for (VisualDefinition visualDefinition : childDefinition.getVisualDefinitions())
             {
                RigidBodyTransform visualPose = visualDefinition.getOriginPose();
