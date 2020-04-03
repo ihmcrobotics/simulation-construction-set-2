@@ -122,7 +122,7 @@ public class MobileDefinition extends RobotDefinition implements RobotInitialSta
       RevoluteJointDefinition jointY = new RevoluteJointDefinition(name + "Y");
       RevoluteJointDefinition jointZ = new RevoluteJointDefinition(name + "Z");
 
-      jointX.getTransformToParent().setTranslation(jointOffset);
+      jointX.getTransformToParent().getTranslation().set(jointOffset);
       jointX.getAxis().set(Axis.X);
       jointY.getAxis().set(Axis.Y);
       jointZ.getAxis().set(Axis.Z);
@@ -162,7 +162,7 @@ public class MobileDefinition extends RobotDefinition implements RobotInitialSta
       RigidBodyDefinition crossBar = new RigidBodyDefinition(name);
       crossBar.setMass(mass);
       crossBar.getMomentOfInertia().setToDiagonal(Ixx, Iyy, Izz);
-      crossBar.getInertiaPose().setTranslation(0.0, 0.0, -length / 2.0);
+      crossBar.getInertiaPose().getTranslation().set(0.0, 0.0, -length / 2.0);
       parentJoint.setSuccessor(crossBar);
 
       MaterialDefinition redMaterial = new MaterialDefinition(ColorDefinitions.Red());
@@ -205,11 +205,11 @@ public class MobileDefinition extends RobotDefinition implements RobotInitialSta
       RigidBodyDefinition toyRigidbody = new RigidBodyDefinition(name);
       toyRigidbody.setMass(M3);
       toyRigidbody.getMomentOfInertia().setToDiagonal(Ixx3, Iyy3, Izz3);
-      toyRigidbody.getInertiaPose().setTranslation(0.0, 0.0, -stringLength);
+      toyRigidbody.getInertiaPose().getTranslation().set(0.0, 0.0, -stringLength);
       parentJoint.setSuccessor(toyRigidbody);
 
       RigidBodyTransform barVisualPose = new RigidBodyTransform();
-      barVisualPose.setTranslationZ(-stringLength / 2.0);
+      barVisualPose.getTranslation().setZ(-stringLength / 2.0);
       GeometryDefinition barGeometryDefinition = new CylinderGeometryDefinition(stringLength, R3);
       toyRigidbody.addVisualDefinition(new VisualDefinition(barVisualPose, barGeometryDefinition, new MaterialDefinition(ColorDefinitions.Black())));
 
@@ -243,7 +243,7 @@ public class MobileDefinition extends RobotDefinition implements RobotInitialSta
       }
 
       RigidBodyTransform toyVisualPose = new RigidBodyTransform();
-      toyVisualPose.setTranslationZ(-stringLength);
+      toyVisualPose.getTranslation().setZ(-stringLength);
       MaterialDefinition toyMaterialDefinition = new MaterialDefinition(new ColorDefinition(new Random().nextInt()));
       toyRigidbody.addVisualDefinition(new VisualDefinition(toyVisualPose, toyGeometryDefinition, toyMaterialDefinition));
 

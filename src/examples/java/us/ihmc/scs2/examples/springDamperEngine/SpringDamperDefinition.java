@@ -26,7 +26,7 @@ public class SpringDamperDefinition extends RobotDefinition implements RobotInit
 
       BoxGeometryDefinition geometryDefinition = new BoxGeometryDefinition(0.5, 0.5, 0.5);
       RigidBodyTransform visualPose = new RigidBodyTransform();
-      visualPose.setTranslationZ(0.0);
+      visualPose.getTranslation().setZ(0.0);
       MaterialDefinition materialDefinition = new MaterialDefinition(new ColorDefinition(new Random().nextInt()));
       block.addVisualDefinition(new VisualDefinition(visualPose, geometryDefinition, materialDefinition));
 
