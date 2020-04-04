@@ -43,7 +43,7 @@ public class LorenzBallDefinition extends RobotDefinition implements RobotInitia
    {
       SixDoFJointState jointState = new SixDoFJointState();
       Pose3D pose = new Pose3D();
-      pose.setPosition(1.0, 1.0, 1.0);
+      pose.getPosition().set(1.0, 1.0, 1.0);
       jointState.setConfiguration(pose);
       return jointState;
    }
