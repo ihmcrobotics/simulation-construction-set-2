@@ -18,7 +18,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import us.ihmc.euclid.Axis;
+import us.ihmc.euclid.Axis3D;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
@@ -353,8 +353,8 @@ public class URDFTools
 
       Vector3D surfaceNormal = parseAxis(urdfJoint.getAxis());
 
-      if (!surfaceNormal.geometricallyEquals(Axis.Y, 1.0e-5))
-         throw new UnsupportedOperationException("Planar joint are supported only with a surface normal equal to: " + EuclidCoreIOTools.getTuple3DString(Axis.Y)
+      if (!surfaceNormal.geometricallyEquals(Axis3D.Y, 1.0e-5))
+         throw new UnsupportedOperationException("Planar joint are supported only with a surface normal equal to: " + EuclidCoreIOTools.getTuple3DString(Axis3D.Y)
                + ", received:" + surfaceNormal);
 
       return definition;

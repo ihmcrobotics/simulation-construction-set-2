@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.stream.Stream;
 
-import us.ihmc.euclid.Axis;
+import us.ihmc.euclid.Axis3D;
 import us.ihmc.euclid.axisAngle.AxisAngle;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
@@ -123,9 +123,9 @@ public class MobileDefinition extends RobotDefinition implements RobotInitialSta
       RevoluteJointDefinition jointZ = new RevoluteJointDefinition(name + "Z");
 
       jointX.getTransformToParent().getTranslation().set(jointOffset);
-      jointX.getAxis().set(Axis.X);
-      jointY.getAxis().set(Axis.Y);
-      jointZ.getAxis().set(Axis.Z);
+      jointX.getAxis().set(Axis3D.X);
+      jointY.getAxis().set(Axis3D.Y);
+      jointZ.getAxis().set(Axis3D.Z);
 
       predecessor.getChildrenJoints().add(jointX);
       jointX.setSuccessor(jointXBody);
@@ -173,14 +173,14 @@ public class MobileDefinition extends RobotDefinition implements RobotInitialSta
       GeometryDefinition cylinder2 = new CylinderGeometryDefinition(2.0 * length, radius);
 
       RigidBodyTransform verticalBarPose = new RigidBodyTransform(new AxisAngle(), new Vector3D(0.0, 0.0, -0.25 * length));
-      RigidBodyTransform crossBarCenter1 = new RigidBodyTransform(new AxisAngle(Axis.X, 0.5 * Math.PI), new Vector3D(0.0, 0.0, -0.5 * length));
-      RigidBodyTransform crossBarCenter2 = new RigidBodyTransform(new AxisAngle(Axis.Y, 0.5 * Math.PI), new Vector3D(0.0, 0.0, -0.5 * length));
+      RigidBodyTransform crossBarCenter1 = new RigidBodyTransform(new AxisAngle(Axis3D.X, 0.5 * Math.PI), new Vector3D(0.0, 0.0, -0.5 * length));
+      RigidBodyTransform crossBarCenter2 = new RigidBodyTransform(new AxisAngle(Axis3D.Y, 0.5 * Math.PI), new Vector3D(0.0, 0.0, -0.5 * length));
       RigidBodyTransform crossBarTip1 = new RigidBodyTransform(new AxisAngle(), new Vector3D(length, 0.0, -0.5 * length));
-      RigidBodyTransform crossBarTip2 = new RigidBodyTransform(new AxisAngle(Axis.Z, -0.5 * Math.PI), new Vector3D());
+      RigidBodyTransform crossBarTip2 = new RigidBodyTransform(new AxisAngle(Axis3D.Z, -0.5 * Math.PI), new Vector3D());
       crossBarTip2.multiply(crossBarTip1);
-      RigidBodyTransform crossBarTip3 = new RigidBodyTransform(new AxisAngle(Axis.Z, -0.5 * Math.PI), new Vector3D());
+      RigidBodyTransform crossBarTip3 = new RigidBodyTransform(new AxisAngle(Axis3D.Z, -0.5 * Math.PI), new Vector3D());
       crossBarTip3.multiply(crossBarTip2);
-      RigidBodyTransform crossBarTip4 = new RigidBodyTransform(new AxisAngle(Axis.Z, -0.5 * Math.PI), new Vector3D());
+      RigidBodyTransform crossBarTip4 = new RigidBodyTransform(new AxisAngle(Axis3D.Z, -0.5 * Math.PI), new Vector3D());
       crossBarTip4.multiply(crossBarTip3);
 
       crossBar.addVisualDefinition(new VisualDefinition(sphere1, redMaterial));

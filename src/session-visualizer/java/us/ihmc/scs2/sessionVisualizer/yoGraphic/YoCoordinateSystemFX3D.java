@@ -13,7 +13,7 @@ import javafx.scene.shape.MeshView;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
-import us.ihmc.euclid.Axis;
+import us.ihmc.euclid.Axis3D;
 import us.ihmc.euclid.axisAngle.AxisAngle;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.javaFXToolkit.JavaFXTools;
@@ -26,7 +26,7 @@ public class YoCoordinateSystemFX3D extends YoGraphicFX3D
 {
    private static final Color[] axisColors = new Color[] {Color.RED, Color.GREEN, Color.BLUE};
    private static final Rotate[] axisBodyRotates = {new Rotate(-90.0, Rotate.Z_AXIS), null, new Rotate(90.0, Rotate.X_AXIS)};
-   private static final AxisAngle[] axisHeadOrientations = {new AxisAngle(Axis.Y, Math.PI / 2.0), new AxisAngle(Axis.X, -Math.PI / 2.0), new AxisAngle()};
+   private static final AxisAngle[] axisHeadOrientations = {new AxisAngle(Axis3D.Y, Math.PI / 2.0), new AxisAngle(Axis3D.X, -Math.PI / 2.0), new AxisAngle()};
 
    private final Group coordinateSystemNode = new Group();
 
@@ -151,7 +151,7 @@ public class YoCoordinateSystemFX3D extends YoGraphicFX3D
       {
          Cylinder body = new Cylinder(data.bodyRadius, data.bodyLength);
          body.setMaterial(material);
-         body.idProperty().bind(nameProperty.concat(" (").concat(Axis.values[axis].name()).concat("-body)"));
+         body.idProperty().bind(nameProperty.concat(" (").concat(Axis3D.values[axis].name()).concat("-body)"));
 
          if (axisBodyRotates[axis] != null)
             body.getTransforms().add(axisBodyRotates[axis]);
@@ -163,7 +163,7 @@ public class YoCoordinateSystemFX3D extends YoGraphicFX3D
          meshBuilder.addCone(data.headLength, data.headRadius, headPosition, axisHeadOrientations[axis]);
          MeshView head = new MeshView(meshBuilder.generateMesh());
          head.setMaterial(new PhongMaterial(axisColors[axis]));
-         head.idProperty().bind(nameProperty.concat(" (").concat(Axis.values[axis].name()).concat("-head)"));
+         head.idProperty().bind(nameProperty.concat(" (").concat(Axis3D.values[axis].name()).concat("-head)"));
 
          nodes[2 * axis] = body;
          nodes[2 * axis + 1] = head;
