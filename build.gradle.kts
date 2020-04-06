@@ -23,7 +23,7 @@ definitionDependencies {
    api("us.ihmc:euclid:0.13.0")
    api("us.ihmc:ihmc-commons:0.28.2")
    api("us.ihmc:ihmc-yovariables:0.5.0")
-   api("us.ihmc:mecano:0.1.0")
+   api("us.ihmc:mecano:0.3.0")
 }
 
 sharedMemoryDependencies {
@@ -43,7 +43,7 @@ simulationDependencies {
    api(ihmc.sourceSetProject("session"))
    api("us.ihmc:euclid-shape:0.13.0")
    api("us.ihmc:ihmc-messager:0.1.3")
-   api("us.ihmc:mecano-yovariables:0.1.0")
+   api("us.ihmc:mecano-yovariables:0.3.0")
 }
 
 sessionVisualizerDependencies {
