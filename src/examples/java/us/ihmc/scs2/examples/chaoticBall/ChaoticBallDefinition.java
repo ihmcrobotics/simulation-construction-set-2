@@ -26,7 +26,7 @@ public class ChaoticBallDefinition extends RobotDefinition implements RobotIniti
 
       SphereGeometryDefinition geometryDefinition = new SphereGeometryDefinition(0.1);
       RigidBodyTransform visualPose = new RigidBodyTransform();
-      visualPose.setTranslationZ(0.0);
+      visualPose.getTranslation().setZ(0.0);
       VisualDefinition.MaterialDefinition materialDefinition = new VisualDefinition.MaterialDefinition(new ColorDefinition(new Random().nextInt()));
       block.addVisualDefinition(new VisualDefinition(visualPose, geometryDefinition, materialDefinition));
 
@@ -44,7 +44,7 @@ public class ChaoticBallDefinition extends RobotDefinition implements RobotIniti
    {
       SixDoFJointState jointState = new SixDoFJointState();
       Pose3D pose = new Pose3D();
-      pose.setPosition(1.0, 1.0, 1.0);
+      pose.getPosition().set(1.0, 1.0, 1.0);
       jointState.setConfiguration(pose);
       return jointState;
    }

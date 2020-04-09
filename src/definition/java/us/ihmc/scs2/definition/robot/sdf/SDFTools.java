@@ -18,7 +18,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import us.ihmc.euclid.Axis;
+import us.ihmc.euclid.Axis3D;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
@@ -321,7 +321,7 @@ public class SDFTools
             transformToParentJoint.setAndInvert(parentJointPose);
             transformToParentJoint.multiply(jointPose);
 
-            jointDefinition.getTransformToParent().setRotationToZero();
+            jointDefinition.getTransformToParent().getRotation().setToZero();
             parentLinkPose.transform(jointDefinition.getTransformToParent().getTranslation());
 
             RigidBodyDefinition childDefinition = rigidBodyDefinitionMap.get(childSDFLink.getName());
@@ -330,7 +330,7 @@ public class SDFTools
             childLinkPose.transform(comOffset);
             inertiaPose.transform(childDefinition.getMomentOfInertia());
             childLinkPose.transform(childDefinition.getMomentOfInertia());
-            inertiaPose.setRotationToZero();
+            inertiaPose.getRotation().setToZero();
             for (VisualDefinition visualDefinition : childDefinition.getVisualDefinitions())
             {
                RigidBodyTransform visualPose = visualDefinition.getOriginPose();
@@ -392,8 +392,8 @@ public class SDFTools
 
       Vector3D surfaceNormal = parseAxis(sdfJoint.getAxis());
 
-      if (!surfaceNormal.geometricallyEquals(Axis.Y, 1.0e-5))
-         throw new UnsupportedOperationException("Planar joint are supported only with a surface normal equal to: " + EuclidCoreIOTools.getTuple3DString(Axis.Y)
+      if (!surfaceNormal.geometricallyEquals(Axis3D.Y, 1.0e-5))
+         throw new UnsupportedOperationException("Planar joint are supported only with a surface normal equal to: " + EuclidCoreIOTools.getTuple3DString(Axis3D.Y)
                + ", received:" + surfaceNormal);
 
       return definition;

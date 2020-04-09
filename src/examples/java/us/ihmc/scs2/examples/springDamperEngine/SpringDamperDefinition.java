@@ -1,6 +1,6 @@
 package us.ihmc.scs2.examples.springDamperEngine;
 
-import us.ihmc.euclid.Axis;
+import us.ihmc.euclid.Axis3D;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.scs2.definition.geometry.BoxGeometryDefinition;
 import us.ihmc.scs2.definition.robot.PrismaticJointDefinition;
@@ -26,13 +26,13 @@ public class SpringDamperDefinition extends RobotDefinition implements RobotInit
 
       BoxGeometryDefinition geometryDefinition = new BoxGeometryDefinition(0.5, 0.5, 0.5);
       RigidBodyTransform visualPose = new RigidBodyTransform();
-      visualPose.setTranslationZ(0.0);
+      visualPose.getTranslation().setZ(0.0);
       MaterialDefinition materialDefinition = new MaterialDefinition(new ColorDefinition(new Random().nextInt()));
       block.addVisualDefinition(new VisualDefinition(visualPose, geometryDefinition, materialDefinition));
 
       PrismaticJointDefinition slider = new PrismaticJointDefinition("slider");
       slider.setSuccessor(block);
-      slider.getAxis().set(Axis.X);
+      slider.getAxis().set(Axis3D.X);
 
       RigidBodyDefinition elevator = new RigidBodyDefinition("elevator");
       elevator.getChildrenJoints().add(slider);

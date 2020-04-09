@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.stream.Stream;
 
-import us.ihmc.euclid.Axis;
+import us.ihmc.euclid.Axis3D;
 import us.ihmc.euclid.axisAngle.AxisAngle;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
@@ -122,10 +122,10 @@ public class MobileDefinition extends RobotDefinition implements RobotInitialSta
       RevoluteJointDefinition jointY = new RevoluteJointDefinition(name + "Y");
       RevoluteJointDefinition jointZ = new RevoluteJointDefinition(name + "Z");
 
-      jointX.getTransformToParent().setTranslation(jointOffset);
-      jointX.getAxis().set(Axis.X);
-      jointY.getAxis().set(Axis.Y);
-      jointZ.getAxis().set(Axis.Z);
+      jointX.getTransformToParent().getTranslation().set(jointOffset);
+      jointX.getAxis().set(Axis3D.X);
+      jointY.getAxis().set(Axis3D.Y);
+      jointZ.getAxis().set(Axis3D.Z);
 
       predecessor.getChildrenJoints().add(jointX);
       jointX.setSuccessor(jointXBody);
@@ -162,7 +162,7 @@ public class MobileDefinition extends RobotDefinition implements RobotInitialSta
       RigidBodyDefinition crossBar = new RigidBodyDefinition(name);
       crossBar.setMass(mass);
       crossBar.getMomentOfInertia().setToDiagonal(Ixx, Iyy, Izz);
-      crossBar.getInertiaPose().setTranslation(0.0, 0.0, -length / 2.0);
+      crossBar.getInertiaPose().getTranslation().set(0.0, 0.0, -length / 2.0);
       parentJoint.setSuccessor(crossBar);
 
       MaterialDefinition redMaterial = new MaterialDefinition(ColorDefinitions.Red());
@@ -173,14 +173,14 @@ public class MobileDefinition extends RobotDefinition implements RobotInitialSta
       GeometryDefinition cylinder2 = new CylinderGeometryDefinition(2.0 * length, radius);
 
       RigidBodyTransform verticalBarPose = new RigidBodyTransform(new AxisAngle(), new Vector3D(0.0, 0.0, -0.25 * length));
-      RigidBodyTransform crossBarCenter1 = new RigidBodyTransform(new AxisAngle(Axis.X, 0.5 * Math.PI), new Vector3D(0.0, 0.0, -0.5 * length));
-      RigidBodyTransform crossBarCenter2 = new RigidBodyTransform(new AxisAngle(Axis.Y, 0.5 * Math.PI), new Vector3D(0.0, 0.0, -0.5 * length));
+      RigidBodyTransform crossBarCenter1 = new RigidBodyTransform(new AxisAngle(Axis3D.X, 0.5 * Math.PI), new Vector3D(0.0, 0.0, -0.5 * length));
+      RigidBodyTransform crossBarCenter2 = new RigidBodyTransform(new AxisAngle(Axis3D.Y, 0.5 * Math.PI), new Vector3D(0.0, 0.0, -0.5 * length));
       RigidBodyTransform crossBarTip1 = new RigidBodyTransform(new AxisAngle(), new Vector3D(length, 0.0, -0.5 * length));
-      RigidBodyTransform crossBarTip2 = new RigidBodyTransform(new AxisAngle(Axis.Z, -0.5 * Math.PI), new Vector3D());
+      RigidBodyTransform crossBarTip2 = new RigidBodyTransform(new AxisAngle(Axis3D.Z, -0.5 * Math.PI), new Vector3D());
       crossBarTip2.multiply(crossBarTip1);
-      RigidBodyTransform crossBarTip3 = new RigidBodyTransform(new AxisAngle(Axis.Z, -0.5 * Math.PI), new Vector3D());
+      RigidBodyTransform crossBarTip3 = new RigidBodyTransform(new AxisAngle(Axis3D.Z, -0.5 * Math.PI), new Vector3D());
       crossBarTip3.multiply(crossBarTip2);
-      RigidBodyTransform crossBarTip4 = new RigidBodyTransform(new AxisAngle(Axis.Z, -0.5 * Math.PI), new Vector3D());
+      RigidBodyTransform crossBarTip4 = new RigidBodyTransform(new AxisAngle(Axis3D.Z, -0.5 * Math.PI), new Vector3D());
       crossBarTip4.multiply(crossBarTip3);
 
       crossBar.addVisualDefinition(new VisualDefinition(sphere1, redMaterial));
@@ -205,11 +205,11 @@ public class MobileDefinition extends RobotDefinition implements RobotInitialSta
       RigidBodyDefinition toyRigidbody = new RigidBodyDefinition(name);
       toyRigidbody.setMass(M3);
       toyRigidbody.getMomentOfInertia().setToDiagonal(Ixx3, Iyy3, Izz3);
-      toyRigidbody.getInertiaPose().setTranslation(0.0, 0.0, -stringLength);
+      toyRigidbody.getInertiaPose().getTranslation().set(0.0, 0.0, -stringLength);
       parentJoint.setSuccessor(toyRigidbody);
 
       RigidBodyTransform barVisualPose = new RigidBodyTransform();
-      barVisualPose.setTranslationZ(-stringLength / 2.0);
+      barVisualPose.getTranslation().setZ(-stringLength / 2.0);
       GeometryDefinition barGeometryDefinition = new CylinderGeometryDefinition(stringLength, R3);
       toyRigidbody.addVisualDefinition(new VisualDefinition(barVisualPose, barGeometryDefinition, new MaterialDefinition(ColorDefinitions.Black())));
 
@@ -243,7 +243,7 @@ public class MobileDefinition extends RobotDefinition implements RobotInitialSta
       }
 
       RigidBodyTransform toyVisualPose = new RigidBodyTransform();
-      toyVisualPose.setTranslationZ(-stringLength);
+      toyVisualPose.getTranslation().setZ(-stringLength);
       MaterialDefinition toyMaterialDefinition = new MaterialDefinition(new ColorDefinition(new Random().nextInt()));
       toyRigidbody.addVisualDefinition(new VisualDefinition(toyVisualPose, toyGeometryDefinition, toyMaterialDefinition));
 
