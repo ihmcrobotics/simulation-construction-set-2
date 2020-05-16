@@ -72,8 +72,18 @@ sessionVisualizerDependencies {
    api(fileTree(mapOf("dir" to "src/session-visualizer/libs/JavaFXModelImporters", "include" to "*.jar")))
 }
 
+jsDependencies {
+   api(ihmc.sourceSetProject("session"))
+   api(ihmc.sourceSetProject("simulation"))
+   api(ihmc.sourceSetProject("session-visualizer"))
+
+   api("com.google.protobuf:protobuf-java:3.11.4")
+   api("io.javalin:javalin:3.8.0")
+}
+
 examplesDependencies {
    api(ihmc.sourceSetProject("session-visualizer"))
+   api(ihmc.sourceSetProject("js"))
 }
 
 testDependencies {

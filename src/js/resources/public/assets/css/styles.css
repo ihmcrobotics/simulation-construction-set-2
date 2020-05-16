@@ -1,0 +1,13 @@
+.form-control.shape-inputs {
+  width: 90%;
+}
+
+#mainViewportContainer {
+  margin: auto;
+  width: 80%;
+}
+
+#mainViewportCanvas {
+  width: 100%;
+}
+

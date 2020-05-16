@@ -1,0 +1,73 @@
+syntax = "proto3";
+package protobuf;
+
+import "euclid.proto";
+
+option java_package = "us.ihmc.scs2.protobuf";
+option java_outer_classname = "ThreeProto";
+
+message Color {
+   int32 rgba = 1;
+   string webcolor = 2;
+}
+
+message BoxGeometry {
+   protobuf.Vector3D size = 1;
+}
+
+message ConeGeometry {
+   double radius = 1;
+   double height = 2;
+   int32 radial_segments = 3;
+}
+
+message CylinderGeometry {
+   double radius_top = 1;
+   double radius_bottom = 2;
+   double height = 3;
+   int32 radial_segments = 4;
+}
+
+message SphereGeometry {
+   double radius = 1;
+   int32 width_segments = 2;
+   int32 height_segments = 3;
+}
+
+message TorusGeometry {
+   double radius = 1;
+   double tube = 2;
+   int32 radial_segments = 3;
+   int32 tubular_segments = 4;
+   double arc = 5;
+}
+
+message ModelFileGeometry {
+   message SubMesh {
+      string name = 1;
+      bool center = 2;
+   }
+
+   string filename = 1;
+   repeated SubMesh submeshes = 2;
+   repeated string resource_directories = 3;
+   protobuf.Vector3D scale = 4;
+}
+
+message Mesh {
+   string mesh_id = 1;
+   protobuf.Pose3D pose = 2;
+   BoxGeometry boxGeometry = 3;
+   ConeGeometry coneGeometry = 4;
+   CylinderGeometry cylinderGeometry = 5;
+   SphereGeometry sphereGeometry = 6;
+   TorusGeometry torusGeometry = 7;
+   ModelFileGeometry modelFileGeometry = 8;
+   Color color = 9;
+}
+
+message MeshGroup {
+   string group_id = 1;
+   protobuf.Pose3D pose = 2;
+   repeated Mesh meshes = 3;
+}

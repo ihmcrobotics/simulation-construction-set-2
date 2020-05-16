@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package protobuf;
+
+option java_package = "us.ihmc.scs2.protobuf";
+option java_outer_classname = "EuclidProto";
+
+message Vector2D {
+   double x = 1;
+   double y = 2;
+}
+
+message Point2D {
+   double x = 1;
+   double y = 2;
+}
+
+message Orientation2D {
+   double yaw = 1;
+}
+
+message Vector3D {
+   double x = 1;
+   double y = 2;
+   double z = 3;
+}
+
+message Vector4D {
+   double x = 1;
+   double y = 2;
+   double z = 3;
+   double s = 4;
+}
+
+message Point3D {
+   double x = 1;
+   double y = 2;
+   double z = 3;
+}
+
+message Quaternion {
+   double x = 1;
+   double y = 2;
+   double z = 3;
+   double s = 4;
+}
+
+message YawPitchRoll {
+   double yaw = 1;
+   double pitch = 2;
+   double roll = 3;
+}
+
+message AxisAngle {
+   double x = 1;
+   double y = 2;
+   double z = 3;
+   double angle = 4;
+}
+
+message RotationMatrix {
+   double m00 = 1;
+   double m01 = 2;
+   double m02 = 3;
+   double m10 = 4;
+   double m11 = 5;
+   double m12 = 6;
+   double m20 = 7;
+   double m21 = 8;
+   double m22 = 9;
+}
+
+message RigidBodyTransform {
+   RotationMatrix rotation = 1;
+   Vector3D  translation = 2;
+}
+
+message Pose2D {
+   Orientation2D orientation = 1;
+   Point2D position = 2;
+}
+
+message Pose3D {
+   Quaternion orientation = 1;
+   Point3D position = 2;
+}
