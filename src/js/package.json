@@ -1,0 +1,17 @@
+{
+  "name": "js",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "google-closure-library": "^20200504.0.0",
+    "google-protobuf": "^3.12.0",
+    "protoc": "^1.0.4",
+    "three": "^0.116.1"
+  }
+}
