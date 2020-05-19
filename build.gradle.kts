@@ -77,7 +77,7 @@ jsDependencies {
    api(ihmc.sourceSetProject("simulation"))
    api(ihmc.sourceSetProject("session-visualizer"))
 
-   api("com.google.protobuf:protobuf-java:3.11.4")
+   api("com.google.protobuf:protobuf-java:3.12.0")
    api("io.javalin:javalin:3.8.0")
 }
 

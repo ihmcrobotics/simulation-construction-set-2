@@ -19,6 +19,7 @@ public class SlopeGroundDefinition extends TerrainObjectDefinition
    public SlopeGroundDefinition(double slopeAngle)
    {
       super();
+      setName("Ground");
       RigidBodyTransform originPose = new RigidBodyTransform();
       originPose.getRotation().setToPitchOrientation(slopeAngle);
       originPose.appendTranslation(0.0, 0.0, -0.25);

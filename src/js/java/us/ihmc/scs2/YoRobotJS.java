@@ -42,7 +42,7 @@ public class YoRobotJS
       robotLinkedYoVariableRegistry = yoManager.newLinkedYoVariableRegistry(robotRegistry);
       yoManager.linkNewYoVariables();
 
-      JavalinWebsocketHandler handler = javalinManager.webSocket("/viepwort");
+      JavalinWebsocketHandler handler = javalinManager.webSocket("/viewport");
       handler.addOnConnect(ctx -> onSessionOpen(ctx.session));
       handler.addOnClose(ctx -> onSessionClose(ctx.session));
    }
@@ -75,7 +75,7 @@ public class YoRobotJS
             for (RigidBodyJS body : rootBody.subtreeIterable())
             {
                ByteBuffer asReadOnlyByteBuffer = body.getGraphics().getLightMeshGroup().toByteString().asReadOnlyByteBuffer();
-               activeWebSocketSessions.forEach(session -> session.getRemote().sendBytesByFuture(asReadOnlyByteBuffer));
+//               activeWebSocketSessions.forEach(session -> session.getRemote().sendBytesByFuture(asReadOnlyByteBuffer));
             }
          }
       }

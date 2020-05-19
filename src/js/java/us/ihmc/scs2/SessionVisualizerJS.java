@@ -22,7 +22,7 @@ public class SessionVisualizerJS
    public void startSession(Session session, Runnable sessionLoadedCallback)
    {
       multiSessionManager.startSession(session, sessionLoadedCallback);
-//      toolkit.getJavalinManager().startBrowser(); // TODO Not a good place
+      toolkit.getJavalinManager().startBrowser(); // TODO Not a good place
    }
 
    public void stopSession()

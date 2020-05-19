@@ -1,5 +1,5 @@
-var THREE = require("three");
-var messages = require("./protobuf/three_pb");
+const THREE = require("three");
+const THREEMessages = require("./protobuf/three_pb");
 
 var webSocket = new WebSocket(
   "ws://" + location.hostname + ":" + location.port + "/viewport"
@@ -7,7 +7,6 @@ var webSocket = new WebSocket(
 
 webSocket.onopen = function (e) {
   alert("[open] Connection established");
-  alert("Sending to server");
 };
 
 webSocket.onclose = function (event) {
@@ -62,7 +61,6 @@ function resizeCanvasToDisplaySize() {
   if (canvas.width !== width || canvas.height !== height) {
     // you must pass false here or three.js sadly fights the browser
     renderer.setSize(width, height, false);
-    console.info("setting size " + width + ", " + height);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
   }
@@ -92,11 +90,6 @@ function onMouseMove(event) {
     this.tl.to(target.scale, 1, { x: 2, ease: Expo.easeOut });
     this.tl.to(target.scale, 0.5, { x: 0.5, ease: Expo.easeOut });
     this.tl.to(target.position, 0.5, { x: 2.0, ease: Expo.easeOut });
-
-    if (webSocket.OPEN) {
-      console.info("Websocket open! Sending message!");
-      webSocket.send("Yoohoo!");
-    }
   }
 }
 
@@ -112,57 +105,87 @@ requestAnimationFrame(animate);
 
 canvas.addEventListener("click", onMouseMove);
 
-var meshMap = new Map();
+var meshGroupMap = new Map();
 
-webSocket.onmessage = function newMesh(message) {
-  var protoMesh = Mesh.deserializeBinary(message.data);
-  var mesh;
+webSocket.onmessage = function (event) {
+  event.data.arrayBuffer().then((value) => {
+    console.info(value);
+    var protoMeshGroup = THREEMessages.MeshGroup.deserializeBinary(value);
+    console.info(protoMeshGroup);
+    var meshGroup;
 
-  if (!meshMap.has(protoMesh.getMeshId())) {
-    var geometry;
-    if (protoMesh.hasBoxGeometry()) {
-      var protoGeometry = protoMesh.getBoxGeometry();
-      geometry = new THREE.BoxGeometry(
-        protoGeometry.getSizeX(),
-        protoGeometry.getSizeY(),
-        protoGeometry.getZ()
-      );
-    } else if (protoMesh.hasConeGeometry()) {
-      var protoGeometry = protoMesh.getConeGeometry();
-      geometry = new THREE.ConeGeometry(
-        protoGeometry.getRadius(),
-        protoGeometry.getHeight(),
-        protoGeometry.getRadialSegments()
-      );
-    } else if (protoMesh.hasCylinderGeometry()) {
-      var protoGeometry = protoMesh.getCylinderGeometry();
-      geometry = new THREE.CylinderGeometry(
-        protoGeometry.getRadius(),
-        protoGeometry.getHeight(),
-        protoGeometry.getRadialSegments()
-      );
-    } else if (protoMesh.hasSphereGeometry()) {
-      var protoGeometry = protoMesh.getSphereGeometry();
-      geometry = new THREE.SphereGeometry(
-        protoGeometry.getRadius(),
-        protoGeometry.getWidthSegments(),
-        protoGeometry.getHeightSegments()
-      );
-    } else if (protoMesh.hasModelFileGeometry()) {
-      var protoGeometry = protoMesh.getModelFileGeometry();
-      console.error("Unsupport model file.");
-      return;
+    if (!meshGroupMap.has(protoMeshGroup.getGroupId())) {
+      meshGroup = new THREE.Group();
+      protoMeshGroup.getMeshesList().forEach((protoMesh) => {
+        meshGroup.add(newProtoMesh(protoMesh));
+      });
+      scene.add(meshGroup);
+    } else {
+      meshGroup = meshGroupMap.get(proto.getGroupId());
     }
 
-    var material = new THREE.MeshLambertMaterial({
-      color: protoMesh.getColor().getWebColor(),
-    });
-    mesh = new THREE.Mesh(geometry, material);
-    scene.add(mesh);
-    meshMap.set(proto.getMeshId(), mesh);
-  } else {
-    mesh = mesh.get(protoMesh.getMeshId());
+    if (protoMeshGroup.hasPose()) {
+      var protoPose = protoMeshGroup.getPose();
+
+      if (protoPose.hasOrientation()) {
+        var protoOrientation = protoPose.getOrientation();
+        meshGroup.quaternion.x = protoOrientation.getX();
+        meshGroup.quaternion.x = protoOrientation.getY();
+        meshGroup.quaternion.x = protoOrientation.getZ();
+        meshGroup.quaternion.x = protoOrientation.getS();
+      }
+
+      if (protoPose.hasPosition()) {
+        var protoPosition = protoPose.getPosition();
+        meshGroup.position.x = protoPosition.getX();
+        meshGroup.position.y = protoPosition.getY();
+        meshGroup.position.z = protoPosition.getZ();
+      }
+    }
+  });
+};
+
+function newProtoMesh(protoMesh) {
+  console.info(protoMesh);
+  var geometry;
+  if (protoMesh.hasBoxgeometry()) {
+    var protoGeometry = protoMesh.getBoxgeometry();
+    geometry = new THREE.BoxGeometry(
+      protoGeometry.getSize().getX(),
+      protoGeometry.getSize().getY(),
+      protoGeometry.getSize().getZ()
+    );
+  } else if (protoMesh.hasConegeometry()) {
+    var protoGeometry = protoMesh.getConegeometry();
+    geometry = new THREE.ConeGeometry(
+      protoGeometry.getRadius(),
+      protoGeometry.getHeight(),
+      protoGeometry.getRadialSegments()
+    );
+  } else if (protoMesh.hasCylindergeometry()) {
+    var protoGeometry = protoMesh.getCylindergeometry();
+    geometry = new THREE.CylinderGeometry(
+      protoGeometry.getRadius(),
+      protoGeometry.getHeight(),
+      protoGeometry.getRadialSegments()
+    );
+  } else if (protoMesh.hasSpheregeometry()) {
+    var protoGeometry = protoMesh.getSpheregeometry();
+    geometry = new THREE.SphereGeometry(
+      protoGeometry.getRadius(),
+      protoGeometry.getWidthSegments(),
+      protoGeometry.getHeightSegments()
+    );
+  } else if (protoMesh.hasModelfilegeometry()) {
+    var protoGeometry = protoMesh.getModelfilegeometry();
+    console.error("Unsupport model file.");
+    return;
   }
+
+  var material = new THREE.MeshLambertMaterial({
+    color: protoMesh.getColor().getWebcolor(),
+  });
+  mesh = new THREE.Mesh(geometry, material);
 
   if (protoMesh.hasPose()) {
     var protoPose = protoMesh.getPose();
@@ -182,4 +205,6 @@ webSocket.onmessage = function newMesh(message) {
       mesh.position.z = protoPosition.getZ();
     }
   }
-};
+
+  return mesh;
+}

@@ -47,8 +47,8 @@ public class JavalinManager
       if (handler == null)
       {
          handler = new JavalinWebsocketHandler();
-//         handlers.put(path, handler);
-//         app.ws(path, handler.setupAsWsHandlerConsumer());
+         handlers.put(path, handler);
+         app.ws(path, handler.setupAsWsHandlerConsumer());
       }
       return handler;
    }
