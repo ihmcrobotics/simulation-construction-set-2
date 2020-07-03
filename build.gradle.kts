@@ -75,7 +75,7 @@ sessionVisualizerDependencies {
    api("de.jensd:fontawesomefx-materialicons:2.2.0-9.1.2")
    api("de.jensd:fontawesomefx-materialdesignfont:2.0.26-9.1.2")
    api("de.jensd:fontawesomefx-fontawesome:4.7.0-9.1.2")
-   api("com.jfoenix:jfoenix:9.0.9")
+   api("com.jfoenix:jfoenix:9.0.10")
    api("org.apache.commons:commons-text:1.9")
    api("de.gsi.chart:chartfx-chart:11.1.2")
 
