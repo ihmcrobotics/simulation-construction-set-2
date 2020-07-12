@@ -86,7 +86,7 @@ public class JavaFXRigidBody implements RigidBodyBasics
    }
 
    @Override
-   public List<? extends JointBasics> getChildrenJoints()
+   public List<JointBasics> getChildrenJoints()
    {
       return rigidBody.getChildrenJoints();
    }

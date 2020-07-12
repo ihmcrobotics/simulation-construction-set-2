@@ -1,6 +1,6 @@
 package us.ihmc.scs2.definition.state.interfaces;
 
-import org.ejml.data.DenseMatrix64F;
+import org.ejml.data.DMatrix;
 
 import us.ihmc.euclid.geometry.interfaces.Pose3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
@@ -24,7 +24,7 @@ public interface SixDoFJointStateReadOnly extends JointStateReadOnly
    Vector3DReadOnly getForce();
 
    @Override
-   default int getConfiguration(int startRow, DenseMatrix64F configurationToPack)
+   default int getConfiguration(int startRow, DMatrix configurationToPack)
    {
       getConfiguration().getOrientation().get(startRow, configurationToPack);
       startRow += 4;
@@ -33,7 +33,7 @@ public interface SixDoFJointStateReadOnly extends JointStateReadOnly
    }
 
    @Override
-   default int getVelocity(int startRow, DenseMatrix64F velocityToPack)
+   default int getVelocity(int startRow, DMatrix velocityToPack)
    {
       getAngularVelocity().get(startRow, velocityToPack);
       startRow += 3;
@@ -42,7 +42,7 @@ public interface SixDoFJointStateReadOnly extends JointStateReadOnly
    }
 
    @Override
-   default int getAcceleration(int startRow, DenseMatrix64F accelerationToPack)
+   default int getAcceleration(int startRow, DMatrix accelerationToPack)
    {
       getAngularAcceleration().get(startRow, accelerationToPack);
       startRow += 3;
@@ -51,7 +51,7 @@ public interface SixDoFJointStateReadOnly extends JointStateReadOnly
    }
 
    @Override
-   default int getEffort(int startRow, DenseMatrix64F effortToPack)
+   default int getEffort(int startRow, DMatrix effortToPack)
    {
       getTorque().get(startRow, effortToPack);
       startRow += 3;
