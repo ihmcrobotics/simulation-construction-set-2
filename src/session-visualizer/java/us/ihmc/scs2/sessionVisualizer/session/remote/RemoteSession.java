@@ -40,7 +40,7 @@ public class RemoteSession extends Session
       sessionName = yoVariableClientInterface.getServerName();
 
       rootRegistry.addChild(handshakeParser.getRootRegistry());
-      rootRegistry.addChild(debugRegistry.getYoVariableRegistry());
+      rootRegistry.addChild(debugRegistry.getYoRegistry());
 
       RobotDefinition robotDefinition = RobotModelLoader.loadModel(handshake.getModelName(),
                                                                    handshake.getResourceDirectories(),

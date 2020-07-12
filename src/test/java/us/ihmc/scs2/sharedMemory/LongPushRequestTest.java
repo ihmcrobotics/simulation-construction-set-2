@@ -6,23 +6,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Random;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoLong;
-import us.ihmc.yoVariables.variable.YoVariable;
 
 public class LongPushRequestTest
 {
    private static final int ITERATIONS = 1000;
-
-   @BeforeAll
-   public static void disableStackTrace()
-   {
-      YoVariable.SAVE_STACK_TRACE = false;
-   }
 
    @Test
    public void testPush()
@@ -31,7 +23,7 @@ public class LongPushRequestTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoLong bufferYoLong = YoRandomTools.nextYoLong(random, new YoVariableRegistry("Dummy"));
+         YoLong bufferYoLong = YoRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
          long valueToPush = random.nextLong();
 
          long currentValue = bufferYoLong.getValue();

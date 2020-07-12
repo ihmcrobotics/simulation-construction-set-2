@@ -19,7 +19,7 @@ import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.scs2.sessionVisualizer.controllers.RegularExpression;
 import us.ihmc.scs2.sessionVisualizer.controllers.yoComposite.search.SearchEngines;
 import us.ihmc.yoVariables.dataBuffer.YoVariableHolder;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.util.YoFrameVariableNameTools;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -35,22 +35,22 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoVariableTools
 {
-   public static long hashCode(YoVariableRegistry registry)
+   public static long hashCode(YoRegistry registry)
    {
       long hashCode = 1L;
-      for (YoVariable<?> yoVariable : registry.getAllVariablesIncludingDescendants())
+      for (YoVariable yoVariable : registry.subtreeVariables())
       {
          hashCode = 31L * hashCode + hashCode(yoVariable);
       }
       return hashCode;
    }
 
-   public static long hashCode(YoVariable<?> yoVariable)
+   public static long hashCode(YoVariable yoVariable)
    {
-      return yoVariable.getFullNameWithNameSpace().hashCode();
+      return yoVariable.getFullNameString().hashCode();
    }
 
-   public static <V extends YoVariable<?>> List<V> sortYoVariablesByName(Collection<V> yoVariablesToSort)
+   public static <V extends YoVariable> List<V> sortYoVariablesByName(Collection<V> yoVariablesToSort)
    {
       return sortByName(yoVariablesToSort, YoVariable::getName);
    }
@@ -60,7 +60,7 @@ public class YoVariableTools
       return collection.stream().sorted((e1, e2) -> nameGetter.apply(e1).compareTo(nameGetter.apply(e2))).collect(Collectors.toList());
    }
 
-   public static List<YoFrameTuple2D> searchYoTuple2Ds(Collection<? extends YoVariable<?>> yoVariablesToSearch, ReferenceFrame tuplesFrame)
+   public static List<YoFrameTuple2D> searchYoTuple2Ds(Collection<? extends YoVariable> yoVariablesToSearch, ReferenceFrame tuplesFrame)
    {
       String axisName = "x";
       List<YoDouble> yoDoubles = yoVariablesToSearch.stream().filter(YoDouble.class::isInstance).map(v -> (YoDouble) v).collect(Collectors.toList());
@@ -102,7 +102,7 @@ public class YoVariableTools
       return foundYoTuple2Ds;
    }
 
-   public static List<YoFrameTuple3D> searchYoTuple3Ds(Collection<? extends YoVariable<?>> yoVariablesToSearch, ReferenceFrame tuplesFrame)
+   public static List<YoFrameTuple3D> searchYoTuple3Ds(Collection<? extends YoVariable> yoVariablesToSearch, ReferenceFrame tuplesFrame)
    {
       String axisName = "x";
       List<YoDouble> yoDoubles = yoVariablesToSearch.stream().filter(YoDouble.class::isInstance).map(v -> (YoDouble) v).collect(Collectors.toList());
@@ -143,7 +143,7 @@ public class YoVariableTools
       return foundYoTuple3Ds;
    }
 
-   public static List<YoFrameQuaternion> searchYoQuaternions(Collection<? extends YoVariable<?>> yoVariablesToSearch, ReferenceFrame tuplesFrame)
+   public static List<YoFrameQuaternion> searchYoQuaternions(Collection<? extends YoVariable> yoVariablesToSearch, ReferenceFrame tuplesFrame)
    {
       String axisName = "x";
       List<YoDouble> yoDoubles = yoVariablesToSearch.stream().filter(YoDouble.class::isInstance).map(v -> (YoDouble) v).collect(Collectors.toList());
@@ -184,7 +184,7 @@ public class YoVariableTools
       return foundYoTuple3Ds;
    }
 
-   public static boolean doesYoFrameTuple2DExist(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable<?>> yoVariablesToSearch)
+   public static boolean doesYoFrameTuple2DExist(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch)
    {
       return findYoFramePoint2D(nameSpace, prefix, suffix, yoVariablesToSearch, null) != null;
    }
@@ -194,7 +194,7 @@ public class YoVariableTools
       return findYoFramePoint2D(nameSpace, prefix, suffix, yoVariableHolder, null) != null;
    }
 
-   public static boolean doesYoFrameTuple3DExist(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable<?>> yoVariablesToSearch)
+   public static boolean doesYoFrameTuple3DExist(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch)
    {
       return findYoFramePoint3D(nameSpace, prefix, suffix, yoVariablesToSearch, null) != null;
    }
@@ -204,7 +204,7 @@ public class YoVariableTools
       return findYoFramePoint3D(nameSpace, prefix, suffix, yoVariableHolder, null) != null;
    }
 
-   public static boolean doesYoFrameQuaternionExist(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable<?>> yoVariablesToSearch)
+   public static boolean doesYoFrameQuaternionExist(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch)
    {
       return findYoFrameQuaternion(nameSpace, prefix, suffix, yoVariablesToSearch, null) != null;
    }
@@ -214,7 +214,7 @@ public class YoVariableTools
       return findYoFrameQuaternion(nameSpace, prefix, suffix, yoVariableHolder, null) != null;
    }
 
-   public static YoFramePoint2D findYoFramePoint2D(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable<?>> yoVariablesToSearch,
+   public static YoFramePoint2D findYoFramePoint2D(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch,
                                                    ReferenceFrame tupleFrame)
    {
       YoDouble x = findYoDouble(nameSpace, YoFrameVariableNameTools.createXName(prefix, suffix), yoVariablesToSearch);
@@ -237,7 +237,7 @@ public class YoVariableTools
       return new YoFramePoint2D(x, y, tupleFrame);
    }
 
-   public static YoFrameVector2D findYoFrameVector2D(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable<?>> yoVariablesToSearch,
+   public static YoFrameVector2D findYoFrameVector2D(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch,
                                                      ReferenceFrame tupleFrame)
    {
       YoDouble x = findYoDouble(nameSpace, YoFrameVariableNameTools.createXName(prefix, suffix), yoVariablesToSearch);
@@ -261,7 +261,7 @@ public class YoVariableTools
       return new YoFrameVector2D(x, y, tupleFrame);
    }
 
-   public static YoFramePoint3D findYoFramePoint3D(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable<?>> yoVariablesToSearch,
+   public static YoFramePoint3D findYoFramePoint3D(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch,
                                                    ReferenceFrame tupleFrame)
    {
       YoDouble x = findYoDouble(nameSpace, YoFrameVariableNameTools.createXName(prefix, suffix), yoVariablesToSearch);
@@ -290,7 +290,7 @@ public class YoVariableTools
       return new YoFramePoint3D(x, y, z, tupleFrame);
    }
 
-   public static YoFrameVector3D findYoFrameVector3D(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable<?>> yoVariablesToSearch,
+   public static YoFrameVector3D findYoFrameVector3D(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch,
                                                      ReferenceFrame tupleFrame)
    {
       YoDouble x = findYoDouble(nameSpace, YoFrameVariableNameTools.createXName(prefix, suffix), yoVariablesToSearch);
@@ -320,8 +320,8 @@ public class YoVariableTools
       return new YoFrameVector3D(x, y, z, tupleFrame);
    }
 
-   public static YoFrameQuaternion findYoFrameQuaternion(String nameSpace, String prefix, String suffix,
-                                                         Collection<? extends YoVariable<?>> yoVariablesToSearch, ReferenceFrame tupleFrame)
+   public static YoFrameQuaternion findYoFrameQuaternion(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch,
+                                                         ReferenceFrame tupleFrame)
    {
       YoDouble qx = findYoDouble(nameSpace, YoFrameVariableNameTools.createQxName(prefix, suffix), yoVariablesToSearch);
       if (qx == null)
@@ -361,7 +361,7 @@ public class YoVariableTools
       return findYoVariable(namespace, name, YoDouble.class, yoVariableHolder);
    }
 
-   public static YoDouble findYoDouble(String namespace, String name, Collection<? extends YoVariable<?>> yoVariablesToSearch)
+   public static YoDouble findYoDouble(String namespace, String name, Collection<? extends YoVariable> yoVariablesToSearch)
    {
       return findYoVariable(namespace, name, YoDouble.class, yoVariablesToSearch);
    }
@@ -371,7 +371,7 @@ public class YoVariableTools
       return findYoVariable(namespace, name, YoInteger.class, yoVariableHolder);
    }
 
-   public static YoInteger findYoInteger(String namespace, String name, Collection<? extends YoVariable<?>> yoVariablesToSearch)
+   public static YoInteger findYoInteger(String namespace, String name, Collection<? extends YoVariable> yoVariablesToSearch)
    {
       return findYoVariable(namespace, name, YoInteger.class, yoVariablesToSearch);
    }
@@ -381,17 +381,16 @@ public class YoVariableTools
       return findYoVariable(namespace, name, YoBoolean.class, yoVariableHolder);
    }
 
-   public static YoBoolean findYoBoolean(String namespace, String name, Collection<? extends YoVariable<?>> yoVariablesToSearch)
+   public static YoBoolean findYoBoolean(String namespace, String name, Collection<? extends YoVariable> yoVariablesToSearch)
    {
       return findYoVariable(namespace, name, YoBoolean.class, yoVariablesToSearch);
    }
 
    @SuppressWarnings("unchecked")
-   public static <T extends YoVariable<T>> T findYoVariable(String namespace, String name, Class<T> clazz,
-                                                            Collection<? extends YoVariable<?>> yoVariablesToSearch)
+   public static <T extends YoVariable> T findYoVariable(String namespace, String name, Class<T> clazz, Collection<? extends YoVariable> yoVariablesToSearch)
    {
-      YoVariable<?> uncheckedVariable = yoVariablesToSearch.stream().filter(v -> v.getName().equals(name))
-                                                           .filter(v -> v.getNameSpace().toString().equals(namespace)).findFirst().orElse(null);
+      YoVariable uncheckedVariable = yoVariablesToSearch.stream().filter(v -> v.getName().equals(name))
+                                                        .filter(v -> v.getNameSpace().toString().equals(namespace)).findFirst().orElse(null);
       if (uncheckedVariable == null)
          return null;
       if (!clazz.isInstance(uncheckedVariable))
@@ -400,9 +399,9 @@ public class YoVariableTools
    }
 
    @SuppressWarnings("unchecked")
-   public static <T extends YoVariable<T>> T findYoVariable(String namespace, String name, Class<T> clazz, YoVariableHolder yoVariableHolder)
+   public static <T extends YoVariable> T findYoVariable(String namespace, String name, Class<T> clazz, YoVariableHolder yoVariableHolder)
    {
-      YoVariable<?> uncheckedVariable = yoVariableHolder.getVariable(namespace, name);
+      YoVariable uncheckedVariable = yoVariableHolder.findVariable(namespace, name);
       if (uncheckedVariable == null)
          return null;
       if (!clazz.isInstance(uncheckedVariable))

@@ -5,22 +5,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Random;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.commons.RandomNumbers;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoMirroredRegistryToolsTest
 {
    private static final int ITERATIONS = 100;
-
-   @BeforeAll
-   private static void disableStacktrace()
-   {
-      YoVariable.SAVE_STACK_TRACE = false;
-   }
 
    @Test
    public void testDuplicateMissingYoVariablesInTarget()
@@ -30,15 +23,15 @@ public class YoMirroredRegistryToolsTest
       for (int i = 0; i < ITERATIONS; i++)
       { // Test with single registry
          int numberOfVariables = RandomNumbers.nextInt(random, 0, 100);
-         YoVariableRegistry original = YoRandomTools.nextYoVariableRegistry(random, numberOfVariables);
-         YoVariableRegistry target = new YoVariableRegistry(YoRandomTools.nextAlphanumericString(random, 1, 50));
+         YoRegistry original = YoRandomTools.nextYoRegistry(random, numberOfVariables);
+         YoRegistry target = new YoRegistry(YoRandomTools.nextAlphanumericString(random, 1, 50));
          int numberOfYoVariablesCreated = YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(original, target);
 
          assertEquals(numberOfVariables, numberOfYoVariablesCreated);
 
-         for (YoVariable<?> originalVariable : original.getAllVariablesInThisListOnly())
+         for (YoVariable originalVariable : original.getVariables())
          {
-            YoVariable<?> targetVariable = target.getVariable(originalVariable.getName());
+            YoVariable targetVariable = target.findVariable(originalVariable.getName());
             assertNotNull(targetVariable);
             assertEquals(originalVariable.getClass(), targetVariable.getClass());
          }
@@ -47,22 +40,22 @@ public class YoMirroredRegistryToolsTest
       for (int i = 0; i < ITERATIONS; i++)
       { // Test duplicating entire registry tree
          int numberOfVariables = RandomNumbers.nextInt(random, 0, 100);
-         YoVariableRegistry originalRoot = YoRandomTools.nextYoVariableRegistryTree(random, numberOfVariables, 50)[0];
-         YoVariableRegistry targetRoot = new YoVariableRegistry(originalRoot.getName());
+         YoRegistry originalRoot = YoRandomTools.nextYoRegistryTree(random, numberOfVariables, 50)[0];
+         YoRegistry targetRoot = new YoRegistry(originalRoot.getName());
          int numberOfYoVariablesCreated = YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(originalRoot, targetRoot);
 
-         assertEquals(originalRoot.getAllVariables().size(), numberOfYoVariablesCreated);
+         assertEquals(originalRoot.subtreeVariables().size(), numberOfYoVariablesCreated);
 
-         for (YoVariableRegistry originalRegistry : originalRoot.getAllRegistriesIncludingChildren())
+         for (YoRegistry originalRegistry : originalRoot.subtreeRegistries())
          {
-            YoVariableRegistry targetRegistry = targetRoot.getRegistry(originalRegistry.getNameSpace());
+            YoRegistry targetRegistry = targetRoot.findRegistry(originalRegistry.getNameSpace());
             assertNotNull(targetRegistry);
-            assertEquals(originalRegistry.getNumberOfYoVariables(), targetRegistry.getNumberOfYoVariables());
+            assertEquals(originalRegistry.getNumberOfVariables(), targetRegistry.getNumberOfVariables());
          }
 
-         for (YoVariable<?> originalVariable : originalRoot.getAllVariables())
+         for (YoVariable originalVariable : originalRoot.subtreeVariables())
          {
-            YoVariable<?> targetVariable = targetRoot.getVariable(originalVariable.getNameSpace().toString(), originalVariable.getName());
+            YoVariable targetVariable = targetRoot.findVariable(originalVariable.getNameSpace().toString(), originalVariable.getName());
             assertNotNull(targetVariable);
             assertEquals(originalVariable.getClass(), targetVariable.getClass());
          }
@@ -71,8 +64,8 @@ public class YoMirroredRegistryToolsTest
       for (int i = 0; i < ITERATIONS; i++)
       { // Test completing single registry
          int numberOfVariables = RandomNumbers.nextInt(random, 0, 50);
-         YoVariableRegistry original = YoRandomTools.nextYoVariableRegistry(random, numberOfVariables);
-         YoVariableRegistry target = new YoVariableRegistry(YoRandomTools.nextAlphanumericString(random, 1, 50));
+         YoRegistry original = YoRandomTools.nextYoRegistry(random, numberOfVariables);
+         YoRegistry target = new YoRegistry(YoRandomTools.nextAlphanumericString(random, 1, 50));
          YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(original, target);
 
          int numberOfMissingVariables = RandomNumbers.nextInt(random, 0, 50);
@@ -81,9 +74,9 @@ public class YoMirroredRegistryToolsTest
          int numberOfYoVariablesCreated = YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(original, target);
          assertEquals(numberOfMissingVariables, numberOfYoVariablesCreated);
 
-         for (YoVariable<?> originalVariable : original.getAllVariablesInThisListOnly())
+         for (YoVariable originalVariable : original.getVariables())
          {
-            YoVariable<?> targetVariable = target.getVariable(originalVariable.getName());
+            YoVariable targetVariable = target.findVariable(originalVariable.getName());
             assertNotNull(targetVariable);
             assertEquals(originalVariable.getClass(), targetVariable.getClass());
          }
@@ -92,9 +85,9 @@ public class YoMirroredRegistryToolsTest
       for (int i = 0; i < ITERATIONS; i++)
       { // Test completing registry tree
          int numberOfVariables = RandomNumbers.nextInt(random, 0, 50);
-         YoVariableRegistry[] originalRegistries = YoRandomTools.nextYoVariableRegistryTree(random, numberOfVariables, 25);
-         YoVariableRegistry originalRoot = originalRegistries[0];
-         YoVariableRegistry targetRoot = new YoVariableRegistry(originalRoot.getName());
+         YoRegistry[] originalRegistries = YoRandomTools.nextYoRegistryTree(random, numberOfVariables, 25);
+         YoRegistry originalRoot = originalRegistries[0];
+         YoRegistry targetRoot = new YoRegistry(originalRoot.getName());
          YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(originalRoot, targetRoot);
 
          int numberOfMissingVariables = 0;
@@ -102,8 +95,8 @@ public class YoMirroredRegistryToolsTest
          for (int j = 0; j < 25; j++)
          {
             int n = RandomNumbers.nextInt(random, 0, 50);
-            YoVariableRegistry parent = originalRegistries[random.nextInt(originalRegistries.length)];
-            YoVariableRegistry registry = YoRandomTools.nextYoVariableRegistry(random, YoRandomTools.nextAvailableRegistryName(random, 1, 50, parent), n);
+            YoRegistry parent = originalRegistries[random.nextInt(originalRegistries.length)];
+            YoRegistry registry = YoRandomTools.nextYoRegistry(random, YoRandomTools.nextAvailableRegistryName(random, 1, 50, parent), n);
             parent.addChild(registry);
             numberOfMissingVariables += n;
          }
@@ -111,16 +104,16 @@ public class YoMirroredRegistryToolsTest
          int numberOfYoVariablesCreated = YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(originalRoot, targetRoot);
          assertEquals(numberOfMissingVariables, numberOfYoVariablesCreated);
 
-         for (YoVariableRegistry originalRegistry : originalRoot.getAllRegistriesIncludingChildren())
+         for (YoRegistry originalRegistry : originalRoot.subtreeRegistries())
          {
-            YoVariableRegistry targetRegistry = targetRoot.getRegistry(originalRegistry.getNameSpace());
+            YoRegistry targetRegistry = targetRoot.findRegistry(originalRegistry.getNameSpace());
             assertNotNull(targetRegistry);
-            assertEquals(originalRegistry.getNumberOfYoVariables(), targetRegistry.getNumberOfYoVariables());
+            assertEquals(originalRegistry.getNumberOfVariables(), targetRegistry.getNumberOfVariables());
          }
 
-         for (YoVariable<?> originalVariable : originalRoot.getAllVariables())
+         for (YoVariable originalVariable : originalRoot.subtreeVariables())
          {
-            YoVariable<?> targetVariable = targetRoot.getVariable(originalVariable.getNameSpace().toString(), originalVariable.getName());
+            YoVariable targetVariable = targetRoot.findVariable(originalVariable.getNameSpace().toString(), originalVariable.getName());
             assertNotNull(targetVariable);
             assertEquals(originalVariable.getClass(), targetVariable.getClass());
          }

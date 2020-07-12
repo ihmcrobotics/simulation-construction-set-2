@@ -20,11 +20,11 @@ import us.ihmc.mecano.spatial.interfaces.WrenchReadOnly;
 import us.ihmc.scs2.simulation.physicsEngine.EnvironmentPhysicsEnginePlugin;
 import us.ihmc.scs2.simulation.physicsEngine.ExternalInteractionProvider;
 import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngine.RobotPhysicsEngine;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class DefaultCollisionManagerPlugin implements EnvironmentPhysicsEnginePlugin
 {
-   private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
+   private final YoRegistry registry = new YoRegistry(getClass().getSimpleName());
    private final int numberOfCollisionsToVisualize = 5;
    private final List<YoCollisionResult> yoCollisionResults = new ArrayList<>();
 
@@ -262,7 +262,7 @@ public class DefaultCollisionManagerPlugin implements EnvironmentPhysicsEnginePl
    }
 
    @Override
-   public YoVariableRegistry getYoVariableRegistry()
+   public YoRegistry getYoRegistry()
    {
       return registry;
    }

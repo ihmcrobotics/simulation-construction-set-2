@@ -15,7 +15,7 @@ import us.ihmc.log.LogTools;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.yoComposite.YoCompositeTools;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class YoSearchTabPaneController
 {
@@ -27,7 +27,7 @@ public class YoSearchTabPaneController
    private YoCompositeSearchPaneController mainYoCompositeSearchPaneController;
 
    private SessionVisualizerToolkit toolkit;
-   private final Map<YoVariableRegistry, Tab> registryTabs = new HashMap<>();
+   private final Map<YoRegistry, Tab> registryTabs = new HashMap<>();
 
    public void initialize(SessionVisualizerToolkit toolkit)
    {
@@ -49,7 +49,7 @@ public class YoSearchTabPaneController
             return;
          try
          {
-            YoVariableRegistry registry = toolkit.getYoManager().getRootRegistry().getRegistry(newRequest);
+            YoRegistry registry = toolkit.getYoManager().getRootRegistry().findRegistry(newRequest);
             openRegistryTab(registry, -1);
          }
          catch (RuntimeException e)
@@ -71,7 +71,7 @@ public class YoSearchTabPaneController
       mainYoCompositeSearchPaneController.stop();
    }
 
-   private void openRegistryTab(YoVariableRegistry registry, int tabIndex)
+   private void openRegistryTab(YoRegistry registry, int tabIndex)
    {
       if (registryTabs.containsKey(registry))
       {

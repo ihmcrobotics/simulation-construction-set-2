@@ -20,14 +20,14 @@ import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
 import us.ihmc.scs2.simulation.collision.Collidable;
 import us.ihmc.scs2.simulation.collision.CollisionTools;
 import us.ihmc.scs2.simulation.collision.DefaultCollisionManagerPlugin;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class PhysicsEngine
 {
    private final ReferenceFrame rootFrame;
-   private final YoVariableRegistry parentRegistry;
+   private final YoRegistry parentRegistry;
 
-   private final YoVariableRegistry physicsEngineRegistry = new YoVariableRegistry("PhysicsPlugins");
+   private final YoRegistry physicsEngineRegistry = new YoRegistry("PhysicsPlugins");
    private final List<RobotPhysicsEngine> robotPhysicsEngineList = new ArrayList<>();
    private EnvironmentPhysicsEnginePlugin environmentPlugin;
 
@@ -36,13 +36,13 @@ public class PhysicsEngine
 
    private boolean initialize = true;
 
-   public PhysicsEngine(ReferenceFrame rootFrame, YoVariableRegistry parentRegistry)
+   public PhysicsEngine(ReferenceFrame rootFrame, YoRegistry parentRegistry)
    {
       this.rootFrame = rootFrame;
       this.parentRegistry = parentRegistry;
       environmentPlugin = new DefaultCollisionManagerPlugin(rootFrame);
       parentRegistry.addChild(physicsEngineRegistry);
-      physicsEngineRegistry.addChild(environmentPlugin.getYoVariableRegistry());
+      physicsEngineRegistry.addChild(environmentPlugin.getYoRegistry());
    }
 
    public void addRobot(RobotDefinition input, ControllerDefinition robotControllerDefinition, RobotInitialStateProvider initialStateProvider,
@@ -119,7 +119,7 @@ public class PhysicsEngine
       private final ControllerDefinition controllerDefinition;
       private final RobotInitialStateProvider initialStateProvider;
 
-      private final YoVariableRegistry robotRegistry;
+      private final YoRegistry robotRegistry;
       private final YoMultiBodySystem multiBodySystem;
       private final ControllerInput controllerInput;
       private final ControllerOutput controllerOutput;
@@ -136,7 +136,7 @@ public class PhysicsEngine
          this.initialStateProvider = robotInitialStateProvider != null ? robotInitialStateProvider : RobotInitialStateProvider.emptyProvider();
 
          String name = robotDefinition.getName();
-         robotRegistry = new YoVariableRegistry(name);
+         robotRegistry = new YoRegistry(name);
          multiBodySystem = new YoMultiBodySystem(robotDefinition.toMultiBodySystemBasics(rootFrame), rootFrame, robotRegistry);
          controllerInput = new ControllerInput(multiBodySystem);
          controllerOutput = new ControllerOutput(multiBodySystem);
@@ -145,16 +145,16 @@ public class PhysicsEngine
 
          collidables = CollisionTools.extractCollidableRigidBodies(robotDefinition, multiBodySystem.getRootBody());
 
-         if (controller.getYoVariableRegistry() != null)
-            robotRegistry.addChild(controller.getYoVariableRegistry());
+         if (controller.getYoRegistry() != null)
+            robotRegistry.addChild(controller.getYoRegistry());
       }
 
       public void addRobotPhysicsPlugin(RobotPhysicsEnginePlugin plugin)
       {
          plugin.setMultiBodySystem(multiBodySystem);
 
-         if (plugin.getYoVariableRegistry() != null)
-            robotRegistry.addChild(plugin.getYoVariableRegistry());
+         if (plugin.getYoRegistry() != null)
+            robotRegistry.addChild(plugin.getYoRegistry());
          robotPlugins.add(plugin);
       }
 
@@ -214,7 +214,7 @@ public class PhysicsEngine
          return collidables;
       }
 
-      public YoVariableRegistry getRobotRegistry()
+      public YoRegistry getRobotRegistry()
       {
          return robotRegistry;
       }

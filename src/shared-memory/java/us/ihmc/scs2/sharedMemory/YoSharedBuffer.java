@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.scs2.sharedMemory.tools.BufferTools;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 /**
@@ -70,17 +70,17 @@ import us.ihmc.yoVariables.variable.YoVariable;
  */
 public class YoSharedBuffer implements LinkedYoVariableFactory
 {
-   private final YoVariableRegistryBuffer registryBuffer;
+   private final YoRegistryBuffer registryBuffer;
 
    private final ConcurrentLinkedQueue<LinkedBuffer> linkedBuffers = new ConcurrentLinkedQueue<>();
    private final ConcurrentLinkedQueue<LinkedBufferProperties> linkedBufferProperties = new ConcurrentLinkedQueue<>();
 
    private final YoBufferProperties properties = new YoBufferProperties();
 
-   public YoSharedBuffer(YoVariableRegistry rootRegistry, int initialBufferSize)
+   public YoSharedBuffer(YoRegistry rootRegistry, int initialBufferSize)
    {
       properties.setSize(initialBufferSize);
-      registryBuffer = new YoVariableRegistryBuffer(rootRegistry, properties);
+      registryBuffer = new YoRegistryBuffer(rootRegistry, properties);
    }
 
    /**
@@ -442,7 +442,7 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
     * 
     * @return the root registry.
     */
-   public YoVariableRegistry getRootRegistry()
+   public YoRegistry getRootRegistry()
    {
       return registryBuffer.getRootRegistry();
    }
@@ -452,25 +452,25 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
     * 
     * @return the root registry buffer listing the buffer for every {@code YoVariable}.
     */
-   public YoVariableRegistryBuffer getRegistryBuffer()
+   public YoRegistryBuffer getRegistryBuffer()
    {
       return registryBuffer;
    }
 
    @Override
-   public LinkedYoVariableRegistry newLinkedYoVariableRegistry(YoVariableRegistry registryToLink)
+   public LinkedYoRegistry newLinkedYoRegistry(YoRegistry registryToLink)
    {
-      LinkedYoVariableRegistry linkedYoVariableRegistry = registryBuffer.newLinkedYoVariableRegistry(registryToLink);
-      linkedBuffers.add(linkedYoVariableRegistry);
-      return linkedYoVariableRegistry;
+      LinkedYoRegistry linkedYoRegistry = registryBuffer.newLinkedYoRegistry(registryToLink);
+      linkedBuffers.add(linkedYoRegistry);
+      return linkedYoRegistry;
    }
 
    @Override
-   public LinkedYoVariableRegistry newLinkedYoVariableRegistry()
+   public LinkedYoRegistry newLinkedYoRegistry()
    {
-      LinkedYoVariableRegistry linkedYoVariableRegistry = registryBuffer.newLinkedYoVariableRegistry();
-      linkedBuffers.add(linkedYoVariableRegistry);
-      return linkedYoVariableRegistry;
+      LinkedYoRegistry linkedYoRegistry = registryBuffer.newLinkedYoRegistry();
+      linkedBuffers.add(linkedYoRegistry);
+      return linkedYoRegistry;
    }
 
    @Override
@@ -482,9 +482,9 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
    }
 
    @Override
-   public LinkedYoVariable<?> newLinkedYoVariable(YoVariable<?> variableToLink)
+   public LinkedYoVariable newLinkedYoVariable(YoVariable variableToLink)
    {
-      LinkedYoVariable<?> linkedYoVariable = LinkedYoVariable.newLinkedYoVariable(variableToLink, registryBuffer.findYoVariableBuffer(variableToLink));
+      LinkedYoVariable linkedYoVariable = LinkedYoVariable.newLinkedYoVariable(variableToLink, registryBuffer.findYoVariableBuffer(variableToLink));
       linkedBuffers.add(linkedYoVariable);
       return linkedYoVariable;
    }

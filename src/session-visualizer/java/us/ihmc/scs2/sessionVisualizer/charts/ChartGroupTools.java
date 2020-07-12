@@ -34,7 +34,7 @@ public class ChartGroupTools
          for (int i = 0; i < models.size(); i++)
          {
             ChartGroupModel model = models.get(i);
-            Map<ChartIdentifier, List<? extends YoVariable<?>>> layout = new LinkedHashMap<>();
+            Map<ChartIdentifier, List<? extends YoVariable>> layout = new LinkedHashMap<>();
 
             List<ChartIdentifier> chartIdentifiers = model.getChartIdentifiers();
 
@@ -66,7 +66,7 @@ public class ChartGroupTools
       if (yoComposites == null || yoComposites.isEmpty())
          return null;
 
-      List<YoVariable<?>> yoVariables = yoComposites.stream().flatMap(yoComposite -> yoComposite.getYoComponents().stream()).collect(Collectors.toList());
+      List<YoVariable> yoVariables = yoComposites.stream().flatMap(yoComposite -> yoComposite.getYoComponents().stream()).collect(Collectors.toList());
 
       return new ChartGroupLayout("Single", Collections.singletonMap(new ChartIdentifier(0, 0), yoVariables));
    }
@@ -76,7 +76,7 @@ public class ChartGroupTools
       if (yoComposites == null || yoComposites.isEmpty())
          return null;
 
-      Map<ChartIdentifier, List<? extends YoVariable<?>>> layout = new LinkedHashMap<>();
+      Map<ChartIdentifier, List<? extends YoVariable>> layout = new LinkedHashMap<>();
       for (int i = 0; i < yoComposites.size(); i++)
          layout.put(new ChartIdentifier(0, i), yoComposites.get(i).getYoComponents());
       return new ChartGroupLayout("Horizontal", layout);
@@ -87,7 +87,7 @@ public class ChartGroupTools
       if (yoComposites == null || yoComposites.isEmpty())
          return null;
 
-      Map<ChartIdentifier, List<? extends YoVariable<?>>> layout = new LinkedHashMap<>();
+      Map<ChartIdentifier, List<? extends YoVariable>> layout = new LinkedHashMap<>();
       for (int i = 0; i < yoComposites.size(); i++)
          layout.put(new ChartIdentifier(i, 0), yoComposites.get(i).getYoComponents());
       return new ChartGroupLayout("Vertical", layout);

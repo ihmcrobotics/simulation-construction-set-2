@@ -41,8 +41,8 @@ import javafx.collections.ObservableSet;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.session.Session;
-import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
+import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartGroupModel;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartIdentifier;
 import us.ihmc.scs2.sessionVisualizer.tools.JavaFXMissingTools;
@@ -51,7 +51,7 @@ import us.ihmc.scs2.sessionVisualizer.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.yoComposite.YoCompositeCollection;
 import us.ihmc.scs2.sessionVisualizer.yoComposite.YoCompositePattern;
 import us.ihmc.scs2.sessionVisualizer.yoComposite.YoCompositeTools;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoInteger;
@@ -71,7 +71,6 @@ public class YoCompositeSearchManager implements Manager
                                                                                                yoDoublePattern,
                                                                                                yoIntegerPattern,
                                                                                                yoLongPattern));
-   @SuppressWarnings("rawtypes")
    private final Map<YoCompositePattern, Class<? extends YoVariable>> primitivePatternToClass = new HashMap<>();
 
    private final Property<YoCompositeCollection> yoTuple2DCollection = new SimpleObjectProperty<>(this, "yoTuple2DCollectionProperty", null);
@@ -91,7 +90,8 @@ public class YoCompositeSearchManager implements Manager
    private final YoManager yoManager;
    private final BackgroundExecutorManager backgroundExecutorManager;
 
-   public YoCompositeSearchManager(JavaFXMessager messager, SessionVisualizerTopics topics, YoManager yoManager, BackgroundExecutorManager backgroundExecutorManager)
+   public YoCompositeSearchManager(JavaFXMessager messager, SessionVisualizerTopics topics, YoManager yoManager,
+                                   BackgroundExecutorManager backgroundExecutorManager)
    {
       this.yoManager = yoManager;
       this.backgroundExecutorManager = backgroundExecutorManager;
@@ -200,16 +200,14 @@ public class YoCompositeSearchManager implements Manager
 
    public void searchYoCompositeNow(YoCompositePattern pattern)
    {
-      YoVariableRegistry rootRegistry = yoManager.getRootRegistry();
+      YoRegistry rootRegistry = yoManager.getRootRegistry();
 
-      @SuppressWarnings("rawtypes")
       Class<? extends YoVariable> primitiveClass = primitivePatternToClass.get(pattern);
       String type = pattern.getType();
 
       if (primitiveClass != null)
       {
-         List<YoVariable<?>> allYoPrimitives = rootRegistry.getAllVariablesIncludingDescendants().stream().filter(primitiveClass::isInstance)
-                                                           .collect(Collectors.toList());
+         List<YoVariable> allYoPrimitives = rootRegistry.subtreeVariables().stream().filter(primitiveClass::isInstance).collect(Collectors.toList());
          List<YoComposite> result = allYoPrimitives.stream().map(yoVariable -> new YoComposite(pattern, yoVariable)).collect(Collectors.toList());
          YoCompositeCollection collection = new YoCompositeCollection(pattern, result);
 

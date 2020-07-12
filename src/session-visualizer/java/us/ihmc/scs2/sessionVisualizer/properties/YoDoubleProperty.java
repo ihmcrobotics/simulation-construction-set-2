@@ -3,14 +3,14 @@ package us.ihmc.scs2.sessionVisualizer.properties;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.DoublePropertyBase;
 import javafx.beans.property.SimpleDoubleProperty;
-import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoDouble;
 
 public class YoDoubleProperty extends DoublePropertyBase implements YoVariableProperty<YoDouble, Number>
 {
    private final YoDouble yoDouble;
    private final Object bean;
-   private final VariableChangedListener propertyUpdater = v -> pullYoDoubleValue();
+   private final YoVariableChangedListener propertyUpdater = v -> pullYoDoubleValue();
 
    private SimpleDoubleProperty lastUserInput;
 
@@ -24,7 +24,7 @@ public class YoDoubleProperty extends DoublePropertyBase implements YoVariablePr
       this.yoDouble = yoDouble;
       this.bean = bean;
       pullYoDoubleValue();
-      yoDouble.addVariableChangedListener(propertyUpdater);
+      yoDouble.addListener(propertyUpdater);
    }
 
    @Override
@@ -32,7 +32,7 @@ public class YoDoubleProperty extends DoublePropertyBase implements YoVariablePr
    {
       try
       {
-         yoDouble.removeVariableChangedListener(propertyUpdater);
+         yoDouble.removeListener(propertyUpdater);
       }
       finally
       {

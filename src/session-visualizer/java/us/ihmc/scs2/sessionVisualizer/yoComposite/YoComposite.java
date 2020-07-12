@@ -12,16 +12,16 @@ public class YoComposite implements Comparable<YoComposite>
    private final YoCompositePattern pattern;
    private final String name;
    private final NameSpace namespace;
-   private final List<YoVariable<?>> yoComponents;
+   private final List<YoVariable> yoComponents;
 
    private String uniqueName;
 
-   public YoComposite(YoCompositePattern pattern, YoVariable<?> yoVariable)
+   public YoComposite(YoCompositePattern pattern, YoVariable yoVariable)
    {
       this(pattern, yoVariable.getName(), yoVariable.getNameSpace(), Collections.singletonList(yoVariable));
    }
 
-   public YoComposite(YoCompositePattern pattern, String compositeName, NameSpace compositeNamespace, List<YoVariable<?>> yoComponents)
+   public YoComposite(YoCompositePattern pattern, String compositeName, NameSpace compositeNamespace, List<YoVariable> yoComponents)
    {
       this.pattern = pattern;
       this.name = compositeName;
@@ -54,7 +54,7 @@ public class YoComposite implements Comparable<YoComposite>
       return namespace.toString() + "." + name;
    }
 
-   public List<YoVariable<?>> getYoComponents()
+   public List<YoVariable> getYoComponents()
    {
       return yoComponents;
    }

@@ -3,9 +3,9 @@ package us.ihmc.scs2.sharedMemory;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.yoVariables.variable.*;
 
-public abstract class YoVariableBuffer<T extends YoVariable<T>>
+public abstract class YoVariableBuffer<T extends YoVariable>
 {
-   public static YoVariableBuffer<?> newYoVariableBuffer(YoVariable<?> yoVariable, YoBufferPropertiesReadOnly properties)
+   public static YoVariableBuffer<?> newYoVariableBuffer(YoVariable yoVariable, YoBufferPropertiesReadOnly properties)
    {
       if (yoVariable instanceof YoDouble)
          return new YoDoubleBuffer((YoDouble) yoVariable, properties);

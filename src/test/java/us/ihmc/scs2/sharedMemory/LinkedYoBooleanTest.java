@@ -5,21 +5,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Random;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
 import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
-import us.ihmc.yoVariables.variable.YoVariable;
 
 public class LinkedYoBooleanTest extends LinkedYoVariableTest<YoBoolean>
 {
    @Override
    YoBoolean copy(YoBoolean original)
    {
-      YoBoolean copy = new YoBoolean(original.getName() + "Copy", new YoVariableRegistry("Dummy"));
+      YoBoolean copy = new YoBoolean(original.getName() + "Copy", new YoRegistry("Dummy"));
       copy.set(original.getValue());
       return copy;
    }
@@ -27,13 +25,7 @@ public class LinkedYoBooleanTest extends LinkedYoVariableTest<YoBoolean>
    @Override
    YoBoolean nextYoVariable(Random random, int iteration)
    {
-      return YoRandomTools.nextYoBoolean(random, new YoVariableRegistry("Dummy"));
-   }
-
-   @BeforeAll
-   public static void disableStackTrace()
-   {
-      YoVariable.SAVE_STACK_TRACE = false;
+      return YoRandomTools.nextYoBoolean(random, new YoRegistry("Dummy"));
    }
 
    @Test
@@ -43,8 +35,8 @@ public class LinkedYoBooleanTest extends LinkedYoVariableTest<YoBoolean>
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoBoolean linkedVariable = YoRandomTools.nextYoBoolean(random, new YoVariableRegistry("Dummy"));
-         YoBooleanBuffer buffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoVariableRegistry("Dummy"));
+         YoBoolean linkedVariable = YoRandomTools.nextYoBoolean(random, new YoRegistry("Dummy"));
+         YoBooleanBuffer buffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoRegistry("Dummy"));
          LinkedYoBoolean linkedYoBoolean = new LinkedYoBoolean(linkedVariable, buffer);
 
          assertTrue(linkedVariable == linkedYoBoolean.getLinkedYoVariable());
@@ -53,8 +45,8 @@ public class LinkedYoBooleanTest extends LinkedYoVariableTest<YoBoolean>
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoBoolean linkedVariable = YoRandomTools.nextYoBoolean(random, new YoVariableRegistry("Dummy"));
-         YoBooleanBuffer buffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoVariableRegistry("Dummy"));
+         YoBoolean linkedVariable = YoRandomTools.nextYoBoolean(random, new YoRegistry("Dummy"));
+         YoBooleanBuffer buffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoRegistry("Dummy"));
          LinkedYoBoolean linkedYoBoolean = (LinkedYoBoolean) LinkedYoVariable.newLinkedYoVariable(linkedVariable, buffer);
 
          assertTrue(linkedVariable == linkedYoBoolean.getLinkedYoVariable());
@@ -69,8 +61,8 @@ public class LinkedYoBooleanTest extends LinkedYoVariableTest<YoBoolean>
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoBoolean linkedVariable = YoRandomTools.nextYoBoolean(random, new YoVariableRegistry("Dummy"));
-         YoBooleanBuffer buffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoVariableRegistry("Dummy"));
+         YoBoolean linkedVariable = YoRandomTools.nextYoBoolean(random, new YoRegistry("Dummy"));
+         YoBooleanBuffer buffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoRegistry("Dummy"));
          LinkedYoBoolean linkedYoBoolean = new LinkedYoBoolean(linkedVariable, buffer);
 
          BooleanPullRequest pullRequest = linkedYoBoolean.toPullRequest();
@@ -89,8 +81,8 @@ public class LinkedYoBooleanTest extends LinkedYoVariableTest<YoBoolean>
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoBoolean linkedVariable = YoRandomTools.nextYoBoolean(random, new YoVariableRegistry("Dummy"));
-         YoBooleanBuffer buffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoVariableRegistry("Dummy"));
+         YoBoolean linkedVariable = YoRandomTools.nextYoBoolean(random, new YoRegistry("Dummy"));
+         YoBooleanBuffer buffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoRegistry("Dummy"));
          LinkedYoBoolean linkedYoBoolean = new LinkedYoBoolean(linkedVariable, buffer);
 
          BooleanPushRequest pullRequest = linkedYoBoolean.toPushRequest();

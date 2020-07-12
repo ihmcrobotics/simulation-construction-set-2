@@ -13,13 +13,13 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class ChartGroupLayout extends ChartGroupModel
 {
-   private final Map<ChartIdentifier, List<YoVariable<?>>> layout;
+   private final Map<ChartIdentifier, List<YoVariable>> layout;
 
    public ChartGroupLayout(ChartGroupModel model, YoComposite yoComposite)
    {
       super(model);
 
-      List<YoVariable<?>> yoComponents = yoComposite.getYoComponents();
+      List<YoVariable> yoComponents = yoComposite.getYoComponents();
       if (model.getChartIdentifiers().size() != yoComponents.size())
          throw new IllegalArgumentException("Given model does not match yoComposite: " + yoComposite.getPattern().getType());
 
@@ -30,7 +30,7 @@ public class ChartGroupLayout extends ChartGroupModel
       for (int i = 0; i < chartIdentifiers.size(); i++)
       {
          ChartIdentifier chartIdentifier = chartIdentifiers.get(i);
-         List<YoVariable<?>> yoVariables = layout.get(chartIdentifier);
+         List<YoVariable> yoVariables = layout.get(chartIdentifier);
          if (yoVariables == null)
          {
             yoVariables = new ArrayList<>();
@@ -40,14 +40,14 @@ public class ChartGroupLayout extends ChartGroupModel
       }
    }
 
-   public ChartGroupLayout(String name, Map<ChartIdentifier, List<? extends YoVariable<?>>> layout)
+   public ChartGroupLayout(String name, Map<ChartIdentifier, List<? extends YoVariable>> layout)
    {
       super(name, new ArrayList<>(layout.keySet()));
       this.layout = new LinkedHashMap<>();
       layout.entrySet().forEach(entry -> this.layout.put(entry.getKey(), new ArrayList<>(entry.getValue())));
    }
 
-   public List<YoVariable<?>> getYoVariables(ChartIdentifier chartIdentifier)
+   public List<YoVariable> getYoVariables(ChartIdentifier chartIdentifier)
    {
       return layout.get(chartIdentifier);
    }

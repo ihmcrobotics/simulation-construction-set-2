@@ -4,13 +4,13 @@ import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointReadOnly;
 import us.ihmc.scs2.definition.controller.interfaces.Controller;
 import us.ihmc.scs2.definition.state.interfaces.OneDoFJointStateBasics;
 import us.ihmc.yoVariables.providers.DoubleProvider;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
 public class OneDoFJointDampingController implements Controller
 {
    private final String controllerName;
-   private final YoVariableRegistry registry;
+   private final YoRegistry registry;
    private final DoubleProvider damping;
    private final OneDoFJointReadOnly[] joints;
    private final OneDoFJointStateBasics[] jointOutputs;
@@ -18,7 +18,7 @@ public class OneDoFJointDampingController implements Controller
    private final YoDouble[] dampingEffort;
 
    public OneDoFJointDampingController(String controllerName, DoubleProvider damping, OneDoFJointReadOnly[] jointsToControl,
-                                       OneDoFJointStateBasics[] jointOutputs, YoVariableRegistry registry)
+                                       OneDoFJointStateBasics[] jointOutputs, YoRegistry registry)
    {
       this.controllerName = controllerName;
       this.damping = damping;
@@ -53,7 +53,7 @@ public class OneDoFJointDampingController implements Controller
    }
 
    @Override
-   public YoVariableRegistry getYoVariableRegistry()
+   public YoRegistry getYoRegistry()
    {
       return registry;
    }

@@ -18,7 +18,7 @@ import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
 import us.ihmc.scs2.sessionVisualizer.definition.JavaFXVisualTools;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class JavaFXMultiBodySystemFactories
 {
@@ -35,13 +35,13 @@ public class JavaFXMultiBodySystemFactories
    }
 
    public static JavaFXRigidBody toYoJavaFXMultiBodySystem(RigidBodyReadOnly originalRootBody, ReferenceFrame cloneStationaryFrame,
-                                                           RobotDefinition robotDefinition, YoVariableRegistry registry)
+                                                           RobotDefinition robotDefinition, YoRegistry registry)
    {
       return toJavaFXMultiBodySystem(originalRootBody, cloneStationaryFrame, robotDefinition, YoMultiBodySystemFactories.newYoJointBuilder(registry), null);
    }
 
    public static JavaFXRigidBody toYoJavaFXMultiBodySystem(RigidBodyReadOnly originalRootBody, ReferenceFrame cloneStationaryFrame,
-                                                           RobotDefinition robotDefinition, YoVariableRegistry registry, Executor graphicLoader)
+                                                           RobotDefinition robotDefinition, YoRegistry registry, Executor graphicLoader)
    {
       return toJavaFXMultiBodySystem(originalRootBody,
                                      cloneStationaryFrame,

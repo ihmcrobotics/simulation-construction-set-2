@@ -5,19 +5,19 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.yoVariables.registry.NameSpace;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
-public class YoVariableRegistryBuffer
+public class YoRegistryBuffer
 {
-   private final YoVariableRegistry rootRegistry;
+   private final YoRegistry rootRegistry;
    private final List<YoVariableBuffer<?>> yoVariableBuffers = new ArrayList<>();
    private final Map<String, YoVariableBuffer<?>> yoVariableFullnameToBufferMap = new HashMap<>();
    private final YoBufferPropertiesReadOnly properties;
 
    private final ReentrantLock lock = new ReentrantLock();
 
-   public YoVariableRegistryBuffer(YoVariableRegistry rootRegistry, YoBufferPropertiesReadOnly properties)
+   public YoRegistryBuffer(YoRegistry rootRegistry, YoBufferPropertiesReadOnly properties)
    {
       this.rootRegistry = rootRegistry;
       this.properties = properties;
@@ -26,13 +26,13 @@ public class YoVariableRegistryBuffer
 
    public void registerMissingBuffers()
    {
-      List<YoVariable<?>> allYoVariables = rootRegistry.getAllVariables();
+      List<YoVariable> allYoVariables = rootRegistry.subtreeVariables();
 
       if (allYoVariables.size() != yoVariableBuffers.size())
       {
-         for (YoVariable<?> yoVariable : allYoVariables)
+         for (YoVariable yoVariable : allYoVariables)
          {
-            String fullName = yoVariable.getFullNameWithNameSpace();
+            String fullName = yoVariable.getFullNameString();
             if (yoVariableFullnameToBufferMap.containsKey(fullName))
                continue;
 
@@ -69,23 +69,23 @@ public class YoVariableRegistryBuffer
       yoVariableBuffers.forEach(buffer -> buffer.readBufferAt(index));
    }
 
-   YoVariableBuffer<?> findYoVariableBuffer(YoVariable<?> yoVariable)
+   YoVariableBuffer<?> findYoVariableBuffer(YoVariable yoVariable)
    {
-      return yoVariableFullnameToBufferMap.get(yoVariable.getFullNameWithNameSpace());
+      return yoVariableFullnameToBufferMap.get(yoVariable.getFullNameString());
    }
 
-   YoVariableBuffer<?> findOrCreateYoVariableBuffer(YoVariable<?> yoVariable)
+   YoVariableBuffer<?> findOrCreateYoVariableBuffer(YoVariable yoVariable)
    {
-      String variableFullName = yoVariable.getFullNameWithNameSpace();
+      String variableFullName = yoVariable.getFullNameString();
       YoVariableBuffer<?> yoVariableBuffer = yoVariableFullnameToBufferMap.get(variableFullName);
 
       if (yoVariableBuffer == null)
       {
          NameSpace yoVariableNameSpace = new NameSpace(variableFullName);
-         YoVariableRegistry registry = ensurePathExists(rootRegistry, yoVariableNameSpace.getParent());
-         Optional<YoVariable<?>> duplicateOptional = registry.getAllVariables().stream().filter(v -> v.getFullNameWithNameSpace().equals(variableFullName))
-                                                             .findFirst();
-         YoVariable<?> duplicate;
+         YoRegistry registry = ensurePathExists(rootRegistry, yoVariableNameSpace.getParent());
+         Optional<YoVariable> duplicateOptional = registry.subtreeVariables().stream().filter(v -> v.getFullNameString().equals(variableFullName))
+                                                          .findFirst();
+         YoVariable duplicate;
          if (duplicateOptional.isPresent())
             duplicate = duplicateOptional.get();
          else
@@ -99,20 +99,20 @@ public class YoVariableRegistryBuffer
       return yoVariableBuffer;
    }
 
-   private static YoVariableRegistry ensurePathExists(YoVariableRegistry rootRegistry, NameSpace registryNamespace)
+   private static YoRegistry ensurePathExists(YoRegistry rootRegistry, NameSpace registryNamespace)
    {
       if (!rootRegistry.getName().equals(registryNamespace.getRootName()))
          return null;
 
       List<String> subNames = registryNamespace.getSubNames();
-      YoVariableRegistry currentRegistry = rootRegistry;
+      YoRegistry currentRegistry = rootRegistry;
 
       for (String subName : subNames.subList(1, subNames.size()))
       {
-         YoVariableRegistry childRegistry = currentRegistry.getChildren().stream().filter(r -> r.getName().equals(subName)).findFirst().orElse(null);
+         YoRegistry childRegistry = currentRegistry.getChildren().stream().filter(r -> r.getName().equals(subName)).findFirst().orElse(null);
          if (childRegistry == null)
          {
-            childRegistry = new YoVariableRegistry(subName);
+            childRegistry = new YoRegistry(subName);
             currentRegistry.addChild(childRegistry);
          }
 
@@ -122,14 +122,14 @@ public class YoVariableRegistryBuffer
       return currentRegistry;
    }
 
-   LinkedYoVariableRegistry newLinkedYoVariableRegistry(YoVariableRegistry registryToLink)
+   LinkedYoRegistry newLinkedYoRegistry(YoRegistry registryToLink)
    {
-      return new LinkedYoVariableRegistry(registryToLink, this);
+      return new LinkedYoRegistry(registryToLink, this);
    }
 
-   LinkedYoVariableRegistry newLinkedYoVariableRegistry()
+   LinkedYoRegistry newLinkedYoRegistry()
    {
-      return new LinkedYoVariableRegistry(new YoVariableRegistry(rootRegistry.getName()), this);
+      return new LinkedYoRegistry(new YoRegistry(rootRegistry.getName()), this);
    }
 
    ReentrantLock getLock()
@@ -137,7 +137,7 @@ public class YoVariableRegistryBuffer
       return lock;
    }
 
-   public YoVariableRegistry getRootRegistry()
+   public YoRegistry getRootRegistry()
    {
       return rootRegistry;
    }

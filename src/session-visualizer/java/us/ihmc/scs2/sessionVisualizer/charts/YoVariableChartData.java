@@ -24,7 +24,7 @@ import us.ihmc.scs2.sharedMemory.YoBufferProperties;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.yoVariables.variable.YoVariable;
 
-public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
+public abstract class YoVariableChartData<L extends LinkedYoVariable, B>
 {
    private final L linkedYoVariable;
 
@@ -43,7 +43,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
    private final Map<Object, DataEntry> newChartData = new ConcurrentHashMap<>();
 
    @SuppressWarnings({"rawtypes", "unchecked"})
-   public static YoVariableChartData<?, ?> newYoVariableChartData(JavaFXMessager messager, SessionVisualizerTopics topics, LinkedYoVariable<?> linkedYoVariable)
+   public static YoVariableChartData<?, ?> newYoVariableChartData(JavaFXMessager messager, SessionVisualizerTopics topics, LinkedYoVariable linkedYoVariable)
    {
       if (linkedYoVariable instanceof LinkedYoBoolean)
          return new YoBooleanChartData(messager, topics, (LinkedYoBoolean) linkedYoVariable);
@@ -163,7 +163,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       return newChartData.remove(callerID);
    }
 
-   public YoVariable<?> getYoVariable()
+   public YoVariable getYoVariable()
    {
       return linkedYoVariable.getLinkedYoVariable();
    }

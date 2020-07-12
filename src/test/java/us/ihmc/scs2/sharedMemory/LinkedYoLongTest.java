@@ -5,21 +5,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Random;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
 import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoLong;
-import us.ihmc.yoVariables.variable.YoVariable;
 
 public class LinkedYoLongTest extends LinkedYoVariableTest<YoLong>
 {
    @Override
    YoLong copy(YoLong original)
    {
-      YoLong copy = new YoLong(original.getName() + "Copy", new YoVariableRegistry("Dummy"));
+      YoLong copy = new YoLong(original.getName() + "Copy", new YoRegistry("Dummy"));
       copy.set(original.getValue());
       return copy;
    }
@@ -27,13 +25,7 @@ public class LinkedYoLongTest extends LinkedYoVariableTest<YoLong>
    @Override
    YoLong nextYoVariable(Random random, int iteration)
    {
-      return YoRandomTools.nextYoLong(random, new YoVariableRegistry("Dummy"));
-   }
-
-   @BeforeAll
-   public static void disableStackTrace()
-   {
-      YoVariable.SAVE_STACK_TRACE = false;
+      return YoRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
    }
 
    @Test
@@ -43,8 +35,8 @@ public class LinkedYoLongTest extends LinkedYoVariableTest<YoLong>
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoLong linkedVariable = YoRandomTools.nextYoLong(random, new YoVariableRegistry("Dummy"));
-         YoLongBuffer buffer = YoBufferRandomTools.nextYoLongBuffer(random, new YoVariableRegistry("Dummy"));
+         YoLong linkedVariable = YoRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
+         YoLongBuffer buffer = YoBufferRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
          LinkedYoLong linkedYoLong = new LinkedYoLong(linkedVariable, buffer);
 
          assertTrue(linkedVariable == linkedYoLong.getLinkedYoVariable());
@@ -53,8 +45,8 @@ public class LinkedYoLongTest extends LinkedYoVariableTest<YoLong>
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoLong linkedVariable = YoRandomTools.nextYoLong(random, new YoVariableRegistry("Dummy"));
-         YoLongBuffer buffer = YoBufferRandomTools.nextYoLongBuffer(random, new YoVariableRegistry("Dummy"));
+         YoLong linkedVariable = YoRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
+         YoLongBuffer buffer = YoBufferRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
          LinkedYoLong linkedYoLong = (LinkedYoLong) LinkedYoVariable.newLinkedYoVariable(linkedVariable, buffer);
 
          assertTrue(linkedVariable == linkedYoLong.getLinkedYoVariable());
@@ -69,8 +61,8 @@ public class LinkedYoLongTest extends LinkedYoVariableTest<YoLong>
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoLong linkedVariable = YoRandomTools.nextYoLong(random, new YoVariableRegistry("Dummy"));
-         YoLongBuffer buffer = YoBufferRandomTools.nextYoLongBuffer(random, new YoVariableRegistry("Dummy"));
+         YoLong linkedVariable = YoRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
+         YoLongBuffer buffer = YoBufferRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
          LinkedYoLong linkedYoLong = new LinkedYoLong(linkedVariable, buffer);
 
          LongPullRequest pullRequest = linkedYoLong.toPullRequest();
@@ -89,8 +81,8 @@ public class LinkedYoLongTest extends LinkedYoVariableTest<YoLong>
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoLong linkedVariable = YoRandomTools.nextYoLong(random, new YoVariableRegistry("Dummy"));
-         YoLongBuffer buffer = YoBufferRandomTools.nextYoLongBuffer(random, new YoVariableRegistry("Dummy"));
+         YoLong linkedVariable = YoRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
+         YoLongBuffer buffer = YoBufferRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
          LinkedYoLong linkedYoLong = new LinkedYoLong(linkedVariable, buffer);
 
          LongPushRequest pullRequest = linkedYoLong.toPushRequest();

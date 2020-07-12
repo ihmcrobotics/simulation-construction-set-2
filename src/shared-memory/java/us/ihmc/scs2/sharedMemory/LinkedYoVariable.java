@@ -6,7 +6,7 @@ import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.scs2.sharedMemory.tools.BufferTools;
 import us.ihmc.yoVariables.variable.*;
 
-public abstract class LinkedYoVariable<T extends YoVariable<T>> extends LinkedBuffer
+public abstract class LinkedYoVariable<T extends YoVariable> extends LinkedBuffer
 {
    protected final T linkedYoVariable;
    protected final YoVariableBuffer<T> buffer;
@@ -19,7 +19,7 @@ public abstract class LinkedYoVariable<T extends YoVariable<T>> extends LinkedBu
    protected BufferSample bufferSample;
 
    @SuppressWarnings({"rawtypes", "unchecked"})
-   static LinkedYoVariable<?> newLinkedYoVariable(YoVariable<?> yoVariableToLink, YoVariableBuffer<?> buffer)
+   static LinkedYoVariable newLinkedYoVariable(YoVariable yoVariableToLink, YoVariableBuffer<?> buffer)
    {
       if (yoVariableToLink instanceof YoBoolean)
          return new LinkedYoBoolean((YoBoolean) yoVariableToLink, (YoBooleanBuffer) buffer);

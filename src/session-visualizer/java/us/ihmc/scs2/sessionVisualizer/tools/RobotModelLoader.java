@@ -34,7 +34,7 @@ import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.robot.sdf.SDFTools;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFRoot;
 import us.ihmc.tools.ClassLoaderTools;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class RobotModelLoader
 {
@@ -42,12 +42,12 @@ public class RobotModelLoader
 
    private static final TLongObjectHashMap<RobotDefinition> cachedImportedModels = new TLongObjectHashMap<>();
 
-   public static Runnable setupRobotUpdater(RobotDefinition robotDefinition, YoVariableHandshakeParser handshakeParser, YoVariableRegistry rootRegistry)
+   public static Runnable setupRobotUpdater(RobotDefinition robotDefinition, YoVariableHandshakeParser handshakeParser, YoRegistry rootRegistry)
    {
       if (robotDefinition == null)
          return null;
 
-      YoVariableRegistry robotRegistry = new YoVariableRegistry(robotDefinition.getName());
+      YoRegistry robotRegistry = new YoRegistry(robotDefinition.getName());
       MultiBodySystemBasics multiBodySystemBasics = robotDefinition.toMultiBodySystemBasics(ReferenceFrame.getWorldFrame());
       YoMultiBodySystem robot = new YoMultiBodySystem(multiBodySystemBasics, ReferenceFrame.getWorldFrame(), robotRegistry);
 

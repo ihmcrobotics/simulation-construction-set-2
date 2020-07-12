@@ -6,25 +6,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Random;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.scs2.sharedMemory.tools.BufferTools;
 import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
 import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
-import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoBooleanBufferTest
 {
    private static final int ITERATIONS = 1000;
-
-   @BeforeAll
-   public static void disableStackTrace()
-   {
-      YoVariable.SAVE_STACK_TRACE = false;
-   }
 
    @Test
    public void testConstructors()
@@ -33,7 +25,7 @@ public class YoBooleanBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoBoolean yoBoolean = YoRandomTools.nextYoBoolean(random, new YoVariableRegistry("Dummy"));
+         YoBoolean yoBoolean = YoRandomTools.nextYoBoolean(random, new YoRegistry("Dummy"));
          YoBufferProperties yoBufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
          YoBooleanBuffer yoBooleanBuffer = new YoBooleanBuffer(yoBoolean, yoBufferProperties);
          assertTrue(yoBoolean == yoBooleanBuffer.getYoVariable());
@@ -46,7 +38,7 @@ public class YoBooleanBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoBoolean yoBoolean = YoRandomTools.nextYoBoolean(random, new YoVariableRegistry("Dummy"));
+         YoBoolean yoBoolean = YoRandomTools.nextYoBoolean(random, new YoRegistry("Dummy"));
          YoBufferProperties yoBufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
          YoBooleanBuffer yoBooleanBuffer = (YoBooleanBuffer) YoVariableBuffer.newYoVariableBuffer(yoBoolean, yoBufferProperties);
          assertTrue(yoBoolean == yoBooleanBuffer.getYoVariable());
@@ -65,7 +57,7 @@ public class YoBooleanBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoBooleanBuffer yoBooleanBuffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoVariableRegistry("Dummy"));
+         YoBooleanBuffer yoBooleanBuffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoRegistry("Dummy"));
          YoBufferProperties originalBufferProperties = new YoBufferProperties(yoBooleanBuffer.getProperties());
          int from = random.nextInt(yoBooleanBuffer.getProperties().getSize());
          int newLength = random.nextInt(yoBooleanBuffer.getProperties().getSize());
@@ -88,7 +80,7 @@ public class YoBooleanBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoBooleanBuffer yoBooleanBuffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoVariableRegistry("Dummy"));
+         YoBooleanBuffer yoBooleanBuffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoRegistry("Dummy"));
          YoBoolean yoBoolean = yoBooleanBuffer.getYoVariable();
 
          int currentIndex = yoBooleanBuffer.getProperties().getCurrentIndex();
@@ -111,7 +103,7 @@ public class YoBooleanBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoBooleanBuffer yoBooleanBuffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoVariableRegistry("Dummy"));
+         YoBooleanBuffer yoBooleanBuffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoRegistry("Dummy"));
          YoBoolean yoBoolean = yoBooleanBuffer.getYoVariable();
 
          int currentIndex = yoBooleanBuffer.getProperties().getCurrentIndex();
@@ -134,7 +126,7 @@ public class YoBooleanBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoBooleanBuffer yoBooleanBuffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoVariableRegistry("Dummy"));
+         YoBooleanBuffer yoBooleanBuffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoRegistry("Dummy"));
          int from = random.nextInt(yoBooleanBuffer.getProperties().getSize());
          int length = random.nextInt(yoBooleanBuffer.getProperties().getSize() - 1) + 1;
 
@@ -159,8 +151,8 @@ public class YoBooleanBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoBooleanBuffer yoBooleanBuffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoVariableRegistry("Dummy"));
-         YoBoolean linkedBoolean = new YoBoolean("linked", new YoVariableRegistry("Dummy"));
+         YoBooleanBuffer yoBooleanBuffer = YoBufferRandomTools.nextYoBooleanBuffer(random, new YoRegistry("Dummy"));
+         YoBoolean linkedBoolean = new YoBoolean("linked", new YoRegistry("Dummy"));
          LinkedYoBoolean linkedYoVariable = yoBooleanBuffer.newLinkedYoVariable(linkedBoolean);
          assertTrue(linkedBoolean == linkedYoVariable.getLinkedYoVariable());
          assertTrue(yoBooleanBuffer == linkedYoVariable.getBuffer());
