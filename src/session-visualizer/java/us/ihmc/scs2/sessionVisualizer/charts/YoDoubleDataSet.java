@@ -20,7 +20,7 @@ public class YoDoubleDataSet implements DataSet2D
 {
    private static final long serialVersionUID = 1545454904627313514L;
 
-   private final YoVariable<?> yoVariable;
+   private final YoVariable yoVariable;
    private final DoubleDataSet rawDataSet;
    private DataSet2D outputDataSet;
 
@@ -32,7 +32,7 @@ public class YoDoubleDataSet implements DataSet2D
 
    private double xMin, xMax, yMin, yMax;
 
-   public YoDoubleDataSet(YoVariable<?> yoVariable, int initialSize)
+   public YoDoubleDataSet(YoVariable yoVariable, int initialSize)
    {
       this.yoVariable = yoVariable;
 
@@ -118,7 +118,7 @@ public class YoDoubleDataSet implements DataSet2D
       dataYBoundsProperty.set(new ChartDoubleBounds(yMin, yMax));
    }
 
-   public YoVariable<?> getYoVariable()
+   public YoVariable getYoVariable()
    {
       return yoVariable;
    }

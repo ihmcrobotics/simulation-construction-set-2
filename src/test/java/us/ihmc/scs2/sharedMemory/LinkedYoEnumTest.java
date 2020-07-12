@@ -5,14 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Random;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
 import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoEnum;
-import us.ihmc.yoVariables.variable.YoVariable;
 
 public class LinkedYoEnumTest<E extends Enum<E>> extends LinkedYoVariableTest<YoEnum<E>>
 {
@@ -20,7 +18,7 @@ public class LinkedYoEnumTest<E extends Enum<E>> extends LinkedYoVariableTest<Yo
    @Override
    YoEnum<E> copy(YoEnum<E> original)
    {
-      YoEnum copy = new YoEnum<>(original.getName() + "Copy", new YoVariableRegistry("Dummy"), original.getEnumType(), original.getAllowNullValue());
+      YoEnum copy = new YoEnum<>(original.getName() + "Copy", new YoRegistry("Dummy"), original.getEnumType(), original.getAllowNullValue());
       copy.set(original.getOrdinal());
       return copy;
    }
@@ -29,15 +27,9 @@ public class LinkedYoEnumTest<E extends Enum<E>> extends LinkedYoVariableTest<Yo
    @Override
    YoEnum<E> nextYoVariable(Random random, int iteration)
    {
-      YoEnum next = YoRandomTools.nextYoEnum(new Random(iteration), new YoVariableRegistry("Dummy"));
+      YoEnum next = YoRandomTools.nextYoEnum(new Random(iteration), new YoRegistry("Dummy"));
       YoRandomTools.randomizeYoEnum(random, next);
       return next;
-   }
-
-   @BeforeAll
-   public static void disableStackTrace()
-   {
-      YoVariable.SAVE_STACK_TRACE = false;
    }
 
    @SuppressWarnings({"rawtypes", "unchecked"})
@@ -48,8 +40,8 @@ public class LinkedYoEnumTest<E extends Enum<E>> extends LinkedYoVariableTest<Yo
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoEnum<?> linkedVariable = YoRandomTools.nextYoEnum(random, new YoVariableRegistry("Dummy"));
-         YoEnumBuffer buffer = YoBufferRandomTools.nextYoEnumBuffer(random, new YoVariableRegistry("Dummy"));
+         YoEnum<?> linkedVariable = YoRandomTools.nextYoEnum(random, new YoRegistry("Dummy"));
+         YoEnumBuffer buffer = YoBufferRandomTools.nextYoEnumBuffer(random, new YoRegistry("Dummy"));
          LinkedYoEnum linkedYoEnum = new LinkedYoEnum(linkedVariable, buffer);
 
          assertTrue(linkedVariable == linkedYoEnum.getLinkedYoVariable());
@@ -58,8 +50,8 @@ public class LinkedYoEnumTest<E extends Enum<E>> extends LinkedYoVariableTest<Yo
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoEnum linkedVariable = YoRandomTools.nextYoEnum(random, new YoVariableRegistry("Dummy"));
-         YoEnumBuffer buffer = YoBufferRandomTools.nextYoEnumBuffer(random, new YoVariableRegistry("Dummy"));
+         YoEnum linkedVariable = YoRandomTools.nextYoEnum(random, new YoRegistry("Dummy"));
+         YoEnumBuffer buffer = YoBufferRandomTools.nextYoEnumBuffer(random, new YoRegistry("Dummy"));
          LinkedYoEnum linkedYoEnum = (LinkedYoEnum) LinkedYoVariable.newLinkedYoVariable(linkedVariable, buffer);
 
          assertTrue(linkedVariable == linkedYoEnum.getLinkedYoVariable());

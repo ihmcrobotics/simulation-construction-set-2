@@ -25,7 +25,7 @@ import us.ihmc.scs2.sessionVisualizer.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.tools.TreeViewTools;
 import us.ihmc.scs2.sessionVisualizer.tools.YoVariableTools;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class YoRegistrySearchPaneController extends AnimationTimer
 {
@@ -33,26 +33,26 @@ public class YoRegistrySearchPaneController extends AnimationTimer
    private TextField searchTextField;
 
    @FXML
-   private TreeView<YoVariableRegistry> registryTreeView;
+   private TreeView<YoRegistry> registryTreeView;
 
-   private List<YoVariableRegistry> allRegistries;
+   private List<YoRegistry> allRegistries;
 
-   private TreeItem<YoVariableRegistry> defaultRootItem;
-   private TreeItem<YoVariableRegistry> searchResult = null;
+   private TreeItem<YoRegistry> defaultRootItem;
+   private TreeItem<YoRegistry> searchResult = null;
    private boolean showRoot = true;
 
    private AtomicReference<SearchEngines> activeSearchEngine;
 
-   private YoVariableRegistry rootRegistry;
+   private YoRegistry rootRegistry;
 
-   private Future<TreeItem<YoVariableRegistry>> backgroundSearch;
+   private Future<TreeItem<YoRegistry>> backgroundSearch;
 
    private boolean refreshRootRegistry;
 
    private YoManager yoManager;
    private BackgroundExecutorManager backgroundExecutorManager;
 
-   private Consumer<YoVariableRegistry> registryViewRequestConsumer = null;
+   private Consumer<YoRegistry> registryViewRequestConsumer = null;
 
    public void initialize(SessionVisualizerToolkit toolkit)
    {
@@ -87,7 +87,7 @@ public class YoRegistrySearchPaneController extends AnimationTimer
       });
    }
 
-   public void setRegistryViewRequestConsumer(Consumer<YoVariableRegistry> consumer)
+   public void setRegistryViewRequestConsumer(Consumer<YoRegistry> consumer)
    {
       this.registryViewRequestConsumer = consumer;
    }
@@ -104,7 +104,7 @@ public class YoRegistrySearchPaneController extends AnimationTimer
       }
       else
       {
-         allRegistries = rootRegistry.getAllRegistriesIncludingChildren();
+         allRegistries = rootRegistry.subtreeRegistries();
          defaultRootItem = new TreeItem<>(rootRegistry);
          buildTreeRecursively(defaultRootItem);
       }
@@ -160,7 +160,7 @@ public class YoRegistrySearchPaneController extends AnimationTimer
             }
 
             return createRootItemForRegistries(YoVariableTools.search(allRegistries,
-                                                                      YoVariableRegistry::getName,
+                                                                      YoRegistry::getName,
                                                                       searchQuery,
                                                                       YoVariableTools.fromSearchEnginesEnum(activeSearchEngine.get()),
                                                                       Integer.MAX_VALUE,
@@ -182,7 +182,7 @@ public class YoRegistrySearchPaneController extends AnimationTimer
 
       if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2)
       {
-         TreeItem<YoVariableRegistry> selectedItem = registryTreeView.getSelectionModel().getSelectedItem();
+         TreeItem<YoRegistry> selectedItem = registryTreeView.getSelectionModel().getSelectedItem();
 
          if (selectedItem != null)
             registryViewRequestConsumer.accept(selectedItem.getValue());
@@ -191,21 +191,21 @@ public class YoRegistrySearchPaneController extends AnimationTimer
       }
    }
 
-   private TreeItem<YoVariableRegistry> createRootItemForRegistries(Set<YoVariableRegistry> subSelection)
+   private TreeItem<YoRegistry> createRootItemForRegistries(Set<YoRegistry> subSelection)
    {
-      TreeItem<YoVariableRegistry> root = new TreeItem<>(rootRegistry);
+      TreeItem<YoRegistry> root = new TreeItem<>(rootRegistry);
       buildTreeRecursively(root);
       filterRegistries(root, subSelection);
       TreeViewTools.expandRecursively(root);
       return root;
    }
 
-   private static void filterRegistries(TreeItem<YoVariableRegistry> parent, Set<YoVariableRegistry> registriesToKeep)
+   private static void filterRegistries(TreeItem<YoRegistry> parent, Set<YoRegistry> registriesToKeep)
    {
       if (parent == null || parent.isLeaf())
          return;
 
-      for (TreeItem<YoVariableRegistry> child : parent.getChildren())
+      for (TreeItem<YoRegistry> child : parent.getChildren())
       {
          if (!child.getChildren().isEmpty())
             filterRegistries(child, registriesToKeep);
@@ -213,18 +213,18 @@ public class YoRegistrySearchPaneController extends AnimationTimer
 
       for (int i = parent.getChildren().size() - 1; i >= 0; i--)
       {
-         TreeItem<YoVariableRegistry> child = parent.getChildren().get(i);
+         TreeItem<YoRegistry> child = parent.getChildren().get(i);
 
          if (child.isLeaf() && !registriesToKeep.contains(child.getValue()))
             parent.getChildren().remove(i);
       }
    }
 
-   private static void buildTreeRecursively(TreeItem<YoVariableRegistry> parent)
+   private static void buildTreeRecursively(TreeItem<YoRegistry> parent)
    {
-      for (YoVariableRegistry child : parent.getValue().getChildren())
+      for (YoRegistry child : parent.getValue().getChildren())
       {
-         TreeItem<YoVariableRegistry> childItem = new TreeItem<>(child);
+         TreeItem<YoRegistry> childItem = new TreeItem<>(child);
          parent.getChildren().add(childItem);
          buildTreeRecursively(childItem);
       }

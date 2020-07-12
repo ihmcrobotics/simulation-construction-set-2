@@ -6,11 +6,11 @@ import java.util.Collections;
 import java.util.List;
 
 import us.ihmc.scs2.definition.controller.interfaces.Controller;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class ControllerCollection implements Controller
 {
-   private final YoVariableRegistry registry;
+   private final YoRegistry registry;
    private final List<Controller> controllers = new ArrayList<>();
 
    public ControllerCollection(String name)
@@ -25,14 +25,14 @@ public class ControllerCollection implements Controller
 
    public ControllerCollection(String name, Iterable<? extends Controller> controllers)
    {
-      registry = new YoVariableRegistry(name);
+      registry = new YoRegistry(name);
       addControllers(controllers);
    }
 
    public void addController(Controller controller)
    {
-      if (controller.getYoVariableRegistry() != null)
-         registry.addChild(controller.getYoVariableRegistry());
+      if (controller.getYoRegistry() != null)
+         registry.addChild(controller.getYoRegistry());
       controllers.add(controller);
    }
 
@@ -78,7 +78,7 @@ public class ControllerCollection implements Controller
    }
 
    @Override
-   public YoVariableRegistry getYoVariableRegistry()
+   public YoRegistry getYoRegistry()
    {
       return registry;
    }

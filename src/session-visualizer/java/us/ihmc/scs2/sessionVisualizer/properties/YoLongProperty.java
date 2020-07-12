@@ -3,14 +3,14 @@ package us.ihmc.scs2.sessionVisualizer.properties;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.LongPropertyBase;
 import javafx.beans.property.SimpleLongProperty;
-import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoLong;
 
 public class YoLongProperty extends LongPropertyBase implements YoVariableProperty<YoLong, Number>
 {
    private final YoLong yoLong;
    private final Object bean;
-   private final VariableChangedListener propertyUpdater = v -> pullYoLongValue();
+   private final YoVariableChangedListener propertyUpdater = v -> pullYoLongValue();
 
    private SimpleLongProperty lastUserInput;
 
@@ -24,7 +24,7 @@ public class YoLongProperty extends LongPropertyBase implements YoVariableProper
       this.yoLong = yoLong;
       this.bean = bean;
       pullYoLongValue();
-      yoLong.addVariableChangedListener(propertyUpdater);
+      yoLong.addListener(propertyUpdater);
    }
 
    @Override
@@ -32,7 +32,7 @@ public class YoLongProperty extends LongPropertyBase implements YoVariableProper
    {
       try
       {
-         yoLong.removeVariableChangedListener(propertyUpdater);
+         yoLong.removeListener(propertyUpdater);
       }
       finally
       {

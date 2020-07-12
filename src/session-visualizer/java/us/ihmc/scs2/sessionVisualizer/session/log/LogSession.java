@@ -45,7 +45,7 @@ public class LogSession extends Session
       logProperties = logDataReader.getLogProperties();
 
       YoVariableHandshakeParser parser = logDataReader.getParser();
-      rootRegistry.addChild(logDataReader.getYoVariableRegistry());
+      rootRegistry.addChild(logDataReader.getYoRegistry());
       rootRegistry.addChild(parser.getRootRegistry());
 
       sessionName = logProperties.getNameAsString();

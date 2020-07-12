@@ -1,9 +1,9 @@
 package us.ihmc.scs2.sessionVisualizer.controllers.yoComposite.search;
 
 import javafx.scene.control.TreeCell;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
-public class YoRegistryTreeCell extends TreeCell<YoVariableRegistry>
+public class YoRegistryTreeCell extends TreeCell<YoRegistry>
 {
    public YoRegistryTreeCell()
    {
@@ -11,7 +11,7 @@ public class YoRegistryTreeCell extends TreeCell<YoVariableRegistry>
    }
 
    @Override
-   protected void updateItem(YoVariableRegistry registry, boolean empty)
+   protected void updateItem(YoRegistry registry, boolean empty)
    {
       super.updateItem(registry, empty);
 

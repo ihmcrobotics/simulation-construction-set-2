@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoCompositeCollection
@@ -35,14 +35,14 @@ public class YoCompositeCollection
       return yoComposites;
    }
 
-   public List<YoComposite> getYoComposite(YoVariableRegistry owner)
+   public List<YoComposite> getYoComposite(YoRegistry owner)
    {
       return yoComposites.stream().filter(composite -> composite.getNamespace().equals(owner.getNameSpace())).collect(Collectors.toList());
    }
 
-   public String getYoVariableUniqueName(YoVariable<?> yoVariable)
+   public String getYoVariableUniqueName(YoVariable yoVariable)
    {
-      YoComposite yoTypeReference = fullnameToYoComposite.get(yoVariable.getFullNameWithNameSpace());
+      YoComposite yoTypeReference = fullnameToYoComposite.get(yoVariable.getFullNameString());
       return yoTypeReference != null ? yoTypeReference.getUniqueName() : null;
    }
 

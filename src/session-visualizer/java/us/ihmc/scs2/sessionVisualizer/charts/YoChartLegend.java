@@ -263,7 +263,7 @@ public class YoChartLegend extends FlowPane implements Legend
    /** A item to be displayed on a Legend */
    public static class YoLegendItem extends HBox
    {
-      private final YoVariable<?> yoVariable;
+      private final YoVariable yoVariable;
       private final Label nameLabel = new Label();
       private final Label currentValueLabel = new Label()
       {

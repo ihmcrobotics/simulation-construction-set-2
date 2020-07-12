@@ -16,7 +16,7 @@ import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
 import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
 import us.ihmc.yoVariables.variable.YoVariable;
 
-public abstract class LinkedYoVariableTest<T extends YoVariable<T>>
+public abstract class LinkedYoVariableTest<T extends YoVariable>
 {
    protected static final int ITERATIONS = 1000;
 
@@ -246,7 +246,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable<T>>
       }
    }
 
-   private static <T extends YoVariable<T>> void assertYoEquals(T expected, T actual)
+   private static <T extends YoVariable> void assertYoEquals(T expected, T actual)
    {
       assertEquals(expected.getValueAsLongBits(), actual.getValueAsLongBits());
    }

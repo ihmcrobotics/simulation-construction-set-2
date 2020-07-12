@@ -5,21 +5,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Random;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
 import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
-import us.ihmc.yoVariables.variable.YoVariable;
 
 public class LinkedYoDoubleTest extends LinkedYoVariableTest<YoDouble>
 {
    @Override
    YoDouble copy(YoDouble original)
    {
-      YoDouble copy = new YoDouble(original.getName() + "Copy", new YoVariableRegistry("Dummy"));
+      YoDouble copy = new YoDouble(original.getName() + "Copy", new YoRegistry("Dummy"));
       copy.set(original.getValue());
       return copy;
    }
@@ -27,13 +25,7 @@ public class LinkedYoDoubleTest extends LinkedYoVariableTest<YoDouble>
    @Override
    YoDouble nextYoVariable(Random random, int iteration)
    {
-      return YoRandomTools.nextYoDouble(random, new YoVariableRegistry("Dummy"));
-   }
-
-   @BeforeAll
-   public static void disableStackTrace()
-   {
-      YoVariable.SAVE_STACK_TRACE = false;
+      return YoRandomTools.nextYoDouble(random, new YoRegistry("Dummy"));
    }
 
    @Test
@@ -43,8 +35,8 @@ public class LinkedYoDoubleTest extends LinkedYoVariableTest<YoDouble>
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoDouble linkedVariable = YoRandomTools.nextYoDouble(random, new YoVariableRegistry("Dummy"));
-         YoDoubleBuffer buffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoVariableRegistry("Dummy"));
+         YoDouble linkedVariable = YoRandomTools.nextYoDouble(random, new YoRegistry("Dummy"));
+         YoDoubleBuffer buffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoRegistry("Dummy"));
          LinkedYoDouble linkedYoDouble = new LinkedYoDouble(linkedVariable, buffer);
 
          assertTrue(linkedVariable == linkedYoDouble.getLinkedYoVariable());
@@ -53,8 +45,8 @@ public class LinkedYoDoubleTest extends LinkedYoVariableTest<YoDouble>
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoDouble linkedVariable = YoRandomTools.nextYoDouble(random, new YoVariableRegistry("Dummy"));
-         YoDoubleBuffer buffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoVariableRegistry("Dummy"));
+         YoDouble linkedVariable = YoRandomTools.nextYoDouble(random, new YoRegistry("Dummy"));
+         YoDoubleBuffer buffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoRegistry("Dummy"));
          LinkedYoDouble linkedYoDouble = (LinkedYoDouble) LinkedYoVariable.newLinkedYoVariable(linkedVariable, buffer);
 
          assertTrue(linkedVariable == linkedYoDouble.getLinkedYoVariable());
@@ -69,8 +61,8 @@ public class LinkedYoDoubleTest extends LinkedYoVariableTest<YoDouble>
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoDouble linkedVariable = YoRandomTools.nextYoDouble(random, new YoVariableRegistry("Dummy"));
-         YoDoubleBuffer buffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoVariableRegistry("Dummy"));
+         YoDouble linkedVariable = YoRandomTools.nextYoDouble(random, new YoRegistry("Dummy"));
+         YoDoubleBuffer buffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoRegistry("Dummy"));
          LinkedYoDouble linkedYoDouble = new LinkedYoDouble(linkedVariable, buffer);
 
          DoublePullRequest pullRequest = linkedYoDouble.toPullRequest();
@@ -89,8 +81,8 @@ public class LinkedYoDoubleTest extends LinkedYoVariableTest<YoDouble>
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoDouble linkedVariable = YoRandomTools.nextYoDouble(random, new YoVariableRegistry("Dummy"));
-         YoDoubleBuffer buffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoVariableRegistry("Dummy"));
+         YoDouble linkedVariable = YoRandomTools.nextYoDouble(random, new YoRegistry("Dummy"));
+         YoDoubleBuffer buffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoRegistry("Dummy"));
          LinkedYoDouble linkedYoDouble = new LinkedYoDouble(linkedVariable, buffer);
 
          DoublePushRequest pullRequest = linkedYoDouble.toPushRequest();

@@ -24,8 +24,8 @@ import us.ihmc.yoVariables.variable.YoVariable;
  */
 public class ChartDataManager extends AnimationTimer implements Manager
 {
-   private final Map<YoVariable<?>, LinkedYoVariable<?>> linkedVariableMap = new HashMap<>();
-   private final Map<YoVariable<?>, YoVariableChartData<?, ?>> chartDataMap = new ConcurrentHashMap<>();
+   private final Map<YoVariable, LinkedYoVariable> linkedVariableMap = new HashMap<>();
+   private final Map<YoVariable, YoVariableChartData<?, ?>> chartDataMap = new ConcurrentHashMap<>();
    private final SessionVisualizerTopics topics;
    private final JavaFXMessager messager;
    private final YoManager yoManager;
@@ -229,7 +229,7 @@ public class ChartDataManager extends AnimationTimer implements Manager
       return currentBoundsProperty;
    }
 
-   public YoVariableChartData<?, ?> getYoVariableChartData(Object callerID, YoVariable<?> yoVariable)
+   public YoVariableChartData<?, ?> getYoVariableChartData(Object callerID, YoVariable yoVariable)
    {
       YoVariableChartData<?, ?> yoVariableChartData = chartDataMap.get(yoVariable);
       if (yoVariableChartData == null)
@@ -245,9 +245,9 @@ public class ChartDataManager extends AnimationTimer implements Manager
       return yoVariableChartData;
    }
 
-   private LinkedYoVariable<?> getLinkedYoVariable(YoVariable<?> yoVariable)
+   private LinkedYoVariable getLinkedYoVariable(YoVariable yoVariable)
    {
-      LinkedYoVariable<?> linkedYoVariable = linkedVariableMap.get(yoVariable);
+      LinkedYoVariable linkedYoVariable = linkedVariableMap.get(yoVariable);
       if (linkedYoVariable == null)
       {
          linkedYoVariable = yoManager.newLinkedYoVariable(yoVariable);

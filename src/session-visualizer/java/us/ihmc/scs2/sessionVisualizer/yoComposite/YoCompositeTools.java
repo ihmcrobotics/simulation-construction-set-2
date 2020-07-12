@@ -27,7 +27,7 @@ import us.ihmc.scs2.definition.yoComposite.YoYawPitchRollDefinition;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartGroupModel;
 import us.ihmc.scs2.sessionVisualizer.charts.YoChartTools;
 import us.ihmc.yoVariables.registry.NameSpace;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoEnum;
@@ -48,24 +48,24 @@ public class YoCompositeTools
    public static final String YO_YAW_PITCH_ROLL = YoYawPitchRollDefinition.YoYawPitchRoll;
 
    @SuppressWarnings("unchecked")
-   private static final Class<? extends YoVariable<?>>[] yoPrimitives = new Class[] {YoDouble.class, YoBoolean.class, YoInteger.class, YoEnum.class,
+   private static final Class<? extends YoVariable>[] yoPrimitives = new Class[] {YoDouble.class, YoBoolean.class, YoInteger.class, YoEnum.class,
          YoLong.class};
 
-   public static String getYoCompositeName(YoCompositePattern definition, List<YoVariable<?>> yoCompositeComponents)
+   public static String getYoCompositeName(YoCompositePattern definition, List<YoVariable> yoCompositeComponents)
    {
-      Set<YoVariable<?>> yoCompositeComponentSet = new HashSet<>(yoCompositeComponents);
+      Set<YoVariable> yoCompositeComponentSet = new HashSet<>(yoCompositeComponents);
       int numberOfComponents = definition.getComponentIdentifiers().length;
 
       if (numberOfComponents != yoCompositeComponentSet.size())
          return null;
 
-      YoVariable<?> firstYoVariable = yoCompositeComponents.get(0);
+      YoVariable firstYoVariable = yoCompositeComponents.get(0);
       YoCompositeName[] candidateNames = fromComponentIdentifiers(firstYoVariable.getName(), definition.getComponentIdentifiers());
 
       if (candidateNames == null || candidateNames.length == 0)
          return null;
 
-      Map<String, YoVariable<?>> yoVariableMap = yoCompositeComponentSet.stream().collect(Collectors.toMap(yoVariable -> yoVariable.getName().toLowerCase(),
+      Map<String, YoVariable> yoVariableMap = yoCompositeComponentSet.stream().collect(Collectors.toMap(yoVariable -> yoVariable.getName().toLowerCase(),
                                                                                                            Function.identity()));
 
       for (YoCompositeName candidateName : candidateNames)
@@ -75,7 +75,7 @@ public class YoCompositeTools
          if (!isCompositeValid)
             continue;
 
-         YoVariable<?>[] components = Stream.of(componentNames).map(String::toLowerCase).map(yoVariableMap::remove).toArray(YoVariable<?>[]::new);
+         YoVariable[] components = Stream.of(componentNames).map(String::toLowerCase).map(yoVariableMap::remove).toArray(YoVariable[]::new);
 
          if (areAllOfSameType(components))
          {
@@ -191,20 +191,20 @@ public class YoCompositeTools
       return false;
    }
 
-   public static List<YoComposite> searchYoComposites(YoCompositePattern pattern, YoVariableRegistry registry)
+   public static List<YoComposite> searchYoComposites(YoCompositePattern pattern, YoRegistry registry)
    {
       return searchYoCompositesRecursive(pattern, registry).getKey();
    }
 
-   private static Pair<List<YoComposite>, List<YoVariable<?>>> searchYoCompositesRecursive(YoCompositePattern pattern, YoVariableRegistry registry)
+   private static Pair<List<YoComposite>, List<YoVariable>> searchYoCompositesRecursive(YoCompositePattern pattern, YoRegistry registry)
    {
-      Pair<List<YoComposite>, List<YoVariable<?>>> result = new Pair<>(new ArrayList<>(), new ArrayList<>());
+      Pair<List<YoComposite>, List<YoVariable>> result = new Pair<>(new ArrayList<>(), new ArrayList<>());
 
-      List<YoVariable<?>> yoVariables = registry.getAllVariablesInThisListOnly();
+      List<YoVariable> yoVariables = registry.getVariables();
 
-      for (Class<? extends YoVariable<?>> yoPrimitive : yoPrimitives)
+      for (Class<? extends YoVariable> yoPrimitive : yoPrimitives)
       {
-         List<YoVariable<?>> searchPool = new ArrayList<>();
+         List<YoVariable> searchPool = new ArrayList<>();
          yoVariables.removeIf(var ->
          {
             if (yoPrimitive.isInstance(var))
@@ -215,14 +215,14 @@ public class YoCompositeTools
             return false;
          });
 
-         Pair<List<YoComposite>, List<YoVariable<?>>> primitiveResult = searchYoComposites(pattern, searchPool, registry.getNameSpace(), false);
+         Pair<List<YoComposite>, List<YoVariable>> primitiveResult = searchYoComposites(pattern, searchPool, registry.getNameSpace(), false);
          result.getKey().addAll(primitiveResult.getKey());
          result.getValue().addAll(primitiveResult.getValue());
       }
 
-      for (YoVariableRegistry childRegistry : registry.getChildren())
+      for (YoRegistry childRegistry : registry.getChildren())
       {
-         Pair<List<YoComposite>, List<YoVariable<?>>> childResult = searchYoCompositesRecursive(pattern, childRegistry);
+         Pair<List<YoComposite>, List<YoVariable>> childResult = searchYoCompositesRecursive(pattern, childRegistry);
          result.getKey().addAll(childResult.getKey());
          result.getValue().addAll(childResult.getValue());
       }
@@ -232,7 +232,7 @@ public class YoCompositeTools
          // Searching cross-registry
          if (!registry.getChildren().isEmpty())
          {
-            Pair<List<YoComposite>, List<YoVariable<?>>> crossRegistryResult = searchYoComposites(pattern, result.getValue(), null, true);
+            Pair<List<YoComposite>, List<YoVariable>> crossRegistryResult = searchYoComposites(pattern, result.getValue(), null, true);
             result.getKey().addAll(crossRegistryResult.getKey());
             result = new Pair<>(result.getKey(), crossRegistryResult.getValue());
          }
@@ -241,7 +241,7 @@ public class YoCompositeTools
       return result;
    }
 
-   private static Pair<List<YoComposite>, List<YoVariable<?>>> searchYoComposites(YoCompositePattern pattern, List<YoVariable<?>> variables,
+   private static Pair<List<YoComposite>, List<YoVariable>> searchYoComposites(YoCompositePattern pattern, List<YoVariable> variables,
                                                                                   NameSpace namespace, boolean useUniqueNames)
    {
       variables = variables.stream().filter(variable -> containsAnyIgnoreCase(variable.getName(), pattern.getComponentIdentifiers()))
@@ -251,19 +251,19 @@ public class YoCompositeTools
          return new Pair<>(Collections.emptyList(), Collections.emptyList());
 
       List<YoComposite> result = new ArrayList<>();
-      List<YoVariable<?>> unresolvedCandidates = new ArrayList<>();
+      List<YoVariable> unresolvedCandidates = new ArrayList<>();
 
       // Using list to cover the edge case where 2 variables have the same (ignoring the case).
-      Map<String, List<NamedObjectHolder<YoVariable<?>>>> variableMap = new HashMap<>();
+      Map<String, List<NamedObjectHolder<YoVariable>>> variableMap = new HashMap<>();
 
       if (useUniqueNames)
       {
-         Map<YoVariable<?>, String> variableToUniqueNameMap = computeUniqueNames(variables, v -> v.getNameSpace().getSubNames(), YoVariable::getName);
+         Map<YoVariable, String> variableToUniqueNameMap = computeUniqueNames(variables, v -> v.getNameSpace().getSubNames(), YoVariable::getName);
 
-         for (Entry<YoVariable<?>, String> entry : variableToUniqueNameMap.entrySet())
+         for (Entry<YoVariable, String> entry : variableToUniqueNameMap.entrySet())
          {
             String variableKey = entry.getValue().toLowerCase();
-            List<NamedObjectHolder<YoVariable<?>>> container = variableMap.get(variableKey);
+            List<NamedObjectHolder<YoVariable>> container = variableMap.get(variableKey);
 
             if (container == null)
             {
@@ -275,10 +275,10 @@ public class YoCompositeTools
       }
       else
       {
-         for (YoVariable<?> variable : variables)
+         for (YoVariable variable : variables)
          {
             String variableKey = variable.getName().toLowerCase();
-            List<NamedObjectHolder<YoVariable<?>>> container = variableMap.get(variableKey);
+            List<NamedObjectHolder<YoVariable>> container = variableMap.get(variableKey);
 
             if (container == null)
             {
@@ -303,14 +303,14 @@ public class YoCompositeTools
             if (!isCompositeValid)
                continue;
 
-            YoVariable<?>[] components = new YoVariable[componentNames.length];
+            YoVariable[] components = new YoVariable[componentNames.length];
 
             for (int i = 0; i < componentNames.length; i++)
             {
                String componentName = componentNames[i];
                String componentKey = componentName.toLowerCase();
 
-               List<NamedObjectHolder<YoVariable<?>>> container = variableMap.get(componentKey);
+               List<NamedObjectHolder<YoVariable>> container = variableMap.get(componentKey);
 
                if (container.size() == 1)
                {
@@ -330,7 +330,7 @@ public class YoCompositeTools
             break;
          }
 
-         List<NamedObjectHolder<YoVariable<?>>> container = variableMap.get(variableKey);
+         List<NamedObjectHolder<YoVariable>> container = variableMap.get(variableKey);
 
          if (container != null)
          {
@@ -343,7 +343,7 @@ public class YoCompositeTools
       return new Pair<>(result, unresolvedCandidates);
    }
 
-   private static NameSpace findCommonNamespace(YoVariable<?>[] components)
+   private static NameSpace findCommonNamespace(YoVariable[] components)
    {
       if (components == null || components.length == 0)
          return null;
@@ -597,9 +597,9 @@ public class YoCompositeTools
       private List<String> namespace;
       private T originalObject;
 
-      public static NamedObjectHolder<YoVariable<?>> newUniqueNamedYoVariable(String uniqueName, YoVariable<?> yoVariable)
+      public static NamedObjectHolder<YoVariable> newUniqueNamedYoVariable(String uniqueName, YoVariable yoVariable)
       {
-         NamedObjectHolder<YoVariable<?>> namedObjectHolder = new NamedObjectHolder<>(yoVariable.getName(),
+         NamedObjectHolder<YoVariable> namedObjectHolder = new NamedObjectHolder<>(yoVariable.getName(),
                                                                                       yoVariable.getNameSpace().getSubNames(),
                                                                                       yoVariable);
          namedObjectHolder.uniqueName = uniqueName;

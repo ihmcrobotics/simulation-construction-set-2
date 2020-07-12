@@ -1,6 +1,6 @@
 package us.ihmc.scs2.definition.controller.interfaces;
 
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public interface Controller
 {
@@ -10,7 +10,7 @@ public interface Controller
 
    void doControl();
 
-   default YoVariableRegistry getYoVariableRegistry()
+   default YoRegistry getYoRegistry()
    {
       return null;
    }

@@ -14,7 +14,7 @@ import us.ihmc.scs2.definition.controller.interfaces.Controller;
 import us.ihmc.scs2.definition.controller.interfaces.ControllerDefinition;
 import us.ihmc.scs2.definition.state.interfaces.OneDoFJointStateBasics;
 import us.ihmc.yoVariables.providers.DoubleProvider;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
 public class OneDoFJointDampingControllerDefinition implements ControllerDefinition
@@ -22,12 +22,12 @@ public class OneDoFJointDampingControllerDefinition implements ControllerDefinit
    private String controllerName;
    private DoubleProvider damping;
    private List<String> namesOfJointsToControl;
-   private YoVariableRegistry controllerRegistry;
+   private YoRegistry controllerRegistry;
 
    public OneDoFJointDampingControllerDefinition setControllerName(String name)
    {
       controllerName = name;
-      controllerRegistry = new YoVariableRegistry(name);
+      controllerRegistry = new YoRegistry(name);
       return this;
    }
 

@@ -47,7 +47,7 @@ import us.ihmc.scs2.sessionVisualizer.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.yoComposite.YoCompositeCollection;
 import us.ihmc.scs2.sessionVisualizer.yoComposite.YoCompositeTools;
 import us.ihmc.yoVariables.registry.NameSpace;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class YoCompositeSearchPaneController extends AnimationTimer
 {
@@ -61,7 +61,7 @@ public class YoCompositeSearchPaneController extends AnimationTimer
    private ObservableList<YoComposite> defaultItemList = FXCollections.emptyObservableList();
    private ObservableList<YoComposite> searchResult = null;
 
-   private YoVariableRegistry ownerRegistry = null;
+   private YoRegistry ownerRegistry = null;
    private YoCompositeSearchManager yoCompositeSearchManager;
    private BackgroundExecutorManager backgroundExecutorManager;
 
@@ -78,7 +78,7 @@ public class YoCompositeSearchPaneController extends AnimationTimer
       initialize(toolkit, null);
    }
 
-   public void initialize(SessionVisualizerToolkit toolkit, YoVariableRegistry ownerRegistry)
+   public void initialize(SessionVisualizerToolkit toolkit, YoRegistry ownerRegistry)
    {
       JavaFXMessager messager = toolkit.getMessager();
       SessionVisualizerTopics topics = toolkit.getTopics();
