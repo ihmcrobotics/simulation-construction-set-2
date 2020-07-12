@@ -1,6 +1,6 @@
 package us.ihmc.scs2.definition.state.interfaces;
 
-import org.ejml.data.DenseMatrix64F;
+import org.ejml.data.DMatrix;
 
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.tools.JointStateType;
@@ -17,11 +17,11 @@ public interface JointStateReadOnly
 
    void getEffort(JointBasics jointToUpdate);
 
-   int getConfiguration(int startRow, DenseMatrix64F configurationToPack);
+   int getConfiguration(int startRow, DMatrix configurationToPack);
 
-   int getVelocity(int startRow, DenseMatrix64F velocityToPack);
+   int getVelocity(int startRow, DMatrix velocityToPack);
 
-   int getAcceleration(int startRow, DenseMatrix64F accelerationToPack);
+   int getAcceleration(int startRow, DMatrix accelerationToPack);
 
-   int getEffort(int startRow, DenseMatrix64F effortToPack);
+   int getEffort(int startRow, DMatrix effortToPack);
 }

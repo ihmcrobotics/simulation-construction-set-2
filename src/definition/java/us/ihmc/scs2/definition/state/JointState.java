@@ -3,8 +3,9 @@ package us.ihmc.scs2.definition.state;
 import java.util.EnumSet;
 import java.util.Set;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
+import org.ejml.data.DMatrix;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
 
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointReadOnly;
@@ -14,12 +15,12 @@ import us.ihmc.scs2.definition.state.interfaces.JointStateBasics;
 public class JointState implements JointStateBasics
 {
    private final Set<JointStateType> availableStates = EnumSet.noneOf(JointStateType.class);
-   private final DenseMatrix64F configuration = new DenseMatrix64F(JointReadOnly.MAX_NUMBER_OF_DOFS, 1);
-   private final DenseMatrix64F velocity = new DenseMatrix64F(JointReadOnly.MAX_NUMBER_OF_DOFS, 1);
-   private final DenseMatrix64F acceleration = new DenseMatrix64F(JointReadOnly.MAX_NUMBER_OF_DOFS, 1);
-   private final DenseMatrix64F effort = new DenseMatrix64F(JointReadOnly.MAX_NUMBER_OF_DOFS, 1);
+   private final DMatrixRMaj configuration = new DMatrixRMaj(JointReadOnly.MAX_NUMBER_OF_DOFS, 1);
+   private final DMatrixRMaj velocity = new DMatrixRMaj(JointReadOnly.MAX_NUMBER_OF_DOFS, 1);
+   private final DMatrixRMaj acceleration = new DMatrixRMaj(JointReadOnly.MAX_NUMBER_OF_DOFS, 1);
+   private final DMatrixRMaj effort = new DMatrixRMaj(JointReadOnly.MAX_NUMBER_OF_DOFS, 1);
 
-   private final DenseMatrix64F intermediateMatrix = new DenseMatrix64F(JointReadOnly.MAX_NUMBER_OF_DOFS, 1);
+   private final DMatrixRMaj intermediateMatrix = new DMatrixRMaj(JointReadOnly.MAX_NUMBER_OF_DOFS, 1);
 
    public JointState()
    {
@@ -58,7 +59,7 @@ public class JointState implements JointStateBasics
       {
          intermediateMatrix.reshape(joint.getDegreesOfFreedom(), 1);
          joint.getJointVelocity(0, intermediateMatrix);
-         CommonOps.addEquals(velocity, intermediateMatrix);
+         CommonOps_DDRM.addEquals(velocity, intermediateMatrix);
       }
    }
 
@@ -81,7 +82,7 @@ public class JointState implements JointStateBasics
       {
          intermediateMatrix.reshape(joint.getDegreesOfFreedom(), 1);
          joint.getJointAcceleration(0, intermediateMatrix);
-         CommonOps.addEquals(acceleration, intermediateMatrix);
+         CommonOps_DDRM.addEquals(acceleration, intermediateMatrix);
       }
    }
 
@@ -104,7 +105,7 @@ public class JointState implements JointStateBasics
       {
          intermediateMatrix.reshape(joint.getDegreesOfFreedom(), 1);
          joint.getJointTau(0, intermediateMatrix);
-         CommonOps.addEquals(effort, intermediateMatrix);
+         CommonOps_DDRM.addEquals(effort, intermediateMatrix);
       }
    }
 
@@ -115,30 +116,30 @@ public class JointState implements JointStateBasics
    }
 
    @Override
-   public int getConfiguration(int startRow, DenseMatrix64F configurationToPack)
+   public int getConfiguration(int startRow, DMatrix configurationToPack)
    {
-      CommonOps.insert(configuration, configurationToPack, startRow, 0);
+      CommonOps_DDRM.insert(configuration, configurationToPack, startRow, 0);
       return startRow + configuration.getNumRows();
    }
 
    @Override
-   public int getVelocity(int startRow, DenseMatrix64F velocityToPack)
+   public int getVelocity(int startRow, DMatrix velocityToPack)
    {
-      CommonOps.insert(velocity, velocityToPack, startRow, 0);
+      CommonOps_DDRM.insert(velocity, velocityToPack, startRow, 0);
       return startRow + velocity.getNumRows();
    }
 
    @Override
-   public int getAcceleration(int startRow, DenseMatrix64F accelerationToPack)
+   public int getAcceleration(int startRow, DMatrix accelerationToPack)
    {
-      CommonOps.insert(acceleration, accelerationToPack, startRow, 0);
+      CommonOps_DDRM.insert(acceleration, accelerationToPack, startRow, 0);
       return startRow + acceleration.getNumRows();
    }
 
    @Override
-   public int getEffort(int startRow, DenseMatrix64F effortToPack)
+   public int getEffort(int startRow, DMatrix effortToPack)
    {
-      CommonOps.insert(effort, effortToPack, startRow, 0);
+      CommonOps_DDRM.insert(effort, effortToPack, startRow, 0);
       return startRow + effort.getNumRows();
    }
 

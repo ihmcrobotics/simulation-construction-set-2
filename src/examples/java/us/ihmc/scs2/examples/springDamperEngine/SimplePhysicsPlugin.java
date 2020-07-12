@@ -1,7 +1,8 @@
 package us.ihmc.scs2.examples.springDamperEngine;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
+
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.MultiBodySystemBasics;
 import us.ihmc.mecano.yoVariables.multiBodySystem.YoPrismaticJoint;
@@ -23,15 +24,15 @@ public class SimplePhysicsPlugin implements RobotPhysicsEnginePlugin
 
    private double a = 1.0;
 
-   private DenseMatrix64F A = new DenseMatrix64F(2, 2);
-   private DenseMatrix64F B = new DenseMatrix64F(2, 2);
-   private DenseMatrix64F x = new DenseMatrix64F(2, 1);
-   private DenseMatrix64F u = new DenseMatrix64F(2, 1);
-   private DenseMatrix64F xd = new DenseMatrix64F(2, 1);
+   private DMatrixRMaj A = new DMatrixRMaj(2, 2);
+   private DMatrixRMaj B = new DMatrixRMaj(2, 2);
+   private DMatrixRMaj x = new DMatrixRMaj(2, 1);
+   private DMatrixRMaj u = new DMatrixRMaj(2, 1);
+   private DMatrixRMaj xd = new DMatrixRMaj(2, 1);
 
    // temp
-   DenseMatrix64F left = new DenseMatrix64F(2, 1);
-   DenseMatrix64F right = new DenseMatrix64F(2, 1);
+   DMatrixRMaj left = new DMatrixRMaj(2, 1);
+   DMatrixRMaj right = new DMatrixRMaj(2, 1);
 
    double t = 0.0;
 
@@ -60,10 +61,10 @@ public class SimplePhysicsPlugin implements RobotPhysicsEnginePlugin
       B.set(1, 0, 0.0);
       B.set(1, 1, a);
 
-      CommonOps.mult(A, x, left);
-      CommonOps.mult(B, u, right);
+      CommonOps_DDRM.mult(A, x, left);
+      CommonOps_DDRM.mult(B, u, right);
 
-      CommonOps.add(left, right, xd);
+      CommonOps_DDRM.add(left, right, xd);
 
       //      double qd2 = xd.get(0, 0);
       double qdd2 = xd.get(1, 0);

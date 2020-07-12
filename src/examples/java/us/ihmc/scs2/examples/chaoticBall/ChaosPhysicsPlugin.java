@@ -1,7 +1,8 @@
 package us.ihmc.scs2.examples.chaoticBall;
 
-import org.ejml.data.DenseMatrix64F;
-import org.ejml.ops.CommonOps;
+import org.ejml.data.DMatrixRMaj;
+import org.ejml.dense.row.CommonOps_DDRM;
+
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.MultiBodySystemBasics;
@@ -18,7 +19,7 @@ public class ChaosPhysicsPlugin implements RobotPhysicsEnginePlugin
       system = multiBodySystem;
    }
 
-   private DenseMatrix64F A = new DenseMatrix64F(3, 3);
+   private DMatrixRMaj A = new DMatrixRMaj(3, 3);
    {
       A.set(0, 0, -5.0);
       A.set(0, 1, 1.0);
@@ -30,7 +31,7 @@ public class ChaosPhysicsPlugin implements RobotPhysicsEnginePlugin
       A.set(2, 1, -4.0);
       A.set(2, 2, -12.0);
    }
-   private DenseMatrix64F B = new DenseMatrix64F(3, 2);
+   private DMatrixRMaj B = new DMatrixRMaj(3, 2);
    {
       B.set(0, 0, 1.0);
       B.set(0, 1, 2.0);
@@ -39,13 +40,13 @@ public class ChaosPhysicsPlugin implements RobotPhysicsEnginePlugin
       B.set(2, 0, 5.0);
       B.set(2, 1, 6.0);
    }
-   private DenseMatrix64F x = new DenseMatrix64F(3, 1);
-   private DenseMatrix64F u = new DenseMatrix64F(2, 1);
-   private DenseMatrix64F xd = new DenseMatrix64F(3, 1);
+   private DMatrixRMaj x = new DMatrixRMaj(3, 1);
+   private DMatrixRMaj u = new DMatrixRMaj(2, 1);
+   private DMatrixRMaj xd = new DMatrixRMaj(3, 1);
 
    // temp
-   DenseMatrix64F left = new DenseMatrix64F(3, 1);
-   DenseMatrix64F right = new DenseMatrix64F(3, 1);
+   DMatrixRMaj left = new DMatrixRMaj(3, 1);
+   DMatrixRMaj right = new DMatrixRMaj(3, 1);
 
    double t = 0.0;
 
@@ -63,10 +64,10 @@ public class ChaosPhysicsPlugin implements RobotPhysicsEnginePlugin
       u.set(0, 0, Math.cos(2.0 * Math.PI * t));
       u.set(1, 0, Math.cos(6.0 * Math.PI * t + (Math.PI / 8.0)));
 
-      CommonOps.mult(A, x, left);
-      CommonOps.mult(B, u, right);
+      CommonOps_DDRM.mult(A, x, left);
+      CommonOps_DDRM.mult(B, u, right);
 
-      CommonOps.add(left, right, xd);
+      CommonOps_DDRM.add(left, right, xd);
 
       q.setX(x.get(0, 0) + xd.get(0, 0) * dt);
       q.setY(x.get(1, 0) + xd.get(1, 0) * dt);
