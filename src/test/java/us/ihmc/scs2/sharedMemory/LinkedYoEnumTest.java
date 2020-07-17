@@ -18,7 +18,7 @@ public class LinkedYoEnumTest<E extends Enum<E>> extends LinkedYoVariableTest<Yo
    @Override
    YoEnum<E> copy(YoEnum<E> original)
    {
-      YoEnum copy = new YoEnum<>(original.getName() + "Copy", new YoRegistry("Dummy"), original.getEnumType(), original.getAllowNullValue());
+      YoEnum copy = new YoEnum<>(original.getName() + "Copy", new YoRegistry("Dummy"), original.getEnumType(), original.isNullAllowed());
       copy.set(original.getOrdinal());
       return copy;
    }

@@ -77,7 +77,7 @@ public class YoMirroredRegistryTools
                newYoVariable = new YoEnum<>(originalEnum.getName(),
                                             originalEnum.getDescription(),
                                             target,
-                                            originalEnum.getAllowNullValue(),
+                                            originalEnum.isNullAllowed(),
                                             originalEnum.getEnumValuesAsString());
             }
             else

@@ -86,7 +86,7 @@ public class YoEnumBufferTest
          int currentIndex = yoEnumBuffer.getProperties().getCurrentIndex();
          for (int j = 0; j < 10; j++)
          {
-            int newValue = yoEnum.getAllowNullValue() ? random.nextInt(yoEnum.getEnumSize() + 1) - 1 : random.nextInt(yoEnum.getEnumSize());
+            int newValue = yoEnum.isNullAllowed() ? random.nextInt(yoEnum.getEnumSize() + 1) - 1 : random.nextInt(yoEnum.getEnumSize());
             yoEnum.set(newValue);
             yoEnumBuffer.writeBuffer();
             assertEquals(newValue, yoEnum.getOrdinal());
@@ -108,7 +108,7 @@ public class YoEnumBufferTest
          int currentIndex = yoEnumBuffer.getProperties().getCurrentIndex();
          for (int j = 0; j < 10; j++)
          {
-            int newValue = yoEnum.getAllowNullValue() ? random.nextInt(yoEnum.getEnumSize() + 1) - 1 : random.nextInt(yoEnum.getEnumSize());
+            int newValue = yoEnum.isNullAllowed() ? random.nextInt(yoEnum.getEnumSize() + 1) - 1 : random.nextInt(yoEnum.getEnumSize());
             yoEnumBuffer.getBuffer()[currentIndex] = (byte) newValue;
             yoEnumBuffer.readBuffer();
             assertEquals(newValue, yoEnum.getOrdinal());
@@ -154,7 +154,7 @@ public class YoEnumBufferTest
          YoEnum linkedEnum = new YoEnum<>("linked",
                                           new YoRegistry("Dummy"),
                                           ((YoEnum) yoEnumBuffer.getYoVariable()).getEnumType(),
-                                          ((YoEnum) yoEnumBuffer.getYoVariable()).getAllowNullValue());
+                                          ((YoEnum) yoEnumBuffer.getYoVariable()).isNullAllowed());
          LinkedYoEnum<?> linkedYoVariable = yoEnumBuffer.newLinkedYoVariable(linkedEnum);
          assertTrue(linkedEnum == linkedYoVariable.getLinkedYoVariable());
          assertTrue(yoEnumBuffer == linkedYoVariable.getBuffer());
