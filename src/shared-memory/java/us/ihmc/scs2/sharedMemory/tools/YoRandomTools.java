@@ -248,7 +248,7 @@ public class YoRandomTools
 
    public static int nextOrdinal(Random random, YoEnum<?> yoEnum)
    {
-      if (yoEnum.getAllowNullValue())
+      if (yoEnum.isNullAllowed())
          return random.nextInt(yoEnum.getEnumSize() + 1) - 1;
       else
          return random.nextInt(yoEnum.getEnumSize());

@@ -308,7 +308,7 @@ public class YoRegistryBufferTest
       else if (yoVariableBuffer instanceof YoEnumBuffer)
       {
          YoEnumBuffer<?> yoEnumBuffer = (YoEnumBuffer<?>) yoVariableBuffer;
-         if (yoEnumBuffer.getYoVariable().getAllowNullValue())
+         if (yoEnumBuffer.getYoVariable().isNullAllowed())
             yoEnumBuffer.getBuffer()[index] = (byte) (random.nextInt(yoEnumBuffer.getYoVariable().getEnumSize() + 1) - 1);
          else
             yoEnumBuffer.getBuffer()[index] = (byte) random.nextInt(yoEnumBuffer.getYoVariable().getEnumSize());

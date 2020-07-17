@@ -31,7 +31,7 @@ import us.ihmc.scs2.sessionVisualizer.properties.YoDoubleProperty;
 import us.ihmc.scs2.sessionVisualizer.properties.YoIntegerProperty;
 import us.ihmc.scs2.sessionVisualizer.tools.YoVariableTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
-import us.ihmc.yoVariables.util.YoFrameVariableNameTools;
+import us.ihmc.yoVariables.tools.YoFrameVariableNameTools;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.yoVariables.variable.YoVariable;
