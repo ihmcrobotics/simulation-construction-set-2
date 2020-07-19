@@ -215,7 +215,7 @@ public class YoSharedBufferTest
             continue;
          }
          YoVariable bufferYoVariable = allBufferYoVariables.get(random.nextInt(allBufferYoVariables.size()));
-         YoRegistry consumerRegistry = YoMirroredRegistryTools.newEmptyCloneRegistry(bufferYoVariable.getYoRegistry());
+         YoRegistry consumerRegistry = YoMirroredRegistryTools.newEmptyCloneRegistry(bufferYoVariable.getRegistry());
          YoVariable consumerYoVariable = bufferYoVariable.duplicate(consumerRegistry);
          LinkedYoVariable linkedYoVariable = yoSharedBuffer.newLinkedYoVariable(consumerYoVariable);
 
@@ -253,7 +253,7 @@ public class YoSharedBufferTest
             continue;
          }
          YoVariable bufferYoVariable = allBufferYoVariables.get(random.nextInt(allBufferYoVariables.size()));
-         YoRegistry consumerRegistry = YoMirroredRegistryTools.newEmptyCloneRegistry(bufferYoVariable.getYoRegistry());
+         YoRegistry consumerRegistry = YoMirroredRegistryTools.newEmptyCloneRegistry(bufferYoVariable.getRegistry());
          YoVariable consumerYoVariable = bufferYoVariable.duplicate(consumerRegistry);
          LinkedYoVariable linkedYoVariable = yoSharedBuffer.newLinkedYoVariable(consumerYoVariable);
 
