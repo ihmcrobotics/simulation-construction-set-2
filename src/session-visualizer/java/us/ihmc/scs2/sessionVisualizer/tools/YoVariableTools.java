@@ -27,7 +27,7 @@ import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector2D;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.registry.YoVariableHolder;
-import us.ihmc.yoVariables.tools.YoFrameVariableNameTools;
+import us.ihmc.yoVariables.tools.YoGeometryNameTools;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoInteger;
@@ -217,10 +217,10 @@ public class YoVariableTools
    public static YoFramePoint2D findYoFramePoint2D(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch,
                                                    ReferenceFrame tupleFrame)
    {
-      YoDouble x = findYoDouble(nameSpace, YoFrameVariableNameTools.createXName(prefix, suffix), yoVariablesToSearch);
+      YoDouble x = findYoDouble(nameSpace, YoGeometryNameTools.createXName(prefix, suffix), yoVariablesToSearch);
       if (x == null)
          return null;
-      YoDouble y = findYoDouble(nameSpace, YoFrameVariableNameTools.createYName(prefix, suffix), yoVariablesToSearch);
+      YoDouble y = findYoDouble(nameSpace, YoGeometryNameTools.createYName(prefix, suffix), yoVariablesToSearch);
       if (y == null)
          return null;
       return new YoFramePoint2D(x, y, tupleFrame);
@@ -228,10 +228,10 @@ public class YoVariableTools
 
    public static YoFramePoint2D findYoFramePoint2D(String nameSpace, String prefix, String suffix, YoVariableHolder yoVariableHolder, ReferenceFrame tupleFrame)
    {
-      YoDouble x = findYoDouble(nameSpace, YoFrameVariableNameTools.createXName(prefix, suffix), yoVariableHolder);
+      YoDouble x = findYoDouble(nameSpace, YoGeometryNameTools.createXName(prefix, suffix), yoVariableHolder);
       if (x == null)
          return null;
-      YoDouble y = findYoDouble(nameSpace, YoFrameVariableNameTools.createYName(prefix, suffix), yoVariableHolder);
+      YoDouble y = findYoDouble(nameSpace, YoGeometryNameTools.createYName(prefix, suffix), yoVariableHolder);
       if (y == null)
          return null;
       return new YoFramePoint2D(x, y, tupleFrame);
@@ -240,10 +240,10 @@ public class YoVariableTools
    public static YoFrameVector2D findYoFrameVector2D(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch,
                                                      ReferenceFrame tupleFrame)
    {
-      YoDouble x = findYoDouble(nameSpace, YoFrameVariableNameTools.createXName(prefix, suffix), yoVariablesToSearch);
+      YoDouble x = findYoDouble(nameSpace, YoGeometryNameTools.createXName(prefix, suffix), yoVariablesToSearch);
       if (x == null)
          return null;
-      YoDouble y = findYoDouble(nameSpace, YoFrameVariableNameTools.createYName(prefix, suffix), yoVariablesToSearch);
+      YoDouble y = findYoDouble(nameSpace, YoGeometryNameTools.createYName(prefix, suffix), yoVariablesToSearch);
       if (y == null)
          return null;
       return new YoFrameVector2D(x, y, tupleFrame);
@@ -252,10 +252,10 @@ public class YoVariableTools
    public static YoFrameVector2D findYoFrameVector2D(String nameSpace, String prefix, String suffix, YoVariableHolder yoVariableHolder,
                                                      ReferenceFrame tupleFrame)
    {
-      YoDouble x = findYoDouble(nameSpace, YoFrameVariableNameTools.createXName(prefix, suffix), yoVariableHolder);
+      YoDouble x = findYoDouble(nameSpace, YoGeometryNameTools.createXName(prefix, suffix), yoVariableHolder);
       if (x == null)
          return null;
-      YoDouble y = findYoDouble(nameSpace, YoFrameVariableNameTools.createYName(prefix, suffix), yoVariableHolder);
+      YoDouble y = findYoDouble(nameSpace, YoGeometryNameTools.createYName(prefix, suffix), yoVariableHolder);
       if (y == null)
          return null;
       return new YoFrameVector2D(x, y, tupleFrame);
@@ -264,13 +264,13 @@ public class YoVariableTools
    public static YoFramePoint3D findYoFramePoint3D(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch,
                                                    ReferenceFrame tupleFrame)
    {
-      YoDouble x = findYoDouble(nameSpace, YoFrameVariableNameTools.createXName(prefix, suffix), yoVariablesToSearch);
+      YoDouble x = findYoDouble(nameSpace, YoGeometryNameTools.createXName(prefix, suffix), yoVariablesToSearch);
       if (x == null)
          return null;
-      YoDouble y = findYoDouble(nameSpace, YoFrameVariableNameTools.createYName(prefix, suffix), yoVariablesToSearch);
+      YoDouble y = findYoDouble(nameSpace, YoGeometryNameTools.createYName(prefix, suffix), yoVariablesToSearch);
       if (y == null)
          return null;
-      YoDouble z = findYoDouble(nameSpace, YoFrameVariableNameTools.createZName(prefix, suffix), yoVariablesToSearch);
+      YoDouble z = findYoDouble(nameSpace, YoGeometryNameTools.createZName(prefix, suffix), yoVariablesToSearch);
       if (z == null)
          return null;
       return new YoFramePoint3D(x, y, z, tupleFrame);
@@ -278,13 +278,13 @@ public class YoVariableTools
 
    public static YoFramePoint3D findYoFramePoint3D(String nameSpace, String prefix, String suffix, YoVariableHolder yoVariableHolder, ReferenceFrame tupleFrame)
    {
-      YoDouble x = findYoDouble(nameSpace, YoFrameVariableNameTools.createXName(prefix, suffix), yoVariableHolder);
+      YoDouble x = findYoDouble(nameSpace, YoGeometryNameTools.createXName(prefix, suffix), yoVariableHolder);
       if (x == null)
          return null;
-      YoDouble y = findYoDouble(nameSpace, YoFrameVariableNameTools.createYName(prefix, suffix), yoVariableHolder);
+      YoDouble y = findYoDouble(nameSpace, YoGeometryNameTools.createYName(prefix, suffix), yoVariableHolder);
       if (y == null)
          return null;
-      YoDouble z = findYoDouble(nameSpace, YoFrameVariableNameTools.createZName(prefix, suffix), yoVariableHolder);
+      YoDouble z = findYoDouble(nameSpace, YoGeometryNameTools.createZName(prefix, suffix), yoVariableHolder);
       if (z == null)
          return null;
       return new YoFramePoint3D(x, y, z, tupleFrame);
@@ -293,13 +293,13 @@ public class YoVariableTools
    public static YoFrameVector3D findYoFrameVector3D(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch,
                                                      ReferenceFrame tupleFrame)
    {
-      YoDouble x = findYoDouble(nameSpace, YoFrameVariableNameTools.createXName(prefix, suffix), yoVariablesToSearch);
+      YoDouble x = findYoDouble(nameSpace, YoGeometryNameTools.createXName(prefix, suffix), yoVariablesToSearch);
       if (x == null)
          return null;
-      YoDouble y = findYoDouble(nameSpace, YoFrameVariableNameTools.createYName(prefix, suffix), yoVariablesToSearch);
+      YoDouble y = findYoDouble(nameSpace, YoGeometryNameTools.createYName(prefix, suffix), yoVariablesToSearch);
       if (y == null)
          return null;
-      YoDouble z = findYoDouble(nameSpace, YoFrameVariableNameTools.createZName(prefix, suffix), yoVariablesToSearch);
+      YoDouble z = findYoDouble(nameSpace, YoGeometryNameTools.createZName(prefix, suffix), yoVariablesToSearch);
       if (z == null)
          return null;
       return new YoFrameVector3D(x, y, z, tupleFrame);
@@ -308,13 +308,13 @@ public class YoVariableTools
    public static YoFrameVector3D findYoFrameVector3D(String nameSpace, String prefix, String suffix, YoVariableHolder yoVariableHolder,
                                                      ReferenceFrame tupleFrame)
    {
-      YoDouble x = findYoDouble(nameSpace, YoFrameVariableNameTools.createXName(prefix, suffix), yoVariableHolder);
+      YoDouble x = findYoDouble(nameSpace, YoGeometryNameTools.createXName(prefix, suffix), yoVariableHolder);
       if (x == null)
          return null;
-      YoDouble y = findYoDouble(nameSpace, YoFrameVariableNameTools.createYName(prefix, suffix), yoVariableHolder);
+      YoDouble y = findYoDouble(nameSpace, YoGeometryNameTools.createYName(prefix, suffix), yoVariableHolder);
       if (y == null)
          return null;
-      YoDouble z = findYoDouble(nameSpace, YoFrameVariableNameTools.createZName(prefix, suffix), yoVariableHolder);
+      YoDouble z = findYoDouble(nameSpace, YoGeometryNameTools.createZName(prefix, suffix), yoVariableHolder);
       if (z == null)
          return null;
       return new YoFrameVector3D(x, y, z, tupleFrame);
@@ -323,16 +323,16 @@ public class YoVariableTools
    public static YoFrameQuaternion findYoFrameQuaternion(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch,
                                                          ReferenceFrame tupleFrame)
    {
-      YoDouble qx = findYoDouble(nameSpace, YoFrameVariableNameTools.createQxName(prefix, suffix), yoVariablesToSearch);
+      YoDouble qx = findYoDouble(nameSpace, YoGeometryNameTools.createQxName(prefix, suffix), yoVariablesToSearch);
       if (qx == null)
          return null;
-      YoDouble qy = findYoDouble(nameSpace, YoFrameVariableNameTools.createQyName(prefix, suffix), yoVariablesToSearch);
+      YoDouble qy = findYoDouble(nameSpace, YoGeometryNameTools.createQyName(prefix, suffix), yoVariablesToSearch);
       if (qy == null)
          return null;
-      YoDouble qz = findYoDouble(nameSpace, YoFrameVariableNameTools.createQzName(prefix, suffix), yoVariablesToSearch);
+      YoDouble qz = findYoDouble(nameSpace, YoGeometryNameTools.createQzName(prefix, suffix), yoVariablesToSearch);
       if (qz == null)
          return null;
-      YoDouble qs = findYoDouble(nameSpace, YoFrameVariableNameTools.createQsName(prefix, suffix), yoVariablesToSearch);
+      YoDouble qs = findYoDouble(nameSpace, YoGeometryNameTools.createQsName(prefix, suffix), yoVariablesToSearch);
       if (qs == null)
          return null;
       return new YoFrameQuaternion(qx, qy, qz, qs, tupleFrame);
@@ -341,16 +341,16 @@ public class YoVariableTools
    public static YoFrameQuaternion findYoFrameQuaternion(String nameSpace, String prefix, String suffix, YoVariableHolder yoVariableHolder,
                                                          ReferenceFrame tupleFrame)
    {
-      YoDouble qx = findYoDouble(nameSpace, YoFrameVariableNameTools.createQxName(prefix, suffix), yoVariableHolder);
+      YoDouble qx = findYoDouble(nameSpace, YoGeometryNameTools.createQxName(prefix, suffix), yoVariableHolder);
       if (qx == null)
          return null;
-      YoDouble qy = findYoDouble(nameSpace, YoFrameVariableNameTools.createQyName(prefix, suffix), yoVariableHolder);
+      YoDouble qy = findYoDouble(nameSpace, YoGeometryNameTools.createQyName(prefix, suffix), yoVariableHolder);
       if (qy == null)
          return null;
-      YoDouble qz = findYoDouble(nameSpace, YoFrameVariableNameTools.createQzName(prefix, suffix), yoVariableHolder);
+      YoDouble qz = findYoDouble(nameSpace, YoGeometryNameTools.createQzName(prefix, suffix), yoVariableHolder);
       if (qz == null)
          return null;
-      YoDouble qs = findYoDouble(nameSpace, YoFrameVariableNameTools.createQsName(prefix, suffix), yoVariableHolder);
+      YoDouble qs = findYoDouble(nameSpace, YoGeometryNameTools.createQsName(prefix, suffix), yoVariableHolder);
       if (qs == null)
          return null;
       return new YoFrameQuaternion(qx, qy, qz, qs, tupleFrame);
