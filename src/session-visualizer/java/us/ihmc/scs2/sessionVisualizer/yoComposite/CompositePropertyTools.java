@@ -31,7 +31,7 @@ import us.ihmc.scs2.sessionVisualizer.properties.YoDoubleProperty;
 import us.ihmc.scs2.sessionVisualizer.properties.YoIntegerProperty;
 import us.ihmc.scs2.sessionVisualizer.tools.YoVariableTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
-import us.ihmc.yoVariables.tools.YoFrameVariableNameTools;
+import us.ihmc.yoVariables.tools.YoGeometryNameTools;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -406,8 +406,8 @@ public class CompositePropertyTools
          {
             T bestYoVariable = searchResult.get(0);
             String bestFullname = bestYoVariable.getFullNameString();
-            String commonPrefix = YoFrameVariableNameTools.getCommonPrefix(fullnameToSearch, bestFullname);
-            String commonSuffix = YoFrameVariableNameTools.getCommonSuffix(fullnameToSearch, bestFullname);
+            String commonPrefix = YoGeometryNameTools.getCommonPrefix(fullnameToSearch, bestFullname);
+            String commonSuffix = YoGeometryNameTools.getCommonSuffix(fullnameToSearch, bestFullname);
             String searchSubname = fullnameToSearch.substring(commonPrefix.length(), fullnameToSearch.length() - commonSuffix.length());
             String bestSubname = bestFullname.substring(commonPrefix.length(), bestFullname.length() - commonSuffix.length());
 
