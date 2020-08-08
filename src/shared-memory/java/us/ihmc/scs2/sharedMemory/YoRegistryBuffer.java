@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.yoVariables.registry.NameSpace;
+import us.ihmc.yoVariables.registry.YoNamespace;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -81,7 +81,7 @@ public class YoRegistryBuffer
 
       if (yoVariableBuffer == null)
       {
-         NameSpace yoVariableNameSpace = new NameSpace(variableFullName);
+         YoNamespace yoVariableNameSpace = new YoNamespace(variableFullName);
          YoRegistry registry = ensurePathExists(rootRegistry, yoVariableNameSpace.getParent());
          Optional<YoVariable> duplicateOptional = registry.subtreeVariables().stream().filter(v -> v.getFullNameString().equals(variableFullName))
                                                           .findFirst();
@@ -99,7 +99,7 @@ public class YoRegistryBuffer
       return yoVariableBuffer;
    }
 
-   private static YoRegistry ensurePathExists(YoRegistry rootRegistry, NameSpace registryNamespace)
+   private static YoRegistry ensurePathExists(YoRegistry rootRegistry, YoNamespace registryNamespace)
    {
       if (!rootRegistry.getName().equals(registryNamespace.getRootName()))
          return null;

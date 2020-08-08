@@ -11,7 +11,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.scs2.sessionVisualizer.yoComposite.YoComposite;
-import us.ihmc.yoVariables.registry.NameSpace;
+import us.ihmc.yoVariables.registry.YoNamespace;
 
 public class YoCompositeTest
 {
@@ -20,38 +20,38 @@ public class YoCompositeTest
    public void testComputeUniqueNames()
    {
       int numberOfVariables = 21;
-      NameSpace[] nameSpaces = new NameSpace[numberOfVariables];
+      YoNamespace[] nameSpaces = new YoNamespace[numberOfVariables];
       int i = 0;
-      nameSpaces[i++] = new NameSpace("short.caramel");
-      nameSpaces[i++] = new NameSpace("un.miam.caramel");
-      nameSpaces[i++] = new NameSpace("deux.miam.caramel");
-      nameSpaces[i++] = new NameSpace("trois.different.caramel");
-      nameSpaces[i++] = new NameSpace("quatre.yummy.caramel");
-      nameSpaces[i++] = new NameSpace("cinq.choup.caramel");
-      nameSpaces[i++] = new NameSpace("six.yummy.caramel");
-      nameSpaces[i++] = new NameSpace("sept.mouais.caramel");
-      nameSpaces[i++] = new NameSpace("huit.cest.cacao.chocolat");
-      nameSpaces[i++] = new NameSpace("neuf.pas.cacao.chocolat");
-      nameSpaces[i++] = new NameSpace("dix.pareil.cafe.chocolat");
-      nameSpaces[i++] = new NameSpace("onze.la.cafe.chocolat");
-      nameSpaces[i++] = new NameSpace("douze.onsenfoula.demisel.beurre");
-      nameSpaces[i++] = new NameSpace("treize.onsenfoula.nature.beurre");
-      nameSpaces[i++] = new NameSpace("quatorze.quelquechose.nappe.table.sel");
-      nameSpaces[i++] = new NameSpace("quinze.quelquechose.poivre.table.sel");
-      nameSpaces[i++] = new NameSpace("seize.toi.maison.chat.miaou");
-      nameSpaces[i++] = new NameSpace("dixsept.moi.maison.chat.miaou");
-      nameSpaces[i++] = new NameSpace("dixhuit.serpent");
-      nameSpaces[i++] = new NameSpace("dixneuf.giraffe");
-      nameSpaces[i++] = new NameSpace("vingt.chat");
+      nameSpaces[i++] = new YoNamespace("short.caramel");
+      nameSpaces[i++] = new YoNamespace("un.miam.caramel");
+      nameSpaces[i++] = new YoNamespace("deux.miam.caramel");
+      nameSpaces[i++] = new YoNamespace("trois.different.caramel");
+      nameSpaces[i++] = new YoNamespace("quatre.yummy.caramel");
+      nameSpaces[i++] = new YoNamespace("cinq.choup.caramel");
+      nameSpaces[i++] = new YoNamespace("six.yummy.caramel");
+      nameSpaces[i++] = new YoNamespace("sept.mouais.caramel");
+      nameSpaces[i++] = new YoNamespace("huit.cest.cacao.chocolat");
+      nameSpaces[i++] = new YoNamespace("neuf.pas.cacao.chocolat");
+      nameSpaces[i++] = new YoNamespace("dix.pareil.cafe.chocolat");
+      nameSpaces[i++] = new YoNamespace("onze.la.cafe.chocolat");
+      nameSpaces[i++] = new YoNamespace("douze.onsenfoula.demisel.beurre");
+      nameSpaces[i++] = new YoNamespace("treize.onsenfoula.nature.beurre");
+      nameSpaces[i++] = new YoNamespace("quatorze.quelquechose.nappe.table.sel");
+      nameSpaces[i++] = new YoNamespace("quinze.quelquechose.poivre.table.sel");
+      nameSpaces[i++] = new YoNamespace("seize.toi.maison.chat.miaou");
+      nameSpaces[i++] = new YoNamespace("dixsept.moi.maison.chat.miaou");
+      nameSpaces[i++] = new YoNamespace("dixhuit.serpent");
+      nameSpaces[i++] = new YoNamespace("dixneuf.giraffe");
+      nameSpaces[i++] = new YoNamespace("vingt.chat");
 
       String[] varNames = new String[numberOfVariables];
 
       for (int j = 0; j < numberOfVariables; j++)
       {
-         NameSpace nameSpace = nameSpaces[j];
+         YoNamespace nameSpace = nameSpaces[j];
          varNames[j] = nameSpace.getShortName();
          List<String> subNames = nameSpace.getSubNames();
-         nameSpaces[j] = new NameSpace(subNames.subList(0, subNames.size() - 1));
+         nameSpaces[j] = new YoNamespace(subNames.subList(0, subNames.size() - 1));
       }
 
       List<YoComposite> yoTypeReferences = new ArrayList<>();

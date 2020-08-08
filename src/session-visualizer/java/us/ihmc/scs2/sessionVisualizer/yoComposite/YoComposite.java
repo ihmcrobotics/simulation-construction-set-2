@@ -4,14 +4,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import us.ihmc.yoVariables.registry.NameSpace;
+import us.ihmc.yoVariables.registry.YoNamespace;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoComposite implements Comparable<YoComposite>
 {
    private final YoCompositePattern pattern;
    private final String name;
-   private final NameSpace namespace;
+   private final YoNamespace namespace;
    private final List<YoVariable> yoComponents;
 
    private String uniqueName;
@@ -21,7 +21,7 @@ public class YoComposite implements Comparable<YoComposite>
       this(pattern, yoVariable.getName(), yoVariable.getNameSpace(), Collections.singletonList(yoVariable));
    }
 
-   public YoComposite(YoCompositePattern pattern, String compositeName, NameSpace compositeNamespace, List<YoVariable> yoComponents)
+   public YoComposite(YoCompositePattern pattern, String compositeName, YoNamespace compositeNamespace, List<YoVariable> yoComponents)
    {
       this.pattern = pattern;
       this.name = compositeName;
@@ -39,7 +39,7 @@ public class YoComposite implements Comparable<YoComposite>
       return name;
    }
 
-   public NameSpace getNamespace()
+   public YoNamespace getNamespace()
    {
       return namespace;
    }

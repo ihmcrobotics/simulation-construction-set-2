@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import us.ihmc.yoVariables.registry.NameSpace;
+import us.ihmc.yoVariables.registry.YoNamespace;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -34,10 +34,10 @@ public class YoMirroredRegistryTools
 
    public static YoRegistry newRegistryFromNameSpace(String... nameSpace)
    {
-      return newRegistryFromNameSpace(new NameSpace(Arrays.asList(nameSpace)));
+      return newRegistryFromNameSpace(new YoNamespace(Arrays.asList(nameSpace)));
    }
 
-   public static YoRegistry newRegistryFromNameSpace(NameSpace nameSpace)
+   public static YoRegistry newRegistryFromNameSpace(YoNamespace nameSpace)
    {
       YoRegistry registry = null;
 

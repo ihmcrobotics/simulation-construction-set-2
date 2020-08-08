@@ -26,7 +26,7 @@ import us.ihmc.scs2.definition.yoComposite.YoTuple3DDefinition;
 import us.ihmc.scs2.definition.yoComposite.YoYawPitchRollDefinition;
 import us.ihmc.scs2.sessionVisualizer.charts.ChartGroupModel;
 import us.ihmc.scs2.sessionVisualizer.charts.YoChartTools;
-import us.ihmc.yoVariables.registry.NameSpace;
+import us.ihmc.yoVariables.registry.YoNamespace;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -242,7 +242,7 @@ public class YoCompositeTools
    }
 
    private static Pair<List<YoComposite>, List<YoVariable>> searchYoComposites(YoCompositePattern pattern, List<YoVariable> variables,
-                                                                                  NameSpace namespace, boolean useUniqueNames)
+                                                                                  YoNamespace namespace, boolean useUniqueNames)
    {
       variables = variables.stream().filter(variable -> containsAnyIgnoreCase(variable.getName(), pattern.getComponentIdentifiers()))
                            .collect(Collectors.toList());
@@ -343,7 +343,7 @@ public class YoCompositeTools
       return new Pair<>(result, unresolvedCandidates);
    }
 
-   private static NameSpace findCommonNamespace(YoVariable[] components)
+   private static YoNamespace findCommonNamespace(YoVariable[] components)
    {
       if (components == null || components.length == 0)
          return null;
@@ -367,7 +367,7 @@ public class YoCompositeTools
          }
       }
 
-      return new NameSpace(commonNamespace);
+      return new YoNamespace(commonNamespace);
    }
 
    public static boolean areAllOfSameType(Object[] array)
