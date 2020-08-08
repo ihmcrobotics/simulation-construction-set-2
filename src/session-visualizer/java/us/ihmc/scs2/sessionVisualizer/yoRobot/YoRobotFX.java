@@ -45,7 +45,7 @@ public class YoRobotFX
       this.referenceFrameManager = referenceFrameManager;
       this.robotDefinition = robotDefinition;
 
-      robotRegistry = YoMirroredRegistryTools.newRegistryFromNameSpace(SimulationSession.ROOT_REGISTRY_NAME, robotDefinition.getName());
+      robotRegistry = YoMirroredRegistryTools.newRegistryFromNamespace(SimulationSession.ROOT_REGISTRY_NAME, robotDefinition.getName());
    }
 
    public void loadRobot(Executor graphicLoader)

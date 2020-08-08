@@ -18,7 +18,7 @@ public class YoComposite implements Comparable<YoComposite>
 
    public YoComposite(YoCompositePattern pattern, YoVariable yoVariable)
    {
-      this(pattern, yoVariable.getName(), yoVariable.getNameSpace(), Collections.singletonList(yoVariable));
+      this(pattern, yoVariable.getName(), yoVariable.getNamespace(), Collections.singletonList(yoVariable));
    }
 
    public YoComposite(YoCompositePattern pattern, String compositeName, YoNamespace compositeNamespace, List<YoVariable> yoComponents)

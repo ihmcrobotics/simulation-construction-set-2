@@ -45,7 +45,7 @@ public class LinkedYoRegistry extends LinkedBuffer
     */
    public int linkManagerVariables()
    {
-      YoRegistry bufferRootRegistry = YoRegistryBuffer.getRootRegistry().findRegistry(rootRegistry.getNameSpace());
+      YoRegistry bufferRootRegistry = YoRegistryBuffer.getRootRegistry().findRegistry(rootRegistry.getNamespace());
 
       int numberOfNewVariables = 0;
 

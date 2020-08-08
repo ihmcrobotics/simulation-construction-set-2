@@ -215,7 +215,7 @@ public class YoCompositeTools
             return false;
          });
 
-         Pair<List<YoComposite>, List<YoVariable>> primitiveResult = searchYoComposites(pattern, searchPool, registry.getNameSpace(), false);
+         Pair<List<YoComposite>, List<YoVariable>> primitiveResult = searchYoComposites(pattern, searchPool, registry.getNamespace(), false);
          result.getKey().addAll(primitiveResult.getKey());
          result.getValue().addAll(primitiveResult.getValue());
       }
@@ -258,7 +258,7 @@ public class YoCompositeTools
 
       if (useUniqueNames)
       {
-         Map<YoVariable, String> variableToUniqueNameMap = computeUniqueNames(variables, v -> v.getNameSpace().getSubNames(), YoVariable::getName);
+         Map<YoVariable, String> variableToUniqueNameMap = computeUniqueNames(variables, v -> v.getNamespace().getSubNames(), YoVariable::getName);
 
          for (Entry<YoVariable, String> entry : variableToUniqueNameMap.entrySet())
          {
@@ -349,13 +349,13 @@ public class YoCompositeTools
          return null;
 
       if (components.length == 1)
-         return components[0].getNameSpace();
+         return components[0].getNamespace();
 
-      List<String> commonNamespace = components[0].getNameSpace().getSubNames();
+      List<String> commonNamespace = components[0].getNamespace().getSubNames();
 
       for (int i = 1; i < components.length; i++)
       {
-         List<String> componentNamespace = components[i].getNameSpace().getSubNames();
+         List<String> componentNamespace = components[i].getNamespace().getSubNames();
 
          for (int j = 0; j < commonNamespace.size(); j++)
          {
@@ -600,7 +600,7 @@ public class YoCompositeTools
       public static NamedObjectHolder<YoVariable> newUniqueNamedYoVariable(String uniqueName, YoVariable yoVariable)
       {
          NamedObjectHolder<YoVariable> namedObjectHolder = new NamedObjectHolder<>(yoVariable.getName(),
-                                                                                      yoVariable.getNameSpace().getSubNames(),
+                                                                                      yoVariable.getNamespace().getSubNames(),
                                                                                       yoVariable);
          namedObjectHolder.uniqueName = uniqueName;
          return namedObjectHolder;

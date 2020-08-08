@@ -32,16 +32,16 @@ public class YoMirroredRegistryTools
       return clone;
    }
 
-   public static YoRegistry newRegistryFromNameSpace(String... nameSpace)
+   public static YoRegistry newRegistryFromNamespace(String... namespace)
    {
-      return newRegistryFromNameSpace(new YoNamespace(Arrays.asList(nameSpace)));
+      return newRegistryFromNamespace(new YoNamespace(Arrays.asList(namespace)));
    }
 
-   public static YoRegistry newRegistryFromNameSpace(YoNamespace nameSpace)
+   public static YoRegistry newRegistryFromNamespace(YoNamespace namespace)
    {
       YoRegistry registry = null;
 
-      for (String subName : nameSpace.getSubNames())
+      for (String subName : namespace.getSubNames())
       {
          YoRegistry child = new YoRegistry(subName);
          if (registry != null)

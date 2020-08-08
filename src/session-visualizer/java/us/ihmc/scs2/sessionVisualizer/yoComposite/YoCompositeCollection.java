@@ -37,7 +37,7 @@ public class YoCompositeCollection
 
    public List<YoComposite> getYoComposite(YoRegistry owner)
    {
-      return yoComposites.stream().filter(composite -> composite.getNamespace().equals(owner.getNameSpace())).collect(Collectors.toList());
+      return yoComposites.stream().filter(composite -> composite.getNamespace().equals(owner.getNamespace())).collect(Collectors.toList());
    }
 
    public String getYoVariableUniqueName(YoVariable yoVariable)

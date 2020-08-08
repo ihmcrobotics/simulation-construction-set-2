@@ -106,7 +106,7 @@ public class YoCompositeListCell extends ListCell<YoComposite>
             YoVariable component = yoComposite.getYoComponents().get(i);
             String componentIdentifier = yoComposite.getPattern().getComponentIdentifiers()[i];
             Label idLabel = new Label(componentIdentifier);
-            idLabel.setTooltip(new Tooltip(component.getName() + "\n" + component.getNameSpace()));
+            idLabel.setTooltip(new Tooltip(component.getName() + "\n" + component.getNamespace()));
             Control componentControl = yoVariableControls.get(i);
             cellGraphic.getChildren().addAll(idLabel, componentControl);
             GridPane.setConstraints(idLabel, 0, i);

@@ -26,14 +26,14 @@ public class YoGraphicTools
    public static final String ROOT_NAME = "root";
    public static final String SEPARATOR = ":";
 
-   public static List<String> collectAllExistingNameSpaces(YoGroupFX group)
+   public static List<String> collectAllExistingNamespaces(YoGroupFX group)
    {
-      List<String> nameSpaces = new ArrayList<>();
+      List<String> namespaces = new ArrayList<>();
       if (!group.isRoot())
-         nameSpaces.add(group.getFullname());
+         namespaces.add(group.getFullname());
       for (YoGroupFX child : group.getChildren())
-         nameSpaces.addAll(collectAllExistingNameSpaces(child));
-      return nameSpaces;
+         namespaces.addAll(collectAllExistingNamespaces(child));
+      return namespaces;
    }
 
    public static boolean yoGraphicFXGroupContainsItem(String itemName, Class<? extends YoGraphicFXItem> itemType, YoGroupFX group)
@@ -48,9 +48,9 @@ public class YoGraphicTools
          throw new RuntimeException("Unexpected item type: " + itemType.getSimpleName());
    }
 
-   public static <I extends YoGraphicFXItem> I findYoGraphicFXItem(YoGroupFX root, String nameSpace, String itemName, Class<I> itemType)
+   public static <I extends YoGraphicFXItem> I findYoGraphicFXItem(YoGroupFX root, String namespace, String itemName, Class<I> itemType)
    {
-      YoGroupFX graphicGroup = findYoGraphicFXGroup(root, nameSpace);
+      YoGroupFX graphicGroup = findYoGraphicFXGroup(root, namespace);
       if (graphicGroup == null)
          return null;
       else
@@ -66,31 +66,31 @@ public class YoGraphicTools
       }
    }
 
-   public static YoGraphicFX2D findYoGraphicFX2D(YoGroupFX root, String nameSpace, String graphicName)
+   public static YoGraphicFX2D findYoGraphicFX2D(YoGroupFX root, String namespace, String graphicName)
    {
-      YoGroupFX graphicGroup = findYoGraphicFXGroup(root, nameSpace);
+      YoGroupFX graphicGroup = findYoGraphicFXGroup(root, namespace);
       if (graphicGroup == null)
          return null;
       else
          return graphicGroup.getYoGraphicFX2D(graphicName);
    }
 
-   public static YoGraphicFX3D findYoGraphicFX3D(YoGroupFX root, String nameSpace, String graphicName)
+   public static YoGraphicFX3D findYoGraphicFX3D(YoGroupFX root, String namespace, String graphicName)
    {
-      YoGroupFX graphicGroup = findYoGraphicFXGroup(root, nameSpace);
+      YoGroupFX graphicGroup = findYoGraphicFXGroup(root, namespace);
       if (graphicGroup == null)
          return null;
       else
          return graphicGroup.getYoGraphicFX3D(graphicName);
    }
 
-   public static YoGroupFX findYoGraphicFXGroup(YoGroupFX root, String nameSpace)
+   public static YoGroupFX findYoGraphicFXGroup(YoGroupFX root, String namespace)
    {
       String[] groupNames;
-      if (nameSpace.contains(YoGraphicTools.SEPARATOR))
-         groupNames = nameSpace.split(YoGraphicTools.SEPARATOR);
+      if (namespace.contains(YoGraphicTools.SEPARATOR))
+         groupNames = namespace.split(YoGraphicTools.SEPARATOR);
       else
-         groupNames = new String[] {nameSpace};
+         groupNames = new String[] {namespace};
 
       if (groupNames == null || groupNames.length == 0)
          return null;
@@ -116,13 +116,13 @@ public class YoGraphicTools
       return parent;
    }
 
-   public static YoGroupFX findOrCreateYoGraphicFXGroup(YoGroupFX root, String nameSpace)
+   public static YoGroupFX findOrCreateYoGraphicFXGroup(YoGroupFX root, String namespace)
    {
       String[] groupNames;
-      if (nameSpace.contains(YoGraphicTools.SEPARATOR))
-         groupNames = nameSpace.split(YoGraphicTools.SEPARATOR);
+      if (namespace.contains(YoGraphicTools.SEPARATOR))
+         groupNames = namespace.split(YoGraphicTools.SEPARATOR);
       else
-         groupNames = new String[] {nameSpace};
+         groupNames = new String[] {namespace};
 
       if (groupNames == null || groupNames.length == 0)
          return null;
