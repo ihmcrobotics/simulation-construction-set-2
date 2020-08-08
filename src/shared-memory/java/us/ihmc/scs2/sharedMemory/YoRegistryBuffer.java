@@ -81,8 +81,8 @@ public class YoRegistryBuffer
 
       if (yoVariableBuffer == null)
       {
-         YoNamespace yoVariableNameSpace = new YoNamespace(variableFullName);
-         YoRegistry registry = ensurePathExists(rootRegistry, yoVariableNameSpace.getParent());
+         YoNamespace yoVariableNamespace = new YoNamespace(variableFullName);
+         YoRegistry registry = ensurePathExists(rootRegistry, yoVariableNamespace.getParent());
          Optional<YoVariable> duplicateOptional = registry.subtreeVariables().stream().filter(v -> v.getFullNameString().equals(variableFullName))
                                                           .findFirst();
          YoVariable duplicate;

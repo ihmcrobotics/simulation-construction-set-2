@@ -44,7 +44,7 @@ public class YoGraphicNameEditorPaneController
       this.yoGraphicFXItem = yoGraphicFXItem;
       rootGroup = toolkit.getYoGraphicFXRootGroup();
 
-      TextFields.bindAutoCompletion(namespaceTextField, YoGraphicTools.collectAllExistingNameSpaces(rootGroup));
+      TextFields.bindAutoCompletion(namespaceTextField, YoGraphicTools.collectAllExistingNamespaces(rootGroup));
       YoGraphicFXControllerTools.bindValidityImageView(inputsValidityProperty, nameValidImageView);
 
       nameTextField.textProperty().addListener((o, oldValue, newValue) ->

@@ -48,14 +48,14 @@ public class YoMirroredRegistryToolsTest
 
          for (YoRegistry originalRegistry : originalRoot.subtreeRegistries())
          {
-            YoRegistry targetRegistry = targetRoot.findRegistry(originalRegistry.getNameSpace());
+            YoRegistry targetRegistry = targetRoot.findRegistry(originalRegistry.getNamespace());
             assertNotNull(targetRegistry);
             assertEquals(originalRegistry.getNumberOfVariables(), targetRegistry.getNumberOfVariables());
          }
 
          for (YoVariable originalVariable : originalRoot.subtreeVariables())
          {
-            YoVariable targetVariable = targetRoot.findVariable(originalVariable.getNameSpace().toString(), originalVariable.getName());
+            YoVariable targetVariable = targetRoot.findVariable(originalVariable.getNamespace().toString(), originalVariable.getName());
             assertNotNull(targetVariable);
             assertEquals(originalVariable.getClass(), targetVariable.getClass());
          }
@@ -106,14 +106,14 @@ public class YoMirroredRegistryToolsTest
 
          for (YoRegistry originalRegistry : originalRoot.subtreeRegistries())
          {
-            YoRegistry targetRegistry = targetRoot.findRegistry(originalRegistry.getNameSpace());
+            YoRegistry targetRegistry = targetRoot.findRegistry(originalRegistry.getNamespace());
             assertNotNull(targetRegistry);
             assertEquals(originalRegistry.getNumberOfVariables(), targetRegistry.getNumberOfVariables());
          }
 
          for (YoVariable originalVariable : originalRoot.subtreeVariables())
          {
-            YoVariable targetVariable = targetRoot.findVariable(originalVariable.getNameSpace().toString(), originalVariable.getName());
+            YoVariable targetVariable = targetRoot.findVariable(originalVariable.getNamespace().toString(), originalVariable.getName());
             assertNotNull(targetVariable);
             assertEquals(originalVariable.getClass(), targetVariable.getClass());
          }

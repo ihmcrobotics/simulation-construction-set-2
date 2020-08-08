@@ -221,7 +221,7 @@ public class YoRegistryBufferTest
          assertNotNull(YoRegistryBuffer.findYoVariableBuffer(newYoVariable));
          assertNotNull(rootRegistry.findVariable(newYoVariable.getFullNameString()));
          assertEquals(newYoVariable.getClass(), rootRegistry.findVariable(newYoVariable.getFullNameString()).getClass());
-         newRegistries.forEach(newRegistry -> assertNotNull(rootRegistry.findRegistry(newRegistry.getNameSpace())));
+         newRegistries.forEach(newRegistry -> assertNotNull(rootRegistry.findRegistry(newRegistry.getNamespace())));
       }
    }
 
@@ -247,7 +247,7 @@ public class YoRegistryBufferTest
 
          for (YoRegistry registry : allRegistries)
          {
-            YoRegistry linkedRegistry = linkedRootRegistry.getRootRegistry().findRegistry(registry.getNameSpace());
+            YoRegistry linkedRegistry = linkedRootRegistry.getRootRegistry().findRegistry(registry.getNamespace());
             assertNotNull(linkedRegistry);
             assertEquals(linkedRegistry.getChildren().size(), registry.getChildren().size());
             assertEquals(linkedRegistry.getVariables().size(), registry.getVariables().size());
@@ -263,7 +263,7 @@ public class YoRegistryBufferTest
 
          for (YoRegistry registry : subTreeRootRegistry.subtreeRegistries())
          {
-            YoRegistry linkedRegistry = linkedSubTreeRootRegistry.findRegistry(registry.getNameSpace());
+            YoRegistry linkedRegistry = linkedSubTreeRootRegistry.findRegistry(registry.getNamespace());
             assertNotNull(linkedRegistry);
             assertEquals(linkedRegistry.getChildren().size(), registry.getChildren().size());
             assertEquals(linkedRegistry.getVariables().size(), registry.getVariables().size());

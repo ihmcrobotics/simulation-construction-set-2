@@ -72,7 +72,7 @@ public class YoVariableTools
       {
          String varName = xCoordinateCandidate.getName();
          String varNameLowerCase = varName.toLowerCase();
-         String nameSpace = xCoordinateCandidate.getNameSpace().toString();
+         String namespace = xCoordinateCandidate.getNamespace().toString();
 
          int indexOfAxisName = varNameLowerCase.indexOf(axisName);
 
@@ -86,10 +86,10 @@ public class YoVariableTools
             else
                suffix = "";
 
-            YoFramePoint2D searchResult = findYoFramePoint2D(nameSpace, prefix, suffix, yoDoubles, tuplesFrame);
+            YoFramePoint2D searchResult = findYoFramePoint2D(namespace, prefix, suffix, yoDoubles, tuplesFrame);
 
-            if (searchResult != null && !doesYoFrameTuple3DExist(nameSpace, prefix, suffix, yoDoubles)
-                  && !doesYoFrameQuaternionExist(nameSpace, prefix, suffix, yoDoubles))
+            if (searchResult != null && !doesYoFrameTuple3DExist(namespace, prefix, suffix, yoDoubles)
+                  && !doesYoFrameQuaternionExist(namespace, prefix, suffix, yoDoubles))
                foundYoTuple2Ds.add(searchResult);
 
             if (indexOfAxisName + 1 >= varName.length())
@@ -114,7 +114,7 @@ public class YoVariableTools
       {
          String varName = xCoordinateCandidate.getName();
          String varNameLowerCase = varName.toLowerCase();
-         String nameSpace = xCoordinateCandidate.getNameSpace().toString();
+         String namespace = xCoordinateCandidate.getNamespace().toString();
 
          int indexOfAxisName = varNameLowerCase.indexOf(axisName);
 
@@ -128,9 +128,9 @@ public class YoVariableTools
             else
                suffix = "";
 
-            YoFramePoint3D searchResult = findYoFramePoint3D(nameSpace, prefix, suffix, yoDoubles, tuplesFrame);
+            YoFramePoint3D searchResult = findYoFramePoint3D(namespace, prefix, suffix, yoDoubles, tuplesFrame);
 
-            if (searchResult != null && !doesYoFrameQuaternionExist(nameSpace, prefix, suffix, yoDoubles))
+            if (searchResult != null && !doesYoFrameQuaternionExist(namespace, prefix, suffix, yoDoubles))
                foundYoTuple3Ds.add(searchResult);
 
             if (indexOfAxisName + 1 >= varName.length())
@@ -155,7 +155,7 @@ public class YoVariableTools
       {
          String varName = xCoordinateCandidate.getName();
          String varNameLowerCase = varName.toLowerCase();
-         String nameSpace = xCoordinateCandidate.getNameSpace().toString();
+         String namespace = xCoordinateCandidate.getNamespace().toString();
 
          int indexOfAxisName = varNameLowerCase.indexOf(axisName);
 
@@ -169,7 +169,7 @@ public class YoVariableTools
             else
                suffix = "";
 
-            YoFrameQuaternion searchResult = findYoFrameQuaternion(nameSpace, prefix, suffix, yoDoubles, tuplesFrame);
+            YoFrameQuaternion searchResult = findYoFrameQuaternion(namespace, prefix, suffix, yoDoubles, tuplesFrame);
 
             if (searchResult != null)
                foundYoTuple3Ds.add(searchResult);
@@ -184,173 +184,173 @@ public class YoVariableTools
       return foundYoTuple3Ds;
    }
 
-   public static boolean doesYoFrameTuple2DExist(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch)
+   public static boolean doesYoFrameTuple2DExist(String namespace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch)
    {
-      return findYoFramePoint2D(nameSpace, prefix, suffix, yoVariablesToSearch, null) != null;
+      return findYoFramePoint2D(namespace, prefix, suffix, yoVariablesToSearch, null) != null;
    }
 
-   public static boolean doesYoFrameTuple2DExist(String nameSpace, String prefix, String suffix, YoVariableHolder yoVariableHolder)
+   public static boolean doesYoFrameTuple2DExist(String namespace, String prefix, String suffix, YoVariableHolder yoVariableHolder)
    {
-      return findYoFramePoint2D(nameSpace, prefix, suffix, yoVariableHolder, null) != null;
+      return findYoFramePoint2D(namespace, prefix, suffix, yoVariableHolder, null) != null;
    }
 
-   public static boolean doesYoFrameTuple3DExist(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch)
+   public static boolean doesYoFrameTuple3DExist(String namespace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch)
    {
-      return findYoFramePoint3D(nameSpace, prefix, suffix, yoVariablesToSearch, null) != null;
+      return findYoFramePoint3D(namespace, prefix, suffix, yoVariablesToSearch, null) != null;
    }
 
-   public static boolean doesYoFrameTuple3DExist(String nameSpace, String prefix, String suffix, YoVariableHolder yoVariableHolder)
+   public static boolean doesYoFrameTuple3DExist(String namespace, String prefix, String suffix, YoVariableHolder yoVariableHolder)
    {
-      return findYoFramePoint3D(nameSpace, prefix, suffix, yoVariableHolder, null) != null;
+      return findYoFramePoint3D(namespace, prefix, suffix, yoVariableHolder, null) != null;
    }
 
-   public static boolean doesYoFrameQuaternionExist(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch)
+   public static boolean doesYoFrameQuaternionExist(String namespace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch)
    {
-      return findYoFrameQuaternion(nameSpace, prefix, suffix, yoVariablesToSearch, null) != null;
+      return findYoFrameQuaternion(namespace, prefix, suffix, yoVariablesToSearch, null) != null;
    }
 
-   public static boolean doesYoFrameQuaternionExist(String nameSpace, String prefix, String suffix, YoVariableHolder yoVariableHolder)
+   public static boolean doesYoFrameQuaternionExist(String namespace, String prefix, String suffix, YoVariableHolder yoVariableHolder)
    {
-      return findYoFrameQuaternion(nameSpace, prefix, suffix, yoVariableHolder, null) != null;
+      return findYoFrameQuaternion(namespace, prefix, suffix, yoVariableHolder, null) != null;
    }
 
-   public static YoFramePoint2D findYoFramePoint2D(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch,
+   public static YoFramePoint2D findYoFramePoint2D(String namespace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch,
                                                    ReferenceFrame tupleFrame)
    {
-      YoDouble x = findYoDouble(nameSpace, YoGeometryNameTools.createXName(prefix, suffix), yoVariablesToSearch);
+      YoDouble x = findYoDouble(namespace, YoGeometryNameTools.createXName(prefix, suffix), yoVariablesToSearch);
       if (x == null)
          return null;
-      YoDouble y = findYoDouble(nameSpace, YoGeometryNameTools.createYName(prefix, suffix), yoVariablesToSearch);
+      YoDouble y = findYoDouble(namespace, YoGeometryNameTools.createYName(prefix, suffix), yoVariablesToSearch);
       if (y == null)
          return null;
       return new YoFramePoint2D(x, y, tupleFrame);
    }
 
-   public static YoFramePoint2D findYoFramePoint2D(String nameSpace, String prefix, String suffix, YoVariableHolder yoVariableHolder, ReferenceFrame tupleFrame)
+   public static YoFramePoint2D findYoFramePoint2D(String namespace, String prefix, String suffix, YoVariableHolder yoVariableHolder, ReferenceFrame tupleFrame)
    {
-      YoDouble x = findYoDouble(nameSpace, YoGeometryNameTools.createXName(prefix, suffix), yoVariableHolder);
+      YoDouble x = findYoDouble(namespace, YoGeometryNameTools.createXName(prefix, suffix), yoVariableHolder);
       if (x == null)
          return null;
-      YoDouble y = findYoDouble(nameSpace, YoGeometryNameTools.createYName(prefix, suffix), yoVariableHolder);
+      YoDouble y = findYoDouble(namespace, YoGeometryNameTools.createYName(prefix, suffix), yoVariableHolder);
       if (y == null)
          return null;
       return new YoFramePoint2D(x, y, tupleFrame);
    }
 
-   public static YoFrameVector2D findYoFrameVector2D(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch,
+   public static YoFrameVector2D findYoFrameVector2D(String namespace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch,
                                                      ReferenceFrame tupleFrame)
    {
-      YoDouble x = findYoDouble(nameSpace, YoGeometryNameTools.createXName(prefix, suffix), yoVariablesToSearch);
+      YoDouble x = findYoDouble(namespace, YoGeometryNameTools.createXName(prefix, suffix), yoVariablesToSearch);
       if (x == null)
          return null;
-      YoDouble y = findYoDouble(nameSpace, YoGeometryNameTools.createYName(prefix, suffix), yoVariablesToSearch);
+      YoDouble y = findYoDouble(namespace, YoGeometryNameTools.createYName(prefix, suffix), yoVariablesToSearch);
       if (y == null)
          return null;
       return new YoFrameVector2D(x, y, tupleFrame);
    }
 
-   public static YoFrameVector2D findYoFrameVector2D(String nameSpace, String prefix, String suffix, YoVariableHolder yoVariableHolder,
+   public static YoFrameVector2D findYoFrameVector2D(String namespace, String prefix, String suffix, YoVariableHolder yoVariableHolder,
                                                      ReferenceFrame tupleFrame)
    {
-      YoDouble x = findYoDouble(nameSpace, YoGeometryNameTools.createXName(prefix, suffix), yoVariableHolder);
+      YoDouble x = findYoDouble(namespace, YoGeometryNameTools.createXName(prefix, suffix), yoVariableHolder);
       if (x == null)
          return null;
-      YoDouble y = findYoDouble(nameSpace, YoGeometryNameTools.createYName(prefix, suffix), yoVariableHolder);
+      YoDouble y = findYoDouble(namespace, YoGeometryNameTools.createYName(prefix, suffix), yoVariableHolder);
       if (y == null)
          return null;
       return new YoFrameVector2D(x, y, tupleFrame);
    }
 
-   public static YoFramePoint3D findYoFramePoint3D(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch,
+   public static YoFramePoint3D findYoFramePoint3D(String namespace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch,
                                                    ReferenceFrame tupleFrame)
    {
-      YoDouble x = findYoDouble(nameSpace, YoGeometryNameTools.createXName(prefix, suffix), yoVariablesToSearch);
+      YoDouble x = findYoDouble(namespace, YoGeometryNameTools.createXName(prefix, suffix), yoVariablesToSearch);
       if (x == null)
          return null;
-      YoDouble y = findYoDouble(nameSpace, YoGeometryNameTools.createYName(prefix, suffix), yoVariablesToSearch);
+      YoDouble y = findYoDouble(namespace, YoGeometryNameTools.createYName(prefix, suffix), yoVariablesToSearch);
       if (y == null)
          return null;
-      YoDouble z = findYoDouble(nameSpace, YoGeometryNameTools.createZName(prefix, suffix), yoVariablesToSearch);
+      YoDouble z = findYoDouble(namespace, YoGeometryNameTools.createZName(prefix, suffix), yoVariablesToSearch);
       if (z == null)
          return null;
       return new YoFramePoint3D(x, y, z, tupleFrame);
    }
 
-   public static YoFramePoint3D findYoFramePoint3D(String nameSpace, String prefix, String suffix, YoVariableHolder yoVariableHolder, ReferenceFrame tupleFrame)
+   public static YoFramePoint3D findYoFramePoint3D(String namespace, String prefix, String suffix, YoVariableHolder yoVariableHolder, ReferenceFrame tupleFrame)
    {
-      YoDouble x = findYoDouble(nameSpace, YoGeometryNameTools.createXName(prefix, suffix), yoVariableHolder);
+      YoDouble x = findYoDouble(namespace, YoGeometryNameTools.createXName(prefix, suffix), yoVariableHolder);
       if (x == null)
          return null;
-      YoDouble y = findYoDouble(nameSpace, YoGeometryNameTools.createYName(prefix, suffix), yoVariableHolder);
+      YoDouble y = findYoDouble(namespace, YoGeometryNameTools.createYName(prefix, suffix), yoVariableHolder);
       if (y == null)
          return null;
-      YoDouble z = findYoDouble(nameSpace, YoGeometryNameTools.createZName(prefix, suffix), yoVariableHolder);
+      YoDouble z = findYoDouble(namespace, YoGeometryNameTools.createZName(prefix, suffix), yoVariableHolder);
       if (z == null)
          return null;
       return new YoFramePoint3D(x, y, z, tupleFrame);
    }
 
-   public static YoFrameVector3D findYoFrameVector3D(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch,
+   public static YoFrameVector3D findYoFrameVector3D(String namespace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch,
                                                      ReferenceFrame tupleFrame)
    {
-      YoDouble x = findYoDouble(nameSpace, YoGeometryNameTools.createXName(prefix, suffix), yoVariablesToSearch);
+      YoDouble x = findYoDouble(namespace, YoGeometryNameTools.createXName(prefix, suffix), yoVariablesToSearch);
       if (x == null)
          return null;
-      YoDouble y = findYoDouble(nameSpace, YoGeometryNameTools.createYName(prefix, suffix), yoVariablesToSearch);
+      YoDouble y = findYoDouble(namespace, YoGeometryNameTools.createYName(prefix, suffix), yoVariablesToSearch);
       if (y == null)
          return null;
-      YoDouble z = findYoDouble(nameSpace, YoGeometryNameTools.createZName(prefix, suffix), yoVariablesToSearch);
+      YoDouble z = findYoDouble(namespace, YoGeometryNameTools.createZName(prefix, suffix), yoVariablesToSearch);
       if (z == null)
          return null;
       return new YoFrameVector3D(x, y, z, tupleFrame);
    }
 
-   public static YoFrameVector3D findYoFrameVector3D(String nameSpace, String prefix, String suffix, YoVariableHolder yoVariableHolder,
+   public static YoFrameVector3D findYoFrameVector3D(String namespace, String prefix, String suffix, YoVariableHolder yoVariableHolder,
                                                      ReferenceFrame tupleFrame)
    {
-      YoDouble x = findYoDouble(nameSpace, YoGeometryNameTools.createXName(prefix, suffix), yoVariableHolder);
+      YoDouble x = findYoDouble(namespace, YoGeometryNameTools.createXName(prefix, suffix), yoVariableHolder);
       if (x == null)
          return null;
-      YoDouble y = findYoDouble(nameSpace, YoGeometryNameTools.createYName(prefix, suffix), yoVariableHolder);
+      YoDouble y = findYoDouble(namespace, YoGeometryNameTools.createYName(prefix, suffix), yoVariableHolder);
       if (y == null)
          return null;
-      YoDouble z = findYoDouble(nameSpace, YoGeometryNameTools.createZName(prefix, suffix), yoVariableHolder);
+      YoDouble z = findYoDouble(namespace, YoGeometryNameTools.createZName(prefix, suffix), yoVariableHolder);
       if (z == null)
          return null;
       return new YoFrameVector3D(x, y, z, tupleFrame);
    }
 
-   public static YoFrameQuaternion findYoFrameQuaternion(String nameSpace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch,
+   public static YoFrameQuaternion findYoFrameQuaternion(String namespace, String prefix, String suffix, Collection<? extends YoVariable> yoVariablesToSearch,
                                                          ReferenceFrame tupleFrame)
    {
-      YoDouble qx = findYoDouble(nameSpace, YoGeometryNameTools.createQxName(prefix, suffix), yoVariablesToSearch);
+      YoDouble qx = findYoDouble(namespace, YoGeometryNameTools.createQxName(prefix, suffix), yoVariablesToSearch);
       if (qx == null)
          return null;
-      YoDouble qy = findYoDouble(nameSpace, YoGeometryNameTools.createQyName(prefix, suffix), yoVariablesToSearch);
+      YoDouble qy = findYoDouble(namespace, YoGeometryNameTools.createQyName(prefix, suffix), yoVariablesToSearch);
       if (qy == null)
          return null;
-      YoDouble qz = findYoDouble(nameSpace, YoGeometryNameTools.createQzName(prefix, suffix), yoVariablesToSearch);
+      YoDouble qz = findYoDouble(namespace, YoGeometryNameTools.createQzName(prefix, suffix), yoVariablesToSearch);
       if (qz == null)
          return null;
-      YoDouble qs = findYoDouble(nameSpace, YoGeometryNameTools.createQsName(prefix, suffix), yoVariablesToSearch);
+      YoDouble qs = findYoDouble(namespace, YoGeometryNameTools.createQsName(prefix, suffix), yoVariablesToSearch);
       if (qs == null)
          return null;
       return new YoFrameQuaternion(qx, qy, qz, qs, tupleFrame);
    }
 
-   public static YoFrameQuaternion findYoFrameQuaternion(String nameSpace, String prefix, String suffix, YoVariableHolder yoVariableHolder,
+   public static YoFrameQuaternion findYoFrameQuaternion(String namespace, String prefix, String suffix, YoVariableHolder yoVariableHolder,
                                                          ReferenceFrame tupleFrame)
    {
-      YoDouble qx = findYoDouble(nameSpace, YoGeometryNameTools.createQxName(prefix, suffix), yoVariableHolder);
+      YoDouble qx = findYoDouble(namespace, YoGeometryNameTools.createQxName(prefix, suffix), yoVariableHolder);
       if (qx == null)
          return null;
-      YoDouble qy = findYoDouble(nameSpace, YoGeometryNameTools.createQyName(prefix, suffix), yoVariableHolder);
+      YoDouble qy = findYoDouble(namespace, YoGeometryNameTools.createQyName(prefix, suffix), yoVariableHolder);
       if (qy == null)
          return null;
-      YoDouble qz = findYoDouble(nameSpace, YoGeometryNameTools.createQzName(prefix, suffix), yoVariableHolder);
+      YoDouble qz = findYoDouble(namespace, YoGeometryNameTools.createQzName(prefix, suffix), yoVariableHolder);
       if (qz == null)
          return null;
-      YoDouble qs = findYoDouble(nameSpace, YoGeometryNameTools.createQsName(prefix, suffix), yoVariableHolder);
+      YoDouble qs = findYoDouble(namespace, YoGeometryNameTools.createQsName(prefix, suffix), yoVariableHolder);
       if (qs == null)
          return null;
       return new YoFrameQuaternion(qx, qy, qz, qs, tupleFrame);
@@ -390,7 +390,7 @@ public class YoVariableTools
    public static <T extends YoVariable> T findYoVariable(String namespace, String name, Class<T> clazz, Collection<? extends YoVariable> yoVariablesToSearch)
    {
       YoVariable uncheckedVariable = yoVariablesToSearch.stream().filter(v -> v.getName().equals(name))
-                                                        .filter(v -> v.getNameSpace().toString().equals(namespace)).findFirst().orElse(null);
+                                                        .filter(v -> v.getNamespace().toString().equals(namespace)).findFirst().orElse(null);
       if (uncheckedVariable == null)
          return null;
       if (!clazz.isInstance(uncheckedVariable))
