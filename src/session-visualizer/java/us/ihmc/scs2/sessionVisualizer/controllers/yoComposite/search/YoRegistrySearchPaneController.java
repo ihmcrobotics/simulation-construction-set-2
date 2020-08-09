@@ -104,7 +104,7 @@ public class YoRegistrySearchPaneController extends AnimationTimer
       }
       else
       {
-         allRegistries = rootRegistry.subtreeRegistries();
+         allRegistries = rootRegistry.collectSubtreeRegistries();
          defaultRootItem = new TreeItem<>(rootRegistry);
          buildTreeRecursively(defaultRootItem);
       }

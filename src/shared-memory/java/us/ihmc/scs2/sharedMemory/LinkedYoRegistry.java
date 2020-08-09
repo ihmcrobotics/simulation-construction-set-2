@@ -76,7 +76,7 @@ public class LinkedYoRegistry extends LinkedBuffer
     */
    public void linkConsumerVariables()
    {
-      List<YoVariable> allYoVariables = rootRegistry.subtreeVariables();
+      List<YoVariable> allYoVariables = rootRegistry.collectSubtreeVariables();
 
       if (allYoVariables.size() == linkedYoVariables.size())
          return;

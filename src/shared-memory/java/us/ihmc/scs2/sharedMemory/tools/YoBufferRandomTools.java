@@ -103,7 +103,7 @@ public class YoBufferRandomTools
 
    public static void randomizeYoRegistryBuffer(Random random, YoRegistryBuffer YoRegistryBuffer)
    {
-      List<YoVariable> allVariables = YoRegistryBuffer.getRootRegistry().subtreeVariables();
+      List<YoVariable> allVariables = YoRegistryBuffer.getRootRegistry().collectSubtreeVariables();
 
       for (int i = 0; i < YoRegistryBuffer.getProperties().getSize(); i++)
       {

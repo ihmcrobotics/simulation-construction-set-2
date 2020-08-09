@@ -391,7 +391,7 @@ public class CompositePropertyTools
          }
 
          if (allYoVariables == null)
-            allYoVariables = rootRegistry.subtreeVariables();
+            allYoVariables = rootRegistry.collectSubtreeVariables();
 
          List<T> correctTypeVariables;
          if (!YoVariable.class.equals(type))

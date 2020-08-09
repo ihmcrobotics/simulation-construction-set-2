@@ -26,7 +26,7 @@ public class YoRegistryBuffer
 
    public void registerMissingBuffers()
    {
-      List<YoVariable> allYoVariables = rootRegistry.subtreeVariables();
+      List<YoVariable> allYoVariables = rootRegistry.collectSubtreeVariables();
 
       if (allYoVariables.size() != yoVariableBuffers.size())
       {
@@ -83,7 +83,7 @@ public class YoRegistryBuffer
       {
          YoNamespace yoVariableNamespace = new YoNamespace(variableFullName);
          YoRegistry registry = ensurePathExists(rootRegistry, yoVariableNamespace.getParent());
-         Optional<YoVariable> duplicateOptional = registry.subtreeVariables().stream().filter(v -> v.getFullNameString().equals(variableFullName))
+         Optional<YoVariable> duplicateOptional = registry.collectSubtreeVariables().stream().filter(v -> v.getFullNameString().equals(variableFullName))
                                                           .findFirst();
          YoVariable duplicate;
          if (duplicateOptional.isPresent())
