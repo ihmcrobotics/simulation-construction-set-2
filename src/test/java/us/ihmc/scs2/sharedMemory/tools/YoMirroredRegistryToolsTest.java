@@ -44,16 +44,16 @@ public class YoMirroredRegistryToolsTest
          YoRegistry targetRoot = new YoRegistry(originalRoot.getName());
          int numberOfYoVariablesCreated = YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(originalRoot, targetRoot);
 
-         assertEquals(originalRoot.subtreeVariables().size(), numberOfYoVariablesCreated);
+         assertEquals(originalRoot.collectSubtreeVariables().size(), numberOfYoVariablesCreated);
 
-         for (YoRegistry originalRegistry : originalRoot.subtreeRegistries())
+         for (YoRegistry originalRegistry : originalRoot.collectSubtreeRegistries())
          {
             YoRegistry targetRegistry = targetRoot.findRegistry(originalRegistry.getNamespace());
             assertNotNull(targetRegistry);
             assertEquals(originalRegistry.getNumberOfVariables(), targetRegistry.getNumberOfVariables());
          }
 
-         for (YoVariable originalVariable : originalRoot.subtreeVariables())
+         for (YoVariable originalVariable : originalRoot.collectSubtreeVariables())
          {
             YoVariable targetVariable = targetRoot.findVariable(originalVariable.getNamespace().toString(), originalVariable.getName());
             assertNotNull(targetVariable);
@@ -104,14 +104,14 @@ public class YoMirroredRegistryToolsTest
          int numberOfYoVariablesCreated = YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(originalRoot, targetRoot);
          assertEquals(numberOfMissingVariables, numberOfYoVariablesCreated);
 
-         for (YoRegistry originalRegistry : originalRoot.subtreeRegistries())
+         for (YoRegistry originalRegistry : originalRoot.collectSubtreeRegistries())
          {
             YoRegistry targetRegistry = targetRoot.findRegistry(originalRegistry.getNamespace());
             assertNotNull(targetRegistry);
             assertEquals(originalRegistry.getNumberOfVariables(), targetRegistry.getNumberOfVariables());
          }
 
-         for (YoVariable originalVariable : originalRoot.subtreeVariables())
+         for (YoVariable originalVariable : originalRoot.collectSubtreeVariables())
          {
             YoVariable targetVariable = targetRoot.findVariable(originalVariable.getNamespace().toString(), originalVariable.getName());
             assertNotNull(targetVariable);

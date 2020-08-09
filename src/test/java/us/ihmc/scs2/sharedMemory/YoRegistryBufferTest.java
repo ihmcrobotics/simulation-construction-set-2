@@ -42,7 +42,7 @@ public class YoRegistryBufferTest
 
          assertTrue(rootRegistry == YoRegistryBuffer.getRootRegistry());
 
-         List<YoVariable> allYoVariables = rootRegistry.subtreeVariables();
+         List<YoVariable> allYoVariables = rootRegistry.collectSubtreeVariables();
 
          for (YoVariable yoVariable : allYoVariables)
          {
@@ -72,7 +72,7 @@ public class YoRegistryBufferTest
          }
 
          YoRegistryBuffer.registerMissingBuffers();
-         List<YoVariable> allYoVariables = rootRegistry.subtreeVariables();
+         List<YoVariable> allYoVariables = rootRegistry.collectSubtreeVariables();
 
          for (YoVariable yoVariable : allYoVariables)
          {
@@ -96,7 +96,7 @@ public class YoRegistryBufferTest
          YoRegistryBuffer YoRegistryBuffer = new YoRegistryBuffer(rootRegistry, bufferProperties);
          YoBufferRandomTools.randomizeYoRegistryBuffer(random, YoRegistryBuffer);
 
-         List<YoVariable> allYoVariables = rootRegistry.subtreeVariables();
+         List<YoVariable> allYoVariables = rootRegistry.collectSubtreeVariables();
          List<YoVariableBuffer<?>> allYoVariableBuffers = new ArrayList<>();
          List<BufferSample<?>> allSamples = new ArrayList<>();
 
@@ -134,7 +134,7 @@ public class YoRegistryBufferTest
          YoBufferProperties bufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
          YoRegistryBuffer YoRegistryBuffer = new YoRegistryBuffer(rootRegistry, bufferProperties);
 
-         List<YoVariable> allYoVariables = rootRegistry.subtreeVariables();
+         List<YoVariable> allYoVariables = rootRegistry.collectSubtreeVariables();
 
          for (int j = 0; j < 10; j++)
          {
@@ -160,7 +160,7 @@ public class YoRegistryBufferTest
          YoBufferProperties bufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
          YoRegistryBuffer YoRegistryBuffer = new YoRegistryBuffer(rootRegistry, bufferProperties);
 
-         List<YoVariable> allYoVariables = rootRegistry.subtreeVariables();
+         List<YoVariable> allYoVariables = rootRegistry.collectSubtreeVariables();
          List<YoVariableBuffer<?>> allYoVariableBuffers = allYoVariables.stream().map(YoRegistryBuffer::findYoVariableBuffer).collect(Collectors.toList());
 
          for (int j = 0; j < 10; j++)
@@ -192,7 +192,7 @@ public class YoRegistryBufferTest
          YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(rootRegistry, rootMirrorRegistry);
 
          // Add a YoVariable to one of the existing registries
-         YoRegistry YoRegistry = rootMirrorRegistry.subtreeRegistries().get(random.nextInt(allRegistries.length - 1));
+         YoRegistry YoRegistry = rootMirrorRegistry.collectSubtreeRegistries().get(random.nextInt(allRegistries.length - 1));
          YoVariable newYoVariable = YoRandomTools.nextYoVariable(random, YoRegistry);
          assertNull(YoRegistryBuffer.findYoVariableBuffer(newYoVariable));
          assertNull(rootRegistry.findVariable(newYoVariable.getFullNameString()));
@@ -239,8 +239,8 @@ public class YoRegistryBufferTest
 
          LinkedYoRegistry linkedRootRegistry = YoRegistryBuffer.newLinkedYoRegistry();
          assertEquals(rootRegistry.getName(), linkedRootRegistry.getRootRegistry().getName());
-         assertEquals(1, linkedRootRegistry.getRootRegistry().subtreeRegistries().size());
-         assertEquals(0, linkedRootRegistry.getRootRegistry().subtreeVariables().size());
+         assertEquals(1, linkedRootRegistry.getRootRegistry().collectSubtreeRegistries().size());
+         assertEquals(0, linkedRootRegistry.getRootRegistry().collectSubtreeVariables().size());
 
          // Need to populate variables and registries.
          linkedRootRegistry.linkManagerVariables();
@@ -261,7 +261,7 @@ public class YoRegistryBufferTest
 
          linkedSubTreeRegistry.linkManagerVariables();
 
-         for (YoRegistry registry : subTreeRootRegistry.subtreeRegistries())
+         for (YoRegistry registry : subTreeRootRegistry.collectSubtreeRegistries())
          {
             YoRegistry linkedRegistry = linkedSubTreeRootRegistry.findRegistry(registry.getNamespace());
             assertNotNull(linkedRegistry);

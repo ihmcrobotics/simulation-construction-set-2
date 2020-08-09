@@ -208,7 +208,7 @@ public class YoSharedBufferTest
          YoBufferPropertiesReadOnly properties = yoSharedBuffer.getProperties();
          YoRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
 
-         List<YoVariable> allBufferYoVariables = bufferRootRegistry.subtreeVariables();
+         List<YoVariable> allBufferYoVariables = bufferRootRegistry.collectSubtreeVariables();
          if (allBufferYoVariables.isEmpty())
          {
             i--;
@@ -246,7 +246,7 @@ public class YoSharedBufferTest
 
          YoRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
 
-         List<YoVariable> allBufferYoVariables = bufferRootRegistry.subtreeVariables();
+         List<YoVariable> allBufferYoVariables = bufferRootRegistry.collectSubtreeVariables();
          if (allBufferYoVariables.isEmpty())
          {
             i--;
@@ -279,7 +279,7 @@ public class YoSharedBufferTest
          YoRegistryBuffer registryBuffer = yoSharedBuffer.getRegistryBuffer();
          YoBufferPropertiesReadOnly properties = yoSharedBuffer.getProperties();
 
-         List<YoVariable> allBufferYoVariables = bufferRootRegistry.subtreeVariables();
+         List<YoVariable> allBufferYoVariables = bufferRootRegistry.collectSubtreeVariables();
          if (allBufferYoVariables.isEmpty())
          {
             i--;
@@ -313,7 +313,7 @@ public class YoSharedBufferTest
          YoRegistryBuffer registryBuffer = yoSharedBuffer.getRegistryBuffer();
          YoBufferPropertiesReadOnly properties = yoSharedBuffer.getProperties();
 
-         List<YoVariable> allBufferYoVariables = bufferRootRegistry.subtreeVariables();
+         List<YoVariable> allBufferYoVariables = bufferRootRegistry.collectSubtreeVariables();
          if (allBufferYoVariables.isEmpty())
          {
             i--;
@@ -344,7 +344,7 @@ public class YoSharedBufferTest
 
          YoRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
 
-         List<YoVariable> allBufferYoVariables = bufferRootRegistry.subtreeVariables();
+         List<YoVariable> allBufferYoVariables = bufferRootRegistry.collectSubtreeVariables();
          if (allBufferYoVariables.isEmpty())
          {
             i--;
@@ -354,7 +354,7 @@ public class YoSharedBufferTest
          LinkedYoRegistry linkedYoRegistry = yoSharedBuffer.newLinkedYoRegistry();
          linkedYoRegistry.linkManagerVariables();
 
-         List<YoVariable> allConsumerYoVariables = linkedYoRegistry.getRootRegistry().subtreeVariables();
+         List<YoVariable> allConsumerYoVariables = linkedYoRegistry.getRootRegistry().collectSubtreeVariables();
 
          allBufferYoVariables.forEach(v -> YoRandomTools.randomizeYoVariable(random, v));
          long[] bufferVariableBackedUp = allBufferYoVariables.stream().mapToLong(YoVariable::getValueAsLongBits).toArray();

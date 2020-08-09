@@ -38,7 +38,7 @@ public class YoVariableTools
    public static long hashCode(YoRegistry registry)
    {
       long hashCode = 1L;
-      for (YoVariable yoVariable : registry.subtreeVariables())
+      for (YoVariable yoVariable : registry.collectSubtreeVariables())
       {
          hashCode = 31L * hashCode + hashCode(yoVariable);
       }

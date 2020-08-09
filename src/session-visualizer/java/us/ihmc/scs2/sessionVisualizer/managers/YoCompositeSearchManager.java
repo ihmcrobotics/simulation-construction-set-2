@@ -207,7 +207,7 @@ public class YoCompositeSearchManager implements Manager
 
       if (primitiveClass != null)
       {
-         List<YoVariable> allYoPrimitives = rootRegistry.subtreeVariables().stream().filter(primitiveClass::isInstance).collect(Collectors.toList());
+         List<YoVariable> allYoPrimitives = rootRegistry.collectSubtreeVariables().stream().filter(primitiveClass::isInstance).collect(Collectors.toList());
          List<YoComposite> result = allYoPrimitives.stream().map(yoVariable -> new YoComposite(pattern, yoVariable)).collect(Collectors.toList());
          YoCompositeCollection collection = new YoCompositeCollection(pattern, result);
 
