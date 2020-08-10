@@ -21,7 +21,7 @@ mainDependencies {
 
 definitionDependencies {
    api("us.ihmc:euclid:0.15.0")
-   api("us.ihmc:ihmc-commons:0.30.0")
+   api("us.ihmc:ihmc-commons:0.30.2")
    api("us.ihmc:ihmc-yovariables:0.5.0")
    api("us.ihmc:mecano:0.6.0")
 }
