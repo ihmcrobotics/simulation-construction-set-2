@@ -9,18 +9,18 @@ import us.ihmc.scs2.sessionVisualizer.tools.YoVariableTools;
 import us.ihmc.scs2.sessionVisualizer.yoComposite.CompositePropertyTools.YoVariableDatabase;
 import us.ihmc.scs2.sharedMemory.LinkedBufferProperties;
 import us.ihmc.scs2.sharedMemory.LinkedYoVariable;
-import us.ihmc.scs2.sharedMemory.LinkedYoVariableRegistry;
+import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
 import us.ihmc.scs2.simulation.SimulationSession;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoManager extends AnimationTimer implements Manager
 {
    private final LongProperty rootRegistryHashCodeProperty = new SimpleLongProperty(this, "rootRegistryHashCode", 0);
 
-   private YoVariableRegistry rootRegistry;
-   private LinkedYoVariableRegistry linkedRootRegistry;
+   private YoRegistry rootRegistry;
+   private LinkedYoRegistry linkedRootRegistry;
    private LinkedBufferProperties linkedBufferProperties;
    private LinkedYoVariableFactory linkedYoVariableFactory;
 
@@ -43,9 +43,9 @@ public class YoManager extends AnimationTimer implements Manager
    public void startSession(Session session)
    {
       LogTools.info("Linking YoVariables");
-      rootRegistry = new YoVariableRegistry(SimulationSession.ROOT_REGISTRY_NAME);
+      rootRegistry = new YoRegistry(SimulationSession.ROOT_REGISTRY_NAME);
       linkedYoVariableFactory = session.getLinkedYoVariableFactory();
-      linkedRootRegistry = linkedYoVariableFactory.newLinkedYoVariableRegistry(rootRegistry);
+      linkedRootRegistry = linkedYoVariableFactory.newLinkedYoRegistry(rootRegistry);
 
       updatingYoVariables = true;
       linkedRootRegistry.linkConsumerVariables();
@@ -74,12 +74,12 @@ public class YoManager extends AnimationTimer implements Manager
       return linkedRootRegistry != null && !updatingYoVariables;
    }
 
-   public LinkedYoVariableRegistry newLinkedYoVariableRegistry(YoVariableRegistry registry)
+   public LinkedYoRegistry newLinkedYoRegistry(YoRegistry registry)
    {
-      return linkedYoVariableFactory.newLinkedYoVariableRegistry(registry);
+      return linkedYoVariableFactory.newLinkedYoRegistry(registry);
    }
 
-   public LinkedYoVariable<?> newLinkedYoVariable(YoVariable<?> yoVariable)
+   public LinkedYoVariable newLinkedYoVariable(YoVariable yoVariable)
    {
       return linkedYoVariableFactory.newLinkedYoVariable(yoVariable);
    }
@@ -100,7 +100,7 @@ public class YoManager extends AnimationTimer implements Manager
       updatingYoVariables = false;
    }
 
-   public YoVariableRegistry getRootRegistry()
+   public YoRegistry getRootRegistry()
    {
       return rootRegistry;
    }
@@ -115,7 +115,7 @@ public class YoManager extends AnimationTimer implements Manager
       return updatingYoVariables;
    }
 
-   public LinkedYoVariableRegistry getLinkedRootRegistry()
+   public LinkedYoRegistry getLinkedRootRegistry()
    {
       return linkedRootRegistry;
    }

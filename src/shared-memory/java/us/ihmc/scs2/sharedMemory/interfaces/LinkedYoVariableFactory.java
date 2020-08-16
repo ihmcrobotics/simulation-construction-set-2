@@ -1,18 +1,18 @@
 package us.ihmc.scs2.sharedMemory.interfaces;
 
 import us.ihmc.scs2.sharedMemory.*;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.*;
 
 public interface LinkedYoVariableFactory
 {
    LinkedBufferProperties newLinkedBufferProperties();
 
-   LinkedYoVariableRegistry newLinkedYoVariableRegistry();
+   LinkedYoRegistry newLinkedYoRegistry();
 
-   LinkedYoVariableRegistry newLinkedYoVariableRegistry(YoVariableRegistry registryToLink);
+   LinkedYoRegistry newLinkedYoRegistry(YoRegistry registryToLink);
 
-   LinkedYoVariable<?> newLinkedYoVariable(YoVariable<?> variableToLink);
+   LinkedYoVariable newLinkedYoVariable(YoVariable variableToLink);
 
    default LinkedYoDouble newLinkedYoDouble(YoDouble variableToLink)
    {

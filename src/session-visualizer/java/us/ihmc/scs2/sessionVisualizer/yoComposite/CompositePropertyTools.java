@@ -30,8 +30,8 @@ import us.ihmc.scs2.sessionVisualizer.managers.ReferenceFrameManager;
 import us.ihmc.scs2.sessionVisualizer.properties.YoDoubleProperty;
 import us.ihmc.scs2.sessionVisualizer.properties.YoIntegerProperty;
 import us.ihmc.scs2.sessionVisualizer.tools.YoVariableTools;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
-import us.ihmc.yoVariables.util.YoFrameVariableNameTools;
+import us.ihmc.yoVariables.registry.YoRegistry;
+import us.ihmc.yoVariables.tools.YoGeometryNameTools;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -195,7 +195,7 @@ public class CompositePropertyTools
       if (doubleProperty == null)
          return null;
       else if (doubleProperty instanceof YoDoubleProperty)
-         return ((YoDoubleProperty) doubleProperty).getYoVariable().getFullNameWithNameSpace();
+         return ((YoDoubleProperty) doubleProperty).getYoVariable().getFullNameString();
       else
          return Double.toString(doubleProperty.get());
    }
@@ -205,7 +205,7 @@ public class CompositePropertyTools
       if (integerProperty == null)
          return null;
       else if (integerProperty instanceof YoIntegerProperty)
-         return ((YoIntegerProperty) integerProperty).getYoVariable().getFullNameWithNameSpace();
+         return ((YoIntegerProperty) integerProperty).getYoVariable().getFullNameString();
       else
          return Integer.toString(integerProperty.get());
    }
@@ -333,15 +333,15 @@ public class CompositePropertyTools
 
    public static class YoVariableDatabase
    {
-      private final YoVariableRegistry rootRegistry;
-      private List<YoVariable<?>> allYoVariables;
+      private final YoRegistry rootRegistry;
+      private List<YoVariable> allYoVariables;
 
-      private final Map<String, YoVariable<?>> previousSearchResults = new HashMap<>();
+      private final Map<String, YoVariable> previousSearchResults = new HashMap<>();
       private final Map<String, String> fromSearchToBestSubname = new HashMap<>();
 
       private final SimilarityScore<Double> seachEngine;
 
-      public YoVariableDatabase(YoVariableRegistry rootRegistry)
+      public YoVariableDatabase(YoRegistry rootRegistry)
       {
          this.rootRegistry = rootRegistry;
          seachEngine = new SimilarityScore<Double>()
@@ -357,19 +357,18 @@ public class CompositePropertyTools
          };
       }
 
-      public YoVariable<?> searchExact(String fullnameToSearch)
+      public YoVariable searchExact(String fullnameToSearch)
       {
-         return rootRegistry.getVariable(fullnameToSearch);
+         return rootRegistry.findVariable(fullnameToSearch);
       }
 
-      @SuppressWarnings("unchecked")
-      public YoVariable<?> searchSimilar(String fullnameToSearch, double minScore)
+      public YoVariable searchSimilar(String fullnameToSearch, double minScore)
       {
          return searchSimilar(fullnameToSearch, minScore, YoVariable.class);
       }
 
       @SuppressWarnings("unchecked")
-      public <T extends YoVariable<T>> T searchSimilar(String fullnameToSearch, double minScore, Class<? extends T> type)
+      public <T extends YoVariable> T searchSimilar(String fullnameToSearch, double minScore, Class<? extends T> type)
       {
          if (previousSearchResults.containsKey(fullnameToSearch))
             return type.cast(previousSearchResults.get(fullnameToSearch));
@@ -380,11 +379,11 @@ public class CompositePropertyTools
             String searchSubname = entry.getValue();
             if (fullnameToSearch.contains(searchSubname))
             {
-               YoVariable<?> candidate = rootRegistry.getVariable(fullnameToSearch.replace(searchSubname, bestSubname));
+               YoVariable candidate = rootRegistry.findVariable(fullnameToSearch.replace(searchSubname, bestSubname));
 
                if (candidate != null && type.isInstance(candidate))
                {
-                  LogTools.info("Search for: " + fullnameToSearch + ", found: " + candidate.getFullNameWithNameSpace());
+                  LogTools.info("Search for: " + fullnameToSearch + ", found: " + candidate.getFullNameString());
                   previousSearchResults.put(fullnameToSearch, candidate);
                   return type.cast(candidate);
                }
@@ -392,7 +391,7 @@ public class CompositePropertyTools
          }
 
          if (allYoVariables == null)
-            allYoVariables = rootRegistry.getAllVariablesIncludingDescendants();
+            allYoVariables = rootRegistry.collectSubtreeVariables();
 
          List<T> correctTypeVariables;
          if (!YoVariable.class.equals(type))
@@ -401,14 +400,14 @@ public class CompositePropertyTools
             correctTypeVariables = (List<T>) allYoVariables;
 
          List<Number> score = new ArrayList<>();
-         List<T> searchResult = YoVariableTools.search(correctTypeVariables, YoVariable::getFullNameWithNameSpace, fullnameToSearch, seachEngine, 1, score);
+         List<T> searchResult = YoVariableTools.search(correctTypeVariables, YoVariable::getFullNameString, fullnameToSearch, seachEngine, 1, score);
 
          if (searchResult != null)
          {
             T bestYoVariable = searchResult.get(0);
-            String bestFullname = bestYoVariable.getFullNameWithNameSpace();
-            String commonPrefix = YoFrameVariableNameTools.getCommonPrefix(fullnameToSearch, bestFullname);
-            String commonSuffix = YoFrameVariableNameTools.getCommonSuffix(fullnameToSearch, bestFullname);
+            String bestFullname = bestYoVariable.getFullNameString();
+            String commonPrefix = YoGeometryNameTools.getCommonPrefix(fullnameToSearch, bestFullname);
+            String commonSuffix = YoGeometryNameTools.getCommonSuffix(fullnameToSearch, bestFullname);
             String searchSubname = fullnameToSearch.substring(commonPrefix.length(), fullnameToSearch.length() - commonSuffix.length());
             String bestSubname = bestFullname.substring(commonPrefix.length(), bestFullname.length() - commonSuffix.length());
 

@@ -17,7 +17,7 @@ import us.ihmc.robotDataLogger.jointState.JointState;
 import us.ihmc.robotDataLogger.logger.LogPropertiesReader;
 import us.ihmc.scs2.sessionVisualizer.tools.RobotDataLogTools;
 import us.ihmc.tools.compression.SnappyUtils;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.yoVariables.variable.YoLong;
@@ -25,7 +25,7 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class LogDataReader
 {
-   private final YoVariableRegistry registry = new YoVariableRegistry(getClass().getSimpleName());
+   private final YoRegistry registry = new YoRegistry(getClass().getSimpleName());
 
    private final File logDirectory;
    private final LogPropertiesReader logProperties;
@@ -35,7 +35,7 @@ public class LogDataReader
    private final YoDouble robotTime;
    private final FileChannel logChannel;
    private final FileInputStream logFileInputStream;
-   private final List<YoVariable<?>> yoVariables;
+   private final List<YoVariable> yoVariables;
 
    // Compressed data helpers
    private final boolean compressed;
@@ -321,7 +321,7 @@ public class LogDataReader
       return currentRecordTick.getValue();
    }
 
-   public YoVariableRegistry getYoVariableRegistry()
+   public YoRegistry getYoRegistry()
    {
       return registry;
    }

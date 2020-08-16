@@ -6,14 +6,14 @@ import java.util.List;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.StringPropertyBase;
-import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoEnum;
 
 public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBase implements YoVariableProperty<YoEnum<E>, String>
 {
    private final YoEnum<E> yoEnum;
    private final Object bean;
-   private final VariableChangedListener propertyUpdater = v -> pullYoEnumValue();
+   private final YoVariableChangedListener propertyUpdater = v -> pullYoEnumValue();
    private final List<String> enumConstants;
 
    private SimpleStringProperty lastUserInput;
@@ -30,7 +30,7 @@ public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBas
 
       enumConstants = Arrays.asList(yoEnum.getEnumValuesAsString());
       pullYoEnumValue();
-      yoEnum.addVariableChangedListener(propertyUpdater);
+      yoEnum.addListener(propertyUpdater);
    }
 
    @Override
@@ -38,7 +38,7 @@ public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBas
    {
       try
       {
-         yoEnum.removeVariableChangedListener(propertyUpdater);
+         yoEnum.removeListener(propertyUpdater);
       }
       finally
       {

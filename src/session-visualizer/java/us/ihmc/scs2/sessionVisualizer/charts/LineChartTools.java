@@ -26,7 +26,7 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class LineChartTools
 {
-   public static String defaultYoVariableValueFormatter(YoVariable<?> yoVariable)
+   public static String defaultYoVariableValueFormatter(YoVariable yoVariable)
    {
       if (yoVariable instanceof YoDouble)
          return NumberFormatTools.doubleToString(yoVariable.getValueAsDouble(), 3);
@@ -34,7 +34,7 @@ public class LineChartTools
          return LineChartTools.getYoVariableValueAsString(yoVariable, EuclidCoreIOTools.getStringFormat(11, 8));
    }
 
-   public static String getYoVariableValueAsString(YoVariable<?> yoVariable, String format)
+   public static String getYoVariableValueAsString(YoVariable yoVariable, String format)
    {
       if (yoVariable instanceof YoDouble)
          return String.format(format, ((YoDouble) yoVariable).getValue());

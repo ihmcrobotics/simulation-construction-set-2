@@ -16,8 +16,8 @@ import us.ihmc.scs2.simulation.physicsEngine.FeatherstoneForwardDynamicsPlugin;
 import us.ihmc.scs2.simulation.physicsEngine.FirstOrderMultiBodyStateIntegratorPlugin;
 import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngine;
 import us.ihmc.scs2.simulation.physicsEngine.RobotPhysicsEnginePlugin;
+import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
 import us.ihmc.yoVariables.variable.YoDouble;
-import us.ihmc.yoVariables.variable.YoFrameVector3D;
 
 public class SimulationSession extends Session
 {

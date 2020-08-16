@@ -6,26 +6,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Random;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.scs2.sharedMemory.tools.BufferTools;
 import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
 import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
-import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoDoubleBufferTest
 {
    private static final int ITERATIONS = 1000;
-
-   @BeforeAll
-   public static void disableStackTrace()
-   {
-      YoVariable.SAVE_STACK_TRACE = false;
-   }
 
    @Test
    public void testConstructors()
@@ -34,7 +26,7 @@ public class YoDoubleBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoDouble yoDouble = YoRandomTools.nextYoDouble(random, new YoVariableRegistry("Dummy"));
+         YoDouble yoDouble = YoRandomTools.nextYoDouble(random, new YoRegistry("Dummy"));
          YoBufferProperties yoBufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
          YoDoubleBuffer yoDoubleBuffer = new YoDoubleBuffer(yoDouble, yoBufferProperties);
          assertTrue(yoDouble == yoDoubleBuffer.getYoVariable());
@@ -47,7 +39,7 @@ public class YoDoubleBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoDouble yoDouble = YoRandomTools.nextYoDouble(random, new YoVariableRegistry("Dummy"));
+         YoDouble yoDouble = YoRandomTools.nextYoDouble(random, new YoRegistry("Dummy"));
          YoBufferProperties yoBufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
          YoDoubleBuffer yoDoubleBuffer = (YoDoubleBuffer) YoVariableBuffer.newYoVariableBuffer(yoDouble, yoBufferProperties);
          assertTrue(yoDouble == yoDoubleBuffer.getYoVariable());
@@ -66,7 +58,7 @@ public class YoDoubleBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoDoubleBuffer yoDoubleBuffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoVariableRegistry("Dummy"));
+         YoDoubleBuffer yoDoubleBuffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoRegistry("Dummy"));
          YoBufferProperties originalBufferProperties = new YoBufferProperties(yoDoubleBuffer.getProperties());
          int from = random.nextInt(yoDoubleBuffer.getProperties().getSize());
          int newLength = random.nextInt(yoDoubleBuffer.getProperties().getSize());
@@ -89,7 +81,7 @@ public class YoDoubleBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoDoubleBuffer yoDoubleBuffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoVariableRegistry("Dummy"));
+         YoDoubleBuffer yoDoubleBuffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoRegistry("Dummy"));
          YoDouble yoDouble = yoDoubleBuffer.getYoVariable();
 
          int currentIndex = yoDoubleBuffer.getProperties().getCurrentIndex();
@@ -111,7 +103,7 @@ public class YoDoubleBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoDoubleBuffer yoDoubleBuffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoVariableRegistry("Dummy"));
+         YoDoubleBuffer yoDoubleBuffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoRegistry("Dummy"));
          YoDouble yoDouble = yoDoubleBuffer.getYoVariable();
 
          int currentIndex = yoDoubleBuffer.getProperties().getCurrentIndex();
@@ -133,7 +125,7 @@ public class YoDoubleBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoDoubleBuffer yoDoubleBuffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoVariableRegistry("Dummy"));
+         YoDoubleBuffer yoDoubleBuffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoRegistry("Dummy"));
          int from = random.nextInt(yoDoubleBuffer.getProperties().getSize());
          int length = random.nextInt(yoDoubleBuffer.getProperties().getSize() - 1) + 1;
 
@@ -158,8 +150,8 @@ public class YoDoubleBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoDoubleBuffer yoDoubleBuffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoVariableRegistry("Dummy"));
-         YoDouble linkedDouble = new YoDouble("linked", new YoVariableRegistry("Dummy"));
+         YoDoubleBuffer yoDoubleBuffer = YoBufferRandomTools.nextYoDoubleBuffer(random, new YoRegistry("Dummy"));
+         YoDouble linkedDouble = new YoDouble("linked", new YoRegistry("Dummy"));
          LinkedYoDouble linkedYoVariable = yoDoubleBuffer.newLinkedYoVariable(linkedDouble);
          assertTrue(linkedDouble == linkedYoVariable.getLinkedYoVariable());
          assertTrue(yoDoubleBuffer == linkedYoVariable.getBuffer());

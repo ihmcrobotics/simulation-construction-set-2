@@ -107,7 +107,7 @@ public class LogSessionManagerController implements SessionControlsController
          if (oldValue != null)
          {
             LogDataReader logDataReader = oldValue.getLogDataReader();
-            logDataReader.getTimestamp().removeAllVariableChangedListeners();
+            logDataReader.getTimestamp().removeListeners();
          }
 
          if (newValue == null)
@@ -139,7 +139,7 @@ public class LogSessionManagerController implements SessionControlsController
             cropControlsContainer.setDisable(false);
             MultiVideoDataReader multiReader = new MultiVideoDataReader(logDirectory, logProperties, backgroundExecutorManager);
             multiReader.readVideoFrameNow(logDataReader.getTimestamp().getLongValue());
-            logDataReader.getTimestamp().addVariableChangedListener(v -> multiReader.readVideoFrameInBackground(v.getValueAsLongBits()));
+            logDataReader.getTimestamp().addListener(v -> multiReader.readVideoFrameInBackground(v.getValueAsLongBits()));
             multiVideoViewerProperty.set(new MultiVideoViewer(stage, videoThumbnailPane, multiReader, THUMBNAIL_WIDTH));
             logCropperProperty.set(new YoVariableLogCropper(multiReader, logDirectory, logProperties));
             boolean logHasVideos = multiReader.getNumberOfVideos() > 0;

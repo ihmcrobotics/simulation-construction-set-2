@@ -497,7 +497,7 @@ public class YoChartGroupPanelController
 
       for (ChartIdentifier chartIdentifier : layout.getChartIdentifiers())
       {
-         List<? extends YoVariable<?>> yoVariables = layout.getYoVariables(chartIdentifier);
+         List<? extends YoVariable> yoVariables = layout.getYoVariables(chartIdentifier);
          YoChartPanelController chartController = getChartController(chartIdentifier);
          chartController.addYoVariablesToPlot(yoVariables);
       }

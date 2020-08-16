@@ -7,23 +7,23 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import us.ihmc.yoVariables.registry.NameSpace;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoNamespace;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoMirroredRegistryTools
 {
-   public static YoVariableRegistry newEmptyCloneRegistry(YoVariableRegistry original)
+   public static YoRegistry newEmptyCloneRegistry(YoRegistry original)
    {
-      YoVariableRegistry clone = new YoVariableRegistry(original.getName());
+      YoRegistry clone = new YoRegistry(original.getName());
 
-      YoVariableRegistry originalParent = original.getParent();
-      YoVariableRegistry currentClone = clone;
+      YoRegistry originalParent = original.getParent();
+      YoRegistry currentClone = clone;
 
       while (originalParent != null)
       {
-         YoVariableRegistry parentClone = new YoVariableRegistry(originalParent.getName());
+         YoRegistry parentClone = new YoRegistry(originalParent.getName());
          parentClone.addChild(currentClone);
          currentClone = parentClone;
          originalParent = originalParent.getParent();
@@ -32,18 +32,18 @@ public class YoMirroredRegistryTools
       return clone;
    }
 
-   public static YoVariableRegistry newRegistryFromNameSpace(String... nameSpace)
+   public static YoRegistry newRegistryFromNamespace(String... namespace)
    {
-      return newRegistryFromNameSpace(new NameSpace(Arrays.asList(nameSpace)));
+      return newRegistryFromNamespace(new YoNamespace(Arrays.asList(namespace)));
    }
 
-   public static YoVariableRegistry newRegistryFromNameSpace(NameSpace nameSpace)
+   public static YoRegistry newRegistryFromNamespace(YoNamespace namespace)
    {
-      YoVariableRegistry registry = null;
+      YoRegistry registry = null;
 
-      for (String subName : nameSpace.getSubNames())
+      for (String subName : namespace.getSubNames())
       {
-         YoVariableRegistry child = new YoVariableRegistry(subName);
+         YoRegistry child = new YoRegistry(subName);
          if (registry != null)
             registry.addChild(child);
          registry = child;
@@ -52,32 +52,32 @@ public class YoMirroredRegistryTools
       return registry;
    }
 
-   public static int duplicateMissingYoVariablesInTarget(YoVariableRegistry original, YoVariableRegistry target)
+   public static int duplicateMissingYoVariablesInTarget(YoRegistry original, YoRegistry target)
    {
       return duplicateMissingYoVariablesInTarget(original, target, yoVariable ->
       {
       });
    }
 
-   public static int duplicateMissingYoVariablesInTarget(YoVariableRegistry original, YoVariableRegistry target, Consumer<YoVariable<?>> newYoVariableConsumer)
+   public static int duplicateMissingYoVariablesInTarget(YoRegistry original, YoRegistry target, Consumer<YoVariable> newYoVariableConsumer)
    {
       int numberOfYoVariablesCreated = 0;
 
       // Check for missing variables
-      Set<String> targetVariableNames = target.getAllVariablesInThisListOnly().stream().map(YoVariable::getName).collect(Collectors.toSet());
+      Set<String> targetVariableNames = target.getVariables().stream().map(YoVariable::getName).collect(Collectors.toSet());
 
-      for (YoVariable<?> originalVariable : original.getAllVariablesInThisListOnly())
+      for (YoVariable originalVariable : original.getVariables())
       {
          if (!targetVariableNames.contains(originalVariable.getName()))
          { // FIXME YoEnum.duplicate needs to handle this case.
-            YoVariable<?> newYoVariable;
+            YoVariable newYoVariable;
             if (originalVariable instanceof YoEnum && !((YoEnum<?>) originalVariable).isBackedByEnum())
             {
                YoEnum<?> originalEnum = (YoEnum<?>) originalVariable;
                newYoVariable = new YoEnum<>(originalEnum.getName(),
                                             originalEnum.getDescription(),
                                             target,
-                                            originalEnum.getAllowNullValue(),
+                                            originalEnum.isNullAllowed(),
                                             originalEnum.getEnumValuesAsString());
             }
             else
@@ -90,16 +90,16 @@ public class YoMirroredRegistryTools
       }
 
       // Check for missing registries
-      Map<String, YoVariableRegistry> targetChildren = target.getChildren().stream().collect(Collectors.toMap(reg -> reg.getName(), Function.identity()));
+      Map<String, YoRegistry> targetChildren = target.getChildren().stream().collect(Collectors.toMap(reg -> reg.getName(), Function.identity()));
 
-      for (YoVariableRegistry originalChild : original.getChildren())
+      for (YoRegistry originalChild : original.getChildren())
       {
          String childName = originalChild.getName();
-         YoVariableRegistry targetChild = targetChildren.get(childName);
+         YoRegistry targetChild = targetChildren.get(childName);
 
          if (targetChild == null)
          {
-            targetChild = new YoVariableRegistry(childName);
+            targetChild = new YoRegistry(childName);
             target.addChild(targetChild);
          }
 

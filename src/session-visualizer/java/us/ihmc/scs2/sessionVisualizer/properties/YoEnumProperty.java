@@ -3,14 +3,14 @@ package us.ihmc.scs2.sessionVisualizer.properties;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ObjectPropertyBase;
 import javafx.beans.property.SimpleObjectProperty;
-import us.ihmc.yoVariables.listener.VariableChangedListener;
+import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoEnum;
 
 public class YoEnumProperty<E extends Enum<E>> extends ObjectPropertyBase<E> implements YoVariableProperty<YoEnum<E>, E>
 {
    private final YoEnum<E> yoEnum;
    private final Object bean;
-   private final VariableChangedListener propertyUpdater = v -> pullYoEnumValue();
+   private final YoVariableChangedListener propertyUpdater = v -> pullYoEnumValue();
 
    private SimpleObjectProperty<E> lastUserInput;
 
@@ -24,7 +24,7 @@ public class YoEnumProperty<E extends Enum<E>> extends ObjectPropertyBase<E> imp
       this.yoEnum = yoEnum;
       this.bean = bean;
       pullYoEnumValue();
-      yoEnum.addVariableChangedListener(propertyUpdater);
+      yoEnum.addListener(propertyUpdater);
    }
 
    @Override
@@ -32,7 +32,7 @@ public class YoEnumProperty<E extends Enum<E>> extends ObjectPropertyBase<E> imp
    {
       try
       {
-         yoEnum.removeVariableChangedListener(propertyUpdater);
+         yoEnum.removeListener(propertyUpdater);
       }
       finally
       {

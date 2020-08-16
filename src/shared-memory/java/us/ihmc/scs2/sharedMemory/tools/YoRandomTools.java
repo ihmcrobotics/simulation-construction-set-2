@@ -7,7 +7,7 @@ import org.apache.commons.lang3.mutable.MutableObject;
 
 import us.ihmc.commons.RandomNumbers;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.*;
 
 public class YoRandomTools
@@ -61,15 +61,15 @@ public class YoRandomTools
       return RandomStringUtils.random(length, 0, 0, true, true, null, random);
    }
 
-   public static String nextAvailableVariableName(Random random, int minLengthInclusive, int maxLengthInclusive, YoVariableRegistry registry)
+   public static String nextAvailableVariableName(Random random, int minLengthInclusive, int maxLengthInclusive, YoRegistry registry)
    {
       String next = nextAlphanumericString(random, minLengthInclusive, maxLengthInclusive);
-      while (registry.getVariable(next) != null)
+      while (registry.findVariable(next) != null)
          next = nextAlphanumericString(random, minLengthInclusive, maxLengthInclusive);
       return next;
    }
 
-   public static String nextAvailableRegistryName(Random random, int minLengthInclusive, int maxLengthInclusive, YoVariableRegistry registry)
+   public static String nextAvailableRegistryName(Random random, int minLengthInclusive, int maxLengthInclusive, YoRegistry registry)
    {
       MutableObject<String> next = new MutableObject<>(nextAlphanumericString(random, minLengthInclusive, maxLengthInclusive));
       while (registry.getChildren().stream().anyMatch(child -> child.getName().equals(next.getValue())))
@@ -77,7 +77,7 @@ public class YoRandomTools
       return next.getValue();
    }
 
-   public static YoVariable<?> nextYoVariable(Random random, YoVariableRegistry registry)
+   public static YoVariable nextYoVariable(Random random, YoRegistry registry)
    {
       switch (random.nextInt(5))
       {
@@ -96,7 +96,7 @@ public class YoRandomTools
       }
    }
 
-   public static YoVariable<?> nextYoVariable(Random random, String name, YoVariableRegistry registry)
+   public static YoVariable nextYoVariable(Random random, String name, YoRegistry registry)
    {
       switch (random.nextInt(5))
       {
@@ -115,28 +115,28 @@ public class YoRandomTools
       }
    }
 
-   public static YoVariable<?>[] nextYoVariables(Random random, int numberOfVariables, YoVariableRegistry registry)
+   public static YoVariable[] nextYoVariables(Random random, int numberOfVariables, YoRegistry registry)
    {
-      YoVariable<?>[] next = new YoVariable[numberOfVariables];
+      YoVariable[] next = new YoVariable[numberOfVariables];
       for (int i = 0; i < numberOfVariables; i++)
          next[i] = nextYoVariable(random, registry);
       return next;
    }
 
-   public static YoVariable<?>[] nextYoVariables(Random random, String namePrefix, int numberOfVariables, YoVariableRegistry registry)
+   public static YoVariable[] nextYoVariables(Random random, String namePrefix, int numberOfVariables, YoRegistry registry)
    {
-      YoVariable<?>[] next = new YoVariable[numberOfVariables];
+      YoVariable[] next = new YoVariable[numberOfVariables];
       for (int i = 0; i < numberOfVariables; i++)
          next[i] = nextYoVariable(random, namePrefix + i, registry);
       return next;
    }
 
-   public static YoBoolean nextYoBoolean(Random random, YoVariableRegistry registry)
+   public static YoBoolean nextYoBoolean(Random random, YoRegistry registry)
    {
       return nextYoBoolean(random, nextAvailableVariableName(random, 1, 50, registry), registry);
    }
 
-   public static YoBoolean nextYoBoolean(Random random, String name, YoVariableRegistry registry)
+   public static YoBoolean nextYoBoolean(Random random, String name, YoRegistry registry)
    {
       String description = random.nextBoolean() ? null : nextString(random, 0, 50);
       YoBoolean next = new YoBoolean(name, description, registry);
@@ -144,12 +144,12 @@ public class YoRandomTools
       return next;
    }
 
-   public static YoDouble nextYoDouble(Random random, YoVariableRegistry registry)
+   public static YoDouble nextYoDouble(Random random, YoRegistry registry)
    {
       return nextYoDouble(random, nextAvailableVariableName(random, 1, 50, registry), registry);
    }
 
-   public static YoDouble nextYoDouble(Random random, String name, YoVariableRegistry registry)
+   public static YoDouble nextYoDouble(Random random, String name, YoRegistry registry)
    {
       String description = random.nextBoolean() ? null : nextString(random, 0, 50);
       YoDouble next = new YoDouble(name, description, registry);
@@ -157,12 +157,12 @@ public class YoRandomTools
       return next;
    }
 
-   public static YoInteger nextYoInteger(Random random, YoVariableRegistry registry)
+   public static YoInteger nextYoInteger(Random random, YoRegistry registry)
    {
       return nextYoInteger(random, nextAvailableVariableName(random, 1, 50, registry), registry);
    }
 
-   public static YoInteger nextYoInteger(Random random, String name, YoVariableRegistry registry)
+   public static YoInteger nextYoInteger(Random random, String name, YoRegistry registry)
    {
       String description = random.nextBoolean() ? null : nextString(random, 0, 50);
       YoInteger next = new YoInteger(name, description, registry);
@@ -170,12 +170,12 @@ public class YoRandomTools
       return next;
    }
 
-   public static YoLong nextYoLong(Random random, YoVariableRegistry registry)
+   public static YoLong nextYoLong(Random random, YoRegistry registry)
    {
       return nextYoLong(random, nextAvailableVariableName(random, 1, 50, registry), registry);
    }
 
-   public static YoLong nextYoLong(Random random, String name, YoVariableRegistry registry)
+   public static YoLong nextYoLong(Random random, String name, YoRegistry registry)
    {
       String description = random.nextBoolean() ? null : nextString(random, 0, 50);
       YoLong next = new YoLong(name, description, registry);
@@ -183,23 +183,23 @@ public class YoRandomTools
       return next;
    }
 
-   public static <E extends Enum<E>> YoEnum<E> nextYoEnum(Random random, YoVariableRegistry registry)
+   public static <E extends Enum<E>> YoEnum<E> nextYoEnum(Random random, YoRegistry registry)
    {
       return nextYoEnum(random, nextAvailableVariableName(random, 1, 50, registry), registry);
    }
 
-   public static <E extends Enum<E>> YoEnum<E> nextYoEnum(Random random, Class<E> enumType, YoVariableRegistry registry)
+   public static <E extends Enum<E>> YoEnum<E> nextYoEnum(Random random, Class<E> enumType, YoRegistry registry)
    {
       return nextYoEnum(random, nextAvailableVariableName(random, 1, 50, registry), enumType, registry);
    }
 
    @SuppressWarnings("unchecked")
-   public static <E extends Enum<E>> YoEnum<E> nextYoEnum(Random random, String name, YoVariableRegistry registry)
+   public static <E extends Enum<E>> YoEnum<E> nextYoEnum(Random random, String name, YoRegistry registry)
    {
       return nextYoEnum(random, name, (Class<E>) nextEnumType(random), registry);
    }
 
-   public static <E extends Enum<E>> YoEnum<E> nextYoEnum(Random random, String name, Class<E> enumType, YoVariableRegistry registry)
+   public static <E extends Enum<E>> YoEnum<E> nextYoEnum(Random random, String name, Class<E> enumType, YoRegistry registry)
    {
       String description = random.nextBoolean() ? null : nextString(random, 0, 50);
       YoEnum<E> next = new YoEnum<>(name, description, registry, enumType, random.nextBoolean());
@@ -207,7 +207,7 @@ public class YoRandomTools
       return next;
    }
 
-   public static void randomizeYoVariable(Random random, YoVariable<?> yoVariable)
+   public static void randomizeYoVariable(Random random, YoVariable yoVariable)
    {
       if (yoVariable instanceof YoBoolean)
          randomizeYoBoolean(random, (YoBoolean) yoVariable);
@@ -248,38 +248,38 @@ public class YoRandomTools
 
    public static int nextOrdinal(Random random, YoEnum<?> yoEnum)
    {
-      if (yoEnum.getAllowNullValue())
+      if (yoEnum.isNullAllowed())
          return random.nextInt(yoEnum.getEnumSize() + 1) - 1;
       else
          return random.nextInt(yoEnum.getEnumSize());
    }
 
-   public static YoVariableRegistry nextYoVariableRegistry(Random random, int numberOfVariables)
+   public static YoRegistry nextYoRegistry(Random random, int numberOfVariables)
    {
-      return nextYoVariableRegistry(random, nextAlphanumericString(random, 1, 50), numberOfVariables);
+      return nextYoRegistry(random, nextAlphanumericString(random, 1, 50), numberOfVariables);
    }
 
-   public static YoVariableRegistry nextYoVariableRegistry(Random random, String name, int numberOfVariables)
+   public static YoRegistry nextYoRegistry(Random random, String name, int numberOfVariables)
    {
-      YoVariableRegistry next = new YoVariableRegistry(name);
+      YoRegistry next = new YoRegistry(name);
       nextYoVariables(random, name, numberOfVariables, next);
       return next;
    }
 
-   public static YoVariableRegistry[] nextYoVariableRegistryChain(Random random, int maxNumberOfVariablesPerRegistry, int numberOfRegistries)
+   public static YoRegistry[] nextYoRegistryChain(Random random, int maxNumberOfVariablesPerRegistry, int numberOfRegistries)
    {
-      return nextYoVariableRegistryChain(random, nextAlphanumericString(random, 1, 50), maxNumberOfVariablesPerRegistry, numberOfRegistries);
+      return nextYoRegistryChain(random, nextAlphanumericString(random, 1, 50), maxNumberOfVariablesPerRegistry, numberOfRegistries);
    }
 
-   public static YoVariableRegistry[] nextYoVariableRegistryChain(Random random, String namePrefix, int maxNumberOfVariablesPerRegistry, int numberOfRegistries)
+   public static YoRegistry[] nextYoRegistryChain(Random random, String namePrefix, int maxNumberOfVariablesPerRegistry, int numberOfRegistries)
    {
-      YoVariableRegistry root = nextYoVariableRegistry(random, namePrefix + "0", random.nextInt(maxNumberOfVariablesPerRegistry + 1));
-      YoVariableRegistry[] registries = new YoVariableRegistry[numberOfRegistries];
+      YoRegistry root = nextYoRegistry(random, namePrefix + "0", random.nextInt(maxNumberOfVariablesPerRegistry + 1));
+      YoRegistry[] registries = new YoRegistry[numberOfRegistries];
       registries[0] = root;
 
       for (int i = 1; i < numberOfRegistries; i++)
       {
-         YoVariableRegistry next = nextYoVariableRegistry(random, namePrefix + i, random.nextInt(maxNumberOfVariablesPerRegistry + 1));
+         YoRegistry next = nextYoRegistry(random, namePrefix + i, random.nextInt(maxNumberOfVariablesPerRegistry + 1));
          registries[i] = next;
          registries[i - 1].addChild(next);
       }
@@ -287,26 +287,26 @@ public class YoRandomTools
       return registries;
    }
 
-   public static YoVariableRegistry[] nextYoVariableRegistryTree(Random random, int maxNumberOfVariablesPerRegistry, int numberOfRegistries)
+   public static YoRegistry[] nextYoRegistryTree(Random random, int maxNumberOfVariablesPerRegistry, int numberOfRegistries)
    {
-      return nextYoVariableRegistryTree(random, nextAlphanumericString(random, 1, 50), maxNumberOfVariablesPerRegistry, numberOfRegistries);
+      return nextYoRegistryTree(random, nextAlphanumericString(random, 1, 50), maxNumberOfVariablesPerRegistry, numberOfRegistries);
    }
 
-   public static YoVariableRegistry[] nextYoVariableRegistryTree(Random random, String namePrefix, int maxNumberOfVariablesPerRegistry, int numberOfRegistries)
+   public static YoRegistry[] nextYoRegistryTree(Random random, String namePrefix, int maxNumberOfVariablesPerRegistry, int numberOfRegistries)
    {
-      return nextYoVariableRegistryTree(random, new YoVariableRegistry(namePrefix + "0"), namePrefix, maxNumberOfVariablesPerRegistry, numberOfRegistries);
+      return nextYoRegistryTree(random, new YoRegistry(namePrefix + "0"), namePrefix, maxNumberOfVariablesPerRegistry, numberOfRegistries);
    }
 
-   public static YoVariableRegistry[] nextYoVariableRegistryTree(Random random, YoVariableRegistry rootRegistry, String namePrefix,
+   public static YoRegistry[] nextYoRegistryTree(Random random, YoRegistry rootRegistry, String namePrefix,
                                                                  int maxNumberOfVariablesPerRegistry, int numberOfRegistries)
    {
       nextYoVariables(random, namePrefix, maxNumberOfVariablesPerRegistry, rootRegistry);
-      YoVariableRegistry[] registries = new YoVariableRegistry[numberOfRegistries];
+      YoRegistry[] registries = new YoRegistry[numberOfRegistries];
       registries[0] = rootRegistry;
 
       for (int i = 1; i < numberOfRegistries; i++)
       {
-         YoVariableRegistry next = nextYoVariableRegistry(random, namePrefix + i, random.nextInt(maxNumberOfVariablesPerRegistry + 1));
+         YoRegistry next = nextYoRegistry(random, namePrefix + i, random.nextInt(maxNumberOfVariablesPerRegistry + 1));
          registries[i] = next;
          registries[random.nextInt(i)].addChild(next);
       }

@@ -60,7 +60,7 @@ public class YoCompositeTextField
       if (componentTextFields == null)
          return;
 
-      List<YoVariable<?>> components = new ArrayList<>(numberOfComponents);
+      List<YoVariable> components = new ArrayList<>(numberOfComponents);
 
       for (int i = 0; i < numberOfComponents; i++)
       {
@@ -110,7 +110,7 @@ public class YoCompositeTextField
 
    private void setIndividualComponentFields(YoComposite yoComposite)
    {
-      List<YoVariable<?>> components = yoComposite.getYoComponents();
+      List<YoVariable> components = yoComposite.getYoComponents();
 
       for (int i = 0; i < numberOfComponents; i++)
       {

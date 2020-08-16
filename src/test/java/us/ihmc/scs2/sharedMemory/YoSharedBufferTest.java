@@ -14,8 +14,13 @@ import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
 import us.ihmc.scs2.sharedMemory.tools.YoMirroredRegistryTools;
 import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
-import us.ihmc.yoVariables.variable.*;
+import us.ihmc.yoVariables.registry.YoRegistry;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoEnum;
+import us.ihmc.yoVariables.variable.YoInteger;
+import us.ihmc.yoVariables.variable.YoLong;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoSharedBufferTest
 {
@@ -201,18 +206,18 @@ public class YoSharedBufferTest
          yoSharedBuffer.readBuffer();
 
          YoBufferPropertiesReadOnly properties = yoSharedBuffer.getProperties();
-         YoVariableRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
+         YoRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
 
-         List<YoVariable<?>> allBufferYoVariables = bufferRootRegistry.getAllVariables();
+         List<YoVariable> allBufferYoVariables = bufferRootRegistry.collectSubtreeVariables();
          if (allBufferYoVariables.isEmpty())
          {
             i--;
             continue;
          }
-         YoVariable<?> bufferYoVariable = allBufferYoVariables.get(random.nextInt(allBufferYoVariables.size()));
-         YoVariableRegistry consumerRegistry = YoMirroredRegistryTools.newEmptyCloneRegistry(bufferYoVariable.getYoVariableRegistry());
-         YoVariable<?> consumerYoVariable = bufferYoVariable.duplicate(consumerRegistry);
-         LinkedYoVariable<?> linkedYoVariable = yoSharedBuffer.newLinkedYoVariable(consumerYoVariable);
+         YoVariable bufferYoVariable = allBufferYoVariables.get(random.nextInt(allBufferYoVariables.size()));
+         YoRegistry consumerRegistry = YoMirroredRegistryTools.newEmptyCloneRegistry(bufferYoVariable.getRegistry());
+         YoVariable consumerYoVariable = bufferYoVariable.duplicate(consumerRegistry);
+         LinkedYoVariable linkedYoVariable = yoSharedBuffer.newLinkedYoVariable(consumerYoVariable);
 
          YoRandomTools.randomizeYoVariable(random, consumerYoVariable);
          linkedYoVariable.push();
@@ -239,18 +244,18 @@ public class YoSharedBufferTest
          YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
          yoSharedBuffer.readBuffer();
 
-         YoVariableRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
+         YoRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
 
-         List<YoVariable<?>> allBufferYoVariables = bufferRootRegistry.getAllVariables();
+         List<YoVariable> allBufferYoVariables = bufferRootRegistry.collectSubtreeVariables();
          if (allBufferYoVariables.isEmpty())
          {
             i--;
             continue;
          }
-         YoVariable<?> bufferYoVariable = allBufferYoVariables.get(random.nextInt(allBufferYoVariables.size()));
-         YoVariableRegistry consumerRegistry = YoMirroredRegistryTools.newEmptyCloneRegistry(bufferYoVariable.getYoVariableRegistry());
-         YoVariable<?> consumerYoVariable = bufferYoVariable.duplicate(consumerRegistry);
-         LinkedYoVariable<?> linkedYoVariable = yoSharedBuffer.newLinkedYoVariable(consumerYoVariable);
+         YoVariable bufferYoVariable = allBufferYoVariables.get(random.nextInt(allBufferYoVariables.size()));
+         YoRegistry consumerRegistry = YoMirroredRegistryTools.newEmptyCloneRegistry(bufferYoVariable.getRegistry());
+         YoVariable consumerYoVariable = bufferYoVariable.duplicate(consumerRegistry);
+         LinkedYoVariable linkedYoVariable = yoSharedBuffer.newLinkedYoVariable(consumerYoVariable);
 
          YoRandomTools.randomizeYoVariable(random, consumerYoVariable);
          linkedYoVariable.push();
@@ -270,11 +275,11 @@ public class YoSharedBufferTest
       {
          YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
 
-         YoVariableRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
-         YoVariableRegistryBuffer registryBuffer = yoSharedBuffer.getRegistryBuffer();
+         YoRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
+         YoRegistryBuffer registryBuffer = yoSharedBuffer.getRegistryBuffer();
          YoBufferPropertiesReadOnly properties = yoSharedBuffer.getProperties();
 
-         List<YoVariable<?>> allBufferYoVariables = bufferRootRegistry.getAllVariables();
+         List<YoVariable> allBufferYoVariables = bufferRootRegistry.collectSubtreeVariables();
          if (allBufferYoVariables.isEmpty())
          {
             i--;
@@ -287,7 +292,7 @@ public class YoSharedBufferTest
 
          for (int j = 0; j < allBufferYoVariables.size(); j++)
          {
-            YoVariable<?> bufferYoVariable = allBufferYoVariables.get(j);
+            YoVariable bufferYoVariable = allBufferYoVariables.get(j);
             YoVariableBuffer<?> buffer = registryBuffer.findYoVariableBuffer(bufferYoVariable);
             assertVariableEqualsBufferAt(bufferYoVariable, buffer, properties.getCurrentIndex());
             assertEquals(bufferBackedUp[j], buffer.getValueAsLongBits());
@@ -304,11 +309,11 @@ public class YoSharedBufferTest
       {
          YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
 
-         YoVariableRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
-         YoVariableRegistryBuffer registryBuffer = yoSharedBuffer.getRegistryBuffer();
+         YoRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
+         YoRegistryBuffer registryBuffer = yoSharedBuffer.getRegistryBuffer();
          YoBufferPropertiesReadOnly properties = yoSharedBuffer.getProperties();
 
-         List<YoVariable<?>> allBufferYoVariables = bufferRootRegistry.getAllVariables();
+         List<YoVariable> allBufferYoVariables = bufferRootRegistry.collectSubtreeVariables();
          if (allBufferYoVariables.isEmpty())
          {
             i--;
@@ -320,7 +325,7 @@ public class YoSharedBufferTest
 
          for (int j = 0; j < allBufferYoVariables.size(); j++)
          {
-            YoVariable<?> bufferYoVariable = allBufferYoVariables.get(j);
+            YoVariable bufferYoVariable = allBufferYoVariables.get(j);
             YoVariableBuffer<?> buffer = registryBuffer.findYoVariableBuffer(bufferYoVariable);
             assertVariableEqualsBufferAt(bufferYoVariable, buffer, properties.getCurrentIndex());
             assertEquals(variableBackedUp[j], bufferYoVariable.getValueAsLongBits());
@@ -337,19 +342,19 @@ public class YoSharedBufferTest
       {
          YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
 
-         YoVariableRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
+         YoRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
 
-         List<YoVariable<?>> allBufferYoVariables = bufferRootRegistry.getAllVariables();
+         List<YoVariable> allBufferYoVariables = bufferRootRegistry.collectSubtreeVariables();
          if (allBufferYoVariables.isEmpty())
          {
             i--;
             continue;
          }
 
-         LinkedYoVariableRegistry linkedYoVariableRegistry = yoSharedBuffer.newLinkedYoVariableRegistry();
-         linkedYoVariableRegistry.linkManagerVariables();
+         LinkedYoRegistry linkedYoRegistry = yoSharedBuffer.newLinkedYoRegistry();
+         linkedYoRegistry.linkManagerVariables();
 
-         List<YoVariable<?>> allConsumerYoVariables = linkedYoVariableRegistry.getRootRegistry().getAllVariables();
+         List<YoVariable> allConsumerYoVariables = linkedYoRegistry.getRootRegistry().collectSubtreeVariables();
 
          allBufferYoVariables.forEach(v -> YoRandomTools.randomizeYoVariable(random, v));
          long[] bufferVariableBackedUp = allBufferYoVariables.stream().mapToLong(YoVariable::getValueAsLongBits).toArray();
@@ -357,29 +362,29 @@ public class YoSharedBufferTest
 
          for (int j = 0; j < allBufferYoVariables.size(); j++)
          {
-            YoVariable<?> bufferYoVariable = allBufferYoVariables.get(j);
+            YoVariable bufferYoVariable = allBufferYoVariables.get(j);
             assertEquals(bufferVariableBackedUp[j], bufferYoVariable.getValueAsLongBits());
          }
 
-         linkedYoVariableRegistry.pull();
+         linkedYoRegistry.pull();
 
          for (int j = 0; j < allBufferYoVariables.size(); j++)
          {
-            YoVariable<?> bufferYoVariable = allBufferYoVariables.get(j);
-            YoVariable<?> consumerYoVariable = allConsumerYoVariables.get(j);
+            YoVariable bufferYoVariable = allBufferYoVariables.get(j);
+            YoVariable consumerYoVariable = allConsumerYoVariables.get(j);
             assertEquals(bufferVariableBackedUp[j], bufferYoVariable.getValueAsLongBits());
             assertYoEquals(bufferYoVariable, consumerYoVariable);
          }
       }
    }
 
-   private static void assertYoEquals(YoVariable<?> expected, YoVariable<?> actual)
+   private static void assertYoEquals(YoVariable expected, YoVariable actual)
    {
       assertTrue(expected.getClass() == actual.getClass());
       assertEquals(expected.getValueAsLongBits(), actual.getValueAsLongBits());
    }
 
-   private static void assertVariableEqualsBufferAt(YoVariable<?> yoVariable, YoVariableBuffer<?> buffer, int index)
+   private static void assertVariableEqualsBufferAt(YoVariable yoVariable, YoVariableBuffer<?> buffer, int index)
    {
       if (yoVariable instanceof YoBoolean)
          assertEquals(((YoBoolean) yoVariable).getValue(), ((YoBooleanBuffer) buffer).getBuffer()[index]);

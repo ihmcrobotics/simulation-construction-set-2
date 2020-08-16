@@ -1,7 +1,7 @@
 package us.ihmc.scs2.simulation.physicsEngine;
 
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public interface PhysicsEnginePlugin
 {
@@ -16,7 +16,7 @@ public interface PhysicsEnginePlugin
       return getClass().getSimpleName();
    }
 
-   default YoVariableRegistry getYoVariableRegistry()
+   default YoRegistry getYoRegistry()
    {
       return null;
    }

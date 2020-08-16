@@ -22,13 +22,13 @@ import us.ihmc.scs2.sharedMemory.CropBufferRequest;
 import us.ihmc.scs2.sharedMemory.YoSharedBuffer;
 import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public abstract class Session
 {
    public static final String ROOT_REGISTRY_NAME = "root";
 
-   protected final YoVariableRegistry rootRegistry = new YoVariableRegistry(ROOT_REGISTRY_NAME);
+   protected final YoRegistry rootRegistry = new YoRegistry(ROOT_REGISTRY_NAME);
    protected final YoSharedBuffer sharedBuffer = new YoSharedBuffer(rootRegistry, 8192);
 
    private final AtomicReference<SessionMode> activeMode = new AtomicReference<>(SessionMode.PAUSE);

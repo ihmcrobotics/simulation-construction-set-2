@@ -9,24 +9,24 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import us.ihmc.scs2.sharedMemory.tools.YoMirroredRegistryTools;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
-public class LinkedYoVariableRegistry extends LinkedBuffer
+public class LinkedYoRegistry extends LinkedBuffer
 {
-   private final YoVariableRegistry rootRegistry;
-   private final YoVariableRegistryBuffer yoVariableRegistryBuffer;
+   private final YoRegistry rootRegistry;
+   private final YoRegistryBuffer YoRegistryBuffer;
 
    private final ReentrantLock lock;
    private final List<LinkedYoVariable> linkedYoVariables = new ArrayList<>();
    private final Map<YoVariable, LinkedYoVariable> linkedYoVariableMap = new HashMap<>();
 
-   LinkedYoVariableRegistry(YoVariableRegistry rootRegistry, YoVariableRegistryBuffer yoVariableRegistryBuffer)
+   LinkedYoRegistry(YoRegistry rootRegistry, YoRegistryBuffer YoRegistryBuffer)
    {
       this.rootRegistry = rootRegistry;
-      this.yoVariableRegistryBuffer = yoVariableRegistryBuffer;
-      lock = yoVariableRegistryBuffer.getLock();
+      this.YoRegistryBuffer = YoRegistryBuffer;
+      lock = YoRegistryBuffer.getLock();
       linkConsumerVariables();
    }
 
@@ -45,7 +45,7 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
     */
    public int linkManagerVariables()
    {
-      YoVariableRegistry bufferRootRegistry = yoVariableRegistryBuffer.getRootRegistry().getRegistry(rootRegistry.getNameSpace());
+      YoRegistry bufferRootRegistry = YoRegistryBuffer.getRootRegistry().findRegistry(rootRegistry.getNamespace());
 
       int numberOfNewVariables = 0;
 
@@ -53,7 +53,7 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
 
       try
       {
-         yoVariableRegistryBuffer.registerMissingBuffers();
+         YoRegistryBuffer.registerMissingBuffers();
          numberOfNewVariables = YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(bufferRootRegistry, rootRegistry, this::setupNewLinkedYoVariable);
       }
       finally
@@ -76,12 +76,12 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
     */
    public void linkConsumerVariables()
    {
-      List<YoVariable<?>> allYoVariables = rootRegistry.getAllVariables();
+      List<YoVariable> allYoVariables = rootRegistry.collectSubtreeVariables();
 
       if (allYoVariables.size() == linkedYoVariables.size())
          return;
 
-      List<YoVariable<?>> variablesMissingLink = allYoVariables.stream().filter(v -> !linkedYoVariableMap.containsKey(v)).collect(Collectors.toList());
+      List<YoVariable> variablesMissingLink = allYoVariables.stream().filter(v -> !linkedYoVariableMap.containsKey(v)).collect(Collectors.toList());
 
       lock.lock();
 
@@ -105,9 +105,9 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
     *
     * @param variableToLink the variable to be linked to the buffer.
     */
-   private void setupNewLinkedYoVariable(YoVariable<?> variableToLink)
+   private void setupNewLinkedYoVariable(YoVariable variableToLink)
    {
-      YoVariableBuffer yoVariableBuffer = yoVariableRegistryBuffer.findOrCreateYoVariableBuffer(variableToLink);
+      YoVariableBuffer yoVariableBuffer = YoRegistryBuffer.findOrCreateYoVariableBuffer(variableToLink);
       LinkedYoVariable newLinkedYoVariable = yoVariableBuffer.newLinkedYoVariable(variableToLink);
       linkedYoVariables.add(newLinkedYoVariable);
       linkedYoVariableMap.put(newLinkedYoVariable.getLinkedYoVariable(), newLinkedYoVariable);
@@ -131,7 +131,7 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
     *
     * @param yoVariablesToPush the variables to push their value to the buffer.
     */
-   public void push(YoVariable<?>... yoVariablesToPush)
+   public void push(YoVariable... yoVariablesToPush)
    {
       Arrays.asList(yoVariablesToPush).stream().map(linkedYoVariableMap::get).filter(v -> v != null).forEach(LinkedYoVariable::push);
    }
@@ -158,7 +158,7 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
       lock.lock();
       try
       {
-         for (LinkedYoVariable<?> linkedYoVariable : linkedYoVariables)
+         for (LinkedYoVariable linkedYoVariable : linkedYoVariables)
             hasPushedSomething |= linkedYoVariable.processPush(writeBuffer);
       }
       finally
@@ -177,7 +177,7 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
       lock.lock();
       try
       {
-         for (LinkedYoVariable<?> linkedYoVariable : linkedYoVariables)
+         for (LinkedYoVariable linkedYoVariable : linkedYoVariables)
          {
             linkedYoVariable.flushPush();
          }
@@ -225,7 +225,7 @@ public class LinkedYoVariableRegistry extends LinkedBuffer
       return hasRequestPending;
    }
 
-   public YoVariableRegistry getRootRegistry()
+   public YoRegistry getRootRegistry()
    {
       return rootRegistry;
    }

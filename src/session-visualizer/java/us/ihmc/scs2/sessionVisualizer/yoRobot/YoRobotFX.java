@@ -20,10 +20,10 @@ import us.ihmc.scs2.sessionVisualizer.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.multiBodySystem.FrameNode;
 import us.ihmc.scs2.sessionVisualizer.multiBodySystem.JavaFXRigidBody;
 import us.ihmc.scs2.sessionVisualizer.tools.JavaFXMissingTools;
-import us.ihmc.scs2.sharedMemory.LinkedYoVariableRegistry;
+import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 import us.ihmc.scs2.sharedMemory.tools.YoMirroredRegistryTools;
 import us.ihmc.scs2.simulation.SimulationSession;
-import us.ihmc.yoVariables.registry.YoVariableRegistry;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class YoRobotFX
 {
@@ -33,9 +33,9 @@ public class YoRobotFX
    private final ReferenceFrameManager referenceFrameManager;
 
    private JavaFXRigidBody rootBody;
-   private final YoVariableRegistry robotRegistry;
+   private final YoRegistry robotRegistry;
 
-   private LinkedYoVariableRegistry robotLinkedYoVariableRegistry;
+   private LinkedYoRegistry robotLinkedYoRegistry;
 
    private boolean initialize = true;
 
@@ -45,7 +45,7 @@ public class YoRobotFX
       this.referenceFrameManager = referenceFrameManager;
       this.robotDefinition = robotDefinition;
 
-      robotRegistry = YoMirroredRegistryTools.newRegistryFromNameSpace(SimulationSession.ROOT_REGISTRY_NAME, robotDefinition.getName());
+      robotRegistry = YoMirroredRegistryTools.newRegistryFromNamespace(SimulationSession.ROOT_REGISTRY_NAME, robotDefinition.getName());
    }
 
    public void loadRobot(Executor graphicLoader)
@@ -105,15 +105,15 @@ public class YoRobotFX
          listener.changed(null, null, rigidBody.getGraphics());
       }
 
-      robotLinkedYoVariableRegistry = yoManager.newLinkedYoVariableRegistry(robotRegistry);
+      robotLinkedYoRegistry = yoManager.newLinkedYoRegistry(robotRegistry);
       yoManager.linkNewYoVariables();
    }
 
    public void render()
    {
-      if (rootBody != null && robotLinkedYoVariableRegistry != null)
+      if (rootBody != null && robotLinkedYoRegistry != null)
       {
-         if (robotLinkedYoVariableRegistry.pull() || initialize)
+         if (robotLinkedYoRegistry.pull() || initialize)
          {
             rootBody.updateFramesRecursively();
             rootBody.updateSubtreeGraphics();
