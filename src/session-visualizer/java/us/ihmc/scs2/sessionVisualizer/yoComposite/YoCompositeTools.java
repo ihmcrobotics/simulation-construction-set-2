@@ -204,16 +204,7 @@ public class YoCompositeTools
 
       for (Class<? extends YoVariable> yoPrimitive : yoPrimitives)
       {
-         List<YoVariable> searchPool = new ArrayList<>();
-         yoVariables.removeIf(var ->
-         {
-            if (yoPrimitive.isInstance(var))
-            {
-               searchPool.add(var);
-               return true;
-            }
-            return false;
-         });
+         List<YoVariable> searchPool = yoVariables.stream().filter(yoPrimitive::isInstance).collect(Collectors.toList());
 
          Pair<List<YoComposite>, List<YoVariable>> primitiveResult = searchYoComposites(pattern, searchPool, registry.getNamespace(), false);
          result.getKey().addAll(primitiveResult.getKey());
