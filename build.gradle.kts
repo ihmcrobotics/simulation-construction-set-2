@@ -22,12 +22,12 @@ mainDependencies {
 definitionDependencies {
    api("us.ihmc:euclid:0.15.1")
    api("us.ihmc:ihmc-commons:0.30.2")
-   api("us.ihmc:ihmc-yovariables:0.9.3")
+   api("us.ihmc:ihmc-yovariables:0.9.4")
    api("us.ihmc:mecano:0.7.1")
 }
 
 sharedMemoryDependencies {
-   api("us.ihmc:ihmc-yovariables:0.9.3")
+   api("us.ihmc:ihmc-yovariables:0.9.4")
 }
 
 sessionDependencies {
