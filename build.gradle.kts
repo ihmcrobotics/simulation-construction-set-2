@@ -84,9 +84,6 @@ testDependencies {
    api(ihmc.sourceSetProject("examples"))
 }
 
-ihmc.jarWithLibFolder()
-tasks.getByPath("installDist").dependsOn("compositeJar")
-
 app.entrypoint("SessionVisualizer", "us.ihmc.scs2.sessionVisualizer.SessionVisualizer")
 
 tasks.create("deployApplications") {
@@ -97,7 +94,7 @@ tasks.create("deployApplications") {
       appFolder.delete()
       appFolder.mkdirs()
       copy {
-         from("build/install/simulation-construction-set-2")
+         from(tasks.named<Sync>("installDist").get().destinationDir)
          into(appFolder)
       }
       println("-------------------------------------------------------------------------")
