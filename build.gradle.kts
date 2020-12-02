@@ -57,7 +57,7 @@ sessionVisualizerDependencies {
    api("us.ihmc:ihmc-video-codecs:2.1.5")
    api("us.ihmc:ihmc-robot-data-logger:0.20.3")
    api("us.ihmc:svgloader:0.0")
-   api("us.ihmc:ihmc-javafx-extensions:0.0")
+   api("us.ihmc:ihmc-javafx-extensions:0.0.1")
 
    api("com.google.guava:guava:18.0")
    api("org.reflections:reflections:0.9.10")
