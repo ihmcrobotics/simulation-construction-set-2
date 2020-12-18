@@ -53,7 +53,7 @@ sessionVisualizerDependencies {
    compile("us.ihmc:ihmc-javafx-toolkit:0.19.2") {
       exclude(group="us.ihmc", module="jassimp")
    }
-   api("us.ihmc:ihmc-graphics-description:0.19.2")
+   api("us.ihmc:ihmc-graphics-description:0.19.3")
    api("us.ihmc:ihmc-video-codecs:2.1.6")
    api("us.ihmc:ihmc-robot-data-logger:0.20.4")
    api("us.ihmc:svgloader:0.0")
