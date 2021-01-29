@@ -1,6 +1,6 @@
 package us.ihmc.scs2.sessionVisualizer.charts;
 
-import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
+import us.ihmc.messager.Messager;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sharedMemory.BufferSample;
 import us.ihmc.scs2.sharedMemory.LinkedYoEnum;
@@ -9,7 +9,7 @@ import us.ihmc.scs2.sharedMemory.tools.BufferTools;
 
 public class YoEnumChartData<E extends Enum<E>> extends YoVariableChartData<LinkedYoEnum<E>, byte[]>
 {
-   public YoEnumChartData(JavaFXMessager messager, SessionVisualizerTopics topics, LinkedYoEnum<E> linkedYoEnum)
+   public YoEnumChartData(Messager messager, SessionVisualizerTopics topics, LinkedYoEnum<E> linkedYoEnum)
    {
       super(messager, topics, linkedYoEnum);
    }

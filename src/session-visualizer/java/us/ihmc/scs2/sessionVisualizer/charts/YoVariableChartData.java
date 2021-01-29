@@ -4,22 +4,26 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import de.gsi.dataset.AxisDescription;
 import de.gsi.dataset.spi.DoubleDataSet;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
+import us.ihmc.messager.Messager;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
-import us.ihmc.scs2.sharedMemory.*;
+import us.ihmc.scs2.sharedMemory.BufferSample;
+import us.ihmc.scs2.sharedMemory.LinkedYoBoolean;
+import us.ihmc.scs2.sharedMemory.LinkedYoDouble;
+import us.ihmc.scs2.sharedMemory.LinkedYoEnum;
+import us.ihmc.scs2.sharedMemory.LinkedYoInteger;
+import us.ihmc.scs2.sharedMemory.LinkedYoLong;
+import us.ihmc.scs2.sharedMemory.LinkedYoVariable;
+import us.ihmc.scs2.sharedMemory.YoBufferProperties;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.yoVariables.variable.YoVariable;
 
-public abstract class YoVariableChartData<L extends LinkedYoVariable, B>
+public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
 {
    private final L linkedYoVariable;
 
@@ -29,8 +33,8 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable, B>
    private final AtomicReference<YoBufferPropertiesReadOnly> currentBufferProperties;
 
    @SuppressWarnings("rawtypes")
-   private final Property<BufferSample> rawDataProperty = new SimpleObjectProperty<BufferSample>(this, "chartRawData", null);
-   private final BooleanProperty publishChartData = new SimpleBooleanProperty(this, "publishChartData", false);
+   private final AtomicReference<BufferSample> rawDataProperty = new AtomicReference<>(null);
+   private final AtomicBoolean publishChartData = new AtomicBoolean(false);
 
    private int lastUpdateEndIndex = -1;
    private DoubleArray lastDataSet;
@@ -39,7 +43,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable, B>
    private final Map<Object, ChartDataUpdate> newChartDataUpdate = new ConcurrentHashMap<>();
 
    @SuppressWarnings({"rawtypes", "unchecked"})
-   public static YoVariableChartData<?, ?> newYoVariableChartData(JavaFXMessager messager, SessionVisualizerTopics topics, LinkedYoVariable linkedYoVariable)
+   public static YoVariableChartData<?, ?> newYoVariableChartData(Messager messager, SessionVisualizerTopics topics, LinkedYoVariable linkedYoVariable)
    {
       if (linkedYoVariable instanceof LinkedYoBoolean)
          return new YoBooleanChartData(messager, topics, (LinkedYoBoolean) linkedYoVariable);
@@ -55,13 +59,11 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable, B>
       throw new UnsupportedOperationException("Unsupported YoVariable type: " + linkedYoVariable.getLinkedYoVariable().getClass().getSimpleName());
    }
 
-   public YoVariableChartData(JavaFXMessager messager, SessionVisualizerTopics topics, L linkedYoVariable)
+   public YoVariableChartData(Messager messager, SessionVisualizerTopics topics, L linkedYoVariable)
    {
       this.linkedYoVariable = linkedYoVariable;
       currentSessionMode = messager.createInput(topics.getSessionCurrentMode(), SessionMode.PAUSE);
       currentBufferProperties = messager.createInput(topics.getYoBufferCurrentProperties(), new YoBufferProperties());
-
-      rawDataProperty.addListener((o, oldValue, newValue) -> publishChartData.set(true));
    }
 
    @SuppressWarnings("rawtypes")
@@ -71,7 +73,8 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable, B>
       BufferSample newRawData = linkedYoVariable.pollRequestedBufferSample();
       if (newRawData != null)
       {
-         rawDataProperty.setValue(newRawData);
+         rawDataProperty.set(newRawData);
+         publishChartData.set(true);
          lastUpdateEndIndex = newRawData.getBufferProperties().getOutPoint();
       }
 
@@ -120,7 +123,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable, B>
       if (!publishChartData.get())
          return;
 
-      BufferSample rawData = rawDataProperty.getValue();
+      BufferSample rawData = rawDataProperty.get();
       if (rawData == null || rawData.getSampleLength() == 0)
          return;
 
