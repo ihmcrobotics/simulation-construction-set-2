@@ -59,15 +59,14 @@ sessionVisualizerDependencies {
    api("us.ihmc:svgloader:0.0")
    api("us.ihmc:ihmc-javafx-extensions:0.0.1")
 
-   api("com.google.guava:guava:18.0")
-   api("org.reflections:reflections:0.9.10")
+   api("org.reflections:reflections:0.9.12")
 
    // JavaFX extensions
-   api("org.controlsfx:controlsfx:8.40.15")
+   api("org.controlsfx:controlsfx:8.40.18")
    api("de.jensd:fontawesomefx:8.9")
-   api("com.jfoenix:jfoenix:8.0.9")
-   api("org.apache.commons:commons-text:1.4")
-   api("de.gsi.chart:chartfx-chart:8.1.1")
+   api("com.jfoenix:jfoenix:8.0.10")
+   api("org.apache.commons:commons-text:1.9")
+   api("de.gsi.chart:chartfx-chart:8.1.5")
 
    api(fileTree(mapOf("dir" to "src/session-visualizer/libs/JavaFXModelImporters", "include" to "*.jar")))
 }

@@ -106,9 +106,9 @@ public class YNormalizedDataSetWrapper implements DataSet2D
    }
 
    @Override
-   public int getDataCount()
+   public int getDataCount(int dimIndex)
    {
-      return input.getDataCount();
+      return input.getDataCount(dimIndex);
    }
 
    @Override

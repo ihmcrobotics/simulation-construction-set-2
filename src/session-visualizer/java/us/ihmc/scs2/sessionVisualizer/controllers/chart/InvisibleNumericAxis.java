@@ -40,10 +40,10 @@ public final class InvisibleNumericAxis extends AbstractAxis
       @Override
       protected void invalidated()
       {
-         if (isAutoRanging())
+         if (isAutoRanging() || isAutoGrowRanging())
          {
+            invalidate();
             requestAxisLayout();
-            invalidateRange();
          }
       }
    };

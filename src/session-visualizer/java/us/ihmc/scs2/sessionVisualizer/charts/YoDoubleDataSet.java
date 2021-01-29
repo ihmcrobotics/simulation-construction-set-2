@@ -228,9 +228,9 @@ public class YoDoubleDataSet implements DataSet2D
    }
 
    @Override
-   public int getDataCount()
+   public int getDataCount(int dimIndex)
    {
-      return rawDataSet.getDataCount();
+      return rawDataSet.getDataCount(dimIndex);
    }
 
    @Override
