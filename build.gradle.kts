@@ -16,7 +16,7 @@ ihmc {
 
 mainDependencies {
    // TODO This should be removed, it is only a workaround for the task deployApplications.
-   api(ihmc.sourceSetProject("session-visualizer"))
+   api(ihmc.sourceSetProject("session-visualizer-jfx"))
 }
 
 definitionDependencies {
@@ -46,7 +46,7 @@ simulationDependencies {
    api("us.ihmc:mecano-yovariables:0.8.0")
 }
 
-sessionVisualizerDependencies {
+sessionVisualizerJfxDependencies {
    api(ihmc.sourceSetProject("simulation"))
    api(ihmc.sourceSetProject("session"))
 
@@ -68,18 +68,18 @@ sessionVisualizerDependencies {
    api("org.apache.commons:commons-text:1.9")
    api("de.gsi.chart:chartfx-chart:8.1.5")
 
-   api(fileTree(mapOf("dir" to "src/session-visualizer/libs/JavaFXModelImporters", "include" to "*.jar")))
+   api(fileTree(mapOf("dir" to "src/session-visualizer-jfx/libs/JavaFXModelImporters", "include" to "*.jar")))
 }
 
 examplesDependencies {
-   api(ihmc.sourceSetProject("session-visualizer"))
+   api(ihmc.sourceSetProject("session-visualizer-jfx"))
 }
 
 testDependencies {
    api(ihmc.sourceSetProject("definition"))
    api(ihmc.sourceSetProject("shared-memory"))
    api(ihmc.sourceSetProject("simulation"))
-   api(ihmc.sourceSetProject("session-visualizer"))
+   api(ihmc.sourceSetProject("session-visualizer-jfx"))
    api(ihmc.sourceSetProject("examples"))
 }
 

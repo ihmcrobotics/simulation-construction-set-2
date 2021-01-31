@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.scs2.sessionVisualizer.tools.NumberFormatTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.NumberFormatTools;
 
 public class NumberFormatToolsTest
 {

@@ -19,10 +19,10 @@ import us.ihmc.scs2.definition.robot.sdf.SDFTools;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFModel;
 import us.ihmc.scs2.definition.robot.urdf.URDFTools;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFModel;
-import us.ihmc.scs2.sessionVisualizer.SessionVisualizerIOTools;
-import us.ihmc.scs2.sessionVisualizer.multiBodySystem.FrameNode;
-import us.ihmc.scs2.sessionVisualizer.multiBodySystem.JavaFXMultiBodySystemFactories;
-import us.ihmc.scs2.sessionVisualizer.multiBodySystem.JavaFXRigidBody;
+import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.FrameNode;
+import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.JavaFXMultiBodySystemFactories;
+import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.JavaFXRigidBody;
 
 public class SimpleModelViewer extends Application
 {
