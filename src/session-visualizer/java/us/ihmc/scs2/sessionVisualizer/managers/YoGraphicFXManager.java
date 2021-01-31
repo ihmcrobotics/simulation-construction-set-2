@@ -3,6 +3,7 @@ package us.ihmc.scs2.sessionVisualizer.managers;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javafx.animation.AnimationTimer;
@@ -14,6 +15,7 @@ import us.ihmc.scs2.definition.yoGraphic.YoGraphicListDefinition;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.xml.XMLTools;
+import us.ihmc.scs2.sessionVisualizer.yoGraphic.YoGraphicFXItem;
 import us.ihmc.scs2.sessionVisualizer.yoGraphic.YoGraphicFXResourceManager;
 import us.ihmc.scs2.sessionVisualizer.yoGraphic.YoGraphicTools;
 import us.ihmc.scs2.sessionVisualizer.yoGraphic.YoGroupFX;
@@ -113,11 +115,15 @@ public class YoGraphicFXManager extends AnimationTimer implements Manager
       try
       {
          YoGraphicListDefinition yoGraphicListDefinition = XMLTools.loadYoGraphicListDefinition(new FileInputStream(file));
-         YoGraphicTools.createAndRegisterYoGraphicFX(yoManager.getRootRegistryDatabase(),
-                                                     root,
-                                                     yoGraphicFXResourceManager,
-                                                     referenceFrameManager,
-                                                     yoGraphicListDefinition);
+         backgroundExecutorManager.queueTaskToExecuteInBackground(this, () ->
+         {
+            List<YoGraphicFXItem> items = YoGraphicTools.createYoGraphicFXs(yoManager.getRootRegistryDatabase(),
+                                                                            root,
+                                                                            yoGraphicFXResourceManager,
+                                                                            referenceFrameManager,
+                                                                            yoGraphicListDefinition);
+            Platform.runLater(() -> items.forEach(root::addYoGraphicFXItem));
+         });
       }
       catch (Exception e)
       {

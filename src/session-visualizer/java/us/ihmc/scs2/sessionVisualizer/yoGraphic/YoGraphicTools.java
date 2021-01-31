@@ -148,17 +148,26 @@ public class YoGraphicTools
       return parent;
    }
 
-   public static void createAndRegisterYoGraphicFX(YoVariableDatabase yoVariableDatabase, YoGroupFX parentGroup, YoGraphicFXResourceManager resourceManager,
-                                                   ReferenceFrameManager referenceFrameManager, YoGraphicListDefinition yoGraphicListDefinition)
+   public static List<YoGraphicFXItem> createYoGraphicFXs(YoVariableDatabase yoVariableDatabase, YoGroupFX parentGroup,
+                                                          YoGraphicFXResourceManager resourceManager, ReferenceFrameManager referenceFrameManager,
+                                                          YoGraphicListDefinition yoGraphicListDefinition)
    {
       if (yoGraphicListDefinition.getYoGraphics() == null)
-         return;
+         return null;
+
+      List<YoGraphicFXItem> items = new ArrayList<>();
 
       for (YoGraphicDefinition definition : yoGraphicListDefinition.getYoGraphics())
-         createAndRegisterYoGraphicFX(yoVariableDatabase, parentGroup, resourceManager, referenceFrameManager, definition);
+      {
+         YoGraphicFXItem item = createYoGraphicFX(yoVariableDatabase, parentGroup, resourceManager, referenceFrameManager, definition);
+         if (item != null)
+            items.add(item);
+      }
+
+      return items;
    }
 
-   public static void createAndRegisterYoGraphicFX(YoVariableDatabase yoVariableDatabase, YoGroupFX parentGroup, YoGraphicFXResourceManager resourceManager,
+   public static YoGraphicFXItem createYoGraphicFX(YoVariableDatabase yoVariableDatabase, YoGroupFX parentGroup, YoGraphicFXResourceManager resourceManager,
                                                    ReferenceFrameManager referenceFrameManager, YoGraphicDefinition yoGraphicDefinition)
    {
       YoGraphicFXItem yoGraphicFX = toYoGraphicFX(yoVariableDatabase, resourceManager, referenceFrameManager, yoGraphicDefinition);
@@ -166,7 +175,7 @@ public class YoGraphicTools
       if (yoGraphicFX == null)
       {
          LogTools.error("Failed to load YoGraphicDefinition: " + yoGraphicDefinition);
-         return;
+         return null;
       }
 
       boolean isValidName;
@@ -183,7 +192,7 @@ public class YoGraphicTools
       if (!isValidName)
          yoGraphicFX.setName(YoGraphicFXControllerTools.createAvailableYoGraphicFXItemName(parentGroup, yoGraphicFX.getName(), yoGraphicFX.getClass()));
 
-      parentGroup.addYoGraphicFXItem(yoGraphicFX);
+      return yoGraphicFX;
    }
 
    public static YoGraphicFXItem toYoGraphicFX(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
