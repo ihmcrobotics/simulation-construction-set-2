@@ -2,20 +2,27 @@ package us.ihmc.scs2.definition.robot;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import us.ihmc.euclid.interfaces.Transformable;
 import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
-import us.ihmc.scs2.definition.visual.VisualDefinition;
 
-public abstract class JointDefinition
+// TODO Add option for loop closure
+public abstract class JointDefinition implements Transformable
 {
    private String name;
    private final RigidBodyTransform transformToParent = new RigidBodyTransform();
 
+   private RigidBodyDefinition predecessor;
    private RigidBodyDefinition successor;
 
-   private final List<VisualDefinition> visualDefinitions = new ArrayList<>();
+   private final List<SensorDefinition> sensorDefinitions = new ArrayList<>();
+   private final List<KinematicPointDefinition> kinematicPointDefinitions = new ArrayList<>();
+   private final List<ExternalForcePointDefinition> externalForcePointDefinitions = new ArrayList<>();
+   private final List<GroundContactPointDefinition> groundContactPointDefinitions = new ArrayList<>();
 
    public JointDefinition()
    {
@@ -41,9 +48,25 @@ public abstract class JointDefinition
       return transformToParent;
    }
 
+   public void setPredecessor(RigidBodyDefinition predecessor)
+   {
+      this.predecessor = predecessor;
+   }
+
+   public RigidBodyDefinition getPredecessor()
+   {
+      return predecessor;
+   }
+
    public void setSuccessor(RigidBodyDefinition successor)
    {
+      if (this.successor != null)
+         this.successor.setParentJoint(null);
+
       this.successor = successor;
+
+      if (this.successor != null)
+         this.successor.setParentJoint(this);
    }
 
    public RigidBodyDefinition getSuccessor()
@@ -51,17 +74,80 @@ public abstract class JointDefinition
       return successor;
    }
 
-   public void addVisualDefinition(VisualDefinition visualDefinition)
+   public JointDefinition getParentJoint()
    {
-      visualDefinitions.add(visualDefinition);
+      if (predecessor == null)
+         return null;
+      else
+         return predecessor.getParentJoint();
    }
 
-   public List<VisualDefinition> getVisualDefinitions()
+   public void addSensorDefinition(SensorDefinition sensorDefinition)
    {
-      return visualDefinitions;
+      sensorDefinitions.add(sensorDefinition);
+   }
+
+   public List<SensorDefinition> getSensorDefinitions()
+   {
+      return sensorDefinitions;
+   }
+
+   public <T extends SensorDefinition> List<T> getSensorDefinitions(Class<T> sensorType)
+   {
+      return sensorDefinitions.stream().filter(sensorType::isInstance).map(sensorType::cast).collect(Collectors.toList());
+   }
+
+   public List<KinematicPointDefinition> getKinematicPointDefinitions()
+   {
+      return kinematicPointDefinitions;
+   }
+
+   public void addKinematicPointDefinition(KinematicPointDefinition kinematicPointDefinition)
+   {
+      kinematicPointDefinitions.add(kinematicPointDefinition);
+   }
+
+   public List<ExternalForcePointDefinition> getExternalForcePointDefinitions()
+   {
+      return externalForcePointDefinitions;
+   }
+
+   public void addExternalForcePointDefinition(ExternalForcePointDefinition externalForcePointDefinition)
+   {
+      externalForcePointDefinitions.add(externalForcePointDefinition);
+   }
+
+   public List<GroundContactPointDefinition> getGroundContactPointDefinitions()
+   {
+      return groundContactPointDefinitions;
+   }
+
+   public void addGroundContactPointDefinition(GroundContactPointDefinition groundContactPointDefinition)
+   {
+      groundContactPointDefinitions.add(groundContactPointDefinition);
    }
 
    public abstract JointBasics toJoint(RigidBodyBasics predecessor);
+
+   @Override
+   public void applyTransform(Transform transform)
+   {
+      transform.transform(transformToParent);
+      kinematicPointDefinitions.forEach(kp -> kp.applyTransform(transform));
+      externalForcePointDefinitions.forEach(efp -> efp.applyTransform(transform));
+      groundContactPointDefinitions.forEach(gcp -> gcp.applyTransform(transform));
+      sensorDefinitions.forEach(sensor -> sensor.applyTransform(transform));
+   }
+
+   @Override
+   public void applyInverseTransform(Transform transform)
+   {
+      transform.inverseTransform(transformToParent);
+      kinematicPointDefinitions.forEach(kp -> kp.applyInverseTransform(transform));
+      externalForcePointDefinitions.forEach(efp -> efp.applyInverseTransform(transform));
+      groundContactPointDefinitions.forEach(gcp -> gcp.applyInverseTransform(transform));
+      sensorDefinitions.forEach(sensor -> sensor.applyInverseTransform(transform));
+   }
 
    @Override
    public String toString()

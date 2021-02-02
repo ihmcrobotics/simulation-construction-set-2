@@ -9,6 +9,7 @@ public abstract class OneDoFJointDefinition extends JointDefinition
    private double positionLowerLimit = Double.NEGATIVE_INFINITY, positionUpperLimit = Double.POSITIVE_INFINITY;
    private double velocityLowerLimit = Double.NEGATIVE_INFINITY, velocityUpperLimit = Double.POSITIVE_INFINITY;
    private double effortLowerLimit = Double.NEGATIVE_INFINITY, effortUpperLimit = Double.POSITIVE_INFINITY;
+   private double stiction, damping;
 
    public OneDoFJointDefinition()
    {
@@ -112,5 +113,25 @@ public abstract class OneDoFJointDefinition extends JointDefinition
    public double getEffortUpperLimit()
    {
       return effortUpperLimit;
+   }
+
+   public void setStiction(double stiction)
+   {
+      this.stiction = stiction;
+   }
+
+   public double getStiction()
+   {
+      return stiction;
+   }
+
+   public void setDamping(double damping)
+   {
+      this.damping = damping;
+   }
+
+   public double getDamping()
+   {
+      return damping;
    }
 }

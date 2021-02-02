@@ -56,7 +56,7 @@ public class SimpleModelViewer extends Application
       if (modelFile.getName().toLowerCase().endsWith("urdf"))
       {
          URDFModel urdfModel = URDFTools.loadURDFModel(modelFile);
-         robotDefinition = URDFTools.toRobotDefinition(urdfModel);
+         robotDefinition = URDFTools.toFloatingRobotDefinition(urdfModel);
       }
       else if (modelFile.getName().toLowerCase().endsWith("sdf"))
       {

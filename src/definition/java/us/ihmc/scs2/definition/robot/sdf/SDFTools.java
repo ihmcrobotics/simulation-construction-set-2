@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -23,32 +24,47 @@ import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.euclid.tuple3D.interfaces.Vector3DBasics;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.yawPitchRoll.YawPitchRoll;
+import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.geometry.BoxGeometryDefinition;
 import us.ihmc.scs2.definition.geometry.CylinderGeometryDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 import us.ihmc.scs2.definition.geometry.ModelFileGeometryDefinition;
 import us.ihmc.scs2.definition.geometry.SphereGeometryDefinition;
+import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
 import us.ihmc.scs2.definition.robot.FixedJointDefinition;
+import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
 import us.ihmc.scs2.definition.robot.JointDefinition;
+import us.ihmc.scs2.definition.robot.LidarSensorDefinition;
 import us.ihmc.scs2.definition.robot.OneDoFJointDefinition;
 import us.ihmc.scs2.definition.robot.PlanarJointDefinition;
 import us.ihmc.scs2.definition.robot.PrismaticJointDefinition;
 import us.ihmc.scs2.definition.robot.RevoluteJointDefinition;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
+import us.ihmc.scs2.definition.robot.SensorDefinition;
 import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFGeometry;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFInertia;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFJoint;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFJoint.SDFAxis;
+import us.ihmc.scs2.definition.robot.sdf.items.SDFJoint.SDFAxis.SDFDynamics;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFJoint.SDFAxis.SDFLimit;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFLink;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFLink.SDFInertial;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFModel;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFRoot;
+import us.ihmc.scs2.definition.robot.sdf.items.SDFSensor;
+import us.ihmc.scs2.definition.robot.sdf.items.SDFSensor.SDFCamera;
+import us.ihmc.scs2.definition.robot.sdf.items.SDFSensor.SDFIMU;
+import us.ihmc.scs2.definition.robot.sdf.items.SDFSensor.SDFIMU.SDFIMUNoise;
+import us.ihmc.scs2.definition.robot.sdf.items.SDFSensor.SDFIMU.SDFIMUNoise.SDFNoiseParameters;
+import us.ihmc.scs2.definition.robot.sdf.items.SDFSensor.SDFRay;
+import us.ihmc.scs2.definition.robot.sdf.items.SDFSensor.SDFRay.SDFNoise;
+import us.ihmc.scs2.definition.robot.sdf.items.SDFSensor.SDFRay.SDFRange;
+import us.ihmc.scs2.definition.robot.sdf.items.SDFSensor.SDFRay.SDFScan.SDFHorizontalScan;
+import us.ihmc.scs2.definition.robot.sdf.items.SDFSensor.SDFRay.SDFScan.SDFVerticalScan;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFURIHolder;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFVisual;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFVisual.SDFMaterial;
@@ -173,7 +189,12 @@ public class SDFTools
       return null;
    }
 
-   public static RobotDefinition toRobotDefinition(SDFModel sdfModel)
+   public static RobotDefinition toFloatingRobotDefinition(SDFModel sdfModel)
+   {
+      return toRobotDefinition(new SixDoFJointDefinition(), sdfModel);
+   }
+
+   public static RobotDefinition toRobotDefinition(JointDefinition rootJointDefinition, SDFModel sdfModel)
    {
       List<SDFLink> sdfLinks = sdfModel.getLinks();
       List<SDFJoint> sdfJoints = sdfModel.getJoints();
@@ -184,7 +205,15 @@ public class SDFTools
          jointDefinitions = Collections.emptyList();
       else
          jointDefinitions = sdfJoints.stream().map(SDFTools::toJointDefinition).collect(Collectors.toList());
-      RigidBodyDefinition rootBodyDefinition = connectKinematics(rigidBodyDefinitions, jointDefinitions, sdfJoints, sdfLinks);
+      RigidBodyDefinition startBodyDefinition = connectKinematics(rigidBodyDefinitions, jointDefinitions, sdfJoints, sdfLinks);
+      if (rootJointDefinition.getName() == null)
+         rootJointDefinition.setName(startBodyDefinition.getName());
+      rootJointDefinition.setSuccessor(startBodyDefinition);
+      RigidBodyDefinition rootBodyDefinition = new RigidBodyDefinition("rootBody");
+      rootBodyDefinition.addChildJoint(rootJointDefinition);
+
+      addSensors(sdfLinks, rigidBodyDefinitions);
+      correctTransforms(sdfJoints, sdfLinks, jointDefinitions);
 
       RobotDefinition robotDefinition = new RobotDefinition(sdfModel.getName());
       robotDefinition.setRootBodyDefinition(rootBodyDefinition);
@@ -192,20 +221,102 @@ public class SDFTools
       return robotDefinition;
    }
 
-   public static RobotDefinition toFloatingRobotDefinition(SDFModel sdfModel)
+   public static RigidBodyDefinition connectKinematics(List<RigidBodyDefinition> rigidBodyDefinitions, List<JointDefinition> jointDefinitions,
+                                                       List<SDFJoint> sdfJoints, List<SDFLink> sdfLinks)
    {
-      return addFloatingJoint(toRobotDefinition(sdfModel), "");
+      if (sdfJoints == null)
+         return rigidBodyDefinitions.get(0);
+
+      Map<String, RigidBodyDefinition> rigidBodyDefinitionMap = rigidBodyDefinitions.stream().collect(Collectors.toMap(RigidBodyDefinition::getName,
+                                                                                                                       Function.identity()));
+      Map<String, JointDefinition> jointDefinitionMap = jointDefinitions.stream().collect(Collectors.toMap(JointDefinition::getName, Function.identity()));
+
+      for (SDFJoint sdfJoint : sdfJoints)
+      {
+         String parent = sdfJoint.getParent();
+         String child = sdfJoint.getChild();
+         RigidBodyDefinition parentRigidBodyDefinition = rigidBodyDefinitionMap.get(parent);
+         RigidBodyDefinition childRigidBodyDefinition = rigidBodyDefinitionMap.get(child);
+         JointDefinition jointDefinition = jointDefinitionMap.get(sdfJoint.getName());
+
+         jointDefinition.setSuccessor(childRigidBodyDefinition);
+         parentRigidBodyDefinition.addChildJoint(jointDefinition);
+      }
+
+      RigidBodyDefinition rootBody = jointDefinitions.get(0).getPredecessor();
+
+      while (rootBody.getParentJoint() != null)
+         rootBody = rootBody.getParentJoint().getPredecessor();
+
+      return rootBody;
    }
 
-   public static RobotDefinition addFloatingJoint(RobotDefinition robotDefinition, String jointName)
+   public static void addSensors(List<SDFLink> sdfLinks, List<RigidBodyDefinition> rigidBodyDefinitions)
    {
-      RigidBodyDefinition elevatorDefinition = new RigidBodyDefinition("elevator");
-      SixDoFJointDefinition rootJoint = new SixDoFJointDefinition(jointName);
-      elevatorDefinition.addChildJoint(rootJoint);
-      rootJoint.setSuccessor(robotDefinition.getRootBodyDefinition());
-      robotDefinition.setRootBodyDefinition(elevatorDefinition);
+      Map<String, RigidBodyDefinition> rigidBodyDefinitionMap = rigidBodyDefinitions.stream().collect(Collectors.toMap(RigidBodyDefinition::getName,
+                                                                                                                       Function.identity()));
 
-      return robotDefinition;
+      for (SDFLink sdfLink : sdfLinks)
+      {
+         if (sdfLink.getSensors() == null)
+            continue;
+
+         RigidBodyDefinition rigidBodyDefinition = rigidBodyDefinitionMap.get(sdfLink.getName());
+         JointDefinition parentJoint = rigidBodyDefinition.getParentJoint();
+
+         for (SDFSensor sdfSensor : sdfLink.getSensors())
+         {
+            List<SensorDefinition> sensorDefinitions = toSensorDefinition(sdfSensor);
+            if (sensorDefinitions != null)
+               sensorDefinitions.forEach(parentJoint::addSensorDefinition);
+         }
+      }
+   }
+
+   public static void correctTransforms(List<SDFJoint> sdfJoints, List<SDFLink> sdfLinks, List<JointDefinition> jointDefinitions)
+   {
+      Map<String, SDFLink> sdfLinkMap = sdfLinks.stream().collect(Collectors.toMap(SDFLink::getName, Function.identity()));
+      Map<String, JointDefinition> jointDefinitionMap = jointDefinitions.stream().collect(Collectors.toMap(JointDefinition::getName, Function.identity()));
+
+      for (SDFJoint sdfJoint : sdfJoints)
+      {
+         String jointName = sdfJoint.getName();
+         JointDefinition jointDefinition = jointDefinitionMap.get(jointName);
+         RigidBodyDefinition childDefinition = jointDefinition.getSuccessor();
+
+         String parentLinkName = sdfJoint.getParent();
+         String childLinkName = sdfJoint.getChild();
+         SDFLink parentSDFLink = sdfLinkMap.get(parentLinkName);
+         SDFLink childSDFLink = sdfLinkMap.get(childLinkName);
+
+         RigidBodyTransform parentLinkPose = parsePose(parentSDFLink.getPose());
+         RigidBodyTransform childLinkPose = parsePose(childSDFLink.getPose());
+
+         // Correct joint transform
+         RigidBodyTransform transformToParentJoint = jointDefinition.getTransformToParent();
+         transformToParentJoint.setAndInvert(parentLinkPose);
+         transformToParentJoint.multiply(childLinkPose);
+         transformToParentJoint.getRotation().setToZero();
+         parentLinkPose.transform(transformToParentJoint.getTranslation());
+
+         // Correct link inertia pose
+         RigidBodyTransform inertiaPose = childDefinition.getInertiaPose();
+         inertiaPose.prependOrientation(childLinkPose.getRotation());
+         inertiaPose.transform(childDefinition.getMomentOfInertia());
+         inertiaPose.getRotation().setToZero();
+
+         // Correct visual transform
+         for (VisualDefinition visualDescription : childDefinition.getVisualDefinitions())
+         {
+            RigidBodyTransform visualPose = visualDescription.getOriginPose();
+            visualPose.prependOrientation(childLinkPose.getRotation());
+         }
+
+         for (SensorDefinition sensorDefinition : jointDefinition.getSensorDefinitions())
+         {
+            sensorDefinition.getTransformToJoint().prependOrientation(childLinkPose.getRotation());
+         }
+      }
    }
 
    public static RigidBodyDefinition toRigidBodyDefinition(SDFLink sdfLink)
@@ -254,118 +365,31 @@ public class SDFTools
       }
    }
 
-   public static RigidBodyDefinition connectKinematics(List<RigidBodyDefinition> rigidBodyDefinitions, List<JointDefinition> jointDefinitions,
-                                                       List<SDFJoint> sdfJoints, List<SDFLink> sdfLinks)
-   {
-      Map<String, SDFLink> sdfLinkMap = sdfLinks.stream().collect(Collectors.toMap(SDFLink::getName, Function.identity()));
-      Map<String, RigidBodyDefinition> rigidBodyDefinitionMap = rigidBodyDefinitions.stream().collect(Collectors.toMap(RigidBodyDefinition::getName,
-                                                                                                                       Function.identity()));
-      Map<String, JointDefinition> jointDefinitionMap = jointDefinitions.stream().collect(Collectors.toMap(JointDefinition::getName, Function.identity()));
-
-      if (sdfJoints != null)
-      {
-         for (SDFJoint sdfJoint : sdfJoints)
-         {
-            String parent = sdfJoint.getParent();
-            String child = sdfJoint.getChild();
-            RigidBodyDefinition parentRigidBodyDefinition = rigidBodyDefinitionMap.get(parent);
-            RigidBodyDefinition childRigidBodyDefinition = rigidBodyDefinitionMap.get(child);
-            JointDefinition jointDefinition = jointDefinitionMap.get(sdfJoint.getName());
-            jointDefinition.getTransformToParent().set(parsePose(sdfLinkMap.get(sdfJoint.getParent()).getPose()));
-
-            jointDefinition.setSuccessor(childRigidBodyDefinition);
-            parentRigidBodyDefinition.getChildrenJoints().add(jointDefinition);
-         }
-      }
-
-      if (sdfJoints == null)
-      {
-         return rigidBodyDefinitions.get(0);
-      }
-      else
-      {
-         Map<String, SDFJoint> childToParentJoint = sdfJoints.stream().collect(Collectors.toMap(SDFJoint::getChild, Function.identity()));
-
-         String rootLinkName = sdfJoints.get(0).getParent();
-         SDFJoint parentJoint = childToParentJoint.get(rootLinkName);
-
-         while (parentJoint != null)
-         {
-            rootLinkName = parentJoint.getParent();
-            parentJoint = childToParentJoint.get(rootLinkName);
-         }
-
-         for (SDFJoint sdfJoint : sdfJoints)
-         {
-            String jointName = sdfJoint.getName();
-            JointDefinition jointDefinition = jointDefinitionMap.get(jointName);
-
-            String parentLinkName = sdfJoint.getParent();
-            String childLinkName = sdfJoint.getChild();
-            SDFJoint parentSDFJoint = childToParentJoint.get(parentLinkName);
-            SDFLink parentSDFLink = sdfLinkMap.get(parentLinkName);
-            SDFLink childSDFLink = sdfLinkMap.get(childLinkName);
-
-            RigidBodyTransform parentLinkPose = parsePose(parentSDFLink.getPose());
-            RigidBodyTransform childLinkPose = parsePose(childSDFLink.getPose());
-            RigidBodyTransform parentJointParsedPose = parsePose(parentSDFJoint != null ? parentSDFJoint.getPose() : null);
-            RigidBodyTransform jointParsedPose = parsePose(sdfJoint.getPose());
-
-            RigidBodyTransform parentJointPose = new RigidBodyTransform(parentLinkPose);
-            parentJointPose.multiply(parentJointParsedPose);
-
-            RigidBodyTransform jointPose = new RigidBodyTransform(childLinkPose);
-            jointPose.multiply(jointParsedPose);
-
-            RigidBodyTransform transformToParentJoint = jointDefinition.getTransformToParent();
-            transformToParentJoint.setAndInvert(parentJointPose);
-            transformToParentJoint.multiply(jointPose);
-
-            jointDefinition.getTransformToParent().getRotation().setToZero();
-            parentLinkPose.transform(jointDefinition.getTransformToParent().getTranslation());
-
-            RigidBodyDefinition childDefinition = rigidBodyDefinitionMap.get(childSDFLink.getName());
-            RigidBodyTransform inertiaPose = childDefinition.getInertiaPose();
-            Vector3DBasics comOffset = childDefinition.getInertiaPose().getTranslation();
-            childLinkPose.transform(comOffset);
-            inertiaPose.transform(childDefinition.getMomentOfInertia());
-            childLinkPose.transform(childDefinition.getMomentOfInertia());
-            inertiaPose.getRotation().setToZero();
-            for (VisualDefinition visualDefinition : childDefinition.getVisualDefinitions())
-            {
-               RigidBodyTransform visualPose = visualDefinition.getOriginPose();
-               childLinkPose.getRotation().transform(visualPose.getRotation());
-               childLinkPose.getRotation().transform(visualPose.getTranslation());
-            }
-         }
-
-         return rigidBodyDefinitionMap.get(rootLinkName);
-      }
-   }
-
-   private static RevoluteJointDefinition toRevoluteJointDefinition(SDFJoint sdfJoint, boolean ignorePositionLimits)
+   public static RevoluteJointDefinition toRevoluteJointDefinition(SDFJoint sdfJoint, boolean ignorePositionLimits)
    {
       RevoluteJointDefinition definition = new RevoluteJointDefinition(sdfJoint.getName());
 
       definition.getTransformToParent().set(parsePose(sdfJoint.getPose()));
       definition.getAxis().set(parseAxis(sdfJoint.getAxis()));
       parseLimit(sdfJoint.getAxis().getLimit(), definition, ignorePositionLimits);
+      parseDynamics(sdfJoint.getAxis().getDynamics(), definition);
 
       return definition;
    }
 
-   private static PrismaticJointDefinition toPrismaticJointDefinition(SDFJoint sdfJoint)
+   public static PrismaticJointDefinition toPrismaticJointDefinition(SDFJoint sdfJoint)
    {
       PrismaticJointDefinition definition = new PrismaticJointDefinition(sdfJoint.getName());
 
       definition.getTransformToParent().set(parsePose(sdfJoint.getPose()));
       definition.getAxis().set(parseAxis(sdfJoint.getAxis()));
       parseLimit(sdfJoint.getAxis().getLimit(), definition, false);
+      parseDynamics(sdfJoint.getAxis().getDynamics(), definition);
 
       return definition;
    }
 
-   private static FixedJointDefinition toFixedJoint(SDFJoint sdfJoint)
+   public static FixedJointDefinition toFixedJoint(SDFJoint sdfJoint)
    {
       FixedJointDefinition definition = new FixedJointDefinition(sdfJoint.getName());
 
@@ -375,7 +399,7 @@ public class SDFTools
       return definition;
    }
 
-   private static SixDoFJointDefinition toSixDoFJointDefinition(SDFJoint sdfJoint)
+   public static SixDoFJointDefinition toSixDoFJointDefinition(SDFJoint sdfJoint)
    {
       SixDoFJointDefinition definition = new SixDoFJointDefinition(sdfJoint.getName());
 
@@ -384,7 +408,7 @@ public class SDFTools
       return definition;
    }
 
-   private static PlanarJointDefinition toPlanarJointDefinition(SDFJoint sdfJoint)
+   public static PlanarJointDefinition toPlanarJointDefinition(SDFJoint sdfJoint)
    {
       PlanarJointDefinition definition = new PlanarJointDefinition(sdfJoint.getName());
 
@@ -393,8 +417,135 @@ public class SDFTools
       Vector3D surfaceNormal = parseAxis(sdfJoint.getAxis());
 
       if (!surfaceNormal.geometricallyEquals(Axis3D.Y, 1.0e-5))
-         throw new UnsupportedOperationException("Planar joint are supported only with a surface normal equal to: " + EuclidCoreIOTools.getTuple3DString(Axis3D.Y)
-               + ", received:" + surfaceNormal);
+         throw new UnsupportedOperationException("Planar joint are supported only with a surface normal equal to: "
+               + EuclidCoreIOTools.getTuple3DString(Axis3D.Y) + ", received:" + surfaceNormal);
+
+      return definition;
+   }
+
+   public static List<SensorDefinition> toSensorDefinition(SDFSensor sdfSensor)
+   {
+      List<SensorDefinition> definitions = new ArrayList<>();
+
+      switch (sdfSensor.getType())
+      {
+         case "camera":
+         case "multicamera":
+         case "depth":
+            definitions.addAll(toCameraSensorDefinition(sdfSensor.getCamera()));
+            break;
+         case "imu":
+            definitions.add(toIMUSensorDefinition(sdfSensor.getImu()));
+            break;
+         case "gpu_ray":
+         case "ray":
+            definitions.add(toLidarSensorDefinition(sdfSensor.getRay()));
+            break;
+         default:
+            LogTools.error("Unsupport sensor type: " + sdfSensor.getType());
+            return null;
+      }
+
+      int updatePeriod = sdfSensor.getUpdateRate() == null ? -1 : (int) (1000.0 / parseDouble(sdfSensor.getUpdateRate(), 1000.0));
+
+      for (SensorDefinition definition : definitions)
+      {
+         if (definition.getName() != null && !definition.getName().isEmpty())
+            definition.setName(sdfSensor.getName() + "_" + definition.getName());
+         else
+            definition.setName(sdfSensor.getName());
+         definition.getTransformToJoint().preMultiply(parsePose(sdfSensor.getPose()));
+         definition.setUpdatePeriod(updatePeriod);
+      }
+
+      return definitions;
+   }
+
+   public static List<CameraSensorDefinition> toCameraSensorDefinition(List<SDFCamera> sdfCameras)
+   {
+      return sdfCameras.stream().map(SDFTools::toCameraSensorDefinition).collect(Collectors.toList());
+   }
+
+   public static CameraSensorDefinition toCameraSensorDefinition(SDFCamera sdfCamera)
+   {
+      CameraSensorDefinition definition = new CameraSensorDefinition();
+      definition.setName(sdfCamera.getName());
+      definition.getTransformToJoint().set(parsePose(sdfCamera.getPose()));
+      definition.setFieldOfView(parseDouble(sdfCamera.getHorizontalFov(), Double.NaN));
+      definition.setClipNear(parseDouble(sdfCamera.getClip().getNear(), Double.NaN));
+      definition.setClipFar(parseDouble(sdfCamera.getClip().getFar(), Double.NaN));
+      definition.setImageWidth(parseInteger(sdfCamera.getImage().getWidth(), -1));
+      definition.setImageHeight(parseInteger(sdfCamera.getImage().getHeight(), -1));
+      return definition;
+   }
+
+   public static LidarSensorDefinition toLidarSensorDefinition(SDFRay sdfRay)
+   {
+      LidarSensorDefinition definition = new LidarSensorDefinition();
+
+      SDFRange sdfRange = sdfRay.getRange();
+      double sdfRangeMax = parseDouble(sdfRange.getMax(), Double.NaN);
+      double sdfRangeMin = parseDouble(sdfRange.getMin(), Double.NaN);
+      double sdfRangeResolution = parseDouble(sdfRange.getResolution(), Double.NaN);
+
+      SDFHorizontalScan sdfHorizontalScan = sdfRay.getScan().getHorizontal();
+      SDFVerticalScan sdfVerticalScan = sdfRay.getScan().getVertical();
+      double maxSweepAngle = parseDouble(sdfHorizontalScan.getMaxAngle(), 0.0);
+      double minSweepAngle = parseDouble(sdfHorizontalScan.getMinAngle(), 0.0);
+      double maxHeightAngle = sdfVerticalScan == null ? 0.0 : parseDouble(sdfVerticalScan.getMaxAngle(), 0.0);
+      double minHeightAngle = sdfVerticalScan == null ? 0.0 : parseDouble(sdfVerticalScan.getMinAngle(), 0.0);
+
+      int samples = parseInteger(sdfHorizontalScan.getSamples(), -1) / 3 * 3;
+      int scanHeight = sdfVerticalScan == null ? 1 : parseInteger(sdfVerticalScan.getSamples(), 1);
+
+      SDFNoise sdfNoise = sdfRay.getNoise();
+      if (sdfNoise != null)
+      {
+         if ("gaussian".equals(sdfNoise.getType()))
+         {
+            definition.setGaussianNoiseMean(parseDouble(sdfNoise.getMean(), 0.0));
+            definition.setGaussianNoiseStandardDeviation(parseDouble(sdfNoise.getStddev(), 0.0));
+         }
+         else
+         {
+            LogTools.error("Unknown noise model: {}.", sdfNoise.getType());
+         }
+      }
+
+      definition.getTransformToJoint().set(parsePose(sdfRay.getPose()));
+      definition.setPointsPerSweep(samples);
+      definition.setSweepYawLimits(minSweepAngle, maxSweepAngle);
+      definition.setHeightPitchLimits(minHeightAngle, maxHeightAngle);
+      definition.setRangeLimits(sdfRangeMin, sdfRangeMax);
+      definition.setRangeResolution(sdfRangeResolution);
+      definition.setScanHeight(scanHeight);
+      return definition;
+   }
+
+   public static IMUSensorDefinition toIMUSensorDefinition(SDFIMU sdfIMU)
+   {
+      IMUSensorDefinition definition = new IMUSensorDefinition();
+
+      SDFIMUNoise sdfNoise = sdfIMU.getNoise();
+      if (sdfNoise != null)
+      {
+         if ("gaussian".equals(sdfNoise.getType()))
+         {
+            SDFNoiseParameters accelerationNoise = sdfNoise.getAccel();
+            SDFNoiseParameters angularVelocityNoise = sdfNoise.getRate();
+
+            definition.setAccelerationNoiseParameters(parseDouble(accelerationNoise.getMean(), 0.0), parseDouble(accelerationNoise.getStddev(), 0.0));
+            definition.setAccelerationBiasParameters(parseDouble(accelerationNoise.getBias_mean(), 0.0), parseDouble(accelerationNoise.getBias_stddev(), 0.0));
+
+            definition.setAngularVelocityNoiseParameters(parseDouble(angularVelocityNoise.getMean(), 0.0), parseDouble(angularVelocityNoise.getStddev(), 0.0));
+            definition.setAngularVelocityBiasParameters(parseDouble(angularVelocityNoise.getBias_mean(), 0.0),
+                                                        parseDouble(angularVelocityNoise.getBias_stddev(), 0.0));
+         }
+         else
+         {
+            LogTools.error("Unknown IMU noise model: {}.", sdfNoise.getType());
+         }
+      }
 
       return definition;
    }
@@ -518,34 +669,41 @@ public class SDFTools
 
    public static void parseLimit(SDFLimit sdfLimit, OneDoFJointDefinition jointDefinitionToParseLimitInto, boolean ignorePositionLimits)
    {
-      double lowerLimit, upperLimit, effortLimit, velocityLimit;
+      jointDefinitionToParseLimitInto.setPositionLimits(DEFAULT_LOWER_LIMIT, DEFAULT_UPPER_LIMIT);
+      jointDefinitionToParseLimitInto.setEffortLimits(DEFAULT_EFFORT_LIMIT);
+      jointDefinitionToParseLimitInto.setVelocityLimits(DEFAULT_VELOCITY_LIMIT);
 
       if (sdfLimit != null)
       {
-         if (ignorePositionLimits)
+         if (!ignorePositionLimits)
          {
-            lowerLimit = DEFAULT_LOWER_LIMIT;
-            upperLimit = DEFAULT_UPPER_LIMIT;
+            double positionLowerLimit = parseDouble(sdfLimit.getLower(), DEFAULT_LOWER_LIMIT);
+            double positionUpperLimit = parseDouble(sdfLimit.getUpper(), DEFAULT_UPPER_LIMIT);
+            if (positionLowerLimit < positionUpperLimit)
+               jointDefinitionToParseLimitInto.setPositionLimits(positionLowerLimit, positionUpperLimit);
          }
-         else
-         {
-            lowerLimit = parseDouble(sdfLimit.getLower(), DEFAULT_LOWER_LIMIT);
-            upperLimit = parseDouble(sdfLimit.getUpper(), DEFAULT_UPPER_LIMIT);
-         }
-         effortLimit = parseDouble(sdfLimit.getEffort(), DEFAULT_EFFORT_LIMIT);
-         velocityLimit = parseDouble(sdfLimit.getVelocity(), DEFAULT_VELOCITY_LIMIT);
+         double effortLimit = parseDouble(sdfLimit.getEffort(), DEFAULT_EFFORT_LIMIT);
+         if (Double.isFinite(effortLimit) && effortLimit >= 0)
+            jointDefinitionToParseLimitInto.setEffortLimits(effortLimit);
+         double velocityLimit = parseDouble(sdfLimit.getVelocity(), DEFAULT_VELOCITY_LIMIT);
+         if (Double.isFinite(velocityLimit) && velocityLimit >= 0)
+            jointDefinitionToParseLimitInto.setVelocityLimits(velocityLimit);
       }
-      else
+   }
+
+   public static void parseDynamics(SDFDynamics sdfDynamics, OneDoFJointDefinition jointDefinitionToParseDynamicsInto)
+   {
+      double damping = 0.0;
+      double stiction = 0.0;
+
+      if (sdfDynamics != null)
       {
-         lowerLimit = DEFAULT_LOWER_LIMIT;
-         upperLimit = DEFAULT_UPPER_LIMIT;
-         effortLimit = DEFAULT_EFFORT_LIMIT;
-         velocityLimit = DEFAULT_VELOCITY_LIMIT;
+         damping = parseDouble(sdfDynamics.getDamping(), 0.0);
+         stiction = parseDouble(sdfDynamics.getFriction(), 0.0);
       }
 
-      jointDefinitionToParseLimitInto.setPositionLimits(lowerLimit, upperLimit);
-      jointDefinitionToParseLimitInto.setEffortLimits(effortLimit);
-      jointDefinitionToParseLimitInto.setVelocityLimits(velocityLimit);
+      jointDefinitionToParseDynamicsInto.setDamping(damping);
+      jointDefinitionToParseDynamicsInto.setStiction(stiction);
    }
 
    public static Vector3D parseAxis(SDFAxis axis)
@@ -562,6 +720,13 @@ public class SDFTools
       if (value == null)
          return defaultValue;
       return Double.parseDouble(value);
+   }
+
+   public static int parseInteger(String value, int defaultValue)
+   {
+      if (value == null)
+         return defaultValue;
+      return Integer.parseInt(value);
    }
 
    public static Vector3D parseVector3D(String value, Vector3D defaultValue)

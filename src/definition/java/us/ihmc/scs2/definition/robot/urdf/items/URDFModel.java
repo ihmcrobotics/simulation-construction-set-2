@@ -13,6 +13,7 @@ public class URDFModel implements URDFItem
    private List<URDFMaterial> materials;
    private List<URDFLink> links;
    private List<URDFJoint> joints;
+   private List<URDFGazebo> gazebos;
 
    @XmlAttribute(name = "name")
    public void setName(String name)
@@ -38,6 +39,12 @@ public class URDFModel implements URDFItem
       this.joints = joints;
    }
 
+   @XmlElement(name = "gazebo")
+   public void setGazebos(List<URDFGazebo> gazebos)
+   {
+      this.gazebos = gazebos;
+   }
+
    public String getName()
    {
       return name;
@@ -56,6 +63,11 @@ public class URDFModel implements URDFItem
    public List<URDFJoint> getJoints()
    {
       return joints;
+   }
+
+   public List<URDFGazebo> getGazebos()
+   {
+      return gazebos;
    }
 
    @Override
