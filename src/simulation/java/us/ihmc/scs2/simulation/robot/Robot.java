@@ -18,6 +18,7 @@ import us.ihmc.scs2.definition.robot.RevoluteJointDefinition;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
+import us.ihmc.scs2.simulation.robot.controller.RobotControllerManager;
 import us.ihmc.yoVariables.registry.YoNamespace;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.registry.YoVariableHolder;
@@ -34,6 +35,7 @@ public class Robot implements MultiBodySystemBasics, YoVariableHolder
 
    private final YoRegistry registry;
 
+   private final RobotDefinition robotDefinition;
    private final String name;
    private final SimRigidBody rootBody;
    private final ReferenceFrame inertialFrame;
@@ -45,8 +47,11 @@ public class Robot implements MultiBodySystemBasics, YoVariableHolder
    private final List<SimJointBasics> jointsToConsider;
    private final JointMatrixIndexProvider jointMatrixIndexProvider;
 
+   private final RobotControllerManager controllerManager;
+
    public Robot(RobotDefinition robotDefinition, ReferenceFrame inertialFrame)
    {
+      this.robotDefinition = robotDefinition;
       this.inertialFrame = inertialFrame;
 
       name = robotDefinition.getName();
@@ -60,6 +65,8 @@ public class Robot implements MultiBodySystemBasics, YoVariableHolder
       jointsToIgnore = robotDefinition.getDefinitionsOfJointsToIgnore().stream().map(def -> nameToJointMap.get(def.getName())).collect(Collectors.toList());
       jointsToConsider = allJoints.stream().filter(joint -> !jointsToIgnore.contains(joint)).collect(Collectors.toList());
       jointMatrixIndexProvider = JointMatrixIndexProvider.toIndexProvider(getJointsToConsider());
+
+      controllerManager = new RobotControllerManager(this, registry);
    }
 
    public static SimRigidBody createRobot(RigidBodyDefinition rootBodyDefinition, ReferenceFrame inertialFrame, JointBuilderFromDefinition jointBuilder,
@@ -84,6 +91,16 @@ public class Robot implements MultiBodySystemBasics, YoVariableHolder
    public String getName()
    {
       return name;
+   }
+
+   public RobotDefinition getRobotDefinition()
+   {
+      return robotDefinition;
+   }
+
+   public RobotControllerManager getControllerManager()
+   {
+      return controllerManager;
    }
 
    @Override
