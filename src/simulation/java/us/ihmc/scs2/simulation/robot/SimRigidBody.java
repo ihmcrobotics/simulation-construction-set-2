@@ -14,40 +14,41 @@ import us.ihmc.mecano.multiBodySystem.iterators.JointIterable;
 import us.ihmc.mecano.multiBodySystem.iterators.RigidBodyIterable;
 import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class SimRigidBody extends RigidBody
 {
-   public SimRigidBody(String bodyName, ReferenceFrame parentStationaryFrame)
+   public SimRigidBody(String bodyName, ReferenceFrame parentStationaryFrame, YoRegistry registry)
    {
       super(bodyName, parentStationaryFrame);
    }
 
-   public SimRigidBody(String bodyName, RigidBodyTransformReadOnly transformToParent, ReferenceFrame parentStationaryFrame)
+   public SimRigidBody(String bodyName, RigidBodyTransformReadOnly transformToParent, ReferenceFrame parentStationaryFrame, YoRegistry registry)
    {
       super(bodyName, transformToParent, parentStationaryFrame);
    }
 
-   public SimRigidBody(String bodyName, SimJointBasics parentJoint, double Ixx, double Iyy, double Izz, double mass, Tuple3DReadOnly centerOfMassOffset)
+   public SimRigidBody(String bodyName, SimJointBasics parentJoint, double Ixx, double Iyy, double Izz, double mass, Tuple3DReadOnly centerOfMassOffset, YoRegistry registry)
    {
       super(bodyName, parentJoint, Ixx, Iyy, Izz, mass, centerOfMassOffset);
    }
 
-   public SimRigidBody(String bodyName, SimJointBasics parentJoint, Matrix3DReadOnly momentOfInertia, double mass, Tuple3DReadOnly centerOfMassOffset)
+   public SimRigidBody(String bodyName, SimJointBasics parentJoint, Matrix3DReadOnly momentOfInertia, double mass, Tuple3DReadOnly centerOfMassOffset, YoRegistry registry)
    {
       super(bodyName, parentJoint, momentOfInertia, mass, centerOfMassOffset);
    }
 
-   public SimRigidBody(String bodyName, SimJointBasics parentJoint, Matrix3DReadOnly momentOfInertia, double mass, RigidBodyTransformReadOnly inertiaPose)
+   public SimRigidBody(String bodyName, SimJointBasics parentJoint, Matrix3DReadOnly momentOfInertia, double mass, RigidBodyTransformReadOnly inertiaPose, YoRegistry registry)
    {
       super(bodyName, parentJoint, momentOfInertia, mass, inertiaPose);
    }
 
-   public SimRigidBody(RigidBodyDefinition definition, ReferenceFrame parentStationaryFrame)
+   public SimRigidBody(RigidBodyDefinition definition, ReferenceFrame parentStationaryFrame, YoRegistry registry)
    {
       super(definition.getName(), definition.getInertiaPose(), parentStationaryFrame);
    }
 
-   public SimRigidBody(RigidBodyDefinition definition, SimJointBasics parentJoint)
+   public SimRigidBody(RigidBodyDefinition definition, SimJointBasics parentJoint, YoRegistry registry)
    {
       super(definition.getName(), parentJoint, definition.getMomentOfInertia(), definition.getMass(), definition.getInertiaPose());
    }

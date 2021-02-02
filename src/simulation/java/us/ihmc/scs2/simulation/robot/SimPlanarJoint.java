@@ -1,26 +1,27 @@
 package us.ihmc.scs2.simulation.robot;
 
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
-import us.ihmc.mecano.multiBodySystem.PlanarJoint;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.mecano.yoVariables.multiBodySystem.YoPlanarJoint;
 import us.ihmc.scs2.definition.robot.PlanarJointDefinition;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
-public class SimPlanarJoint extends PlanarJoint implements SimJointBasics
+public class SimPlanarJoint extends YoPlanarJoint implements SimJointBasics
 {
 
-   public SimPlanarJoint(String name, SimRigidBody predecessor, RigidBodyTransformReadOnly transformToParent)
+   public SimPlanarJoint(String name, SimRigidBody predecessor, RigidBodyTransformReadOnly transformToParent, YoRegistry registry)
    {
-      super(name, predecessor, transformToParent);
+      super(name, predecessor, transformToParent, registry);
    }
 
-   public SimPlanarJoint(String name, SimRigidBody predecessor)
+   public SimPlanarJoint(String name, SimRigidBody predecessor, YoRegistry registry)
    {
-      super(name, predecessor);
+      super(name, predecessor, registry);
    }
 
-   public SimPlanarJoint(PlanarJointDefinition definition, SimRigidBody predecessor)
+   public SimPlanarJoint(PlanarJointDefinition definition, SimRigidBody predecessor, YoRegistry registry)
    {
-      super(definition.getName(), predecessor, definition.getTransformToParent());
+      super(definition.getName(), predecessor, definition.getTransformToParent(), registry);
    }
 
    @Override

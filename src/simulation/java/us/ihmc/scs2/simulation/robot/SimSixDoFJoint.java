@@ -1,26 +1,27 @@
 package us.ihmc.scs2.simulation.robot;
 
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
-import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.mecano.yoVariables.multiBodySystem.YoSixDoFJoint;
 import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
-public class SimSixDoFJoint extends SixDoFJoint implements SimJointBasics
+public class SimSixDoFJoint extends YoSixDoFJoint implements SimJointBasics
 {
 
-   public SimSixDoFJoint(String name, SimRigidBody predecessor, RigidBodyTransformReadOnly transformToParent)
+   public SimSixDoFJoint(String name, SimRigidBody predecessor, RigidBodyTransformReadOnly transformToParent, YoRegistry registry)
    {
-      super(name, predecessor, transformToParent);
+      super(name, predecessor, transformToParent, registry);
    }
 
-   public SimSixDoFJoint(String name, SimRigidBody predecessor)
+   public SimSixDoFJoint(String name, SimRigidBody predecessor, YoRegistry registry)
    {
-      super(name, predecessor);
+      super(name, predecessor, registry);
    }
 
-   public SimSixDoFJoint(SixDoFJointDefinition definition, SimRigidBody predecessor)
+   public SimSixDoFJoint(SixDoFJointDefinition definition, SimRigidBody predecessor, YoRegistry registry)
    {
-      super(definition.getName(), predecessor, definition.getTransformToParent());
+      super(definition.getName(), predecessor, definition.getTransformToParent(), registry);
    }
 
    @Override
