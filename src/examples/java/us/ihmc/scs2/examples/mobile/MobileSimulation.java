@@ -10,7 +10,7 @@ public class MobileSimulation
       MobileDefinition definition = new MobileDefinition();
 
       SimulationSession simulationSession = new SimulationSession();
-      simulationSession.addRobot(definition, definition.getRobotControllerDefinition(), definition);
+      simulationSession.addRobot(definition);
 
       SessionVisualizer.startSessionVisualizer(simulationSession);
    }

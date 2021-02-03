@@ -13,7 +13,6 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.scs2.definition.controller.implementations.ControllerCollectionDefinition;
 import us.ihmc.scs2.definition.controller.implementations.OneDoFJointDampingControllerDefinition;
-import us.ihmc.scs2.definition.controller.interfaces.ControllerDefinition;
 import us.ihmc.scs2.definition.geometry.BoxGeometryDefinition;
 import us.ihmc.scs2.definition.geometry.ConeGeometryDefinition;
 import us.ihmc.scs2.definition.geometry.CylinderGeometryDefinition;
@@ -27,15 +26,13 @@ import us.ihmc.scs2.definition.robot.OneDoFJointDefinition;
 import us.ihmc.scs2.definition.robot.RevoluteJointDefinition;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
-import us.ihmc.scs2.definition.robot.interfaces.RobotInitialStateProvider;
 import us.ihmc.scs2.definition.state.OneDoFJointState;
-import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
 import us.ihmc.scs2.definition.visual.ColorDefinitions;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition.MaterialDefinition;
 
-public class MobileDefinition extends RobotDefinition implements RobotInitialStateProvider
+public class MobileDefinition extends RobotDefinition
 {
    private static final String MOBILE = "mobile";
 
@@ -52,11 +49,6 @@ public class MobileDefinition extends RobotDefinition implements RobotInitialSta
    private final OneDoFJointDampingControllerDefinition jointLvl1DampingControllerDefinition = new OneDoFJointDampingControllerDefinition();
    private final OneDoFJointDampingControllerDefinition jointLvl2DampingControllerDefinition = new OneDoFJointDampingControllerDefinition();
    private final OneDoFJointDampingControllerDefinition jointLvl3DampingControllerDefinition = new OneDoFJointDampingControllerDefinition();
-   private final ControllerCollectionDefinition robotControllers = new ControllerCollectionDefinition().setControllerName("mobileController")
-                                                                                                       .addControllerOutputReset()
-                                                                                                       .addControllerDefinitions(jointLvl1DampingControllerDefinition,
-                                                                                                                                 jointLvl2DampingControllerDefinition,
-                                                                                                                                 jointLvl3DampingControllerDefinition);
 
    public MobileDefinition()
    {
@@ -111,6 +103,19 @@ public class MobileDefinition extends RobotDefinition implements RobotInitialSta
             jointLvl3DampingControllerDefinition.addJointsToControl(Stream.of(jointsLevel3).map(JointDefinition::getName).toArray(String[]::new));
          }
       }
+
+      addControllerDefinition(new ControllerCollectionDefinition().setControllerName("mobileController").addControllerOutputReset()
+                                                                  .addControllerDefinitions(jointLvl1DampingControllerDefinition,
+                                                                                            jointLvl2DampingControllerDefinition,
+                                                                                            jointLvl3DampingControllerDefinition));
+
+      setInitialStateProvider(jointName ->
+      {
+         OneDoFJointState jointState = new OneDoFJointState();
+         jointState.setConfiguration(initialJointAngles.getOrDefault(jointName, 0.0));
+         jointState.setVelocity(initialJointVelocities.getOrDefault(jointName, 0.0));
+         return jointState;
+      });
    }
 
    private OneDoFJointDefinition[] createGimbal(String name, RigidBodyDefinition predecessor, Tuple3DReadOnly jointOffset)
@@ -218,28 +223,28 @@ public class MobileDefinition extends RobotDefinition implements RobotInitialSta
 
       switch (toySelection)
       {
-      case 0:
-         toyGeometryDefinition = new SphereGeometryDefinition(TOY_R);
-         break;
-      case 1:
-         toyGeometryDefinition = new CylinderGeometryDefinition(TOY_H, TOY_R);
-         break;
-      case 2:
-         toyGeometryDefinition = new BoxGeometryDefinition(TOY_L, TOY_W, TOY_H);
-         break;
-      case 3:
-         toyGeometryDefinition = new ConeGeometryDefinition(TOY_H, TOY_R);
-         break;
-      case 4:
-         toyGeometryDefinition = new EllipsoidGeometryDefinition(TOY_L, TOY_W, TOY_H);
-         break;
-      case 5:
-         toyGeometryDefinition = new HemiEllipsoidGeometryDefinition(TOY_L, TOY_W, TOY_H);
-         break;
-      case 6:
-      default:
-         toyGeometryDefinition = new GenTruncatedConeGeometryDefinition(TOY_H, TOY_L, TOY_W, TOY_W, TOY_L);
-         break;
+         case 0:
+            toyGeometryDefinition = new SphereGeometryDefinition(TOY_R);
+            break;
+         case 1:
+            toyGeometryDefinition = new CylinderGeometryDefinition(TOY_H, TOY_R);
+            break;
+         case 2:
+            toyGeometryDefinition = new BoxGeometryDefinition(TOY_L, TOY_W, TOY_H);
+            break;
+         case 3:
+            toyGeometryDefinition = new ConeGeometryDefinition(TOY_H, TOY_R);
+            break;
+         case 4:
+            toyGeometryDefinition = new EllipsoidGeometryDefinition(TOY_L, TOY_W, TOY_H);
+            break;
+         case 5:
+            toyGeometryDefinition = new HemiEllipsoidGeometryDefinition(TOY_L, TOY_W, TOY_H);
+            break;
+         case 6:
+         default:
+            toyGeometryDefinition = new GenTruncatedConeGeometryDefinition(TOY_H, TOY_L, TOY_W, TOY_W, TOY_L);
+            break;
       }
 
       RigidBodyTransform toyVisualPose = new RigidBodyTransform();
@@ -248,19 +253,5 @@ public class MobileDefinition extends RobotDefinition implements RobotInitialSta
       toyRigidbody.addVisualDefinition(new VisualDefinition(toyVisualPose, toyGeometryDefinition, toyMaterialDefinition));
 
       return toyRigidbody;
-   }
-
-   @Override
-   public JointStateReadOnly getInitialJointState(String jointName)
-   {
-      OneDoFJointState jointState = new OneDoFJointState();
-      jointState.setConfiguration(initialJointAngles.getOrDefault(jointName, 0.0));
-      jointState.setVelocity(initialJointVelocities.getOrDefault(jointName, 0.0));
-      return jointState;
-   }
-
-   public ControllerDefinition getRobotControllerDefinition()
-   {
-      return robotControllers;
    }
 }

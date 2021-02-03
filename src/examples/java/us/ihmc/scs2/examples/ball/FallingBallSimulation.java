@@ -2,7 +2,6 @@ package us.ihmc.scs2.examples.ball;
 
 import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.scs2.definition.controller.interfaces.ControllerDefinition;
 import us.ihmc.scs2.definition.robot.interfaces.RobotInitialStateProvider;
 import us.ihmc.scs2.definition.state.SixDoFJointState;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizer;
@@ -13,10 +12,10 @@ public class FallingBallSimulation
    public static void main(String[] args)
    {
       BallRobotDefinition definition = new BallRobotDefinition();
-      RobotInitialStateProvider robotInitialStateProvider = robotInitialStateProvider(definition);
+      definition.setInitialStateProvider(robotInitialStateProvider(definition));
 
       SimulationSession simulationSession = new SimulationSession();
-      simulationSession.addRobot(definition, ControllerDefinition.emptyControllerDefinition(), robotInitialStateProvider);
+      simulationSession.addRobot(definition);
       simulationSession.addTerrainObject(new SlopeGroundDefinition(Math.toRadians(15.0)));
 
       SessionVisualizer.startSessionVisualizer(simulationSession);

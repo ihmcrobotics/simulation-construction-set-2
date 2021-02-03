@@ -59,7 +59,7 @@ public class SimpleCollisionDetection
 
          for (Collidable collidableRigidBody : dynamicCollidables)
          {
-            for (Collidable staticCollidable : staticCollidableHolder)
+            for (Collidable staticCollidable : staticCollidableHolder.getCollidables())
             {
                evaluateCollision(collidableRigidBody, staticCollidable, collisionResults, dt);
             }

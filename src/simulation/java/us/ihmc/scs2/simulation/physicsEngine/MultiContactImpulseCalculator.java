@@ -16,6 +16,7 @@ import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.scs2.simulation.collision.CollisionResult;
+import us.ihmc.scs2.simulation.robot.Robot;
 
 /**
  * Inspired from: <i>Per-Contact Iteration Method for Solving Contact Dynamics</i>
@@ -41,14 +42,14 @@ public class MultiContactImpulseCalculator
 
    private static boolean hasCalculatorFailedOnce = false;
 
-   private Map<RigidBodyBasics, PhysicsEngineRobotData> robots;
+   private Map<RigidBodyBasics, Robot> robots;
 
    public MultiContactImpulseCalculator(ReferenceFrame rootFrame)
    {
       this.rootFrame = rootFrame;
    }
 
-   public void configure(Map<RigidBodyBasics, PhysicsEngineRobotData> robots, MultiRobotCollisionGroup collisionGroup)
+   public void configure(Map<RigidBodyBasics, Robot> robots, MultiRobotCollisionGroup collisionGroup)
    {
       this.robots = robots;
 
@@ -59,7 +60,7 @@ public class MultiContactImpulseCalculator
 
       for (RigidBodyBasics rootBody : collisionGroup.getRootBodies())
       {
-         PhysicsEngineRobotData robot = robots.get(rootBody);
+         Robot robot = robots.get(rootBody);
          jointLimitCalculators.add(robot.getJointLimitConstraintCalculator());
       }
 

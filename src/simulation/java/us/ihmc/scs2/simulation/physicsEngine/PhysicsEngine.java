@@ -1,7 +1,6 @@
 package us.ihmc.scs2.simulation.physicsEngine;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -13,7 +12,12 @@ import gnu.trove.list.linked.TDoubleLinkedList;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.mecano.tools.JointStateType;
+import us.ihmc.scs2.definition.robot.RobotDefinition;
+import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
 import us.ihmc.scs2.simulation.collision.Collidable;
+import us.ihmc.scs2.simulation.collision.CollisionTools;
+import us.ihmc.scs2.simulation.robot.Robot;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -45,15 +49,13 @@ public class PhysicsEngine
    private final ReferenceFrame inertialFrame;
 
    private final YoRegistry registry = new YoRegistry("PhysicsPlugins");
-   private final List<PhysicsEngineRobotData> robotList = new ArrayList<>();
-   private final Map<RigidBodyBasics, PhysicsEngineRobotData> robotMap = new HashMap<>();
+   private final List<Robot> robotList = new ArrayList<>();
+   private final Map<RigidBodyBasics, Robot> robotMap = new HashMap<>();
    private final YoMultiContactImpulseCalculatorPool multiContactImpulseCalculatorPool;
-   private final List<ExternalWrenchReader> externalWrenchReaders = new ArrayList<>();
-   private final List<ExternalWrenchProvider> externalWrenchProviders = new ArrayList<>();
-   private final List<InertialMeasurementReader> inertialMeasurementReaders = new ArrayList<>();
 
    private List<MultiRobotCollisionGroup> collisionGroups;
 
+   private final List<TerrainObjectDefinition> terrainObjectDefinitions = new ArrayList<>();
    private final List<Collidable> environmentCollidables = new ArrayList<>();
 
    private final SimpleCollisionDetection collisionDetectionPlugin;
@@ -97,57 +99,22 @@ public class PhysicsEngine
          parentRegistry.addChild(registry);
    }
 
-   public void addEnvironmentCollidable(Collidable collidable)
+   public void addTerrainObject(TerrainObjectDefinition terrainObjectDefinition)
    {
-      environmentCollidables.add(collidable);
+      terrainObjectDefinitions.add(terrainObjectDefinition);
+      environmentCollidables.addAll(CollisionTools.toCollisionShape(terrainObjectDefinition, inertialFrame));
    }
 
-   public void addEnvironmentCollidables(Collection<? extends Collidable> collidables)
+   public void addRobot(RobotDefinition robotDefinition)
    {
-      collidables.forEach(this::addEnvironmentCollidable);
+      addRobot(new Robot(robotDefinition, inertialFrame));
    }
 
-   public void addRobot(String robotName, RigidBodyBasics rootBody, MultiBodySystemStateWriter controllerOutputWriter,
-                        MultiBodySystemStateWriter robotInitialStateWriter, RobotCollisionModel robotCollisionModel,
-                        MultiBodySystemStateReader physicsOutputStateReader)
+   public void addRobot(Robot robot)
    {
-      addRobot(robotName, rootBody, controllerOutputWriter, robotInitialStateWriter, robotCollisionModel, null, physicsOutputStateReader);
-   }
-
-   public void addRobot(String robotName, RigidBodyBasics rootBody, MultiBodySystemStateWriter controllerOutputWriter,
-                        MultiBodySystemStateWriter robotInitialStateWriter, RobotCollisionModel robotCollisionModel,
-                        MultiBodySystemStateWriter physicsInputStateWriter, MultiBodySystemStateReader physicsOutputStateReader)
-   {
-      PhysicsEngineRobotData robot = new PhysicsEngineRobotData(robotName, rootBody, robotCollisionModel);
-      YoRegistry robotRegistry = robot.getRobotRegistry();
-      robot.setRobotInitialStateWriter(robotInitialStateWriter);
-      robot.setControllerOutputWriter(controllerOutputWriter);
-      robot.addPhysicsInputStateWriter(physicsInputStateWriter);
-      robot.addPhysicsOutputStateReader(physicsOutputStateReader);
       robotMap.put(robot.getRootBody(), robot);
-      registry.addChild(robotRegistry);
+      registry.addChild(robot.getRegistry());
       robotList.add(robot);
-   }
-
-   public void addRobotPhysicsOutputStateReader(String robotName, MultiBodySystemStateReader physicsOutputReader)
-   {
-      PhysicsEngineRobotData physicsEngineRobotData = robotList.stream().filter(robot -> robot.getRobotName().equals(robotName)).findFirst().get();
-      physicsEngineRobotData.addPhysicsOutputStateReader(physicsOutputReader);
-   }
-
-   public void addExternalWrenchReader(ExternalWrenchReader externalWrenchReader)
-   {
-      externalWrenchReaders.add(externalWrenchReader);
-   }
-
-   public void addExternalWrenchProvider(ExternalWrenchProvider externalWrenchProvider)
-   {
-      externalWrenchProviders.add(externalWrenchProvider);
-   }
-
-   public void addInertialMeasurementReader(InertialMeasurementReader reader)
-   {
-      inertialMeasurementReaders.add(reader);
    }
 
    public void setGlobalConstraintParameters(ConstraintParametersReadOnly parameters)
@@ -167,17 +134,10 @@ public class PhysicsEngine
       if (!initialize)
          return false;
 
-      for (PhysicsEngineRobotData robot : robotList)
+      for (Robot robot : robotList)
       {
-         robot.initialize();
-         robot.notifyPhysicsOutputStateReaders();
-
-         for (InertialMeasurementReader reader : inertialMeasurementReaders)
-         {
-            reader.initialize(robot.getMultiBodySystem(),
-                              robot.getForwardDynamicsPlugin().getForwardDynamicsCalculator().getAccelerationProvider(),
-                              robot.getIntegrator().getRigidBodyTwistChangeProvider());
-         }
+         robot.initializeState();
+         robot.getControllerManager().initializeControllers();
       }
       initialize = false;
       return true;
@@ -190,20 +150,18 @@ public class PhysicsEngine
 
       long startTick = System.nanoTime();
 
-      for (PhysicsEngineRobotData robot : robotList)
+      for (Robot robot : robotList)
       {
          robot.resetCalculators();
+         robot.getControllerManager().updateControllers();
          robot.updateCollidableBoundingBoxes();
       }
 
-      for (PhysicsEngineRobotData robotPlugin : robotMap.values())
+      for (Robot robot : robotMap.values())
       {
-         SingleRobotForwardDynamicsPlugin forwardDynamicsPlugin = robotPlugin.getForwardDynamicsPlugin();
+         SingleRobotForwardDynamicsPlugin forwardDynamicsPlugin = robot.getForwardDynamicsPlugin();
          forwardDynamicsPlugin.resetExternalWrenches();
-         forwardDynamicsPlugin.applyExternalWrenches(externalWrenchProviders);
-         forwardDynamicsPlugin.applyControllerOutput();
-         if (robotPlugin.notifyPhysicsInputStateWriters())
-            robotPlugin.updateFrames();
+         robot.getControllerManager().writeControllerOutput(JointStateType.EFFORT);
          forwardDynamicsPlugin.doScience(time.getValue(), dt, gravity);
          forwardDynamicsPlugin.readJointVelocities();
       }
@@ -237,7 +195,7 @@ public class PhysicsEngine
 
       for (RigidBodyBasics rootBody : uncoveredRobotsRootBody)
       {
-         PhysicsEngineRobotData robot = robotMap.get(rootBody);
+         Robot robot = robotMap.get(rootBody);
          RobotJointLimitImpulseBasedCalculator jointLimitConstraintCalculator = robot.getJointLimitConstraintCalculator();
          jointLimitConstraintCalculator.initialize(dt);
          jointLimitConstraintCalculator.updateInertia(null, null);
@@ -249,26 +207,19 @@ public class PhysicsEngine
       {
          impulseCalculator.computeImpulses(time.getValue(), dt, false);
          impulseCalculator.applyJointVelocityChanges();
-         impulseCalculator.readExternalWrenches(dt, externalWrenchReaders);
       }
 
-      for (PhysicsEngineRobotData robotPlugin : robotMap.values())
+      for (Robot robot : robotMap.values())
       {
-         SingleRobotForwardDynamicsPlugin forwardDynamicsPlugin = robotPlugin.getForwardDynamicsPlugin();
+         SingleRobotForwardDynamicsPlugin forwardDynamicsPlugin = robot.getForwardDynamicsPlugin();
          forwardDynamicsPlugin.writeJointAccelerations();
-         robotPlugin.getIntegrator().integrate(dt);
+         robot.getIntegrator().integrate(dt);
       }
 
       for (int i = 0; i < robotList.size(); i++)
       {
-         PhysicsEngineRobotData robot = robotList.get(i);
+         Robot robot = robotList.get(i);
          robot.updateFrames();
-         robot.notifyPhysicsOutputStateReaders();
-      }
-
-      for (InertialMeasurementReader reader : inertialMeasurementReaders)
-      {
-         reader.read(dt, gravity);
       }
 
       time.add(dt);
@@ -289,9 +240,19 @@ public class PhysicsEngine
       }
    }
 
+   public List<RobotDefinition> getRobotDefinitions()
+   {
+      return robotList.stream().map(Robot::getRobotDefinition).collect(Collectors.toList());
+   }
+
+   public List<TerrainObjectDefinition> getTerrainObjectDefinitions()
+   {
+      return terrainObjectDefinitions;
+   }
+
    public List<String> getRobotNames()
    {
-      return robotList.stream().map(PhysicsEngineRobotData::getRobotName).collect(Collectors.toList());
+      return robotList.stream().map(Robot::getName).collect(Collectors.toList());
    }
 
    public double getTime()

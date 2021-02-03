@@ -21,11 +21,9 @@ import javax.xml.bind.JAXBException;
 import gnu.trove.map.hash.TLongObjectHashMap;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
-import us.ihmc.mecano.multiBodySystem.interfaces.MultiBodySystemBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.SixDoFJointBasics;
 import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
-import us.ihmc.mecano.yoVariables.multiBodySystem.YoMultiBodySystem;
 import us.ihmc.robotDataLogger.handshake.YoVariableHandshakeParser;
 import us.ihmc.robotDataLogger.jointState.JointState;
 import us.ihmc.robotDataLogger.jointState.OneDoFState;
@@ -33,6 +31,7 @@ import us.ihmc.robotDataLogger.jointState.SixDoFState;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.robot.sdf.SDFTools;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFRoot;
+import us.ihmc.scs2.simulation.robot.Robot;
 import us.ihmc.tools.ClassLoaderTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
@@ -47,9 +46,7 @@ public class RobotModelLoader
       if (robotDefinition == null)
          return null;
 
-      YoRegistry robotRegistry = new YoRegistry(robotDefinition.getName());
-      MultiBodySystemBasics multiBodySystemBasics = robotDefinition.toMultiBodySystemBasics(ReferenceFrame.getWorldFrame());
-      YoMultiBodySystem robot = new YoMultiBodySystem(multiBodySystemBasics, ReferenceFrame.getWorldFrame(), robotRegistry);
+      Robot robot = new Robot(robotDefinition, ReferenceFrame.getWorldFrame());
 
       Map<String, JointState> jointNameToState = handshakeParser.getJointStates().stream().collect(Collectors.toMap(JointState::getName, Function.identity()));
 
@@ -68,7 +65,7 @@ public class RobotModelLoader
          floatingJoint.getJointPose().set(jointState.getTranslation(), jointState.getRotation());
       });
 
-      rootRegistry.addChild(robotRegistry);
+      rootRegistry.addChild(robot.getRegistry());
 
       return () -> jointStateUpdaters.forEach(updater -> updater.run());
    }

@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import us.ihmc.euclid.interfaces.Transformable;
 import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
@@ -36,6 +37,11 @@ public abstract class JointDefinition implements Transformable
    public void setName(String name)
    {
       this.name = name;
+   }
+
+   public void setTransformToParent(RigidBodyTransformReadOnly transformToParent)
+   {
+      this.transformToParent.set(transformToParent);
    }
 
    public String getName()

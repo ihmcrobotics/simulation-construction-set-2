@@ -1,5 +1,6 @@
 package us.ihmc.scs2.simulation.robot;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -14,10 +15,15 @@ import us.ihmc.mecano.multiBodySystem.iterators.JointIterable;
 import us.ihmc.mecano.multiBodySystem.iterators.RigidBodyIterable;
 import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
+import us.ihmc.scs2.simulation.collision.Collidable;
+import us.ihmc.scs2.simulation.collision.CollidableHolder;
+import us.ihmc.scs2.simulation.collision.CollisionTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
-public class SimRigidBody extends RigidBody
+public class SimRigidBody extends RigidBody implements CollidableHolder
 {
+   private final List<Collidable> collidables = new ArrayList<>();
+
    public SimRigidBody(String bodyName, ReferenceFrame parentStationaryFrame, YoRegistry registry)
    {
       super(bodyName, parentStationaryFrame);
@@ -28,17 +34,20 @@ public class SimRigidBody extends RigidBody
       super(bodyName, transformToParent, parentStationaryFrame);
    }
 
-   public SimRigidBody(String bodyName, SimJointBasics parentJoint, double Ixx, double Iyy, double Izz, double mass, Tuple3DReadOnly centerOfMassOffset, YoRegistry registry)
+   public SimRigidBody(String bodyName, SimJointBasics parentJoint, double Ixx, double Iyy, double Izz, double mass, Tuple3DReadOnly centerOfMassOffset,
+                       YoRegistry registry)
    {
       super(bodyName, parentJoint, Ixx, Iyy, Izz, mass, centerOfMassOffset);
    }
 
-   public SimRigidBody(String bodyName, SimJointBasics parentJoint, Matrix3DReadOnly momentOfInertia, double mass, Tuple3DReadOnly centerOfMassOffset, YoRegistry registry)
+   public SimRigidBody(String bodyName, SimJointBasics parentJoint, Matrix3DReadOnly momentOfInertia, double mass, Tuple3DReadOnly centerOfMassOffset,
+                       YoRegistry registry)
    {
       super(bodyName, parentJoint, momentOfInertia, mass, centerOfMassOffset);
    }
 
-   public SimRigidBody(String bodyName, SimJointBasics parentJoint, Matrix3DReadOnly momentOfInertia, double mass, RigidBodyTransformReadOnly inertiaPose, YoRegistry registry)
+   public SimRigidBody(String bodyName, SimJointBasics parentJoint, Matrix3DReadOnly momentOfInertia, double mass, RigidBodyTransformReadOnly inertiaPose,
+                       YoRegistry registry)
    {
       super(bodyName, parentJoint, momentOfInertia, mass, inertiaPose);
    }
@@ -46,11 +55,13 @@ public class SimRigidBody extends RigidBody
    public SimRigidBody(RigidBodyDefinition definition, ReferenceFrame parentStationaryFrame, YoRegistry registry)
    {
       super(definition.getName(), definition.getInertiaPose(), parentStationaryFrame);
+      collidables.addAll(CollisionTools.toCollidableRigidBody(definition, this));
    }
 
    public SimRigidBody(RigidBodyDefinition definition, SimJointBasics parentJoint, YoRegistry registry)
    {
       super(definition.getName(), parentJoint, definition.getMomentOfInertia(), definition.getMass(), definition.getInertiaPose());
+      collidables.addAll(CollisionTools.toCollidableRigidBody(definition, this));
    }
 
    @Override
@@ -77,26 +88,37 @@ public class SimRigidBody extends RigidBody
          throw new IllegalArgumentException("Can only add a " + SimJointBasics.class.getSimpleName() + " as parent of a " + getClass().getSimpleName());
    }
 
+   @Override
+   public List<Collidable> getCollidables()
+   {
+      return collidables;
+   }
+
+   @Override
    public Iterable<? extends SimRigidBody> subtreeIterable()
    {
       return new RigidBodyIterable<>(SimRigidBody.class, null, this);
    }
 
+   @Override
    public Iterable<? extends SimJointBasics> childrenSubtreeIterable()
    {
       return new JointIterable<>(SimJointBasics.class, null, getChildrenJoints());
    }
 
+   @Override
    public Stream<? extends SimRigidBody> subtreeStream()
    {
       return SubtreeStreams.from(SimRigidBody.class, this);
    }
 
+   @Override
    public List<? extends SimRigidBody> subtreeList()
    {
       return subtreeStream().collect(Collectors.toList());
    }
 
+   @Override
    public SimRigidBody[] subtreeArray()
    {
       return subtreeStream().toArray(SimRigidBody[]::new);

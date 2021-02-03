@@ -2,10 +2,9 @@ package us.ihmc.scs2.simulation.collision;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
-public interface CollidableHolder extends Iterable<Collidable>
+public interface CollidableHolder
 {
    default int getNumberOfCollidables()
    {
@@ -13,12 +12,6 @@ public interface CollidableHolder extends Iterable<Collidable>
    }
 
    List<Collidable> getCollidables();
-
-   @Override
-   default Iterator<Collidable> iterator()
-   {
-      return getCollidables().iterator();
-   }
 
    public static CollidableHolder fromCollection(Collection<Collidable> collidables)
    {

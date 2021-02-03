@@ -1,7 +1,6 @@
 package us.ihmc.scs2.examples.ellipsoid;
 
 import us.ihmc.euclid.geometry.Pose3D;
-import us.ihmc.scs2.definition.controller.interfaces.ControllerDefinition;
 import us.ihmc.scs2.definition.robot.interfaces.RobotInitialStateProvider;
 import us.ihmc.scs2.definition.state.SixDoFJointState;
 import us.ihmc.scs2.examples.ball.SlopeGroundDefinition;
@@ -14,9 +13,10 @@ public class EllipsoidCylinderSimulation
    {
       EllipsoidRobotSimulation definition = new EllipsoidRobotSimulation();
       RobotInitialStateProvider robotInitialStateProvider = robotInitialStateProvider(definition);
+      definition.setInitialStateProvider(robotInitialStateProvider);
 
       SimulationSession simulationCore = new SimulationSession();
-      simulationCore.addRobot(definition, ControllerDefinition.emptyControllerDefinition(), robotInitialStateProvider);
+      simulationCore.addRobot(definition);
       simulationCore.addTerrainObject(new SlopeGroundDefinition());
 
       SessionVisualizer.startSessionVisualizer(simulationCore);
