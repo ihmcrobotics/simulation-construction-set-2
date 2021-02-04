@@ -1,14 +1,15 @@
 package us.ihmc.scs2.definition.robot;
 
 import us.ihmc.euclid.interfaces.Transformable;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.transform.interfaces.Transform;
-import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 
 public class KinematicPointDefinition implements Transformable
 {
    private String name;
-   private Vector3D offsetFromJoint = new Vector3D();
+   private final RigidBodyTransform transformToParent = new RigidBodyTransform();
 
    public KinematicPointDefinition()
    {
@@ -17,13 +18,19 @@ public class KinematicPointDefinition implements Transformable
    public KinematicPointDefinition(String name, Tuple3DReadOnly offsetFromJoint)
    {
       this.name = name;
-      this.offsetFromJoint.set(offsetFromJoint);
+      this.transformToParent.getTranslation().set(offsetFromJoint);
+   }
+
+   public KinematicPointDefinition(String name, RigidBodyTransformReadOnly transformToParent)
+   {
+      this.name = name;
+      this.transformToParent.set(transformToParent);
    }
 
    public KinematicPointDefinition(KinematicPointDefinition other)
    {
       name = other.name;
-      offsetFromJoint.set(other.offsetFromJoint);
+      transformToParent.set(other.transformToParent);
    }
 
    public String getName()
@@ -36,14 +43,14 @@ public class KinematicPointDefinition implements Transformable
       this.name = name;
    }
 
-   public Vector3D getOffsetFromJoint()
+   public RigidBodyTransform getTransformToParent()
    {
-      return offsetFromJoint;
+      return transformToParent;
    }
 
-   public void setOffsetFromJoint(Tuple3DReadOnly offsetFromJoint)
+   public void setTransformToParent(RigidBodyTransformReadOnly transformToParent)
    {
-      this.offsetFromJoint.set(offsetFromJoint);
+      this.transformToParent.set(transformToParent);
    }
 
    public KinematicPointDefinition copy()
@@ -54,12 +61,12 @@ public class KinematicPointDefinition implements Transformable
    @Override
    public void applyTransform(Transform transform)
    {
-      transform.transform(offsetFromJoint);
+      transform.transform(transformToParent);
    }
 
    @Override
    public void applyInverseTransform(Transform transform)
    {
-      transform.inverseTransform(offsetFromJoint);
+      transform.inverseTransform(transformToParent);
    }
 }

@@ -8,20 +8,28 @@ import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class SimPlanarJoint extends YoPlanarJoint implements SimJointBasics
 {
+   private final SimJointAuxiliaryData auxiliaryData;
 
-   public SimPlanarJoint(String name, SimRigidBody predecessor, RigidBodyTransformReadOnly transformToParent, YoRegistry registry)
+   public SimPlanarJoint(PlanarJointDefinition definition, SimRigidBody predecessor, YoRegistry registry)
    {
-      super(name, predecessor, transformToParent, registry);
+      this(definition.getName(), predecessor, definition.getTransformToParent(), registry);
    }
 
    public SimPlanarJoint(String name, SimRigidBody predecessor, YoRegistry registry)
    {
-      super(name, predecessor, registry);
+      this(name, predecessor, null, registry);
    }
 
-   public SimPlanarJoint(PlanarJointDefinition definition, SimRigidBody predecessor, YoRegistry registry)
+   public SimPlanarJoint(String name, SimRigidBody predecessor, RigidBodyTransformReadOnly transformToParent, YoRegistry registry)
    {
-      super(definition.getName(), predecessor, definition.getTransformToParent(), registry);
+      super(name, predecessor, transformToParent, registry);
+      auxiliaryData = new SimJointAuxiliaryData(this, registry);
+   }
+
+   @Override
+   public SimJointAuxiliaryData getAuxialiryData()
+   {
+      return auxiliaryData;
    }
 
    @Override

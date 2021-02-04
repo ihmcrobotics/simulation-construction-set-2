@@ -8,20 +8,28 @@ import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class SimSixDoFJoint extends YoSixDoFJoint implements SimJointBasics
 {
+   private final SimJointAuxiliaryData auxiliaryData;
 
-   public SimSixDoFJoint(String name, SimRigidBody predecessor, RigidBodyTransformReadOnly transformToParent, YoRegistry registry)
+   public SimSixDoFJoint(SixDoFJointDefinition definition, SimRigidBody predecessor, YoRegistry registry)
    {
-      super(name, predecessor, transformToParent, registry);
+      this(definition.getName(), predecessor, definition.getTransformToParent(), registry);
    }
 
    public SimSixDoFJoint(String name, SimRigidBody predecessor, YoRegistry registry)
    {
-      super(name, predecessor, registry);
+      this(name, predecessor, null, registry);
    }
 
-   public SimSixDoFJoint(SixDoFJointDefinition definition, SimRigidBody predecessor, YoRegistry registry)
+   public SimSixDoFJoint(String name, SimRigidBody predecessor, RigidBodyTransformReadOnly transformToParent, YoRegistry registry)
    {
-      super(definition.getName(), predecessor, definition.getTransformToParent(), registry);
+      super(name, predecessor, transformToParent, registry);
+      auxiliaryData = new SimJointAuxiliaryData(this, registry);
+   }
+
+   @Override
+   public SimJointAuxiliaryData getAuxialiryData()
+   {
+      return auxiliaryData;
    }
 
    @Override

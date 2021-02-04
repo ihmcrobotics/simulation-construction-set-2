@@ -22,7 +22,7 @@ public abstract class JointDefinition implements Transformable
 
    private final List<SensorDefinition> sensorDefinitions = new ArrayList<>();
    private final List<KinematicPointDefinition> kinematicPointDefinitions = new ArrayList<>();
-   private final List<ExternalForcePointDefinition> externalForcePointDefinitions = new ArrayList<>();
+   private final List<ExternalWrenchPointDefinition> externalForcePointDefinitions = new ArrayList<>();
    private final List<GroundContactPointDefinition> groundContactPointDefinitions = new ArrayList<>();
 
    public JointDefinition()
@@ -113,12 +113,12 @@ public abstract class JointDefinition implements Transformable
       kinematicPointDefinitions.add(kinematicPointDefinition);
    }
 
-   public List<ExternalForcePointDefinition> getExternalForcePointDefinitions()
+   public List<ExternalWrenchPointDefinition> getExternalForcePointDefinitions()
    {
       return externalForcePointDefinitions;
    }
 
-   public void addExternalForcePointDefinition(ExternalForcePointDefinition externalForcePointDefinition)
+   public void addExternalForcePointDefinition(ExternalWrenchPointDefinition externalForcePointDefinition)
    {
       externalForcePointDefinitions.add(externalForcePointDefinition);
    }

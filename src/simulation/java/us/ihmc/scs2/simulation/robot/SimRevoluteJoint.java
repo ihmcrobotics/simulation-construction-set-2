@@ -1,8 +1,10 @@
 package us.ihmc.scs2.simulation.robot;
 
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.yoVariables.multiBodySystem.YoRevoluteJoint;
 import us.ihmc.scs2.definition.robot.RevoluteJointDefinition;
@@ -10,25 +12,33 @@ import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class SimRevoluteJoint extends YoRevoluteJoint implements SimJointBasics
 {
+   private final SimJointAuxiliaryData auxiliaryData;
 
-   public SimRevoluteJoint(String name, SimRigidBody predecessor, RigidBodyTransformReadOnly transformToParent, Vector3DReadOnly jointAxis, YoRegistry registry)
+   public SimRevoluteJoint(RevoluteJointDefinition definition, SimRigidBody predecessor, YoRegistry registry)
    {
-      super(name, predecessor, transformToParent, jointAxis, registry);
-   }
-
-   public SimRevoluteJoint(String name, SimRigidBody predecessor, Tuple3DReadOnly jointOffset, Vector3DReadOnly jointAxis, YoRegistry registry)
-   {
-      super(name, predecessor, jointOffset, jointAxis, registry);
+      this(definition.getName(), predecessor, definition.getTransformToParent(), definition.getAxis(), registry);
    }
 
    public SimRevoluteJoint(String name, SimRigidBody predecessor, Vector3DReadOnly jointAxis, YoRegistry registry)
    {
-      super(name, predecessor, jointAxis, registry);
+      this(name, predecessor, (RigidBodyTransformReadOnly) null, jointAxis, registry);
    }
 
-   public SimRevoluteJoint(RevoluteJointDefinition definition, SimRigidBody predecessor, YoRegistry registry)
+   public SimRevoluteJoint(String name, SimRigidBody predecessor, Tuple3DReadOnly jointOffset, Vector3DReadOnly jointAxis, YoRegistry registry)
    {
-      super(definition.getName(), predecessor, definition.getTransformToParent(), definition.getAxis(), registry);
+      this(name, predecessor, new RigidBodyTransform(new Quaternion(), jointOffset), jointAxis, registry);
+   }
+
+   public SimRevoluteJoint(String name, SimRigidBody predecessor, RigidBodyTransformReadOnly transformToParent, Vector3DReadOnly jointAxis, YoRegistry registry)
+   {
+      super(name, predecessor, transformToParent, jointAxis, registry);
+      auxiliaryData = new SimJointAuxiliaryData(this, registry);
+   }
+
+   @Override
+   public SimJointAuxiliaryData getAuxialiryData()
+   {
+      return auxiliaryData;
    }
 
    @Override

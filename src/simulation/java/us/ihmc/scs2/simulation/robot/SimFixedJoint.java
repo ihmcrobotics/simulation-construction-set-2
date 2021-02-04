@@ -8,19 +8,28 @@ import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class SimFixedJoint extends FixedJoint implements SimJointBasics
 {
-   public SimFixedJoint(String name, SimRigidBody predecessor, RigidBodyTransformReadOnly transformToParent, YoRegistry registry)
+   private final SimJointAuxiliaryData auxiliaryData;
+
+   public SimFixedJoint(FixedJointDefinition definition, SimRigidBody predecessor, YoRegistry registry)
    {
-      super(name, predecessor, transformToParent);
+      this(definition.getName(), predecessor, definition.getTransformToParent(), registry);
    }
 
    public SimFixedJoint(String name, SimRigidBody predecessor, YoRegistry registry)
    {
-      super(name, predecessor);
+      this(name, predecessor, null, registry);
    }
 
-   public SimFixedJoint(FixedJointDefinition definition, SimRigidBody predecessor, YoRegistry registry)
+   public SimFixedJoint(String name, SimRigidBody predecessor, RigidBodyTransformReadOnly transformToParent, YoRegistry registry)
    {
-      super(definition.getName(), predecessor, definition.getTransformToParent());
+      super(name, predecessor, transformToParent);
+      auxiliaryData = new SimJointAuxiliaryData(this, registry);
+   }
+
+   @Override
+   public SimJointAuxiliaryData getAuxialiryData()
+   {
+      return auxiliaryData;
    }
 
    @Override
