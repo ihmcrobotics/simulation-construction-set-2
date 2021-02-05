@@ -6,13 +6,19 @@ import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.mecano.spatial.interfaces.TwistReadOnly;
+import us.ihmc.mecano.tools.MecanoFactories;
 import us.ihmc.mecano.yoVariables.multiBodySystem.YoRevoluteJoint;
 import us.ihmc.scs2.definition.robot.RevoluteJointDefinition;
 import us.ihmc.yoVariables.registry.YoRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 
-public class SimRevoluteJoint extends YoRevoluteJoint implements SimJointBasics
+public class SimRevoluteJoint extends YoRevoluteJoint implements SimOneDoFJointBasics
 {
    private final SimJointAuxiliaryData auxiliaryData;
+   private final YoDouble deltaQd;
+
+   private final TwistReadOnly jointDeltaTwist;
 
    public SimRevoluteJoint(RevoluteJointDefinition definition, SimRigidBody predecessor, YoRegistry registry)
    {
@@ -33,6 +39,8 @@ public class SimRevoluteJoint extends YoRevoluteJoint implements SimJointBasics
    {
       super(name, predecessor, transformToParent, jointAxis, registry);
       auxiliaryData = new SimJointAuxiliaryData(this, registry);
+      deltaQd = new YoDouble("qd_delta_" + getName(), registry);
+      jointDeltaTwist = MecanoFactories.newTwistReadOnly(this::getDeltaQd, getUnitJointTwist());
    }
 
    @Override
@@ -60,5 +68,34 @@ public class SimRevoluteJoint extends YoRevoluteJoint implements SimJointBasics
    public SimRigidBody getSuccessor()
    {
       return (SimRigidBody) super.getSuccessor();
+   }
+
+   @Override
+   public double getDeltaQd()
+   {
+      return deltaQd.getValue();
+   }
+
+   @Override
+   public void setDeltaQd(double deltaQd)
+   {
+      this.deltaQd.set(deltaQd);
+   }
+
+   @Override
+   public void setJointAngularDeltaVelocity(Vector3DReadOnly jointAngularDeltaVelocity)
+   {
+      setDeltaQd(getJointAxis().dot(jointAngularDeltaVelocity));
+   }
+
+   @Override
+   public void setJointLinearDeltaVelocity(Vector3DReadOnly jointLinearDeltaVelocity)
+   {
+   }
+
+   @Override
+   public TwistReadOnly getJointDeltaTwist()
+   {
+      return jointDeltaTwist;
    }
 }

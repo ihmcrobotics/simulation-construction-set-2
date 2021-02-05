@@ -16,11 +16,10 @@ import us.ihmc.mecano.multiBodySystem.iterators.RigidBodyIterable;
 import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.simulation.collision.Collidable;
-import us.ihmc.scs2.simulation.collision.CollidableHolder;
 import us.ihmc.scs2.simulation.collision.CollisionTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
-public class SimRigidBody extends RigidBody implements CollidableHolder
+public class SimRigidBody extends RigidBody implements SimRigidBodyBasics
 {
    private final List<Collidable> collidables = new ArrayList<>();
 

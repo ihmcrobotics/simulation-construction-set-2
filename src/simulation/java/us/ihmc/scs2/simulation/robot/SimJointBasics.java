@@ -4,24 +4,59 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.ejml.data.DMatrix;
+
+import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
+import us.ihmc.mecano.multiBodySystem.interfaces.JointReadOnly;
 import us.ihmc.mecano.multiBodySystem.iterators.JointIterable;
 import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
+import us.ihmc.mecano.spatial.interfaces.TwistReadOnly;
 import us.ihmc.scs2.definition.robot.ExternalWrenchPointDefinition;
 import us.ihmc.scs2.definition.robot.GroundContactPointDefinition;
 import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
 import us.ihmc.scs2.definition.robot.KinematicPointDefinition;
 import us.ihmc.scs2.definition.robot.WrenchSensorDefinition;
 
-public interface SimJointBasics extends JointBasics
+public interface SimJointBasics extends JointBasics, SimJointReadOnly
 {
    @Override
-   SimRigidBody getPredecessor();
+   SimRigidBodyBasics getPredecessor();
 
    @Override
-   SimRigidBody getSuccessor();
+   SimRigidBodyBasics getSuccessor();
 
-   SimJointAuxiliaryData getAuxialiryData();
+   void setJointDeltaTwistToZero();
+
+   void setJointDeltaTwist(JointReadOnly other);
+
+   int setJointDeltaVelocity(int rowStart, DMatrix jointDeltaVelocity);
+
+   default void setJointDeltaTwist(TwistReadOnly jointDeltaTwist)
+   {
+      jointDeltaTwist.checkBodyFrameMatch(getFrameAfterJoint());
+      jointDeltaTwist.checkBaseFrameMatch(getFrameBeforeJoint());
+      jointDeltaTwist.checkExpressedInFrameMatch(getFrameAfterJoint());
+      setJointAngularDeltaVelocity((Vector3DReadOnly) jointDeltaTwist.getAngularPart());
+      setJointLinearDeltaVelocity((Vector3DReadOnly) jointDeltaTwist.getLinearPart());
+   }
+
+   default void setJointAngularDeltaVelocity(FrameVector3DReadOnly jointAngularDeltaVelocity)
+   {
+      jointAngularDeltaVelocity.checkReferenceFrameMatch(getFrameAfterJoint());
+      setJointAngularDeltaVelocity((Vector3DReadOnly) jointAngularDeltaVelocity);
+   }
+
+   default void setJointLinearDeltaVelocity(FrameVector3DReadOnly jointLinearDeltaVelocity)
+   {
+      jointLinearDeltaVelocity.checkReferenceFrameMatch(getFrameAfterJoint());
+      setJointLinearDeltaVelocity((Vector3DReadOnly) jointLinearDeltaVelocity);
+   }
+
+   void setJointAngularDeltaVelocity(Vector3DReadOnly jointAngularDeltaVelocity);
+
+   void setJointLinearDeltaVelocity(Vector3DReadOnly jointLinearDeltaVelocity);
 
    default void addKinematicPoint(KinematicPointDefinition definition)
    {
@@ -67,7 +102,7 @@ public interface SimJointBasics extends JointBasics
    }
 
    @Override
-   default JointBasics[] subtreeArray()
+   default SimJointBasics[] subtreeArray()
    {
       return subtreeStream().toArray(SimJointBasics[]::new);
    }
