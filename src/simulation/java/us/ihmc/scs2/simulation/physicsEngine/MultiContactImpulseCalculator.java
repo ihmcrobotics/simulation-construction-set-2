@@ -61,7 +61,7 @@ public class MultiContactImpulseCalculator
       for (RigidBodyBasics rootBody : collisionGroup.getRootBodies())
       {
          Robot robot = robots.get(rootBody);
-         jointLimitCalculators.add(robot.getJointLimitConstraintCalculator());
+         jointLimitCalculators.add(robot.getRobotPhysics().getJointLimitConstraintCalculator());
       }
 
       for (int i = 0; i < collisionGroup.getNumberOfCollisions(); i++)
@@ -74,11 +74,11 @@ public class MultiContactImpulseCalculator
 
          if (rootB == null)
          {
-            calculator = robots.get(rootA).getOrCreateEnvironmentContactConstraintCalculator();
+            calculator = robots.get(rootA).getRobotPhysics().getOrCreateEnvironmentContactConstraintCalculator();
          }
          else
          {
-            calculator = robots.get(rootA).getOrCreateInterRobotContactConstraintCalculator(robots.get(rootB));
+            calculator = robots.get(rootA).getRobotPhysics().getOrCreateInterRobotContactConstraintCalculator(robots.get(rootB));
          }
 
          calculator.setCollision(collisionResult);
@@ -286,7 +286,7 @@ public class MultiContactImpulseCalculator
          for (int i = 0; i < calculator.getNumberOfRobotsInvolved(); i++)
          {
             RigidBodyBasics rootBody = calculator.getRootBody(i);
-            SingleRobotFirstOrderIntegrator integrator = robots.get(rootBody).getIntegrator();
+            SingleRobotFirstOrderIntegrator integrator = robots.get(rootBody).getRobotPhysics().getIntegrator();
             DMatrixRMaj jointVelocityChange = calculator.getJointVelocityChange(i);
             integrator.addJointVelocityChange(jointVelocityChange);
          }

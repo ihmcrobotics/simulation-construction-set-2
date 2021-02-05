@@ -152,18 +152,17 @@ public class PhysicsEngine
 
       for (Robot robot : robotList)
       {
-         robot.resetCalculators();
+         robot.getRobotPhysics().resetCalculators();
          robot.getControllerManager().updateControllers();
-         robot.updateCollidableBoundingBoxes();
+         robot.getRobotPhysics().updateCollidableBoundingBoxes();
       }
 
       for (Robot robot : robotMap.values())
       {
-         SingleRobotForwardDynamicsPlugin forwardDynamicsPlugin = robot.getForwardDynamicsPlugin();
+         SingleRobotForwardDynamicsPlugin forwardDynamicsPlugin = robot.getRobotPhysics().getForwardDynamicsPlugin();
          forwardDynamicsPlugin.resetExternalWrenches();
          robot.getControllerManager().writeControllerOutput(JointStateType.EFFORT);
          forwardDynamicsPlugin.doScience(time.getValue(), dt, gravity);
-         forwardDynamicsPlugin.readJointVelocities();
       }
 
       environmentCollidables.forEach(collidable -> collidable.updateBoundingBox(inertialFrame));
@@ -196,11 +195,11 @@ public class PhysicsEngine
       for (RigidBodyBasics rootBody : uncoveredRobotsRootBody)
       {
          Robot robot = robotMap.get(rootBody);
-         RobotJointLimitImpulseBasedCalculator jointLimitConstraintCalculator = robot.getJointLimitConstraintCalculator();
+         RobotJointLimitImpulseBasedCalculator jointLimitConstraintCalculator = robot.getRobotPhysics().getJointLimitConstraintCalculator();
          jointLimitConstraintCalculator.initialize(dt);
          jointLimitConstraintCalculator.updateInertia(null, null);
          jointLimitConstraintCalculator.computeImpulse(dt);
-         robot.getIntegrator().addJointVelocityChange(jointLimitConstraintCalculator.getJointVelocityChange(0));
+         robot.getRobotPhysics().getIntegrator().addJointVelocityChange(jointLimitConstraintCalculator.getJointVelocityChange(0));
       }
 
       for (MultiContactImpulseCalculator impulseCalculator : impulseCalculators)
@@ -211,9 +210,9 @@ public class PhysicsEngine
 
       for (Robot robot : robotMap.values())
       {
-         SingleRobotForwardDynamicsPlugin forwardDynamicsPlugin = robot.getForwardDynamicsPlugin();
+         SingleRobotForwardDynamicsPlugin forwardDynamicsPlugin = robot.getRobotPhysics().getForwardDynamicsPlugin();
          forwardDynamicsPlugin.writeJointAccelerations();
-         robot.getIntegrator().integrate(dt);
+         robot.getRobotPhysics().getIntegrator().integrate(dt);
       }
 
       for (int i = 0; i < robotList.size(); i++)

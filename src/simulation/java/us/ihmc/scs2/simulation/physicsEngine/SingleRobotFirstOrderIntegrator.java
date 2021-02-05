@@ -93,6 +93,7 @@ public class SingleRobotFirstOrderIntegrator
 
       for (JointBasics joint : jointsToConsider)
       {
+         // TODO Implements for other joints
          if (joint instanceof OneDoFJointBasics)
          {
             double velocityChange = velocityChangeMatrix.get(startIndex);
@@ -216,6 +217,7 @@ public class SingleRobotFirstOrderIntegrator
             else
                twistOfParentBody = apply(parentBody);
 
+            // TODO Implements other joints
             if (parentJoint instanceof OneDoFJointReadOnly)
             {
                jointTwist.setIncludingFrame(((OneDoFJointReadOnly) parentJoint).getUnitJointTwist());
