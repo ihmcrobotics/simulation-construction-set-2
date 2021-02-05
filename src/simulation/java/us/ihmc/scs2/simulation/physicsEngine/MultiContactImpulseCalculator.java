@@ -17,6 +17,7 @@ import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.scs2.simulation.collision.CollisionResult;
 import us.ihmc.scs2.simulation.robot.Robot;
+import us.ihmc.scs2.simulation.robot.RobotPhysics;
 
 /**
  * Inspired from: <i>Per-Contact Iteration Method for Solving Contact Dynamics</i>
@@ -286,9 +287,9 @@ public class MultiContactImpulseCalculator
          for (int i = 0; i < calculator.getNumberOfRobotsInvolved(); i++)
          {
             RigidBodyBasics rootBody = calculator.getRootBody(i);
-            SingleRobotFirstOrderIntegrator integrator = robots.get(rootBody).getRobotPhysics().getIntegrator();
+            RobotPhysics robotPhysics = robots.get(rootBody).getRobotPhysics();
             DMatrixRMaj jointVelocityChange = calculator.getJointVelocityChange(i);
-            integrator.addJointVelocityChange(jointVelocityChange);
+            robotPhysics.addJointVelocityChange(jointVelocityChange);
          }
       }
    }

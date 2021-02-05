@@ -199,7 +199,7 @@ public class PhysicsEngine
          jointLimitConstraintCalculator.initialize(dt);
          jointLimitConstraintCalculator.updateInertia(null, null);
          jointLimitConstraintCalculator.computeImpulse(dt);
-         robot.getRobotPhysics().getIntegrator().addJointVelocityChange(jointLimitConstraintCalculator.getJointVelocityChange(0));
+         robot.getRobotPhysics().addJointVelocityChange(jointLimitConstraintCalculator.getJointVelocityChange(0));
       }
 
       for (MultiContactImpulseCalculator impulseCalculator : impulseCalculators)
@@ -212,7 +212,7 @@ public class PhysicsEngine
       {
          SingleRobotForwardDynamicsPlugin forwardDynamicsPlugin = robot.getRobotPhysics().getForwardDynamicsPlugin();
          forwardDynamicsPlugin.writeJointAccelerations();
-         robot.getRobotPhysics().getIntegrator().integrate(dt);
+         robot.getRobotPhysics().integrateState(dt);
       }
 
       for (int i = 0; i < robotList.size(); i++)

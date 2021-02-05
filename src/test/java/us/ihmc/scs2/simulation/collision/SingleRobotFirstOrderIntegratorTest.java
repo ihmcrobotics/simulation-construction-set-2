@@ -53,7 +53,7 @@ public class SingleRobotFirstOrderIntegratorTest
          }
 
          mecanoIntegrator.doubleIntegrateFromAccelerationSubtree(robotOriginal.getElevator());
-         integrator.integrate(dt);
+         integrator.integrate(dt, null);
 
          for (int jointIndex = 0; jointIndex < robotOriginal.getJoints().size(); jointIndex++)
          {
@@ -120,9 +120,8 @@ public class SingleRobotFirstOrderIntegratorTest
          CommonOps_DDRM.addEquals(originalJointAcceleration, accelerationChange);
          MultiBodySystemTools.insertJointsState(robotOriginal.getAllJoints(), JointStateType.ACCELERATION, originalJointAcceleration);
 
-         integrator.integrate(dt);
-         integratorWithVelocity.addJointVelocityChange(velocityChange);
-         integratorWithVelocity.integrate(dt);
+         integrator.integrate(dt, null);
+         integratorWithVelocity.integrate(dt, velocityChange);
 
          for (int jointIndex = 0; jointIndex < robotOriginal.getAllJoints().size(); jointIndex++)
          {
