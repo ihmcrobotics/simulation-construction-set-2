@@ -21,9 +21,9 @@ import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
 import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.mecano.tools.MultiBodySystemRandomTools;
 import us.ihmc.mecano.tools.MultiBodySystemRandomTools.RandomFloatingRevoluteJointChain;
+import us.ihmc.scs2.simulation.screwTools.SingleRobotFirstOrderIntegrator;
 import us.ihmc.mecano.tools.MultiBodySystemStateIntegrator;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
-import us.ihmc.scs2.simulation.physicsEngine.SingleRobotFirstOrderIntegrator;
 
 public class SingleRobotFirstOrderIntegratorTest
 {

@@ -20,9 +20,10 @@ import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.scs2.simulation.physicsEngine.ConstraintParameters;
 import us.ihmc.scs2.simulation.physicsEngine.RobotJointLimitImpulseBasedCalculator;
 import us.ihmc.scs2.simulation.physicsEngine.RobotJointLimitImpulseBasedCalculator.ActiveLimit;
-import us.ihmc.scs2.simulation.robot.SimJointStateType;
 import us.ihmc.scs2.simulation.robot.SimRevoluteJoint;
 import us.ihmc.scs2.simulation.robot.SimRigidBodyBasics;
+import us.ihmc.scs2.simulation.screwTools.SimJointStateType;
+import us.ihmc.scs2.simulation.screwTools.SimMultiBodySystemRandomTools;
 
 public class RobotJointLimitImpulseBasedCalculatorTest
 {

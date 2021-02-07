@@ -1,4 +1,4 @@
-package us.ihmc.scs2.simulation.physicsEngine;
+package us.ihmc.scs2.simulation.screwTools;
 
 import java.util.List;
 
@@ -53,7 +53,6 @@ public class SingleRobotFirstOrderIntegrator
 
       for (SimJointBasics joint : jointsToConsider)
       {
-         // TODO Implements for other joints
          if (joint instanceof SimOneDoFJointBasics)
          {
             integrateOneDoFJoint(dt, (SimOneDoFJointBasics) joint);

@@ -16,6 +16,7 @@ import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.scs2.simulation.physicsEngine.MultiRobotCollisionGroup;
 import us.ihmc.scs2.simulation.robot.SimRigidBody;
+import us.ihmc.scs2.simulation.screwTools.SimMultiBodySystemRandomTools;
 
 public class MultiRobotCollisionGroupTest
 {

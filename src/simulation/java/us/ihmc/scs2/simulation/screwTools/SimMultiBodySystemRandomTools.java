@@ -1,4 +1,4 @@
-package us.ihmc.scs2.simulation.collision;
+package us.ihmc.scs2.simulation.screwTools;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +16,6 @@ import us.ihmc.mecano.tools.MecanoRandomTools;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.scs2.simulation.robot.SimFixedJoint;
 import us.ihmc.scs2.simulation.robot.SimJointBasics;
-import us.ihmc.scs2.simulation.robot.SimJointStateType;
 import us.ihmc.scs2.simulation.robot.SimOneDoFJointBasics;
 import us.ihmc.scs2.simulation.robot.SimPlanarJoint;
 import us.ihmc.scs2.simulation.robot.SimPrismaticJoint;

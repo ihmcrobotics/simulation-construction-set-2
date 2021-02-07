@@ -6,9 +6,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointMatrixIndexProvider;
-import us.ihmc.mecano.multiBodySystem.interfaces.MultiBodySystemBasics;
 import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
 import us.ihmc.scs2.definition.robot.FixedJointDefinition;
 import us.ihmc.scs2.definition.robot.JointDefinition;
@@ -22,9 +20,10 @@ import us.ihmc.scs2.simulation.collision.Collidable;
 import us.ihmc.scs2.simulation.collision.CollidableHolder;
 import us.ihmc.scs2.simulation.physicsEngine.MultiBodySystemStateWriter;
 import us.ihmc.scs2.simulation.robot.controller.RobotControllerManager;
+import us.ihmc.scs2.simulation.screwTools.SimMultiBodySystemBasics;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
-public class Robot implements MultiBodySystemBasics, CollidableHolder
+public class Robot implements SimMultiBodySystemBasics, CollidableHolder
 {
    public static final JointBuilderFromDefinition DEFAULT_JOINT_BUILDER = new JointBuilderFromDefinition()
    {
@@ -175,17 +174,18 @@ public class Robot implements MultiBodySystemBasics, CollidableHolder
    }
 
    @Override
-   public List<? extends JointBasics> getJointsToConsider()
+   public List<? extends SimJointBasics> getJointsToConsider()
    {
       return jointsToConsider;
    }
 
    @Override
-   public List<? extends JointBasics> getJointsToIgnore()
+   public List<? extends SimJointBasics> getJointsToIgnore()
    {
       return jointsToIgnore;
    }
 
+   @Override
    public YoRegistry getRegistry()
    {
       return registry;

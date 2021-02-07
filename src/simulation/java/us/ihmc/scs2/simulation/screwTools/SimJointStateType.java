@@ -1,4 +1,4 @@
-package us.ihmc.scs2.simulation.robot;
+package us.ihmc.scs2.simulation.screwTools;
 
 import us.ihmc.mecano.tools.JointStateType;
 

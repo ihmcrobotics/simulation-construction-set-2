@@ -1,4 +1,4 @@
-package us.ihmc.scs2.simulation.physicsEngine;
+package us.ihmc.scs2.simulation.screwTools;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -13,10 +13,10 @@ import us.ihmc.mecano.multiBodySystem.interfaces.MultiBodySystemBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.MultiBodySystemReadOnly;
 import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
 import us.ihmc.mecano.tools.MultiBodySystemFactories;
-import us.ihmc.scs2.simulation.physicsEngine.SimMultiBodySystemFactories.SimJointBuilder;
-import us.ihmc.scs2.simulation.physicsEngine.SimMultiBodySystemFactories.SimRigidBodyBuilder;
 import us.ihmc.scs2.simulation.robot.SimJointBasics;
 import us.ihmc.scs2.simulation.robot.SimRigidBodyBasics;
+import us.ihmc.scs2.simulation.screwTools.SimMultiBodySystemFactories.SimJointBuilder;
+import us.ihmc.scs2.simulation.screwTools.SimMultiBodySystemFactories.SimRigidBodyBuilder;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
 public interface SimMultiBodySystemBasics extends MultiBodySystemBasics
