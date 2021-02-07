@@ -96,7 +96,7 @@ public class RobotPhysics
                                                                                      forwardDynamicsPlugin.getForwardDynamicsCalculator(),
                                                                                      selfContactCalculatorRegistry);
 
-      integrator = new SingleRobotFirstOrderIntegrator(owner);
+      integrator = new SingleRobotFirstOrderIntegrator();
 
       owner.getRegistry().addChild(jointLimitConstraintCalculatorRegistry);
       owner.getRegistry().addChild(environmentContactCalculatorRegistry);
@@ -135,7 +135,7 @@ public class RobotPhysics
 
    public void integrateState(double dt)
    {
-      integrator.integrate(dt, velocityChangeMatrix);
+      integrator.integrate(dt, velocityChangeMatrix, owner);
    }
 
    public SingleRobotFirstOrderIntegrator getIntegrator()

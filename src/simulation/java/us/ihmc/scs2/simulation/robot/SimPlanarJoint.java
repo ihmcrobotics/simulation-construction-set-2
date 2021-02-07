@@ -14,7 +14,7 @@ import us.ihmc.scs2.definition.robot.PlanarJointDefinition;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
-public class SimPlanarJoint extends YoPlanarJoint implements SimJointBasics
+public class SimPlanarJoint extends YoPlanarJoint implements SimJointBasics, SimFloatingJointBasics
 {
    private final YoRegistry registry;
    private final SimJointAuxiliaryData auxiliaryData;
@@ -96,12 +96,6 @@ public class SimPlanarJoint extends YoPlanarJoint implements SimJointBasics
    }
 
    @Override
-   public void setJointDeltaTwistToZero()
-   {
-      jointDeltaTwist.setToZero();
-   }
-
-   @Override
    public void setJointDeltaTwist(JointReadOnly other)
    {
       setJointDeltaTwist(MecanoTools.checkTypeAndCast(other, SimPlanarJoint.class));
@@ -128,17 +122,5 @@ public class SimPlanarJoint extends YoPlanarJoint implements SimJointBasics
       getJointDeltaTwist().setAngularPartY(qdRot);
       getJointDeltaTwist().getLinearPart().set(xd, 0.0, zd);
       return rowStart + getDegreesOfFreedom();
-   }
-
-   @Override
-   public void setJointAngularDeltaVelocity(Vector3DReadOnly jointAngularDeltaVelocity)
-   {
-      getJointDeltaTwist().getAngularPart().set(jointAngularDeltaVelocity);
-   }
-
-   @Override
-   public void setJointLinearDeltaVelocity(Vector3DReadOnly jointLinearDeltaVelocity)
-   {
-      getJointDeltaTwist().getLinearPart().set(jointLinearDeltaVelocity);
    }
 }

@@ -12,22 +12,24 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.euclid.tuple4D.interfaces.QuaternionBasics;
-import us.ihmc.mecano.multiBodySystem.SphericalJoint;
+import us.ihmc.mecano.multiBodySystem.interfaces.FixedJointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.FloatingJointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.MultiBodySystemBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
-import us.ihmc.mecano.multiBodySystem.interfaces.SixDoFJointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.SphericalJointBasics;
 import us.ihmc.mecano.spatial.SpatialVector;
 import us.ihmc.mecano.spatial.interfaces.FixedFrameSpatialAccelerationBasics;
 import us.ihmc.mecano.spatial.interfaces.FixedFrameTwistBasics;
 import us.ihmc.mecano.spatial.interfaces.SpatialVectorReadOnly;
+import us.ihmc.scs2.simulation.robot.SimFixedJoint;
+import us.ihmc.scs2.simulation.robot.SimFloatingJointBasics;
+import us.ihmc.scs2.simulation.robot.SimJointBasics;
+import us.ihmc.scs2.simulation.robot.SimOneDoFJointBasics;
+import us.ihmc.scs2.simulation.robot.SimSphericalJoint;
 
 public class SingleRobotFirstOrderIntegrator
 {
-   private MultiBodySystemBasics input;
-
    /** Intermediate variable used to perform garbage-free operations. */
    private final Vector3D deltaPosition = new Vector3D();
    /** Intermediate variable used to perform garbage-free operations. */
@@ -41,12 +43,41 @@ public class SingleRobotFirstOrderIntegrator
    /** Intermediate variable used to perform garbage-free operations. */
    private final FrameVector3D angularVelocityChange = new FrameVector3D();
 
-   public SingleRobotFirstOrderIntegrator(MultiBodySystemBasics input)
+   public SingleRobotFirstOrderIntegrator()
    {
-      this.input = input;
    }
 
-   public void integrate(double dt, DMatrixRMaj velocityChangeMatrix)
+   public void integrate(double dt, SimMultiBodySystemBasics input)
+   {
+      List<? extends SimJointBasics> jointsToConsider = input.getJointsToConsider();
+
+      for (SimJointBasics joint : jointsToConsider)
+      {
+         // TODO Implements for other joints
+         if (joint instanceof SimOneDoFJointBasics)
+         {
+            integrateOneDoFJoint(dt, (SimOneDoFJointBasics) joint);
+         }
+         else if (joint instanceof SimFloatingJointBasics)
+         {
+            integrateFloatingJoint(dt, (SimFloatingJointBasics) joint);
+         }
+         else if (joint instanceof SimSphericalJoint)
+         {
+            integrateSphericalJoint(dt, (SimSphericalJoint) joint);
+         }
+         else if (joint instanceof SimFixedJoint)
+         {
+            // Do nothing
+         }
+         else
+         {
+            throw new UnsupportedOperationException("Unsupported joint " + joint);
+         }
+      }
+   }
+
+   public void integrate(double dt, DMatrixRMaj velocityChangeMatrix, MultiBodySystemBasics input)
    {
       List<? extends JointBasics> jointsToConsider = input.getJointsToConsider();
       int startIndex = 0;
@@ -63,15 +94,15 @@ public class SingleRobotFirstOrderIntegrator
                velocityChange = velocityChangeMatrix.get(startIndex);
             integrateOneDoFJoint(dt, (OneDoFJointBasics) joint, velocityChange);
          }
-         else if (joint instanceof SixDoFJointBasics)
+         else if (joint instanceof FloatingJointBasics)
          {
             if (velocityChangeMatrix == null)
                spatialVelocityChange.setToZero(joint.getFrameAfterJoint());
             else
                spatialVelocityChange.setIncludingFrame(joint.getFrameAfterJoint(), startIndex, velocityChangeMatrix);
-            integrateFloatingJoint(dt, (SixDoFJointBasics) joint, spatialVelocityChange);
+            integrateFloatingJoint(dt, (FloatingJointBasics) joint, spatialVelocityChange);
          }
-         else if (joint instanceof SphericalJoint)
+         else if (joint instanceof SphericalJointBasics)
          {
             if (velocityChangeMatrix == null)
                angularVelocityChange.setToZero(joint.getFrameAfterJoint());
@@ -79,12 +110,21 @@ public class SingleRobotFirstOrderIntegrator
                angularVelocityChange.setIncludingFrame(joint.getFrameAfterJoint(), startIndex, velocityChangeMatrix);
             integrateSphericalJoint(dt, (SphericalJointBasics) joint, angularVelocityChange);
          }
+         else if (joint instanceof FixedJointBasics)
+         {
+            // Do nothing
+         }
          else
          {
             throw new UnsupportedOperationException("Unsupported joint " + joint);
          }
          startIndex += joint.getDegreesOfFreedom();
       }
+   }
+
+   public void integrateOneDoFJoint(double dt, SimOneDoFJointBasics joint)
+   {
+      integrateOneDoFJoint(dt, joint, joint.getDeltaQd());
    }
 
    public void integrateOneDoFJoint(double dt, OneDoFJointBasics joint, double velocityChange)
@@ -95,6 +135,11 @@ public class SingleRobotFirstOrderIntegrator
       joint.setQ(q);
       joint.setQd(qd);
       joint.setQdd(qdd);
+   }
+
+   public void integrateSphericalJoint(double dt, SimSphericalJoint joint)
+   {
+      integrateSphericalJoint(dt, joint, joint.getJointAngularDeltaVelocity());
    }
 
    public void integrateSphericalJoint(double dt, SphericalJointBasics joint, FrameVector3DReadOnly angularVelocityChange)
@@ -112,6 +157,11 @@ public class SingleRobotFirstOrderIntegrator
       angularVelocity.add(angularVelocityChange);
 
       orientation.append(orientationChange);
+   }
+
+   public void integrateFloatingJoint(double dt, SimFloatingJointBasics joint)
+   {
+      integrateFloatingJoint(dt, joint, joint.getJointDeltaTwist());
    }
 
    public void integrateFloatingJoint(double dt, FloatingJointBasics joint, SpatialVectorReadOnly spatialVelocityChange)

@@ -44,7 +44,7 @@ public class SingleRobotFirstOrderIntegratorTest
                                                                         worldFrame);
 
          MultiBodySystemStateIntegrator mecanoIntegrator = new MultiBodySystemStateIntegrator(dt);
-         SingleRobotFirstOrderIntegrator integrator = new SingleRobotFirstOrderIntegrator(robotClone);
+         SingleRobotFirstOrderIntegrator integrator = new SingleRobotFirstOrderIntegrator();
 
          for (JointStateType stateSelection : Arrays.asList(JointStateType.CONFIGURATION, JointStateType.VELOCITY, JointStateType.ACCELERATION))
          {
@@ -53,7 +53,7 @@ public class SingleRobotFirstOrderIntegratorTest
          }
 
          mecanoIntegrator.doubleIntegrateFromAccelerationSubtree(robotOriginal.getElevator());
-         integrator.integrate(dt, null);
+         integrator.integrate(dt, null, robotClone);
 
          for (int jointIndex = 0; jointIndex < robotOriginal.getJoints().size(); jointIndex++)
          {
@@ -102,8 +102,8 @@ public class SingleRobotFirstOrderIntegratorTest
          MultiBodySystemBasics robotOriginal = MultiBodySystemBasics.toMultiBodySystemBasics(randomRobot.getElevator());
          MultiBodySystemBasics robotClone = MultiBodySystemBasics.clone(robotOriginal, worldFrame);
 
-         SingleRobotFirstOrderIntegrator integrator = new SingleRobotFirstOrderIntegrator(robotOriginal);
-         SingleRobotFirstOrderIntegrator integratorWithVelocity = new SingleRobotFirstOrderIntegrator(robotClone);
+         SingleRobotFirstOrderIntegrator integrator = new SingleRobotFirstOrderIntegrator();
+         SingleRobotFirstOrderIntegrator integratorWithVelocity = new SingleRobotFirstOrderIntegrator();
 
          for (JointStateType stateSelection : Arrays.asList(JointStateType.CONFIGURATION, JointStateType.VELOCITY, JointStateType.ACCELERATION))
          {
@@ -120,8 +120,8 @@ public class SingleRobotFirstOrderIntegratorTest
          CommonOps_DDRM.addEquals(originalJointAcceleration, accelerationChange);
          MultiBodySystemTools.insertJointsState(robotOriginal.getAllJoints(), JointStateType.ACCELERATION, originalJointAcceleration);
 
-         integrator.integrate(dt, null);
-         integratorWithVelocity.integrate(dt, velocityChange);
+         integrator.integrate(dt, null, robotOriginal);
+         integratorWithVelocity.integrate(dt, velocityChange, robotClone);
 
          for (int jointIndex = 0; jointIndex < robotOriginal.getAllJoints().size(); jointIndex++)
          {

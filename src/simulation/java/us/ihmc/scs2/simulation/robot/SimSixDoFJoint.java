@@ -13,7 +13,7 @@ import us.ihmc.mecano.yoVariables.spatial.YoFixedFrameTwist;
 import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
-public class SimSixDoFJoint extends YoSixDoFJoint implements SimJointBasics
+public class SimSixDoFJoint extends YoSixDoFJoint implements SimJointBasics, SimFloatingJointBasics
 {
    private final YoRegistry registry;
    private final SimJointAuxiliaryData auxiliaryData;
@@ -84,12 +84,6 @@ public class SimSixDoFJoint extends YoSixDoFJoint implements SimJointBasics
    }
 
    @Override
-   public void setJointDeltaTwistToZero()
-   {
-      jointDeltaTwist.setToZero();
-   }
-
-   @Override
    public void setJointDeltaTwist(JointReadOnly other)
    {
       setJointDeltaTwist(MecanoTools.checkTypeAndCast(other, SimSixDoFJoint.class));
@@ -110,17 +104,5 @@ public class SimSixDoFJoint extends YoSixDoFJoint implements SimJointBasics
    {
       getJointTwist().set(rowStart, matrix);
       return rowStart + getDegreesOfFreedom();
-   }
-
-   @Override
-   public void setJointAngularDeltaVelocity(Vector3DReadOnly jointAngularDeltaVelocity)
-   {
-      getJointDeltaTwist().getAngularPart().set(jointAngularDeltaVelocity);
-   }
-
-   @Override
-   public void setJointLinearDeltaVelocity(Vector3DReadOnly jointLinearDeltaVelocity)
-   {
-      getJointDeltaTwist().getLinearPart().set(jointLinearDeltaVelocity);
    }
 }
