@@ -10,15 +10,16 @@ public class ExternalWrenchPoint extends KinematicPoint
 {
    protected final YoFixedFrameWrench wrench;
 
-   public ExternalWrenchPoint(KinematicPointDefinition definition, SimJointBasics parentJoint, YoRegistry registry)
+   public ExternalWrenchPoint(KinematicPointDefinition definition, SimJointBasics parentJoint)
    {
-      this(definition.getName(), parentJoint, definition.getTransformToParent(), registry);
+      this(definition.getName(), parentJoint, definition.getTransformToParent());
    }
 
-   public ExternalWrenchPoint(String name, SimJointBasics parentJoint, RigidBodyTransformReadOnly transformToParent, YoRegistry registry)
+   public ExternalWrenchPoint(String name, SimJointBasics parentJoint, RigidBodyTransformReadOnly transformToParent)
    {
-      super(name, parentJoint, transformToParent, registry);
+      super(name, parentJoint, transformToParent);
 
+      YoRegistry registry = parentJoint.getRegistry();
       wrench = new YoFixedFrameWrench(parentJoint.getSuccessor().getBodyFixedFrame(),
                                       new YoFrameVector3D(name + "Moment", getFrame(), registry),
                                       new YoFrameVector3D(name + "Force", getFrame(), registry));

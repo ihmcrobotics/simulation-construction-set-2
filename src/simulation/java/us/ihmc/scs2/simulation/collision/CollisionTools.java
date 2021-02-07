@@ -25,7 +25,6 @@ import us.ihmc.euclid.shape.primitives.Sphere3D;
 import us.ihmc.euclid.shape.primitives.Torus3D;
 import us.ihmc.euclid.shape.primitives.interfaces.Shape3DReadOnly;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
-import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.scs2.definition.geometry.BoxGeometryDefinition;
 import us.ihmc.scs2.definition.geometry.CapsuleGeometryDefinition;
 import us.ihmc.scs2.definition.geometry.ConeGeometryDefinition;
@@ -39,19 +38,20 @@ import us.ihmc.scs2.definition.geometry.WedgeGeometryDefinition;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
+import us.ihmc.scs2.simulation.robot.SimRigidBodyBasics;
 
 public class CollisionTools
 {
    private static final int CONE_NUMBER_OF_DIVISIONS = 64;
 
-   public static List<Collidable> extractCollidableRigidBodies(RobotDefinition robotDefinition, RigidBodyBasics rootBody)
+   public static List<Collidable> extractCollidableRigidBodies(RobotDefinition robotDefinition, SimRigidBodyBasics rootBody)
    {
       return rootBody.subtreeStream()
                      .flatMap(rigidBody -> toCollidableRigidBody(robotDefinition.getRigidBodyDefinition(rigidBody.getName()), rigidBody).stream())
                      .collect(Collectors.toList());
    }
 
-   public static List<Collidable> toCollidableRigidBody(RigidBodyDefinition definition, RigidBodyBasics rigidBodyInstance)
+   public static List<Collidable> toCollidableRigidBody(RigidBodyDefinition definition, SimRigidBodyBasics rigidBodyInstance)
    {
       return definition.getCollisionShapeDefinitions().stream()
                        .map(collisionShapeDefinition -> toFrameShape3D(collisionShapeDefinition.getOriginPose(),
@@ -61,7 +61,7 @@ public class CollisionTools
                        .map(shape -> toCollidable(rigidBodyInstance, shape)).collect(Collectors.toList());
    }
 
-   private static Collidable toCollidable(RigidBodyBasics rigidBody, FrameShape3DReadOnly shape)
+   private static Collidable toCollidable(SimRigidBodyBasics rigidBody, FrameShape3DReadOnly shape)
    {
       return new Collidable(rigidBody, -1, -1, shape);
    }

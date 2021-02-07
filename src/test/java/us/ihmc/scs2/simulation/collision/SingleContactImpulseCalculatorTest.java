@@ -35,9 +35,6 @@ import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.algorithms.ForwardDynamicsCalculator;
 import us.ihmc.mecano.algorithms.SpatialAccelerationCalculator;
 import us.ihmc.mecano.algorithms.interfaces.RigidBodyAccelerationProvider;
-import us.ihmc.mecano.multiBodySystem.OneDoFJoint;
-import us.ihmc.mecano.multiBodySystem.RigidBody;
-import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
 import us.ihmc.mecano.multiBodySystem.interfaces.FloatingJointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
@@ -47,10 +44,14 @@ import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.mecano.tools.MecanoRandomTools;
 import us.ihmc.mecano.tools.MecanoTestTools;
 import us.ihmc.mecano.tools.MomentOfInertiaFactory;
-import us.ihmc.mecano.tools.MultiBodySystemRandomTools;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.scs2.simulation.physicsEngine.ContactParameters;
 import us.ihmc.scs2.simulation.physicsEngine.SingleContactImpulseCalculator;
+import us.ihmc.scs2.simulation.robot.SimJointStateType;
+import us.ihmc.scs2.simulation.robot.SimOneDoFJointBasics;
+import us.ihmc.scs2.simulation.robot.SimRigidBody;
+import us.ihmc.scs2.simulation.robot.SimRigidBodyBasics;
+import us.ihmc.scs2.simulation.robot.SimSixDoFJoint;
 
 public class SingleContactImpulseCalculatorTest
 {
@@ -70,10 +71,10 @@ public class SingleContactImpulseCalculatorTest
          double gravity = EuclidCoreRandomTools.nextDouble(random, -20.0, -1.0);
          double dt = random.nextDouble();
          int numberOfJoints = random.nextInt(50) + 1;
-         List<OneDoFJoint> joints = MultiBodySystemRandomTools.nextOneDoFJointChain(random, numberOfJoints);
+         List<SimOneDoFJointBasics> joints = SimMultiBodySystemRandomTools.nextOneDoFJointChain(random, numberOfJoints);
 
-         for (JointStateType state : JointStateType.values())
-            MultiBodySystemRandomTools.nextState(random, state, joints);
+         for (SimJointStateType state : SimJointStateType.values())
+            SimMultiBodySystemRandomTools.nextState(random, state, joints);
 
          RigidBodyBasics rootBody = MultiBodySystemTools.getRootBody(joints.get(0).getPredecessor());
          rootBody.updateFramesRecursively();
@@ -93,7 +94,7 @@ public class SingleContactImpulseCalculatorTest
                                                                           contactPoint,
                                                                           actualLinearVelocity);
 
-         for (OneDoFJoint joint : joints)
+         for (SimOneDoFJointBasics joint : joints)
          {
             joint.setQd(joint.getQd() + dt * joint.getQdd());
          }
@@ -117,10 +118,10 @@ public class SingleContactImpulseCalculatorTest
          double gravity = EuclidCoreRandomTools.nextDouble(random, -20.0, -1.0);
          double dt = random.nextDouble();
          int numberOfJoints = random.nextInt(50) + 1;
-         List<OneDoFJoint> joints = MultiBodySystemRandomTools.nextOneDoFJointChain(random, numberOfJoints);
+         List<SimOneDoFJointBasics> joints = SimMultiBodySystemRandomTools.nextOneDoFJointChain(random, numberOfJoints);
 
-         for (JointStateType state : JointStateType.values())
-            MultiBodySystemRandomTools.nextState(random, state, joints);
+         for (SimJointStateType state : SimJointStateType.values())
+            SimMultiBodySystemRandomTools.nextState(random, state, joints);
 
          RigidBodyBasics rootBody = MultiBodySystemTools.getRootBody(joints.get(0).getPredecessor());
          rootBody.updateFramesRecursively();
@@ -140,7 +141,7 @@ public class SingleContactImpulseCalculatorTest
                                                                            contactPoint,
                                                                            actualSpatialVelocity);
 
-         for (OneDoFJoint joint : joints)
+         for (SimOneDoFJointBasics joint : joints)
          {
             joint.setQd(joint.getQd() + dt * joint.getQdd());
          }
@@ -165,7 +166,7 @@ public class SingleContactImpulseCalculatorTest
          double dt = EuclidCoreRandomTools.nextDouble(random, 1.0e-6, 1.0e-2);
          Vector3DReadOnly gravity = EuclidCoreRandomTools.nextVector3DWithFixedLength(random, EuclidCoreRandomTools.nextDouble(random, 5.0, 40.0));
 
-         RigidBodyBasics singleBodyA = nextSingleFloatingRigidBody(random, "shoup");
+         SimRigidBodyBasics singleBodyA = nextSingleFloatingRigidBody(random, "shoup");
          RigidBodyBasics rootBodyA = MultiBodySystemTools.getRootBody(singleBodyA);
 
          CollisionResult collisionResult = nextCollisionResult(random, singleBodyA);
@@ -201,8 +202,8 @@ public class SingleContactImpulseCalculatorTest
          double dt = EuclidCoreRandomTools.nextDouble(random, 1.0e-6, 1.0e-2);
          Vector3DReadOnly gravity = EuclidCoreRandomTools.nextVector3DWithFixedLength(random, EuclidCoreRandomTools.nextDouble(random, 0.0, 15.0));
 
-         RigidBodyBasics singleBodyA = nextSingleFloatingRigidBody(random, "shoup");
-         RigidBodyBasics singleBodyB = nextSingleFloatingRigidBody(random, "kolop");
+         SimRigidBodyBasics singleBodyA = nextSingleFloatingRigidBody(random, "shoup");
+         SimRigidBodyBasics singleBodyB = nextSingleFloatingRigidBody(random, "kolop");
          CollisionResult collisionResult = nextCollisionResult(random, singleBodyA, singleBodyB);
          RigidBodyBasics rootBodyA = collisionResult.getCollidableA().getRootBody();
          RigidBodyBasics rootBodyB = collisionResult.getCollidableB().getRootBody();
@@ -256,8 +257,8 @@ public class SingleContactImpulseCalculatorTest
       for (int i = 0; i < ITERATIONS; i++)
       {
          double dt = 1.0e-3;
-         RigidBodyBasics sphereBodyA = nextFloatingSphereBody(random, "sphereBodyA");
-         RigidBodyBasics sphereBodyB = nextFloatingSphereBody(random, "sphereBodyB");
+         SimRigidBodyBasics sphereBodyA = nextFloatingSphereBody(random, "sphereBodyA");
+         SimRigidBodyBasics sphereBodyB = nextFloatingSphereBody(random, "sphereBodyB");
          FloatingJointBasics rootJointA = (FloatingJointBasics) sphereBodyA.getParentJoint();
          FloatingJointBasics rootJointB = (FloatingJointBasics) sphereBodyB.getParentJoint();
          double massA = sphereBodyA.getInertia().getMass();
@@ -347,8 +348,8 @@ public class SingleContactImpulseCalculatorTest
    {
       CollisionResult collisionResult = impulseCalculator.getCollisionResult();
       FrameUnitVector3D collisionAxisForA = collisionResult.getCollisionAxisForA();
-      RigidBodyBasics bodyA = collisionResult.getCollidableA().getRigidBody();
-      RigidBodyBasics bodyB = collisionResult.getCollidableB().getRigidBody();
+      SimRigidBodyBasics bodyA = (SimRigidBodyBasics) collisionResult.getCollidableA().getRigidBody();
+      SimRigidBodyBasics bodyB = (SimRigidBodyBasics) collisionResult.getCollidableB().getRigidBody();
       DMatrixRMaj jointVelocityChangeA = impulseCalculator.getJointVelocityChangeA();
       DMatrixRMaj jointVelocityChangeB = impulseCalculator.getJointVelocityChangeB();
 
@@ -432,12 +433,12 @@ public class SingleContactImpulseCalculatorTest
       return forwardDynamicsCalculator;
    }
 
-   static CollisionResult nextCollisionResult(Random random, RigidBodyBasics contactingBodyA)
+   static CollisionResult nextCollisionResult(Random random, SimRigidBodyBasics contactingBodyA)
    {
       return nextCollisionResult(random, contactingBodyA, null);
    }
 
-   static CollisionResult nextCollisionResult(Random random, RigidBodyBasics contactingBodyA, RigidBodyBasics contactingBodyB)
+   static CollisionResult nextCollisionResult(Random random, SimRigidBodyBasics contactingBodyA, SimRigidBodyBasics contactingBodyB)
    {
       CollisionResult collisionResult = new CollisionResult();
       collisionResult.setCollidableA(nextCollidable(random, contactingBodyA));
@@ -594,11 +595,11 @@ public class SingleContactImpulseCalculatorTest
       return next;
    }
 
-   static RigidBodyBasics nextSingleFloatingRigidBody(Random random, String name)
+   static SimRigidBodyBasics nextSingleFloatingRigidBody(Random random, String name)
    {
-      RigidBody rootBody = new RigidBody(name + "RootBody", worldFrame);
-      SixDoFJoint floatingJoint = MultiBodySystemRandomTools.nextSixDoFJoint(random, name + "RootJoint", rootBody);
-      RigidBody floatingBody = MultiBodySystemRandomTools.nextRigidBody(random, name + "Body", floatingJoint);
+      SimRigidBody rootBody = new SimRigidBody(name + "RootBody", worldFrame, null);
+      SimSixDoFJoint floatingJoint = SimMultiBodySystemRandomTools.nextSixDoFJoint(random, name + "RootJoint", rootBody);
+      SimRigidBody floatingBody = SimMultiBodySystemRandomTools.nextRigidBody(random, name + "Body", floatingJoint);
       floatingJoint.setSuccessor(floatingBody);
       floatingJoint.getJointPose().set(EuclidGeometryRandomTools.nextPose3D(random));
       floatingJoint.getJointTwist().set(MecanoRandomTools.nextSpatialVector(random, floatingJoint.getFrameAfterJoint()));
@@ -613,15 +614,15 @@ public class SingleContactImpulseCalculatorTest
       return floatingBody;
    }
 
-   static RigidBodyBasics nextFloatingSphereBody(Random random, String name)
+   static SimRigidBodyBasics nextFloatingSphereBody(Random random, String name)
    {
-      RigidBody rootBody = new RigidBody(name + "RootBody", worldFrame);
-      SixDoFJoint floatingJoint = MultiBodySystemRandomTools.nextSixDoFJoint(random, name + "RootJoint", rootBody);
+      SimRigidBody rootBody = new SimRigidBody(name + "RootBody", worldFrame, null);
+      SimSixDoFJoint floatingJoint = SimMultiBodySystemRandomTools.nextSixDoFJoint(random, name + "RootJoint", rootBody);
 
       double radius = EuclidCoreRandomTools.nextDouble(random, 0.001, 1.0);
       double mass = EuclidCoreRandomTools.nextDouble(random, 0.1, 10.0);
       Matrix3D inertia = MomentOfInertiaFactory.solidSphere(mass, radius);
-      RigidBody floatingBody = new RigidBody(name + "Body", floatingJoint, inertia, mass, EuclidCoreTools.zeroVector3D);
+      SimRigidBody floatingBody = new SimRigidBody(name + "Body", floatingJoint, inertia, mass, EuclidCoreTools.zeroVector3D);
       floatingJoint.setSuccessor(floatingBody);
       return floatingBody;
    }
@@ -631,7 +632,7 @@ public class SingleContactImpulseCalculatorTest
       return new Collidable(null, -1, -1, EuclidFrameShapeRandomTools.nextFrameShape3D(random, worldFrame));
    }
 
-   static Collidable nextCollidable(Random random, RigidBodyBasics rigidBody)
+   static Collidable nextCollidable(Random random, SimRigidBodyBasics rigidBody)
    {
       FrameShape3DBasics shape = EuclidFrameShapeRandomTools.nextFrameConvexShape3D(random,
                                                                                     rigidBody.getBodyFixedFrame(),

@@ -28,9 +28,10 @@ import us.ihmc.mecano.spatial.interfaces.TwistReadOnly;
 import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.mecano.tools.MecanoTestTools;
 import us.ihmc.mecano.tools.MultiBodySystemFactories;
-import us.ihmc.mecano.tools.MultiBodySystemRandomTools;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.scs2.simulation.physicsEngine.CombinedRigidBodyTwistProviders;
+import us.ihmc.scs2.simulation.robot.SimJointBasics;
+import us.ihmc.scs2.simulation.robot.SimJointStateType;
 
 public class CombinedRigidBodyTwistProvidersTest
 {
@@ -44,8 +45,8 @@ public class CombinedRigidBodyTwistProvidersTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         List<JointBasics> jointChain = MultiBodySystemRandomTools.nextJointChain(random, 10);
-         MultiBodySystemRandomTools.nextState(random, JointStateType.CONFIGURATION, jointChain);
+         List<SimJointBasics> jointChain = SimMultiBodySystemRandomTools.nextJointChain(random, 10);
+         SimMultiBodySystemRandomTools.nextState(random, SimJointStateType.CONFIGURATION, jointChain);
          RigidBodyBasics rootBody = MultiBodySystemTools.getRootBody(jointChain.get(0).getPredecessor());
 
          int numberOfProviders = random.nextInt(10) + 1;

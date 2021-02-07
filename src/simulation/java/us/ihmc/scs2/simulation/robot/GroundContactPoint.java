@@ -16,16 +16,17 @@ public class GroundContactPoint extends ExternalWrenchPoint
    private final YoBoolean inContact;
    private final YoBoolean isSlipping;
 
-   public GroundContactPoint(KinematicPointDefinition definition, SimJointBasics parentJoint, YoRegistry registry)
+   public GroundContactPoint(KinematicPointDefinition definition, SimJointBasics parentJoint)
    {
-      this(definition.getName(), parentJoint, definition.getTransformToParent(), registry);
+      this(definition.getName(), parentJoint, definition.getTransformToParent());
    }
 
-   public GroundContactPoint(String name, SimJointBasics parentJoint, RigidBodyTransformReadOnly transformToParent, YoRegistry registry)
+   public GroundContactPoint(String name, SimJointBasics parentJoint, RigidBodyTransformReadOnly transformToParent)
    {
-      super(name, parentJoint, transformToParent, registry);
+      super(name, parentJoint, transformToParent);
 
       ReferenceFrame rootFrame = parentJoint.getFrameAfterJoint().getRootFrame();
+      YoRegistry registry = parentJoint.getRegistry();
       touchdownPose = new YoFramePose3D(name + "Touchdown", rootFrame, registry);
       contactNormal = new YoFrameVector3D(name + "ContactNormal", rootFrame, registry);
       inContact = new YoBoolean(name + "InContact", registry);

@@ -8,12 +8,10 @@ import us.ihmc.scs2.definition.robot.GroundContactPointDefinition;
 import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
 import us.ihmc.scs2.definition.robot.KinematicPointDefinition;
 import us.ihmc.scs2.definition.robot.WrenchSensorDefinition;
-import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class SimJointAuxiliaryData
 {
    private final SimJointBasics joint;
-   private final YoRegistry registry;
 
    private final List<KinematicPoint> kinematicPoints = new ArrayList<>();
    private final List<ExternalWrenchPoint> externalWrenchPoints = new ArrayList<>();
@@ -22,34 +20,33 @@ public class SimJointAuxiliaryData
    private final List<SimIMUSensor> imuSensors = new ArrayList<>();
    private final List<SimWrenchSensor> wrenchSensors = new ArrayList<>();
 
-   public SimJointAuxiliaryData(SimJointBasics joint, YoRegistry registry)
+   public SimJointAuxiliaryData(SimJointBasics joint)
    {
       this.joint = joint;
-      this.registry = registry;
    }
 
    public void addKinematicPoint(KinematicPointDefinition definition)
    {
-      kinematicPoints.add(new KinematicPoint(definition, joint, registry));
+      kinematicPoints.add(new KinematicPoint(definition, joint));
    }
 
    public void addExternalWrenchPoint(ExternalWrenchPointDefinition definition)
    {
-      externalWrenchPoints.add(new ExternalWrenchPoint(definition, joint, registry));
+      externalWrenchPoints.add(new ExternalWrenchPoint(definition, joint));
    }
 
    public void addGroundContactPoint(GroundContactPointDefinition definition)
    {
-      groundContactPoints.add(new GroundContactPoint(definition, joint, registry));
+      groundContactPoints.add(new GroundContactPoint(definition, joint));
    }
 
    public void addIMUSensor(IMUSensorDefinition definition)
    {
-      imuSensors.add(new SimIMUSensor(definition, joint, registry));
+      imuSensors.add(new SimIMUSensor(definition, joint));
    }
 
    public void addWrenchSensor(WrenchSensorDefinition definition)
    {
-      wrenchSensors.add(new SimWrenchSensor(definition, joint, registry));
+      wrenchSensors.add(new SimWrenchSensor(definition, joint));
    }
 }

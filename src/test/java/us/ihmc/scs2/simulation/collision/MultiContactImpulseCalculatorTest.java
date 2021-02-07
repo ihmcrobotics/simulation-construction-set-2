@@ -44,6 +44,7 @@ import us.ihmc.scs2.simulation.physicsEngine.MultiContactImpulseCalculator;
 import us.ihmc.scs2.simulation.physicsEngine.MultiRobotCollisionGroup;
 import us.ihmc.scs2.simulation.physicsEngine.SingleContactImpulseCalculator;
 import us.ihmc.scs2.simulation.robot.Robot;
+import us.ihmc.scs2.simulation.robot.SimRigidBodyBasics;
 
 /**
  * The {@link MultiContactImpulseCalculator} often doesn't converge, which is still to be debugged
@@ -72,10 +73,10 @@ public class MultiContactImpulseCalculatorTest
          Robot robotB = nextSingleFloatingBodyRobot(random, "blopB");
          robotA.getRobotPhysics().getForwardDynamicsPlugin().doScience(0.0, dt, gravity);
          robotB.getRobotPhysics().getForwardDynamicsPlugin().doScience(0.0, dt, gravity);
-         RigidBodyBasics rootA = robotA.getRootBody();
-         RigidBodyBasics rootB = robotB.getRootBody();
-         RigidBodyBasics bodyA = robotA.getRigidBody("blopABody");
-         RigidBodyBasics bodyB = robotB.getRigidBody("blopBBody");
+         SimRigidBodyBasics rootA = robotA.getRootBody();
+         SimRigidBodyBasics rootB = robotB.getRootBody();
+         SimRigidBodyBasics bodyA = robotA.getRigidBody("blopABody");
+         SimRigidBodyBasics bodyB = robotB.getRigidBody("blopBBody");
          CollisionResult bodyAToEnvironment = nextCollisionResult(random, bodyA);
          CollisionResult bodyAToBodyB = nextCollisionResult(random, bodyA, bodyB);
 
@@ -89,9 +90,11 @@ public class MultiContactImpulseCalculatorTest
          robotMap.put(rootA, robotA);
          robotMap.put(rootB, robotB);
          Map<RigidBodyBasics, ForwardDynamicsCalculator> robotForwardDynamicsCalculatorMap = robotMap.entrySet().stream()
-                                                                                                                      .collect(Collectors.toMap(Entry::getKey,
-                                                                                                                                                e -> e.getValue().getRobotPhysics().getForwardDynamicsPlugin()
-                                                                                                                                                      .getForwardDynamicsCalculator()));
+                                                                                                     .collect(Collectors.toMap(Entry::getKey,
+                                                                                                                               e -> e.getValue()
+                                                                                                                                     .getRobotPhysics()
+                                                                                                                                     .getForwardDynamicsPlugin()
+                                                                                                                                     .getForwardDynamicsCalculator()));
 
          Map<CollisionResult, FrameVector3D> contactLinearVelocitiesNoImpulse = predictContactVelocity(dt,
                                                                                                        collisionGroup.getGroupCollisions(),
@@ -200,12 +203,12 @@ public class MultiContactImpulseCalculatorTest
       }
    }
 
-   static CollisionResult nextCollisionResult(Random random, RigidBodyBasics contactingBodyA)
+   static CollisionResult nextCollisionResult(Random random, SimRigidBodyBasics contactingBodyA)
    {
       return nextCollisionResult(random, contactingBodyA, null);
    }
 
-   static CollisionResult nextCollisionResult(Random random, RigidBodyBasics contactingBodyA, RigidBodyBasics contactingBodyB)
+   static CollisionResult nextCollisionResult(Random random, SimRigidBodyBasics contactingBodyA, SimRigidBodyBasics contactingBodyB)
    {
       CollisionResult collisionResult = new CollisionResult();
       Collidable collidableA = nextCollidable(random, contactingBodyA);

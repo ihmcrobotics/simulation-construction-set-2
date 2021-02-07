@@ -21,17 +21,18 @@ public class KinematicPoint
    private final YoFramePoseUsingYawPitchRoll pose;
    private final YoFixedFrameTwist twist;
 
-   public KinematicPoint(KinematicPointDefinition definition, SimJointBasics parentJoint, YoRegistry registry)
+   public KinematicPoint(KinematicPointDefinition definition, SimJointBasics parentJoint)
    {
-      this(definition.getName(), parentJoint, definition.getTransformToParent(), registry);
+      this(definition.getName(), parentJoint, definition.getTransformToParent());
    }
 
-   public KinematicPoint(String name, SimJointBasics parentJoint, RigidBodyTransformReadOnly transformToParent, YoRegistry registry)
+   public KinematicPoint(String name, SimJointBasics parentJoint, RigidBodyTransformReadOnly transformToParent)
    {
       this.name = name;
       this.parentJoint = parentJoint;
 
       ReferenceFrame rootFrame = parentJoint.getFrameBeforeJoint().getRootFrame();
+      YoRegistry registry = parentJoint.getRegistry();
       offset = new YoFramePoseUsingYawPitchRoll(name + "Offset", parentJoint.getFrameAfterJoint(), registry);
       offset.set(transformToParent);
 

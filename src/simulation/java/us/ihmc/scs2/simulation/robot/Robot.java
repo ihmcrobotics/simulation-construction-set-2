@@ -88,8 +88,8 @@ public class Robot implements MultiBodySystemBasics, CollidableHolder
    {
       for (JointDefinition childJointDefinition : rigidBodyDefinition.getChildrenJoints())
       {
-         SimJointBasics childJoint = jointBuilder.fromDefinition(childJointDefinition, rigidBody, registry);
-         SimRigidBody childSuccessor = bodyBuilder.fromDefinition(childJointDefinition.getSuccessor(), childJoint, registry);
+         SimJointBasics childJoint = jointBuilder.fromDefinition(childJointDefinition, rigidBody);
+         SimRigidBody childSuccessor = bodyBuilder.fromDefinition(childJointDefinition.getSuccessor(), childJoint);
          createJointsRecursive(childSuccessor, childJointDefinition.getSuccessor(), jointBuilder, bodyBuilder, registry);
       }
    }
@@ -193,18 +193,18 @@ public class Robot implements MultiBodySystemBasics, CollidableHolder
 
    public static interface JointBuilderFromDefinition
    {
-      default SimJointBasics fromDefinition(JointDefinition definition, SimRigidBody predecessor, YoRegistry registry)
+      default SimJointBasics fromDefinition(JointDefinition definition, SimRigidBody predecessor)
       {
          if (definition instanceof FixedJointDefinition)
-            return new SimFixedJoint((FixedJointDefinition) definition, predecessor, registry);
+            return new SimFixedJoint((FixedJointDefinition) definition, predecessor);
          else if (definition instanceof PlanarJointDefinition)
-            return new SimPlanarJoint((PlanarJointDefinition) definition, predecessor, registry);
+            return new SimPlanarJoint((PlanarJointDefinition) definition, predecessor);
          else if (definition instanceof SixDoFJointDefinition)
-            return new SimSixDoFJoint((SixDoFJointDefinition) definition, predecessor, registry);
+            return new SimSixDoFJoint((SixDoFJointDefinition) definition, predecessor);
          else if (definition instanceof PrismaticJointDefinition)
-            return new SimPrismaticJoint((PrismaticJointDefinition) definition, predecessor, registry);
+            return new SimPrismaticJoint((PrismaticJointDefinition) definition, predecessor);
          else if (definition instanceof RevoluteJointDefinition)
-            return new SimRevoluteJoint((RevoluteJointDefinition) definition, predecessor, registry);
+            return new SimRevoluteJoint((RevoluteJointDefinition) definition, predecessor);
          else
             throw new UnsupportedOperationException("Unsupported joint definition: " + definition.getClass().getSimpleName());
       }
@@ -217,9 +217,9 @@ public class Robot implements MultiBodySystemBasics, CollidableHolder
          return new SimRigidBody(rootBodyDefinition, inertialFrame, registry);
       }
 
-      default SimRigidBody fromDefinition(RigidBodyDefinition rigidBodyDefinition, SimJointBasics parentJoint, YoRegistry registry)
+      default SimRigidBody fromDefinition(RigidBodyDefinition rigidBodyDefinition, SimJointBasics parentJoint)
       {
-         return new SimRigidBody(rigidBodyDefinition, parentJoint, registry);
+         return new SimRigidBody(rigidBodyDefinition, parentJoint);
       }
    }
 }

@@ -13,10 +13,9 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.mecano.multiBodySystem.RigidBody;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
-import us.ihmc.mecano.tools.MultiBodySystemRandomTools;
 import us.ihmc.scs2.simulation.physicsEngine.MultiRobotCollisionGroup;
+import us.ihmc.scs2.simulation.robot.SimRigidBody;
 
 public class MultiRobotCollisionGroupTest
 {
@@ -234,8 +233,8 @@ public class MultiRobotCollisionGroupTest
    private static RigidBodyBasics nextRobot(Random random, String robotName)
    {
       ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
-      RigidBody rootBody = new RigidBody(robotName + "RootBody", worldFrame);
-      MultiBodySystemRandomTools.nextJointChain(random, robotName, rootBody, 5);
+      SimRigidBody rootBody = new SimRigidBody(robotName + "RootBody", worldFrame, null);
+      SimMultiBodySystemRandomTools.nextJointChain(random, robotName, rootBody, 5);
       return rootBody;
    }
 

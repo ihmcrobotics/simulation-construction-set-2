@@ -15,28 +15,35 @@ import us.ihmc.yoVariables.variable.YoDouble;
 
 public class SimPrismaticJoint extends YoPrismaticJoint implements SimOneDoFJointBasics
 {
+   private final YoRegistry registry;
    private final SimJointAuxiliaryData auxiliaryData;
    private final YoDouble deltaQd;
 
    private final TwistReadOnly jointDeltaTwist;
 
-   public SimPrismaticJoint(PrismaticJointDefinition definition, SimRigidBody predecessor, YoRegistry registry)
+   public SimPrismaticJoint(PrismaticJointDefinition definition, SimRigidBodyBasics predecessor)
    {
-      this(definition.getName(), predecessor, definition.getTransformToParent(), definition.getAxis(), registry);
+      this(definition.getName(), predecessor, definition.getTransformToParent(), definition.getAxis());
    }
 
-   public SimPrismaticJoint(String name, SimRigidBody predecessor, Tuple3DReadOnly jointOffset, Vector3DReadOnly jointAxis, YoRegistry registry)
+   public SimPrismaticJoint(String name, SimRigidBodyBasics predecessor, Tuple3DReadOnly jointOffset, Vector3DReadOnly jointAxis)
    {
-      this(name, predecessor, new RigidBodyTransform(new Quaternion(), jointOffset), jointAxis, registry);
+      this(name, predecessor, new RigidBodyTransform(new Quaternion(), jointOffset), jointAxis);
    }
 
-   public SimPrismaticJoint(String name, SimRigidBody predecessor, RigidBodyTransformReadOnly transformToParent, Vector3DReadOnly jointAxis,
-                            YoRegistry registry)
+   public SimPrismaticJoint(String name, SimRigidBodyBasics predecessor, RigidBodyTransformReadOnly transformToParent, Vector3DReadOnly jointAxis)
    {
-      super(name, predecessor, transformToParent, jointAxis, registry);
-      auxiliaryData = new SimJointAuxiliaryData(this, registry);
+      super(name, predecessor, transformToParent, jointAxis, predecessor.getRegistry());
+      registry = predecessor.getRegistry();
+      auxiliaryData = new SimJointAuxiliaryData(this);
       deltaQd = new YoDouble("qd_delta_" + getName(), registry);
       jointDeltaTwist = MecanoFactories.newTwistReadOnly(this::getDeltaQd, getUnitJointTwist());
+   }
+
+   @Override
+   public YoRegistry getRegistry()
+   {
+      return registry;
    }
 
    @Override
@@ -48,22 +55,22 @@ public class SimPrismaticJoint extends YoPrismaticJoint implements SimOneDoFJoin
    @Override
    public void setSuccessor(RigidBodyBasics successor)
    {
-      if (successor instanceof SimRigidBody)
+      if (successor instanceof SimRigidBodyBasics)
          super.setSuccessor(successor);
       else
-         throw new IllegalArgumentException("Can only set a " + SimRigidBody.class.getSimpleName() + " as successor of a " + getClass().getSimpleName());
+         throw new IllegalArgumentException("Can only set a " + SimRigidBodyBasics.class.getSimpleName() + " as successor of a " + getClass().getSimpleName());
    }
 
    @Override
-   public SimRigidBody getPredecessor()
+   public SimRigidBodyBasics getPredecessor()
    {
-      return (SimRigidBody) super.getPredecessor();
+      return (SimRigidBodyBasics) super.getPredecessor();
    }
 
    @Override
-   public SimRigidBody getSuccessor()
+   public SimRigidBodyBasics getSuccessor()
    {
-      return (SimRigidBody) super.getSuccessor();
+      return (SimRigidBodyBasics) super.getSuccessor();
    }
 
    @Override

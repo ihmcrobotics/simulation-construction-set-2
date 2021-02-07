@@ -6,7 +6,6 @@ import us.ihmc.mecano.frames.MovingReferenceFrame;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.scs2.definition.robot.SensorDefinition;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePoseUsingYawPitchRoll;
-import us.ihmc.yoVariables.registry.YoRegistry;
 
 public abstract class SimSensor
 {
@@ -16,17 +15,17 @@ public abstract class SimSensor
 
    private final YoFramePoseUsingYawPitchRoll offset;
 
-   public SimSensor(SensorDefinition definition, SimJointBasics parentJoint, YoRegistry registry)
+   public SimSensor(SensorDefinition definition, SimJointBasics parentJoint)
    {
-      this(definition.getName(), parentJoint, definition.getTransformToJoint(), registry);
+      this(definition.getName(), parentJoint, definition.getTransformToJoint());
    }
 
-   public SimSensor(String name, SimJointBasics parentJoint, RigidBodyTransformReadOnly transformToParent, YoRegistry registry)
+   public SimSensor(String name, SimJointBasics parentJoint, RigidBodyTransformReadOnly transformToParent)
    {
       this.name = name;
       this.parentJoint = parentJoint;
 
-      offset = new YoFramePoseUsingYawPitchRoll(name + "Offset", parentJoint.getFrameAfterJoint(), registry);
+      offset = new YoFramePoseUsingYawPitchRoll(name + "Offset", parentJoint.getFrameAfterJoint(), parentJoint.getRegistry());
       offset.set(transformToParent);
 
       frame = new MovingReferenceFrame(name + "Frame", parentJoint.getFrameAfterJoint())

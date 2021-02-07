@@ -2,39 +2,48 @@ package us.ihmc.scs2.simulation.robot;
 
 import org.ejml.data.DMatrix;
 
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
+import us.ihmc.euclid.referenceFrame.interfaces.FixedFrameVector3DBasics;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
-import us.ihmc.mecano.spatial.interfaces.FixedFrameTwistBasics;
+import us.ihmc.mecano.spatial.interfaces.TwistReadOnly;
+import us.ihmc.mecano.tools.MecanoFactories;
 import us.ihmc.mecano.tools.MecanoTools;
-import us.ihmc.mecano.yoVariables.multiBodySystem.YoSixDoFJoint;
-import us.ihmc.mecano.yoVariables.spatial.YoFixedFrameTwist;
-import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
+import us.ihmc.mecano.yoVariables.multiBodySystem.YoSphericalJoint;
+import us.ihmc.scs2.definition.robot.SphericalJointDefinition;
+import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
-public class SimSixDoFJoint extends YoSixDoFJoint implements SimJointBasics
+public class SimSphericalJoint extends YoSphericalJoint implements SimJointBasics
 {
    private final YoRegistry registry;
    private final SimJointAuxiliaryData auxiliaryData;
-   private final FixedFrameTwistBasics jointDeltaTwist;
+   private final YoFrameVector3D jointAngularDeltaVelocity;
+   private final TwistReadOnly jointDeltaTwist;
 
-   public SimSixDoFJoint(SixDoFJointDefinition definition, SimRigidBodyBasics predecessor)
+   public SimSphericalJoint(SphericalJointDefinition definition, SimRigidBodyBasics predecessor)
    {
       this(definition.getName(), predecessor, definition.getTransformToParent());
    }
 
-   public SimSixDoFJoint(String name, SimRigidBodyBasics predecessor)
+   public SimSphericalJoint(String name, SimRigidBodyBasics predecessor, Tuple3DReadOnly jointOffset)
    {
-      this(name, predecessor, null);
+      this(name, predecessor, new RigidBodyTransform(new Quaternion(), jointOffset));
    }
 
-   public SimSixDoFJoint(String name, SimRigidBodyBasics predecessor, RigidBodyTransformReadOnly transformToParent)
+   public SimSphericalJoint(String name, SimRigidBodyBasics predecessor, RigidBodyTransformReadOnly transformToParent)
    {
       super(name, predecessor, transformToParent, predecessor.getRegistry());
+
       registry = predecessor.getRegistry();
       auxiliaryData = new SimJointAuxiliaryData(this);
-      jointDeltaTwist = new YoFixedFrameTwist(name + "DeltaTwist", afterJointFrame, beforeJointFrame, afterJointFrame, registry);
+      jointAngularDeltaVelocity = new YoFrameVector3D(name + "AngularDeltaVelocity", afterJointFrame, registry);
+      jointDeltaTwist = MecanoFactories.newTwistReadOnly(afterJointFrame, beforeJointFrame, jointAngularDeltaVelocity, new FrameVector3D(afterJointFrame));
    }
 
    @Override
@@ -58,6 +67,11 @@ public class SimSixDoFJoint extends YoSixDoFJoint implements SimJointBasics
          throw new IllegalArgumentException("Can only set a " + SimRigidBodyBasics.class.getSimpleName() + " as successor of a " + getClass().getSimpleName());
    }
 
+   public FixedFrameVector3DBasics getJointAngularDeltaVelocity()
+   {
+      return jointAngularDeltaVelocity;
+   }
+
    @Override
    public SimRigidBodyBasics getPredecessor()
    {
@@ -71,7 +85,7 @@ public class SimSixDoFJoint extends YoSixDoFJoint implements SimJointBasics
    }
 
    @Override
-   public FixedFrameTwistBasics getJointDeltaTwist()
+   public TwistReadOnly getJointDeltaTwist()
    {
       return jointDeltaTwist;
    }
@@ -86,7 +100,7 @@ public class SimSixDoFJoint extends YoSixDoFJoint implements SimJointBasics
    @Override
    public void setJointDeltaTwistToZero()
    {
-      jointDeltaTwist.setToZero();
+      jointAngularDeltaVelocity.setToZero();
    }
 
    @Override
@@ -99,28 +113,24 @@ public class SimSixDoFJoint extends YoSixDoFJoint implements SimJointBasics
    {
       // Cast to frameless object so we don't perform frame checks which would automatically fail.
       Vector3DReadOnly otherAngularDeltaVelocity = other.getJointDeltaTwist().getAngularPart();
-      Vector3DReadOnly otherLinearDeltaVelocity = other.getJointDeltaTwist().getLinearPart();
-
       setJointAngularDeltaVelocity(otherAngularDeltaVelocity);
-      setJointLinearDeltaVelocity(otherLinearDeltaVelocity);
    }
 
    @Override
    public int setJointDeltaVelocity(int rowStart, DMatrix matrix)
    {
-      getJointTwist().set(rowStart, matrix);
+      jointAngularDeltaVelocity.set(rowStart, matrix);
       return rowStart + getDegreesOfFreedom();
    }
 
    @Override
    public void setJointAngularDeltaVelocity(Vector3DReadOnly jointAngularDeltaVelocity)
    {
-      getJointDeltaTwist().getAngularPart().set(jointAngularDeltaVelocity);
+      this.jointAngularDeltaVelocity.set(jointAngularDeltaVelocity);
    }
 
    @Override
    public void setJointLinearDeltaVelocity(Vector3DReadOnly jointLinearDeltaVelocity)
    {
-      getJointDeltaTwist().getLinearPart().set(jointLinearDeltaVelocity);
    }
 }

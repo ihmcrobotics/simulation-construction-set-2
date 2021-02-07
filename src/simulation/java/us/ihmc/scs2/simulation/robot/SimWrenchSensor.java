@@ -10,15 +10,16 @@ public class SimWrenchSensor extends SimSensor
 {
    private final YoFixedFrameWrench wrench;
 
-   public SimWrenchSensor(WrenchSensorDefinition definition, SimJointBasics parentJoint, YoRegistry registry)
+   public SimWrenchSensor(WrenchSensorDefinition definition, SimJointBasics parentJoint)
    {
-      this(definition.getName(), parentJoint, definition.getTransformToJoint(), registry);
+      this(definition.getName(), parentJoint, definition.getTransformToJoint());
    }
 
-   public SimWrenchSensor(String name, SimJointBasics parentJoint, RigidBodyTransformReadOnly transformToParent, YoRegistry registry)
+   public SimWrenchSensor(String name, SimJointBasics parentJoint, RigidBodyTransformReadOnly transformToParent)
    {
-      super(name, parentJoint, transformToParent, registry);
+      super(name, parentJoint, transformToParent);
 
+      YoRegistry registry = parentJoint.getRegistry();
       wrench = new YoFixedFrameWrench(parentJoint.getSuccessor().getBodyFixedFrame(),
                                       new YoFrameVector3D(name + "Moment", getFrame(), registry),
                                       new YoFrameVector3D(name + "Force", getFrame(), registry));

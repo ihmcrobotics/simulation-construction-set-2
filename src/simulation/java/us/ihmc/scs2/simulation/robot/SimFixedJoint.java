@@ -14,24 +14,32 @@ import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class SimFixedJoint extends FixedJoint implements SimJointBasics
 {
+   private final YoRegistry registry;
    private final SimJointAuxiliaryData auxiliaryData;
    private final TwistReadOnly jointDeltaTwist;
 
-   public SimFixedJoint(FixedJointDefinition definition, SimRigidBody predecessor, YoRegistry registry)
+   public SimFixedJoint(FixedJointDefinition definition, SimRigidBodyBasics predecessor)
    {
-      this(definition.getName(), predecessor, definition.getTransformToParent(), registry);
+      this(definition.getName(), predecessor, definition.getTransformToParent());
    }
 
-   public SimFixedJoint(String name, SimRigidBody predecessor, YoRegistry registry)
+   public SimFixedJoint(String name, SimRigidBodyBasics predecessor)
    {
-      this(name, predecessor, null, registry);
+      this(name, predecessor, null);
    }
 
-   public SimFixedJoint(String name, SimRigidBody predecessor, RigidBodyTransformReadOnly transformToParent, YoRegistry registry)
+   public SimFixedJoint(String name, SimRigidBodyBasics predecessor, RigidBodyTransformReadOnly transformToParent)
    {
       super(name, predecessor, transformToParent);
-      auxiliaryData = new SimJointAuxiliaryData(this, registry);
+      registry = predecessor.getRegistry();
+      auxiliaryData = new SimJointAuxiliaryData(this);
       jointDeltaTwist = new Twist(jointFrame, jointFrame, jointFrame);
+   }
+
+   @Override
+   public YoRegistry getRegistry()
+   {
+      return registry;
    }
 
    @Override
@@ -43,22 +51,22 @@ public class SimFixedJoint extends FixedJoint implements SimJointBasics
    @Override
    public void setSuccessor(RigidBodyBasics successor)
    {
-      if (successor instanceof SimRigidBody)
+      if (successor instanceof SimRigidBodyBasics)
          super.setSuccessor(successor);
       else
-         throw new IllegalArgumentException("Can only set a " + SimRigidBody.class.getSimpleName() + " as successor of a " + getClass().getSimpleName());
+         throw new IllegalArgumentException("Can only set a " + SimRigidBodyBasics.class.getSimpleName() + " as successor of a " + getClass().getSimpleName());
    }
 
    @Override
-   public SimRigidBody getPredecessor()
+   public SimRigidBodyBasics getPredecessor()
    {
-      return (SimRigidBody) super.getPredecessor();
+      return (SimRigidBodyBasics) super.getPredecessor();
    }
 
    @Override
-   public SimRigidBody getSuccessor()
+   public SimRigidBodyBasics getSuccessor()
    {
-      return (SimRigidBody) super.getSuccessor();
+      return (SimRigidBodyBasics) super.getSuccessor();
    }
 
    @Override

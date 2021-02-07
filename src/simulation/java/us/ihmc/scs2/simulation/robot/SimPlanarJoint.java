@@ -16,23 +16,25 @@ import us.ihmc.yoVariables.variable.YoDouble;
 
 public class SimPlanarJoint extends YoPlanarJoint implements SimJointBasics
 {
+   private final YoRegistry registry;
    private final SimJointAuxiliaryData auxiliaryData;
    private final FixedFrameTwistBasics jointDeltaTwist;
 
-   public SimPlanarJoint(PlanarJointDefinition definition, SimRigidBody predecessor, YoRegistry registry)
+   public SimPlanarJoint(PlanarJointDefinition definition, SimRigidBodyBasics predecessor)
    {
-      this(definition.getName(), predecessor, definition.getTransformToParent(), registry);
+      this(definition.getName(), predecessor, definition.getTransformToParent());
    }
 
-   public SimPlanarJoint(String name, SimRigidBody predecessor, YoRegistry registry)
+   public SimPlanarJoint(String name, SimRigidBodyBasics predecessor)
    {
-      this(name, predecessor, null, registry);
+      this(name, predecessor, null);
    }
 
-   public SimPlanarJoint(String name, SimRigidBody predecessor, RigidBodyTransformReadOnly transformToParent, YoRegistry registry)
+   public SimPlanarJoint(String name, SimRigidBodyBasics predecessor, RigidBodyTransformReadOnly transformToParent)
    {
-      super(name, predecessor, transformToParent, registry);
-      auxiliaryData = new SimJointAuxiliaryData(this, registry);
+      super(name, predecessor, transformToParent, predecessor.getRegistry());
+      registry = predecessor.getRegistry();
+      auxiliaryData = new SimJointAuxiliaryData(this);
 
       YoDouble angularDeltaVelocityY = new YoDouble(name + "AngularDeltaVelocityY", registry);
       YoDouble linearDeltaVelocityX = new YoDouble(name + "LinearDeltaVelocityX", registry);
@@ -46,6 +48,12 @@ public class SimPlanarJoint extends YoPlanarJoint implements SimJointBasics
    }
 
    @Override
+   public YoRegistry getRegistry()
+   {
+      return registry;
+   }
+
+   @Override
    public SimJointAuxiliaryData getAuxialiryData()
    {
       return auxiliaryData;
@@ -54,22 +62,22 @@ public class SimPlanarJoint extends YoPlanarJoint implements SimJointBasics
    @Override
    public void setSuccessor(RigidBodyBasics successor)
    {
-      if (successor instanceof SimRigidBody)
+      if (successor instanceof SimRigidBodyBasics)
          super.setSuccessor(successor);
       else
-         throw new IllegalArgumentException("Can only set a " + SimRigidBody.class.getSimpleName() + " as successor of a " + getClass().getSimpleName());
+         throw new IllegalArgumentException("Can only set a " + SimRigidBodyBasics.class.getSimpleName() + " as successor of a " + getClass().getSimpleName());
    }
 
    @Override
-   public SimRigidBody getPredecessor()
+   public SimRigidBodyBasics getPredecessor()
    {
-      return (SimRigidBody) super.getPredecessor();
+      return (SimRigidBodyBasics) super.getPredecessor();
    }
 
    @Override
-   public SimRigidBody getSuccessor()
+   public SimRigidBodyBasics getSuccessor()
    {
-      return (SimRigidBody) super.getSuccessor();
+      return (SimRigidBodyBasics) super.getSuccessor();
    }
 
    @Override

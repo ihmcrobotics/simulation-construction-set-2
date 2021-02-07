@@ -13,15 +13,16 @@ public class SimIMUSensor extends SimSensor
    private final YoFrameVector3D angularVelocity;
    private final YoFrameVector3D linearAcceleration;
 
-   public SimIMUSensor(IMUSensorDefinition definition, SimJointBasics parentJoint, YoRegistry registry)
+   public SimIMUSensor(IMUSensorDefinition definition, SimJointBasics parentJoint)
    {
-      this(definition.getName(), parentJoint, definition.getTransformToJoint(), registry);
+      this(definition.getName(), parentJoint, definition.getTransformToJoint());
    }
 
-   public SimIMUSensor(String name, SimJointBasics parentJoint, RigidBodyTransformReadOnly transformToParent, YoRegistry registry)
+   public SimIMUSensor(String name, SimJointBasics parentJoint, RigidBodyTransformReadOnly transformToParent)
    {
-      super(name, parentJoint, transformToParent, registry);
+      super(name, parentJoint, transformToParent);
       ReferenceFrame rootFrame = parentJoint.getFrameAfterJoint().getRootFrame();
+      YoRegistry registry = parentJoint.getRegistry();
       orientation = new YoFrameQuaternion(name + "Orientation", rootFrame, registry);
       angularVelocity = new YoFrameVector3D(name + "AngularVelocity", getFrame(), registry);
       linearAcceleration = new YoFrameVector3D(name + "LinearAcceleration", getFrame(), registry);

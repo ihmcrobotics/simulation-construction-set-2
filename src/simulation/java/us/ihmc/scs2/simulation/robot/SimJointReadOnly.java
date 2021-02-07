@@ -12,9 +12,12 @@ import us.ihmc.mecano.multiBodySystem.iterators.JointIterable;
 import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
 import us.ihmc.mecano.spatial.interfaces.TwistBasics;
 import us.ihmc.mecano.spatial.interfaces.TwistReadOnly;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public interface SimJointReadOnly extends JointReadOnly
 {
+   YoRegistry getRegistry();
+
    @Override
    SimRigidBodyReadOnly getPredecessor();
 

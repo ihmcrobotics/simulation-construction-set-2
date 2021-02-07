@@ -13,16 +13,16 @@ import org.junit.jupiter.api.Test;
 
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
 import us.ihmc.mecano.algorithms.ForwardDynamicsCalculator;
-import us.ihmc.mecano.multiBodySystem.RevoluteJoint;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
-import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.tools.JointStateType;
-import us.ihmc.mecano.tools.MultiBodySystemRandomTools;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.scs2.simulation.physicsEngine.ConstraintParameters;
 import us.ihmc.scs2.simulation.physicsEngine.RobotJointLimitImpulseBasedCalculator;
 import us.ihmc.scs2.simulation.physicsEngine.RobotJointLimitImpulseBasedCalculator.ActiveLimit;
+import us.ihmc.scs2.simulation.robot.SimJointStateType;
+import us.ihmc.scs2.simulation.robot.SimRevoluteJoint;
+import us.ihmc.scs2.simulation.robot.SimRigidBodyBasics;
 
 public class RobotJointLimitImpulseBasedCalculatorTest
 {
@@ -37,13 +37,13 @@ public class RobotJointLimitImpulseBasedCalculatorTest
       {
          double dt = random.nextDouble();
          int numberOfJoints = 20;
-         List<RevoluteJoint> joints = MultiBodySystemRandomTools.nextRevoluteJointChain(random, numberOfJoints);
-         for (JointStateType state : JointStateType.values())
-            MultiBodySystemRandomTools.nextState(random, state, joints);
+         List<SimRevoluteJoint> joints = SimMultiBodySystemRandomTools.nextRevoluteJointChain(random, numberOfJoints);
+         for (SimJointStateType state : SimJointStateType.values())
+            SimMultiBodySystemRandomTools.nextState(random, state, joints);
 
          int jointIndex = random.nextInt(numberOfJoints);
-         RevoluteJoint joint = joints.get(jointIndex);
-         RigidBodyBasics rootBody = MultiBodySystemTools.getRootBody(joint.getPredecessor());
+         SimRevoluteJoint joint = joints.get(jointIndex);
+         SimRigidBodyBasics rootBody = (SimRigidBodyBasics) MultiBodySystemTools.getRootBody(joint.getPredecessor());
          ForwardDynamicsCalculator forwardDynamicsCalculator = new ForwardDynamicsCalculator(rootBody);
          forwardDynamicsCalculator.compute();
 
@@ -100,22 +100,22 @@ public class RobotJointLimitImpulseBasedCalculatorTest
       {
          double dt = random.nextDouble();
          int numberOfJoints = 20;
-         List<RevoluteJoint> joints = MultiBodySystemRandomTools.nextRevoluteJointChain(random, numberOfJoints);
-         for (JointStateType state : JointStateType.values())
-            MultiBodySystemRandomTools.nextState(random, state, joints);
+         List<SimRevoluteJoint> joints = SimMultiBodySystemRandomTools.nextRevoluteJointChain(random, numberOfJoints);
+         for (SimJointStateType state : SimJointStateType.values())
+            SimMultiBodySystemRandomTools.nextState(random, state, joints);
 
-         RigidBodyBasics rootBody = MultiBodySystemTools.getRootBody(joints.get(0).getPredecessor());
+         SimRigidBodyBasics rootBody = (SimRigidBodyBasics) MultiBodySystemTools.getRootBody(joints.get(0).getPredecessor());
          ForwardDynamicsCalculator forwardDynamicsCalculator = new ForwardDynamicsCalculator(rootBody);
          forwardDynamicsCalculator.compute();
 
          int numberOfJointsToPutAtLimit = random.nextInt(numberOfJoints);
 
-         List<RevoluteJoint> jointPool = new ArrayList<>(joints);
+         List<SimRevoluteJoint> jointPool = new ArrayList<>(joints);
 
          for (int j = 0; j < numberOfJointsToPutAtLimit; j++)
          {
             int jointIndex = random.nextInt(jointPool.size());
-            RevoluteJoint joint = jointPool.remove(jointIndex);
+            SimRevoluteJoint joint = jointPool.remove(jointIndex);
             double jointLimitLower, jointLimitUpper;
 
             double q = joint.getQ();
