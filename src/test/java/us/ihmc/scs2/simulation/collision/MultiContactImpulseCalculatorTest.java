@@ -71,8 +71,8 @@ public class MultiContactImpulseCalculatorTest
 
          Robot robotA = nextSingleFloatingBodyRobot(random, "blopA");
          Robot robotB = nextSingleFloatingBodyRobot(random, "blopB");
-         robotA.getRobotPhysics().getForwardDynamicsPlugin().doScience(0.0, dt, gravity);
-         robotB.getRobotPhysics().getForwardDynamicsPlugin().doScience(0.0, dt, gravity);
+         robotA.getRobotPhysics().doForwardDynamics(gravity);
+         robotB.getRobotPhysics().doForwardDynamics(gravity);
          SimRigidBodyBasics rootA = robotA.getRootBody();
          SimRigidBodyBasics rootB = robotB.getRootBody();
          SimRigidBodyBasics bodyA = robotA.getRigidBody("blopABody");
@@ -93,7 +93,6 @@ public class MultiContactImpulseCalculatorTest
                                                                                                      .collect(Collectors.toMap(Entry::getKey,
                                                                                                                                e -> e.getValue()
                                                                                                                                      .getRobotPhysics()
-                                                                                                                                     .getForwardDynamicsPlugin()
                                                                                                                                      .getForwardDynamicsCalculator()));
 
          Map<CollisionResult, FrameVector3D> contactLinearVelocitiesNoImpulse = predictContactVelocity(dt,

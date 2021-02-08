@@ -157,12 +157,10 @@ public class PhysicsEngine
          robot.getRobotPhysics().updateCollidableBoundingBoxes();
       }
 
-      for (Robot robot : robotMap.values())
+      for (Robot robot : robotList)
       {
-         SingleRobotForwardDynamicsPlugin forwardDynamicsPlugin = robot.getRobotPhysics().getForwardDynamicsPlugin();
-         forwardDynamicsPlugin.resetExternalWrenches();
          robot.getControllerManager().writeControllerOutput(JointStateType.EFFORT);
-         forwardDynamicsPlugin.doScience(time.getValue(), dt, gravity);
+         robot.getRobotPhysics().doForwardDynamics(gravity);
       }
 
       environmentCollidables.forEach(collidable -> collidable.updateBoundingBox(inertialFrame));
@@ -208,16 +206,11 @@ public class PhysicsEngine
          impulseCalculator.applyJointVelocityChanges();
       }
 
-      for (Robot robot : robotMap.values())
+      for (Robot robot : robotList)
       {
-         SingleRobotForwardDynamicsPlugin forwardDynamicsPlugin = robot.getRobotPhysics().getForwardDynamicsPlugin();
-         forwardDynamicsPlugin.writeJointAccelerations();
+         robot.getRobotPhysics().writeJointAccelerations();
+         robot.getRobotPhysics().writeJointDeltaVelocities();
          robot.getRobotPhysics().integrateState(dt);
-      }
-
-      for (int i = 0; i < robotList.size(); i++)
-      {
-         Robot robot = robotList.get(i);
          robot.updateFrames();
       }
 

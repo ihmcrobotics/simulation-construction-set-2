@@ -288,8 +288,7 @@ public class MultiContactImpulseCalculator
          {
             RigidBodyBasics rootBody = calculator.getRootBody(i);
             RobotPhysics robotPhysics = robots.get(rootBody).getRobotPhysics();
-            DMatrixRMaj jointVelocityChange = calculator.getJointVelocityChange(i);
-            robotPhysics.addJointVelocityChange(jointVelocityChange);
+            robotPhysics.addJointVelocityChange(calculator.getJointVelocityChange(i));
          }
       }
    }

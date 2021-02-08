@@ -9,17 +9,21 @@ import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
 
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.mecano.algorithms.ForwardDynamicsCalculator;
 import us.ihmc.mecano.algorithms.interfaces.RigidBodyTwistProvider;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.scs2.simulation.collision.Collidable;
 import us.ihmc.scs2.simulation.collision.FrameShapePosePredictor;
 import us.ihmc.scs2.simulation.physicsEngine.RobotJointLimitImpulseBasedCalculator;
 import us.ihmc.scs2.simulation.physicsEngine.SingleContactImpulseCalculator;
-import us.ihmc.scs2.simulation.physicsEngine.SingleRobotForwardDynamicsPlugin;
 import us.ihmc.scs2.simulation.physicsEngine.YoRobotJointLimitImpulseBasedCalculator;
 import us.ihmc.scs2.simulation.physicsEngine.YoSingleContactImpulseCalculatorPool;
 import us.ihmc.scs2.simulation.screwTools.RigidBodyDeltaTwistCalculator;
+import us.ihmc.scs2.simulation.screwTools.SimJointStateType;
+import us.ihmc.scs2.simulation.screwTools.SimMultiBodySystemTools;
 import us.ihmc.scs2.simulation.screwTools.SingleRobotFirstOrderIntegrator;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
@@ -34,14 +38,14 @@ public class RobotPhysics
    private final YoRegistry interRobotContactCalculatorRegistry = new YoRegistry("InterRobot" + ContactCalculatorNameSuffix);
    private final YoRegistry selfContactCalculatorRegistry = new YoRegistry("Self" + ContactCalculatorNameSuffix);
 
-   private final DMatrixRMaj velocityChangeMatrix;
+   private final DMatrixRMaj jointDeltaVelocityMatrix;
    private final RigidBodyDeltaTwistCalculator rigidBodyTwistChangeCalculator;
    private final RigidBodyTwistProvider rigidBodyTwistChangeProvider;
 
    private final List<Collidable> collidables;
 
    // TODO Following fields are specific to the type of engine used, they need interfacing.
-   private final SingleRobotForwardDynamicsPlugin forwardDynamicsPlugin;
+   private final ForwardDynamicsCalculator forwardDynamicsCalculator;
    private final RobotJointLimitImpulseBasedCalculator jointLimitConstraintCalculator;
    private final YoSingleContactImpulseCalculatorPool environmentContactConstraintCalculatorPool;
    private final YoSingleContactImpulseCalculatorPool selfContactConstraintCalculatorPool;
@@ -54,28 +58,26 @@ public class RobotPhysics
       this.owner = owner;
       inertialFrame = owner.getInertialFrame();
 
-      velocityChangeMatrix = new DMatrixRMaj(MultiBodySystemTools.computeDegreesOfFreedom(owner.getAllJoints()), 1);
-      rigidBodyTwistChangeCalculator = new RigidBodyDeltaTwistCalculator(inertialFrame, owner.getJointMatrixIndexProvider(), velocityChangeMatrix);
+      jointDeltaVelocityMatrix = new DMatrixRMaj(MultiBodySystemTools.computeDegreesOfFreedom(owner.getAllJoints()), 1);
+      rigidBodyTwistChangeCalculator = new RigidBodyDeltaTwistCalculator(inertialFrame, owner.getJointMatrixIndexProvider(), jointDeltaVelocityMatrix);
       rigidBodyTwistChangeProvider = rigidBodyTwistChangeCalculator.getDeltaTwistProvider();
 
       SimRigidBody rootBody = owner.getRootBody();
       collidables = rootBody.subtreeStream().flatMap(body -> body.getCollidables().stream()).collect(Collectors.toList());
 
-      forwardDynamicsPlugin = new SingleRobotForwardDynamicsPlugin(owner);
-      FrameShapePosePredictor frameShapePosePredictor = new FrameShapePosePredictor(forwardDynamicsPlugin.getForwardDynamicsCalculator());
+      forwardDynamicsCalculator = new ForwardDynamicsCalculator(owner);
+      FrameShapePosePredictor frameShapePosePredictor = new FrameShapePosePredictor(forwardDynamicsCalculator);
       collidables.forEach(collidable -> collidable.setFrameShapePosePredictor(frameShapePosePredictor));
 
       YoRegistry jointLimitConstraintCalculatorRegistry = new YoRegistry(RobotJointLimitImpulseBasedCalculator.class.getSimpleName());
 
-      jointLimitConstraintCalculator = new YoRobotJointLimitImpulseBasedCalculator(rootBody,
-                                                                                   forwardDynamicsPlugin.getForwardDynamicsCalculator(),
-                                                                                   jointLimitConstraintCalculatorRegistry);
+      jointLimitConstraintCalculator = new YoRobotJointLimitImpulseBasedCalculator(rootBody, forwardDynamicsCalculator, jointLimitConstraintCalculatorRegistry);
 
       environmentContactConstraintCalculatorPool = new YoSingleContactImpulseCalculatorPool(20,
                                                                                             owner.getName() + "Single",
                                                                                             inertialFrame,
                                                                                             rootBody,
-                                                                                            forwardDynamicsPlugin.getForwardDynamicsCalculator(),
+                                                                                            forwardDynamicsCalculator,
                                                                                             null,
                                                                                             null,
                                                                                             environmentContactCalculatorRegistry);
@@ -84,9 +86,9 @@ public class RobotPhysics
                                                                                      owner.getName() + "Self",
                                                                                      inertialFrame,
                                                                                      rootBody,
-                                                                                     forwardDynamicsPlugin.getForwardDynamicsCalculator(),
+                                                                                     forwardDynamicsCalculator,
                                                                                      rootBody,
-                                                                                     forwardDynamicsPlugin.getForwardDynamicsCalculator(),
+                                                                                     forwardDynamicsCalculator,
                                                                                      selfContactCalculatorRegistry);
 
       integrator = new SingleRobotFirstOrderIntegrator();
@@ -97,18 +99,11 @@ public class RobotPhysics
       owner.getRegistry().addChild(selfContactCalculatorRegistry);
    }
 
-   public void setJointVelocityChange(DMatrixRMaj velocityChange)
-   {
-      if (velocityChange == null)
-         return;
-      velocityChangeMatrix.set(velocityChange);
-   }
-
    public void addJointVelocityChange(DMatrixRMaj velocityChange)
    {
       if (velocityChange == null)
          return;
-      CommonOps_DDRM.addEquals(velocityChangeMatrix, velocityChange);
+      CommonOps_DDRM.addEquals(jointDeltaVelocityMatrix, velocityChange);
    }
 
    public void updateCollidableBoundingBoxes()
@@ -121,14 +116,30 @@ public class RobotPhysics
       return collidables;
    }
 
-   public SingleRobotForwardDynamicsPlugin getForwardDynamicsPlugin()
+   public ForwardDynamicsCalculator getForwardDynamicsCalculator()
    {
-      return forwardDynamicsPlugin;
+      return forwardDynamicsCalculator;
+   }
+
+   public void doForwardDynamics(Vector3DReadOnly gravity)
+   {
+      forwardDynamicsCalculator.setGravitionalAcceleration(gravity);
+      forwardDynamicsCalculator.compute();
+   }
+
+   public void writeJointAccelerations()
+   {
+      MultiBodySystemTools.insertJointsState(owner.getJointsToConsider(), JointStateType.ACCELERATION, forwardDynamicsCalculator.getJointAccelerationMatrix());
+   }
+
+   public void writeJointDeltaVelocities()
+   {
+      SimMultiBodySystemTools.insertJointsState(owner.getJointsToConsider(), SimJointStateType.VELOCITY_CHANGE, jointDeltaVelocityMatrix);
    }
 
    public void integrateState(double dt)
    {
-      integrator.integrate(dt, velocityChangeMatrix, owner);
+      integrator.integrate(dt, owner);
    }
 
    public SingleRobotFirstOrderIntegrator getIntegrator()
@@ -138,7 +149,8 @@ public class RobotPhysics
 
    public void resetCalculators()
    {
-      velocityChangeMatrix.zero();
+      jointDeltaVelocityMatrix.zero();
+      forwardDynamicsCalculator.setExternalWrenchesToZero();
       rigidBodyTwistChangeCalculator.reset();
       environmentContactConstraintCalculatorPool.clear();
       selfContactConstraintCalculatorPool.clear();
@@ -175,9 +187,9 @@ public class RobotPhysics
                                                                 owner.getName() + otherRobot.getName() + "Dual",
                                                                 inertialFrame,
                                                                 owner.getRootBody(),
-                                                                forwardDynamicsPlugin.getForwardDynamicsCalculator(),
+                                                                forwardDynamicsCalculator,
                                                                 otherRobot.getRootBody(),
-                                                                otherRobot.getRobotPhysics().getForwardDynamicsPlugin().getForwardDynamicsCalculator(),
+                                                                otherRobot.getRobotPhysics().getForwardDynamicsCalculator(),
                                                                 interRobotContactCalculatorRegistry);
          interRobotContactConstraintCalculatorPools.put(otherRobot.getRootBody(), calculators);
       }
