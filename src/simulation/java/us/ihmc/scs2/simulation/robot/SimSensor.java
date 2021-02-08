@@ -43,7 +43,7 @@ public abstract class SimSensor
       };
    }
 
-   public void update()
+   public void update(RobotPhysicsOutput robotPhysicsOutput)
    {
       frame.update();
    }

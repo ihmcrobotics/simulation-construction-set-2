@@ -133,6 +133,14 @@ public class Robot implements SimMultiBodySystemBasics, CollidableHolder
       rootBody.updateFramesRecursively();
    }
 
+   public void updateSensors()
+   {
+      for (SimJointBasics joint : rootBody.childrenSubtreeIterable())
+      {
+         joint.getAuxialiryData().update(robotPhysics.getPhysicsOutput());
+      }
+   }
+
    @Override
    public List<Collidable> getCollidables()
    {

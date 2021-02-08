@@ -2,7 +2,10 @@ package us.ihmc.scs2.simulation.robot;
 
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
+import us.ihmc.mecano.algorithms.interfaces.RigidBodyAccelerationProvider;
+import us.ihmc.mecano.algorithms.interfaces.RigidBodyTwistProvider;
 import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
+import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePoint3D;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameQuaternion;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
 import us.ihmc.yoVariables.registry.YoRegistry;
@@ -29,12 +32,20 @@ public class SimIMUSensor extends SimSensor
    }
 
    @Override
-   public void update()
+   public void update(RobotPhysicsOutput robotPhysicsOutput)
    {
-      super.update();
+      super.update(robotPhysicsOutput);
       orientation.setFromReferenceFrame(getFrame());
       angularVelocity.set(getFrame().getTwistOfFrame().getAngularPart());
-      // TODO Linear acceleration
+
+      double dt = robotPhysicsOutput.getDT();
+      RigidBodyTwistProvider deltaTwistProvider = robotPhysicsOutput.getDeltaTwistProvider();
+      RigidBodyAccelerationProvider accelerationProvider = robotPhysicsOutput.getAccelerationProvider();
+      SimRigidBodyBasics body = getParentJoint().getSuccessor();
+      YoFramePoint3D bodyFixedPoint = getOffset().getPosition();
+      linearAcceleration.scaleAdd(1.0 / dt,
+                                  deltaTwistProvider.getLinearVelocityOfBodyFixedPoint(body, bodyFixedPoint),
+                                  accelerationProvider.getLinearAccelerationOfBodyFixedPoint(body, bodyFixedPoint));
    }
 
    public YoFrameQuaternion getOrientation()
