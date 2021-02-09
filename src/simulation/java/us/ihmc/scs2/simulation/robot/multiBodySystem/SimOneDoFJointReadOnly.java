@@ -1,4 +1,4 @@
-package us.ihmc.scs2.simulation.robot;
+package us.ihmc.scs2.simulation.robot.multiBodySystem;
 
 import org.ejml.data.DMatrix;
 

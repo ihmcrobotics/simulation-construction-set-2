@@ -10,8 +10,8 @@ import us.ihmc.mecano.multiBodySystem.interfaces.JointReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyReadOnly;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.mecano.spatial.interfaces.TwistReadOnly;
-import us.ihmc.scs2.simulation.robot.SimJointReadOnly;
-import us.ihmc.scs2.simulation.robot.SimRigidBodyReadOnly;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.SimJointReadOnly;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRigidBodyReadOnly;
 
 public class SimRigidBodyDeltaTwistCalculator implements Function<RigidBodyReadOnly, TwistReadOnly>
 {

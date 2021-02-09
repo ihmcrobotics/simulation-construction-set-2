@@ -1,4 +1,4 @@
-package us.ihmc.scs2.simulation.robot;
+package us.ihmc.scs2.simulation.robot.multiBodySystem;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -12,6 +12,7 @@ import us.ihmc.mecano.multiBodySystem.iterators.JointIterable;
 import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
 import us.ihmc.mecano.spatial.interfaces.TwistBasics;
 import us.ihmc.mecano.spatial.interfaces.TwistReadOnly;
+import us.ihmc.scs2.simulation.robot.SimJointAuxiliaryData;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
 public interface SimJointReadOnly extends JointReadOnly

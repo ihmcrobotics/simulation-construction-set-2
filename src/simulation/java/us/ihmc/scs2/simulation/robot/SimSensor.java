@@ -5,6 +5,7 @@ import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.mecano.frames.MovingReferenceFrame;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.scs2.definition.robot.SensorDefinition;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.SimJointBasics;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePoseUsingYawPitchRoll;
 
 public abstract class SimSensor

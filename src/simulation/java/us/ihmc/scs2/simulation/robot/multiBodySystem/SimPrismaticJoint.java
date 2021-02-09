@@ -1,4 +1,4 @@
-package us.ihmc.scs2.simulation.robot;
+package us.ihmc.scs2.simulation.robot.multiBodySystem;
 
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
@@ -8,12 +8,13 @@ import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.spatial.interfaces.TwistReadOnly;
 import us.ihmc.mecano.tools.MecanoFactories;
-import us.ihmc.mecano.yoVariables.multiBodySystem.YoRevoluteJoint;
-import us.ihmc.scs2.definition.robot.RevoluteJointDefinition;
+import us.ihmc.mecano.yoVariables.multiBodySystem.YoPrismaticJoint;
+import us.ihmc.scs2.definition.robot.PrismaticJointDefinition;
+import us.ihmc.scs2.simulation.robot.SimJointAuxiliaryData;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
-public class SimRevoluteJoint extends YoRevoluteJoint implements SimOneDoFJointBasics
+public class SimPrismaticJoint extends YoPrismaticJoint implements SimOneDoFJointBasics
 {
    private final YoRegistry registry;
    private final SimJointAuxiliaryData auxiliaryData;
@@ -21,22 +22,17 @@ public class SimRevoluteJoint extends YoRevoluteJoint implements SimOneDoFJointB
 
    private final TwistReadOnly jointDeltaTwist;
 
-   public SimRevoluteJoint(RevoluteJointDefinition definition, SimRigidBodyBasics predecessor)
+   public SimPrismaticJoint(PrismaticJointDefinition definition, SimRigidBodyBasics predecessor)
    {
       this(definition.getName(), predecessor, definition.getTransformToParent(), definition.getAxis());
    }
 
-   public SimRevoluteJoint(String name, SimRigidBodyBasics predecessor, Vector3DReadOnly jointAxis)
-   {
-      this(name, predecessor, (RigidBodyTransformReadOnly) null, jointAxis);
-   }
-
-   public SimRevoluteJoint(String name, SimRigidBodyBasics predecessor, Tuple3DReadOnly jointOffset, Vector3DReadOnly jointAxis)
+   public SimPrismaticJoint(String name, SimRigidBodyBasics predecessor, Tuple3DReadOnly jointOffset, Vector3DReadOnly jointAxis)
    {
       this(name, predecessor, new RigidBodyTransform(new Quaternion(), jointOffset), jointAxis);
    }
 
-   public SimRevoluteJoint(String name, SimRigidBodyBasics predecessor, RigidBodyTransformReadOnly transformToParent, Vector3DReadOnly jointAxis)
+   public SimPrismaticJoint(String name, SimRigidBodyBasics predecessor, RigidBodyTransformReadOnly transformToParent, Vector3DReadOnly jointAxis)
    {
       super(name, predecessor, transformToParent, jointAxis, predecessor.getRegistry());
       registry = predecessor.getRegistry();
@@ -93,12 +89,12 @@ public class SimRevoluteJoint extends YoRevoluteJoint implements SimOneDoFJointB
    @Override
    public void setJointAngularDeltaVelocity(Vector3DReadOnly jointAngularDeltaVelocity)
    {
-      setDeltaQd(getJointAxis().dot(jointAngularDeltaVelocity));
    }
 
    @Override
    public void setJointLinearDeltaVelocity(Vector3DReadOnly jointLinearDeltaVelocity)
    {
+      setDeltaQd(getJointAxis().dot(jointLinearDeltaVelocity));
    }
 
    @Override

@@ -24,6 +24,7 @@ import us.ihmc.scs2.simulation.physicsEngine.RobotJointLimitImpulseBasedCalculat
 import us.ihmc.scs2.simulation.physicsEngine.SingleContactImpulseCalculator;
 import us.ihmc.scs2.simulation.physicsEngine.YoRobotJointLimitImpulseBasedCalculator;
 import us.ihmc.scs2.simulation.physicsEngine.YoSingleContactImpulseCalculatorPool;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRigidBody;
 import us.ihmc.scs2.simulation.screwTools.RigidBodyDeltaTwistCalculator;
 import us.ihmc.scs2.simulation.screwTools.RigidBodyImpulseRegistry;
 import us.ihmc.scs2.simulation.screwTools.RigidBodyWrenchRegistry;

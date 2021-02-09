@@ -1,4 +1,4 @@
-package us.ihmc.scs2.simulation.robot;
+package us.ihmc.scs2.simulation.robot.multiBodySystem;
 
 import org.ejml.data.DMatrix;
 
@@ -10,6 +10,7 @@ import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.mecano.spatial.interfaces.TwistReadOnly;
 import us.ihmc.scs2.definition.robot.FixedJointDefinition;
+import us.ihmc.scs2.simulation.robot.SimJointAuxiliaryData;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class SimFixedJoint extends FixedJoint implements SimJointBasics
