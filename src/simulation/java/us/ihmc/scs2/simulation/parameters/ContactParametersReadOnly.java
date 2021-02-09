@@ -1,24 +1,15 @@
-package us.ihmc.scs2.simulation.physicsEngine;
+package us.ihmc.scs2.simulation.parameters;
 
 /**
- * Write and read interface for accessing/modifying a set of parameters used for resolving contacts
- * between pairs of collidables, see {@link ExperimentalPhysicsEngine}.
+ * Read-only interface for accessing a set of parameters used for resolving contacts between pairs
+ * of collidables, see {@link ExperimentalPhysicsEngine}.
  * 
  * @author Sylvain Bertrand
  */
-public interface ContactParametersBasics extends ContactParametersReadOnly, ConstraintParametersBasics
+public interface ContactParametersReadOnly extends ConstraintParametersReadOnly
 {
-   default void set(ContactParametersReadOnly other)
-   {
-      ConstraintParametersBasics.super.set(other);
-      setMinimumPenetration(other.getMinimumPenetration());
-      setCoefficientOfFriction(other.getCoefficientOfFriction());
-      setComputeFrictionMoment(other.getComputeFrictionMoment());
-      setCoulombMomentFrictionRatio(other.getCoulombMomentFrictionRatio());
-   }
-
    /**
-    * Sets the minimum distance by which two collidable should be penetrating each other before
+    * Returns the minimum distance by which two collidable should be penetrating each other before
     * resolving the contact.
     * <p>
     * Ideally the contact should be resolved when the collidables are touching. However, when only
@@ -28,12 +19,12 @@ public interface ContactParametersBasics extends ContactParametersReadOnly, Cons
     * estimating the normal.
     * </p>
     * 
-    * @param minimumPenetration the distance before resolving the contact, recommended ~1.0e-5.
+    * @return the minimum penetration distance before resolving the contact.
     */
-   void setMinimumPenetration(double minimumPenetration);
+   double getMinimumPenetration();
 
    /**
-    * Sets the coefficient of friction.
+    * Returns the value of the coefficient of friction.
     * <p>
     * Assuming the Coulomb friction model is used, the coefficient of friction <tt>&mu;</tt> defines
     * the relationship between normal contact force <tt>F<sub>n</sub></tt> and maximum achievable
@@ -56,22 +47,21 @@ public interface ContactParametersBasics extends ContactParametersReadOnly, Cons
     * Note that the same coefficient is used for both static and sliding contacts.
     * </p>
     * 
-    * @param coefficientOfFriction the coefficient of friction, recommended 0.7.
+    * @return the coefficient of friction.
     */
-   void setCoefficientOfFriction(double coefficientOfFriction);
+   double getCoefficientOfFriction();
 
    /**
-    * Sets whether a moment-impulse of friction should be calculated alongside the usual linear
+    * Returns whether a moment-impulse of friction should be calculated alongside the usual linear
     * impulse.
     * <p>
     * When enabled, only a moment around the normal axis of an active contact is computed with the goal
     * of canceling the angular velocity around the normal axis.
     * </p>
     * 
-    * @param computeFrictionMoment {@code true} to enable the friction moment calculation,
-    *                              {@code false} to disable it.
+    * @return {@code true} to enable the friction moment calculation, {@code false} to disable it.
     */
-   void setComputeFrictionMoment(boolean computeFrictionMoment);
+   boolean getComputeFrictionMoment();
 
    /**
     * When computing the moment-impulse of friction for a contact, then Coulomb friction is replaced by
@@ -87,11 +77,10 @@ public interface ContactParametersBasics extends ContactParametersReadOnly, Cons
     * the user.
     * <p>
     * In the current implementation of the solver, <tt>e<sub>x</sub> = e<sub>y</sub> = 1<tt> and only <tt>e<sub>zz</sub></tt>
-    * is the ratio set by this method.
+    * is the ratio returned by this method.
     * </p>
     * 
-    * @param coulombFrictionMomentRatio the value to use for <tt>e<sub>zz</sub></tt>, default is
-    *                                   {@code 0.3}.
+    * @return the value to use for <tt>e<sub>zz</sub></tt>, default is {@code 0.3}.
     */
-   void setCoulombMomentFrictionRatio(double coulombFrictionMomentRatio);
+   double getCoulombMomentFrictionRatio();
 }

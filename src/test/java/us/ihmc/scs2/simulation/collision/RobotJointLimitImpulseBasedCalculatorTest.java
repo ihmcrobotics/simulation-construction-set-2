@@ -17,7 +17,7 @@ import us.ihmc.mecano.multiBodySystem.interfaces.JointReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
 import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
-import us.ihmc.scs2.simulation.physicsEngine.ConstraintParameters;
+import us.ihmc.scs2.simulation.parameters.ConstraintParameters;
 import us.ihmc.scs2.simulation.physicsEngine.RobotJointLimitImpulseBasedCalculator;
 import us.ihmc.scs2.simulation.physicsEngine.RobotJointLimitImpulseBasedCalculator.ActiveLimit;
 import us.ihmc.scs2.simulation.robot.SimRevoluteJoint;

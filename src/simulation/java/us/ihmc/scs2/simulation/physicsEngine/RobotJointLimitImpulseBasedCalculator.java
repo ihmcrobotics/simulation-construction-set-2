@@ -16,6 +16,9 @@ import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.scs2.simulation.parameters.ConstraintParameters;
+import us.ihmc.scs2.simulation.parameters.ConstraintParametersBasics;
+import us.ihmc.scs2.simulation.parameters.ConstraintParametersReadOnly;
 
 public class RobotJointLimitImpulseBasedCalculator implements ImpulseBasedConstraintCalculator
 {

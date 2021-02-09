@@ -1,18 +1,30 @@
-package us.ihmc.scs2.simulation.physicsEngine;
+package us.ihmc.scs2.simulation.parameters;
 
 /**
- * Read-only interface for accessing a set of parameters used for resolving general constraints in
- * {@link ExperimentalPhysicsEngine}.
+ * Write and read interface for accessing/modifying a set of parameters used for resolving general
+ * constraints in {@link ExperimentalPhysicsEngine}.
  * <p>
  * Constraints can either be: robot joint limits or contact between two collidables.
  * </p>
  * 
  * @author Sylvain Bertrand
  */
-public interface ConstraintParametersReadOnly
+public interface ConstraintParametersBasics extends ConstraintParametersReadOnly
 {
    /**
-    * Returns the value of the coefficient of restitution.
+    * Performs deep copy of {@code other} into {@code this}.
+    * 
+    * @param other the other set of parameters. Not modified.
+    */
+   default void set(ConstraintParametersReadOnly other)
+   {
+      setCoefficientOfRestitution(other.getCoefficientOfRestitution());
+      setRestitutionThreshold(other.getRestitutionThreshold());
+      setErrorReductionParameter(other.getErrorReductionParameter());
+   }
+
+   /**
+    * Sets the coefficient of restitution.
     * <p>
     * When resolving a constraint with an impulse, the coefficient of restitution defines the relative
     * velocity post-impulse, see
@@ -31,24 +43,24 @@ public interface ConstraintParametersReadOnly
     * </ul>
     * </p>
     * 
-    * @return the coefficient of restitution.
+    * @param coefficientOfRestitution the coefficient of restitution.
     */
-   double getCoefficientOfRestitution();
+   void setCoefficientOfRestitution(double coefficientOfRestitution);
 
    /**
-    * Returns the velocity minimum threshold to enable restitution.
+    * Sets the velocity minimum threshold to enable restitution.
     * <p>
     * The threshold on the pre-impulse velocity, if it's magnitude is above the threshold, then the
     * coefficient of restitution is used to resolve the impact, if it is below a coefficient of
     * restitution of zero is used.
     * </p>
     * 
-    * @return the restitution threshold on the pre-impulse velocity magnitude.
+    * @param restitutionThreshold the restitution threshold on the pre-impulse velocity magnitude.
     */
-   double getRestitutionThreshold();
+   void setRestitutionThreshold(double restitutionThreshold);
 
    /**
-    * Returns the value of the error reduction parameter.
+    * Sets the error reduction parameter.
     * <p>
     * This parameter is inspired on the homonym in the Open Dynamics Engine, see
     * <a href="https://ode.org/ode-latest-userguide.html#sec_3_7"> ODE user guide</a>.
@@ -66,7 +78,7 @@ public interface ConstraintParametersReadOnly
     * </ul>
     * </p>
     * 
-    * @return the error reduction parameter.
+    * @param errorReductionParameter the error reduction parameter, recommended [0, 0.2].
     */
-   double getErrorReductionParameter();
+   void setErrorReductionParameter(double errorReductionParameter);
 }

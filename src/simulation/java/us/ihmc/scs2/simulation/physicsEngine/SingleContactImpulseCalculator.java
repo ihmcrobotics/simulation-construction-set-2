@@ -39,6 +39,9 @@ import us.ihmc.mecano.spatial.interfaces.TwistReadOnly;
 import us.ihmc.scs2.simulation.collision.Collidable;
 import us.ihmc.scs2.simulation.collision.CollisionResult;
 import us.ihmc.scs2.simulation.collision.PhysicsEngineTools;
+import us.ihmc.scs2.simulation.parameters.ContactParameters;
+import us.ihmc.scs2.simulation.parameters.ContactParametersBasics;
+import us.ihmc.scs2.simulation.parameters.ContactParametersReadOnly;
 
 /**
  * From <i>"Per-Contact Iteration Method for Solving Contact Dynamics"</i>
