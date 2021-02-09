@@ -216,6 +216,7 @@ public class PhysicsEngine
          robot.getRobotPhysics().writeJointDeltaVelocities();
          robot.getRobotPhysics().integrateState(dt);
          robot.updateFrames();
+         robot.updateSensors();
       }
 
       time.add(dt);
