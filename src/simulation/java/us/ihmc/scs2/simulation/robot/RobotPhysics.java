@@ -111,6 +111,18 @@ public class RobotPhysics
       owner.getRegistry().addChild(selfContactCalculatorRegistry);
    }
 
+   public void resetCalculators()
+   {
+      jointDeltaVelocityMatrix.zero();
+      forwardDynamicsCalculator.setExternalWrenchesToZero();
+      rigidBodyDeltaTwistCalculator.reset();
+      rigidBodyWrenchRegistry.reset();
+      rigidBodyImpulseRegistry.reset();
+      environmentContactConstraintCalculatorPool.clear();
+      selfContactConstraintCalculatorPool.clear();
+      interRobotContactConstraintCalculatorPools.forEach((rigidBodyBasics, calculators) -> calculators.clear());
+   }
+
    public void addJointVelocityChange(DMatrixRMaj velocityChange)
    {
       if (velocityChange == null)
@@ -168,18 +180,6 @@ public class RobotPhysics
    public RobotPhysicsOutput getPhysicsOutput()
    {
       return physicsOutput;
-   }
-
-   public void resetCalculators()
-   {
-      jointDeltaVelocityMatrix.zero();
-      forwardDynamicsCalculator.setExternalWrenchesToZero();
-      rigidBodyDeltaTwistCalculator.reset();
-      rigidBodyWrenchRegistry.reset();
-      rigidBodyImpulseRegistry.reset();
-      environmentContactConstraintCalculatorPool.clear();
-      selfContactConstraintCalculatorPool.clear();
-      interRobotContactConstraintCalculatorPools.forEach((rigidBodyBasics, calculators) -> calculators.clear());
    }
 
    public RobotJointLimitImpulseBasedCalculator getJointLimitConstraintCalculator()

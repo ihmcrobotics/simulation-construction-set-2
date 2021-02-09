@@ -279,7 +279,7 @@ public class MultiContactImpulseCalculator
       robotCalculatorsOutput.forEach(output -> jointVelocityChangeConsumer.accept(output.get()));
    }
 
-   public void applyJointVelocityChanges()
+   public void writeJointDeltaVelocities()
    {
       for (ImpulseBasedConstraintCalculator calculator : allCalculators)
       {
@@ -295,9 +295,20 @@ public class MultiContactImpulseCalculator
       }
    }
 
-   public void readExternalWrenches(double dt, List<ExternalWrenchReader> externalWrenchReaders)
+   public void writeImpulses()
    {
-      contactCalculators.forEach(calculator -> calculator.readExternalWrench(dt, externalWrenchReaders));
+      for (SingleContactImpulseCalculator calculator : contactCalculators)
+      {
+         if (!calculator.isConstraintActive())
+            continue;
+
+         for (int i = 0; i < calculator.getNumberOfRobotsInvolved(); i++)
+         {
+            RigidBodyBasics rootBody = calculator.getRootBody(i);
+            RobotPhysics robotPhysics = robots.get(rootBody).getRobotPhysics();
+            robotPhysics.addRigidBodyExternalImpulse(calculator.getRigidBodyTargets().get(i), calculator.getImpulse(i));
+         }
+      }
    }
 
    public double getAlphaMin()

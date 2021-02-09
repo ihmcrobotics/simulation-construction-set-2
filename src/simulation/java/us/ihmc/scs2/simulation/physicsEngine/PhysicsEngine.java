@@ -207,7 +207,8 @@ public class PhysicsEngine
       for (MultiContactImpulseCalculator impulseCalculator : impulseCalculators)
       {
          impulseCalculator.computeImpulses(time.getValue(), dt, false);
-         impulseCalculator.applyJointVelocityChanges();
+         impulseCalculator.writeJointDeltaVelocities();
+         impulseCalculator.writeImpulses();
       }
 
       for (Robot robot : robotList)

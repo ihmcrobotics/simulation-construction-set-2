@@ -30,7 +30,6 @@ import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyReadOnly;
 import us.ihmc.mecano.spatial.SpatialImpulse;
 import us.ihmc.mecano.spatial.SpatialVector;
 import us.ihmc.mecano.spatial.Twist;
-import us.ihmc.mecano.spatial.Wrench;
 import us.ihmc.mecano.spatial.interfaces.SpatialAccelerationReadOnly;
 import us.ihmc.mecano.spatial.interfaces.SpatialImpulseReadOnly;
 import us.ihmc.mecano.spatial.interfaces.SpatialVectorBasics;
@@ -584,29 +583,6 @@ public class SingleContactImpulseCalculator implements ImpulseBasedConstraintCal
       }
    }
 
-   public void readExternalWrench(double dt, List<ExternalWrenchReader> externalWrenchReaders)
-   {
-      externalWrenchReaders.forEach(reader -> readExternalWrench(dt, reader));
-   }
-
-   public void readExternalWrench(double dt, ExternalWrenchReader externalWrenchReader)
-   {
-      Wrench externalWrenchA = new Wrench();
-      externalWrenchA.setIncludingFrame(impulseA.getBodyFrame(), impulseA);
-      externalWrenchA.scale(1.0 / dt);
-      externalWrenchA.changeFrame(bodyFrameA);
-      externalWrenchReader.readExternalWrench(contactingBodyA, externalWrenchA);
-
-      if (rootB != null)
-      {
-         Wrench externalWrenchB = new Wrench();
-         externalWrenchB.setIncludingFrame(impulseB.getBodyFrame(), impulseB);
-         externalWrenchB.scale(1.0 / dt);
-         externalWrenchB.changeFrame(bodyFrameB);
-         externalWrenchReader.readExternalWrench(contactingBodyB, externalWrenchB);
-      }
-   }
-
    @Override
    public double getImpulseUpdate()
    {
@@ -705,6 +681,11 @@ public class SingleContactImpulseCalculator implements ImpulseBasedConstraintCal
          return null;
 
       return responseCalculatorB.propagateImpulse();
+   }
+
+   public SpatialImpulseReadOnly getImpulse(int index)
+   {
+      return index == 0 ? getImpulseA() : getImpulseB();
    }
 
    public SpatialImpulseReadOnly getImpulseA()
