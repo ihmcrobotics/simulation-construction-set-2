@@ -1,10 +1,11 @@
-package us.ihmc.scs2.simulation.robot;
+package us.ihmc.scs2.simulation.robot.sensors;
 
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.mecano.frames.MovingReferenceFrame;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.scs2.definition.robot.SensorDefinition;
+import us.ihmc.scs2.simulation.robot.RobotPhysicsOutput;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimJointBasics;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePoseUsingYawPitchRoll;
 

@@ -1,10 +1,11 @@
-package us.ihmc.scs2.simulation.robot;
+package us.ihmc.scs2.simulation.robot.sensors;
 
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.mecano.algorithms.interfaces.RigidBodyAccelerationProvider;
 import us.ihmc.mecano.algorithms.interfaces.RigidBodyTwistProvider;
 import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
+import us.ihmc.scs2.simulation.robot.RobotPhysicsOutput;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimJointBasics;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRigidBodyBasics;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePoint3D;
