@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.MultiBodySystemBasics;
+import us.ihmc.mecano.tools.MultiBodySystemTools;
 
 public interface MultiBodySystemStateWriter
 {
@@ -40,7 +41,7 @@ public interface MultiBodySystemStateWriter
          @Override
          public void setMultiBodySystem(MultiBodySystemBasics multiBodySystem)
          {
-            joint = (T) RobotCollisionModel.findJoint(jointName, multiBodySystem);
+            joint = (T) MultiBodySystemTools.findJoint(multiBodySystem.getRootBody(), jointName);
          }
       };
    }

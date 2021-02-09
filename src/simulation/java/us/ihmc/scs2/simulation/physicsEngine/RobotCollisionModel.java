@@ -4,9 +4,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
-import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.MultiBodySystemBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.scs2.simulation.collision.Collidable;
 
 /**
@@ -35,18 +35,8 @@ public interface RobotCollisionModel
     */
    List<Collidable> getRobotCollidables(MultiBodySystemBasics multiBodySystem);
 
-   static RigidBodyBasics findRigidBody(String name, MultiBodySystemBasics multiBodySystem)
-   {
-      return multiBodySystem.getRootBody().subtreeStream().filter(body -> body.getName().equals(name)).findAny().orElse(null);
-   }
-
-   static JointBasics findJoint(String name, MultiBodySystemBasics multiBodySystem)
-   {
-      return multiBodySystem.getAllJoints().stream().filter(joint -> joint.getName().equals(name)).findAny().orElse(null);
-   }
-
    public static RobotCollisionModel singleBodyCollisionModel(String bodyName, Function<RigidBodyBasics, Collidable> collidableBuilder)
    {
-      return multiBodySystem -> Collections.singletonList(collidableBuilder.apply(findRigidBody(bodyName, multiBodySystem)));
+      return multiBodySystem -> Collections.singletonList(collidableBuilder.apply(MultiBodySystemTools.findRigidBody(multiBodySystem.getRootBody(), bodyName)));
    }
 }
