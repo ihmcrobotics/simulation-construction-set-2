@@ -29,7 +29,7 @@ public class SimRigidBody extends RigidBody implements SimRigidBodyBasics
 
    public SimRigidBody(String bodyName, ReferenceFrame parentStationaryFrame, YoRegistry registry)
    {
-      this(bodyName, null, parentStationaryFrame, registry);
+      this(bodyName, new RigidBodyTransform(), parentStationaryFrame, registry);
    }
 
    public SimRigidBody(String bodyName, RigidBodyTransformReadOnly transformToParent, ReferenceFrame parentStationaryFrame, YoRegistry registry)
