@@ -10,7 +10,9 @@ import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.matrix.interfaces.Matrix3DReadOnly;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.transform.interfaces.Transform;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DBasics;
 import us.ihmc.mecano.multiBodySystem.RigidBody;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
@@ -68,6 +70,16 @@ public class RigidBodyDefinition implements Transformable
    public Matrix3D getMomentOfInertia()
    {
       return momentOfInertia;
+   }
+
+   public void setInertiaPose(RigidBodyTransformReadOnly inertiaPose)
+   {
+      this.inertiaPose.set(inertiaPose);
+   }
+
+   public void setCenterOfMassOffset(Tuple3DReadOnly centerOfMassOffset)
+   {
+      inertiaPose.getTranslation().set(centerOfMassOffset);
    }
 
    public RigidBodyTransform getInertiaPose()
