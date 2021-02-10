@@ -1,4 +1,4 @@
-package us.ihmc.scs2.examples.ball;
+package us.ihmc.scs2.examples.simulations;
 
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;

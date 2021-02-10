@@ -1,4 +1,4 @@
-package us.ihmc.scs2.examples.mobile;
+package us.ihmc.scs2.examples.simulations;
 
 import java.util.HashMap;
 import java.util.Map;

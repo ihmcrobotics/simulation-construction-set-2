@@ -1,4 +1,4 @@
-package us.ihmc.scs2.examples.mobile;
+package us.ihmc.scs2.examples.simulations;
 
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizer;
 import us.ihmc.scs2.simulation.SimulationSession;
