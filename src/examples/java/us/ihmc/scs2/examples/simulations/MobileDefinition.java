@@ -13,14 +13,14 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.scs2.definition.controller.implementations.ControllerCollectionDefinition;
 import us.ihmc.scs2.definition.controller.implementations.OneDoFJointDampingControllerDefinition;
-import us.ihmc.scs2.definition.geometry.BoxGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.ConeGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.CylinderGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.EllipsoidGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.GenTruncatedConeGeometryDefinition;
+import us.ihmc.scs2.definition.geometry.Box3DDefinition;
+import us.ihmc.scs2.definition.geometry.Cone3DDefinition;
+import us.ihmc.scs2.definition.geometry.Cylinder3DDefinition;
+import us.ihmc.scs2.definition.geometry.Ellipsoid3DDefinition;
+import us.ihmc.scs2.definition.geometry.TruncatedCone3DDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
-import us.ihmc.scs2.definition.geometry.HemiEllipsoidGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.SphereGeometryDefinition;
+import us.ihmc.scs2.definition.geometry.HemiEllipsoid3DDefinition;
+import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
 import us.ihmc.scs2.definition.robot.JointDefinition;
 import us.ihmc.scs2.definition.robot.OneDoFJointDefinition;
 import us.ihmc.scs2.definition.robot.RevoluteJointDefinition;
@@ -172,10 +172,10 @@ public class MobileDefinition extends RobotDefinition
 
       MaterialDefinition redMaterial = new MaterialDefinition(ColorDefinitions.Red());
       MaterialDefinition blackMaterial = new MaterialDefinition(ColorDefinitions.Black());
-      GeometryDefinition sphere1 = new SphereGeometryDefinition(R1);
-      GeometryDefinition sphere2 = new SphereGeometryDefinition(radius);
-      GeometryDefinition cylinder1 = new CylinderGeometryDefinition(0.5 * length, radius);
-      GeometryDefinition cylinder2 = new CylinderGeometryDefinition(2.0 * length, radius);
+      GeometryDefinition sphere1 = new Sphere3DDefinition(R1);
+      GeometryDefinition sphere2 = new Sphere3DDefinition(radius);
+      GeometryDefinition cylinder1 = new Cylinder3DDefinition(0.5 * length, radius);
+      GeometryDefinition cylinder2 = new Cylinder3DDefinition(2.0 * length, radius);
 
       RigidBodyTransform verticalBarPose = new RigidBodyTransform(new AxisAngle(), new Vector3D(0.0, 0.0, -0.25 * length));
       RigidBodyTransform crossBarCenter1 = new RigidBodyTransform(new AxisAngle(Axis3D.X, 0.5 * Math.PI), new Vector3D(0.0, 0.0, -0.5 * length));
@@ -215,7 +215,7 @@ public class MobileDefinition extends RobotDefinition
 
       RigidBodyTransform barVisualPose = new RigidBodyTransform();
       barVisualPose.getTranslation().setZ(-stringLength / 2.0);
-      GeometryDefinition barGeometryDefinition = new CylinderGeometryDefinition(stringLength, R3);
+      GeometryDefinition barGeometryDefinition = new Cylinder3DDefinition(stringLength, R3);
       toyRigidbody.addVisualDefinition(new VisualDefinition(barVisualPose, barGeometryDefinition, new MaterialDefinition(ColorDefinitions.Black())));
 
       int toySelection = (int) (Math.random() * 7.0);
@@ -224,26 +224,26 @@ public class MobileDefinition extends RobotDefinition
       switch (toySelection)
       {
          case 0:
-            toyGeometryDefinition = new SphereGeometryDefinition(TOY_R);
+            toyGeometryDefinition = new Sphere3DDefinition(TOY_R);
             break;
          case 1:
-            toyGeometryDefinition = new CylinderGeometryDefinition(TOY_H, TOY_R);
+            toyGeometryDefinition = new Cylinder3DDefinition(TOY_H, TOY_R);
             break;
          case 2:
-            toyGeometryDefinition = new BoxGeometryDefinition(TOY_L, TOY_W, TOY_H);
+            toyGeometryDefinition = new Box3DDefinition(TOY_L, TOY_W, TOY_H);
             break;
          case 3:
-            toyGeometryDefinition = new ConeGeometryDefinition(TOY_H, TOY_R);
+            toyGeometryDefinition = new Cone3DDefinition(TOY_H, TOY_R);
             break;
          case 4:
-            toyGeometryDefinition = new EllipsoidGeometryDefinition(TOY_L, TOY_W, TOY_H);
+            toyGeometryDefinition = new Ellipsoid3DDefinition(TOY_L, TOY_W, TOY_H);
             break;
          case 5:
-            toyGeometryDefinition = new HemiEllipsoidGeometryDefinition(TOY_L, TOY_W, TOY_H);
+            toyGeometryDefinition = new HemiEllipsoid3DDefinition(TOY_L, TOY_W, TOY_H);
             break;
          case 6:
          default:
-            toyGeometryDefinition = new GenTruncatedConeGeometryDefinition(TOY_H, TOY_L, TOY_W, TOY_W, TOY_L);
+            toyGeometryDefinition = new TruncatedCone3DDefinition(TOY_H, TOY_L, TOY_W, TOY_W, TOY_L);
             break;
       }
 

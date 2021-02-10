@@ -1,7 +1,7 @@
 package us.ihmc.scs2.examples.simulations;
 
 import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
-import us.ihmc.scs2.definition.geometry.CylinderGeometryDefinition;
+import us.ihmc.scs2.definition.geometry.Cylinder3DDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
@@ -35,7 +35,7 @@ public class CylinderRobotSimulation extends RobotDefinition
    private final RigidBodyDefinition createCylinderRigidBody()
    {
       RigidBodyDefinition ball = new RigidBodyDefinition("Cylinder");
-      GeometryDefinition geometryDefinition = new CylinderGeometryDefinition(0.8, 0.25);
+      GeometryDefinition geometryDefinition = new Cylinder3DDefinition(0.8, 0.25);
       MaterialDefinition materialDefinition = new MaterialDefinition(ColorDefinitions.Red());
       ball.addVisualDefinition(new VisualDefinition(geometryDefinition, materialDefinition));
       ball.addCollisionShapeDefinition(new CollisionShapeDefinition(geometryDefinition));

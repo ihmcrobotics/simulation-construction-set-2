@@ -1,7 +1,7 @@
 package us.ihmc.scs2.examples.simulations;
 
 import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
-import us.ihmc.scs2.definition.geometry.BoxGeometryDefinition;
+import us.ihmc.scs2.definition.geometry.Box3DDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
@@ -35,7 +35,7 @@ public class BoxRobotDefinition extends RobotDefinition
    private final RigidBodyDefinition createBoxRigidBody()
    {
       RigidBodyDefinition ball = new RigidBodyDefinition("Box");
-      GeometryDefinition geometryDefinition = new BoxGeometryDefinition(0.3, 0.3, 0.3);
+      GeometryDefinition geometryDefinition = new Box3DDefinition(0.3, 0.3, 0.3);
       MaterialDefinition materialDefinition = new MaterialDefinition(ColorDefinitions.Red());
       ball.addVisualDefinition(new VisualDefinition(geometryDefinition, materialDefinition));
       ball.addCollisionShapeDefinition(new CollisionShapeDefinition(geometryDefinition));

@@ -2,7 +2,7 @@ package us.ihmc.scs2.examples.simulations;
 
 import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
-import us.ihmc.scs2.definition.geometry.SphereGeometryDefinition;
+import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
@@ -35,7 +35,7 @@ public class BallRobotDefinition extends RobotDefinition
    private final RigidBodyDefinition createBallRigidBody()
    {
       RigidBodyDefinition ball = new RigidBodyDefinition("Ball");
-      GeometryDefinition geometryDefinition = new SphereGeometryDefinition(0.3);
+      GeometryDefinition geometryDefinition = new Sphere3DDefinition(0.3);
       MaterialDefinition materialDefinition = new MaterialDefinition(ColorDefinitions.Red());
       ball.addVisualDefinition(new VisualDefinition(geometryDefinition, materialDefinition));
       ball.addCollisionShapeDefinition(new CollisionShapeDefinition(geometryDefinition));
