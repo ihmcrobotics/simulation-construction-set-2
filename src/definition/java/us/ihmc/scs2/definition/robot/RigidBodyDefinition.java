@@ -162,7 +162,7 @@ public class RigidBodyDefinition implements Transformable
    @Override
    public String toString()
    {
-      return name + ": pose: (x,y,z) " + inertiaPose.getTranslation() + "(y,p,r) " + inertiaPose.getRotation().toStringAsYawPitchRoll() + "children: "
+      return name + ": inertia pose: (x,y,z) " + inertiaPose.getTranslation() + "(y,p,r) " + inertiaPose.getRotation().toStringAsYawPitchRoll() + "children: "
             + Arrays.toString(childrenJoints.stream().map(JointDefinition::getName).toArray(String[]::new));
    }
 }
