@@ -103,7 +103,7 @@ public class SimSixDoFJoint extends YoSixDoFJoint implements SimJointBasics, Sim
    @Override
    public int setJointDeltaVelocity(int rowStart, DMatrix matrix)
    {
-      getJointTwist().set(rowStart, matrix);
+      getJointDeltaTwist().set(rowStart, matrix);
       return rowStart + getDegreesOfFreedom();
    }
 }
