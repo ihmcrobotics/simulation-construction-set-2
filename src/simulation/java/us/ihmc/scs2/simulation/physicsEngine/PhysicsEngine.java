@@ -52,7 +52,7 @@ public class PhysicsEngine
 {
    private final ReferenceFrame inertialFrame;
 
-   private final YoRegistry registry = new YoRegistry("PhysicsPlugins");
+   private final YoRegistry registry;
    private final List<Robot> robotList = new ArrayList<>();
    private final Map<RigidBodyBasics, Robot> robotMap = new HashMap<>();
    private final YoMultiContactImpulseCalculatorPool multiContactImpulseCalculatorPool;
@@ -69,23 +69,19 @@ public class PhysicsEngine
    private final YoBoolean hasGlobalConstraintParameters;
    private final YoConstraintParameters globalConstraintParameters;
 
-   private final YoDouble time = new YoDouble("physicsTime", registry);
-   private final YoDouble rawTickDurationMilliseconds = new YoDouble("rawTickDurationMilliseconds", registry);
-   private final YoDouble averageTickDurationMilliseconds = new YoDouble("averageTickDurationMilliseconds", registry);
-   private final YoDouble rawRealTimeRate = new YoDouble("rawRealTimeRate", registry);
-   private final YoDouble averageRealTimeRate = new YoDouble("averageRealTimeRate", registry);
+   private final YoDouble time;
+   private final YoDouble rawTickDurationMilliseconds;
+   private final YoDouble averageTickDurationMilliseconds;
+   private final YoDouble rawRealTimeRate;
+   private final YoDouble averageRealTimeRate;
    private final int averageWindow = 100;
    private final TDoubleLinkedList rawTickDurationBuffer = new TDoubleLinkedList();
 
    private boolean initialize = true;
 
-   public PhysicsEngine(ReferenceFrame inertialFrame)
+   public PhysicsEngine(ReferenceFrame inertialFrame, YoRegistry registry)
    {
-      this(inertialFrame, null);
-   }
-
-   public PhysicsEngine(ReferenceFrame inertialFrame, YoRegistry parentRegistry)
-   {
+      this.registry = registry;
       this.inertialFrame = inertialFrame;
 
       collisionDetectionPlugin = new SimpleCollisionDetection(inertialFrame);
@@ -99,8 +95,11 @@ public class PhysicsEngine
       globalConstraintParameters = new YoConstraintParameters("globalConstraint", registry);
       multiContactImpulseCalculatorPool = new YoMultiContactImpulseCalculatorPool(1, inertialFrame, multiContactCalculatorRegistry);
 
-      if (parentRegistry != null)
-         parentRegistry.addChild(registry);
+      time = new YoDouble("physicsTime", registry);
+      rawTickDurationMilliseconds = new YoDouble("rawTickDurationMilliseconds", registry);
+      averageTickDurationMilliseconds = new YoDouble("averageTickDurationMilliseconds", registry);
+      rawRealTimeRate = new YoDouble("rawRealTimeRate", registry);
+      averageRealTimeRate = new YoDouble("averageRealTimeRate", registry);
    }
 
    public void addTerrainObject(TerrainObjectDefinition terrainObjectDefinition)
