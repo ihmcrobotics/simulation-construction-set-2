@@ -159,7 +159,7 @@ public class RobotJointLimitImpulseBasedCalculatorTest
                OneDoFJointBasics joint = jointsAtLimit.get(j);
 
                double jointImpulse = calculator.getImpulse().get(j);
-               assertEquals(0.0, joint.getQd() * jointImpulse, 1.0e-12);
+               assertEquals(0.0, joint.getQd() * jointImpulse, 1.0e-11);
 
                if (activeLimits.get(j) == ActiveLimit.LOWER)
                {

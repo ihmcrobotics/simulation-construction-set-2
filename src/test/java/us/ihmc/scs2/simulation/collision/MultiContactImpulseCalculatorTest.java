@@ -264,6 +264,7 @@ public class MultiContactImpulseCalculatorTest
       RigidBodyDefinition rootBody = new RigidBodyDefinition(name + "RootBody");
       SixDoFJointDefinition floatingJoint = new SixDoFJointDefinition(name + "RootJoint");
       floatingJoint.setTransformToParent(EuclidCoreRandomTools.nextRigidBodyTransform(random));
+      rootBody.addChildJoint(floatingJoint);
 
       double density = 8000.0 * random.nextDouble();
       Vector3D size = new Vector3D(random.nextDouble(), random.nextDouble(), random.nextDouble());
@@ -271,6 +272,7 @@ public class MultiContactImpulseCalculatorTest
       RigidBodyDefinition floatingBody = new RigidBodyDefinition(name + "Body");
       floatingBody.setMass(mass);
       floatingBody.getMomentOfInertia().set(MomentOfInertiaFactory.solidBox(mass, size));
+      floatingJoint.setSuccessor(floatingBody);
 
       RobotDefinition robotDefinition = new RobotDefinition(name);
       robotDefinition.setRootBodyDefinition(rootBody);
