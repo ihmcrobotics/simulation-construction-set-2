@@ -24,4 +24,16 @@ public interface JointStateReadOnly
    int getAcceleration(int startRow, DMatrix accelerationToPack);
 
    int getEffort(int startRow, DMatrix effortToPack);
+
+   default void getAllStates(JointBasics jointToUpdate)
+   {
+      if (hasOutputFor(JointStateType.CONFIGURATION))
+         getConfiguration(jointToUpdate);
+      if (hasOutputFor(JointStateType.VELOCITY))
+         getVelocity(jointToUpdate);
+      if (hasOutputFor(JointStateType.ACCELERATION))
+         getAcceleration(jointToUpdate);
+      if (hasOutputFor(JointStateType.EFFORT))
+         getEffort(jointToUpdate);
+   }
 }
