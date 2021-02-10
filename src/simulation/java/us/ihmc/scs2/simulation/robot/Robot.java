@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointMatrixIndexProvider;
+import us.ihmc.mecano.multiBodySystem.interfaces.MultiBodySystemBasics;
 import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
 import us.ihmc.scs2.definition.robot.FixedJointDefinition;
 import us.ihmc.scs2.definition.robot.JointDefinition;
@@ -16,6 +17,7 @@ import us.ihmc.scs2.definition.robot.RevoluteJointDefinition;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
+import us.ihmc.scs2.definition.robot.interfaces.RobotInitialStateProvider;
 import us.ihmc.scs2.simulation.collision.Collidable;
 import us.ihmc.scs2.simulation.collision.CollidableHolder;
 import us.ihmc.scs2.simulation.physicsEngine.MultiBodySystemStateWriter;
@@ -75,6 +77,7 @@ public class Robot implements SimMultiBodySystemBasics, CollidableHolder
       jointsToIgnore = robotDefinition.getNameOfJointsToIgnore().stream().map(jointName -> nameToJointMap.get(jointName)).collect(Collectors.toList());
       jointsToConsider = allJoints.stream().filter(joint -> !jointsToIgnore.contains(joint)).collect(Collectors.toList());
       jointMatrixIndexProvider = JointMatrixIndexProvider.toIndexProvider(getJointsToConsider());
+      setRobotInitialStateWriter(robotDefinition.getInitialStateProvider());
 
       controllerManager = new RobotControllerManager(this, registry);
 
@@ -113,6 +116,31 @@ public class Robot implements SimMultiBodySystemBasics, CollidableHolder
    public RobotControllerManager getControllerManager()
    {
       return controllerManager;
+   }
+
+   // TODO Need to figure out the actual interface to be used.
+   public void setRobotInitialStateWriter(RobotInitialStateProvider robotInitialStateProvider)
+   {
+      if (robotInitialStateProvider == null)
+      {
+         this.robotInitialStateWriter = null;
+         return;
+      }
+
+      this.robotInitialStateWriter = new MultiBodySystemStateWriter()
+      {
+         @Override
+         public boolean write()
+         {
+            allJoints.forEach(joint -> robotInitialStateProvider.getInitialJointState(joint.getName()).getAllStates(joint));
+            return true;
+         }
+
+         @Override
+         public void setMultiBodySystem(MultiBodySystemBasics multiBodySystem)
+         {
+         }
+      };
    }
 
    public void setRobotInitialStateWriter(MultiBodySystemStateWriter robotInitialStateWriter)
