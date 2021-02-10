@@ -25,16 +25,16 @@ import us.ihmc.euclid.shape.primitives.Sphere3D;
 import us.ihmc.euclid.shape.primitives.Torus3D;
 import us.ihmc.euclid.shape.primitives.interfaces.Shape3DReadOnly;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
-import us.ihmc.scs2.definition.geometry.BoxGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.CapsuleGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.ConeGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.CylinderGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.EllipsoidGeometryDefinition;
+import us.ihmc.scs2.definition.geometry.Box3DDefinition;
+import us.ihmc.scs2.definition.geometry.Capsule3DDefinition;
+import us.ihmc.scs2.definition.geometry.Cone3DDefinition;
+import us.ihmc.scs2.definition.geometry.Cylinder3DDefinition;
+import us.ihmc.scs2.definition.geometry.Ellipsoid3DDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
-import us.ihmc.scs2.definition.geometry.PointGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.SphereGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.TorusGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.WedgeGeometryDefinition;
+import us.ihmc.scs2.definition.geometry.Point3DDefinition;
+import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
+import us.ihmc.scs2.definition.geometry.Torus3DDefinition;
+import us.ihmc.scs2.definition.geometry.Wedge3DDefinition;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
@@ -77,71 +77,73 @@ public class CollisionTools
 
    public static Shape3DReadOnly toShape3D(RigidBodyTransformReadOnly originPose, GeometryDefinition definition)
    {
-      if (definition instanceof BoxGeometryDefinition)
-         return toBox3D(originPose, (BoxGeometryDefinition) definition);
-      else if (definition instanceof CapsuleGeometryDefinition)
-         return toCapsule3D(originPose, (CapsuleGeometryDefinition) definition);
-      else if (definition instanceof ConeGeometryDefinition)
-         return toConvexPolytope3D(originPose, (ConeGeometryDefinition) definition);
-      else if (definition instanceof CylinderGeometryDefinition)
-         return toCylinder3D(originPose, (CylinderGeometryDefinition) definition);
-      else if (definition instanceof EllipsoidGeometryDefinition)
-         return toEllipsoid3D(originPose, (EllipsoidGeometryDefinition) definition);
-      else if (definition instanceof PointGeometryDefinition)
-         return toPointShape3D(originPose, (PointGeometryDefinition) definition);
-      else if (definition instanceof SphereGeometryDefinition)
-         return toSphere3D(originPose, (SphereGeometryDefinition) definition);
-      else if (definition instanceof TorusGeometryDefinition)
-         return toTorus3D(originPose, (TorusGeometryDefinition) definition);
-      else if (definition instanceof WedgeGeometryDefinition)
-         return toRamp3D(originPose, (WedgeGeometryDefinition) definition);
+      if (definition instanceof Box3DDefinition)
+         return toBox3D(originPose, (Box3DDefinition) definition);
+      else if (definition instanceof Capsule3DDefinition)
+         return toCapsule3D(originPose, (Capsule3DDefinition) definition);
+      else if (definition instanceof Cone3DDefinition)
+         return toConvexPolytope3D(originPose, (Cone3DDefinition) definition);
+      else if (definition instanceof Cylinder3DDefinition)
+         return toCylinder3D(originPose, (Cylinder3DDefinition) definition);
+      else if (definition instanceof Ellipsoid3DDefinition)
+         return toEllipsoid3D(originPose, (Ellipsoid3DDefinition) definition);
+      else if (definition instanceof Point3DDefinition)
+         return toPointShape3D(originPose, (Point3DDefinition) definition);
+      else if (definition instanceof Sphere3DDefinition)
+         return toSphere3D(originPose, (Sphere3DDefinition) definition);
+      else if (definition instanceof Torus3DDefinition)
+         return toTorus3D(originPose, (Torus3DDefinition) definition);
+      else if (definition instanceof Wedge3DDefinition)
+         return toRamp3D(originPose, (Wedge3DDefinition) definition);
       else
          throw new UnsupportedOperationException("Unhandled geometry type: " + definition.getClass().getSimpleName());
    }
 
    public static FrameShape3DReadOnly toFrameShape3D(RigidBodyTransformReadOnly originPose, ReferenceFrame referenceFrame, GeometryDefinition definition)
    {
-      if (definition instanceof BoxGeometryDefinition)
-         return new FrameBox3D(referenceFrame, toBox3D(originPose, (BoxGeometryDefinition) definition));
-      else if (definition instanceof CapsuleGeometryDefinition)
-         return new FrameCapsule3D(referenceFrame, toCapsule3D(originPose, (CapsuleGeometryDefinition) definition));
-      else if (definition instanceof ConeGeometryDefinition)
-         return new FrameConvexPolytope3D(referenceFrame, toConvexPolytope3D(originPose, (ConeGeometryDefinition) definition));
-      else if (definition instanceof CylinderGeometryDefinition)
-         return new FrameCylinder3D(referenceFrame, toCylinder3D(originPose, (CylinderGeometryDefinition) definition));
-      else if (definition instanceof EllipsoidGeometryDefinition)
-         return new FrameEllipsoid3D(referenceFrame, toEllipsoid3D(originPose, (EllipsoidGeometryDefinition) definition));
-      else if (definition instanceof PointGeometryDefinition)
-         return new FramePointShape3D(referenceFrame, toPointShape3D(originPose, (PointGeometryDefinition) definition));
-      else if (definition instanceof SphereGeometryDefinition)
-         return new FrameSphere3D(referenceFrame, toSphere3D(originPose, (SphereGeometryDefinition) definition));
-      else if (definition instanceof TorusGeometryDefinition)
+      if (definition instanceof Box3DDefinition)
+         return new FrameBox3D(referenceFrame, toBox3D(originPose, (Box3DDefinition) definition));
+      else if (definition instanceof Capsule3DDefinition)
+         return new FrameCapsule3D(referenceFrame, toCapsule3D(originPose, (Capsule3DDefinition) definition));
+      else if (definition instanceof Cone3DDefinition)
+         return new FrameConvexPolytope3D(referenceFrame, toConvexPolytope3D(originPose, (Cone3DDefinition) definition));
+      else if (definition instanceof Cylinder3DDefinition)
+         return new FrameCylinder3D(referenceFrame, toCylinder3D(originPose, (Cylinder3DDefinition) definition));
+      else if (definition instanceof Ellipsoid3DDefinition)
+         return new FrameEllipsoid3D(referenceFrame, toEllipsoid3D(originPose, (Ellipsoid3DDefinition) definition));
+      else if (definition instanceof Point3DDefinition)
+         return new FramePointShape3D(referenceFrame, toPointShape3D(originPose, (Point3DDefinition) definition));
+      else if (definition instanceof Sphere3DDefinition)
+         return new FrameSphere3D(referenceFrame, toSphere3D(originPose, (Sphere3DDefinition) definition));
+      else if (definition instanceof Torus3DDefinition)
          throw new UnsupportedOperationException("Torus shape is not supported as collidable.");
-      else if (definition instanceof WedgeGeometryDefinition)
-         return new FrameRamp3D(referenceFrame, toRamp3D(originPose, (WedgeGeometryDefinition) definition));
+      else if (definition instanceof Wedge3DDefinition)
+         return new FrameRamp3D(referenceFrame, toRamp3D(originPose, (Wedge3DDefinition) definition));
       else
          throw new UnsupportedOperationException("Unhandled geometry type: " + definition.getClass().getSimpleName());
    }
 
-   public static Box3D toBox3D(RigidBodyTransformReadOnly originPose, BoxGeometryDefinition definition)
+   public static Box3D toBox3D(RigidBodyTransformReadOnly originPose, Box3DDefinition definition)
    {
       Box3D box3D = new Box3D();
-      box3D.getSize().set(definition.getSize());
+      box3D.getSize().set(definition.getSizeX(), definition.getSizeY(), definition.getSizeZ());
       if (originPose != null)
          box3D.getPose().set(originPose);
       return box3D;
    }
 
-   public static Capsule3D toCapsule3D(RigidBodyTransformReadOnly originPose, CapsuleGeometryDefinition definition)
+   public static Capsule3D toCapsule3D(RigidBodyTransformReadOnly originPose, Capsule3DDefinition definition)
    {
+      if (!definition.isRegular())
+         throw new UnsupportedOperationException("Only regular capsules are supported.");
       Capsule3D capsule3D = new Capsule3D();
-      capsule3D.setSize(definition.getLength(), definition.getRadius());
+      capsule3D.setSize(definition.getLength(), definition.getRadiusX());
       if (originPose != null)
          capsule3D.applyTransform(originPose);
       return capsule3D;
    }
 
-   public static ConvexPolytope3D toConvexPolytope3D(RigidBodyTransformReadOnly originPose, ConeGeometryDefinition definition)
+   public static ConvexPolytope3D toConvexPolytope3D(RigidBodyTransformReadOnly originPose, Cone3DDefinition definition)
    {
       ConvexPolytope3D cone3D = EuclidPolytopeFactories.newCone(definition.getHeight(), definition.getRadius(), CONE_NUMBER_OF_DIVISIONS);
       if (originPose != null)
@@ -149,7 +151,7 @@ public class CollisionTools
       return cone3D;
    }
 
-   public static Cylinder3D toCylinder3D(RigidBodyTransformReadOnly originPose, CylinderGeometryDefinition definition)
+   public static Cylinder3D toCylinder3D(RigidBodyTransformReadOnly originPose, Cylinder3DDefinition definition)
    {
       Cylinder3D cylinder3D = new Cylinder3D();
       cylinder3D.setSize(definition.getLength(), definition.getRadius());
@@ -158,16 +160,16 @@ public class CollisionTools
       return cylinder3D;
    }
 
-   public static Ellipsoid3D toEllipsoid3D(RigidBodyTransformReadOnly originPose, EllipsoidGeometryDefinition definition)
+   public static Ellipsoid3D toEllipsoid3D(RigidBodyTransformReadOnly originPose, Ellipsoid3DDefinition definition)
    {
       Ellipsoid3D ellipsoid3D = new Ellipsoid3D();
-      ellipsoid3D.getRadii().set(definition.getRadii());
+      ellipsoid3D.getRadii().set(definition.getRadiusX(), definition.getRadiusY(), definition.getRadiusZ());
       if (originPose != null)
          ellipsoid3D.getPose().set(originPose);
       return ellipsoid3D;
    }
 
-   public static PointShape3D toPointShape3D(RigidBodyTransformReadOnly originPose, PointGeometryDefinition definition)
+   public static PointShape3D toPointShape3D(RigidBodyTransformReadOnly originPose, Point3DDefinition definition)
    {
       PointShape3D pointShape3D = new PointShape3D(definition.getPosition());
       if (originPose != null)
@@ -175,7 +177,7 @@ public class CollisionTools
       return pointShape3D;
    }
 
-   public static Sphere3D toSphere3D(RigidBodyTransformReadOnly originPose, SphereGeometryDefinition definition)
+   public static Sphere3D toSphere3D(RigidBodyTransformReadOnly originPose, Sphere3DDefinition definition)
    {
       Sphere3D sphere3D = new Sphere3D();
       sphere3D.setRadius(definition.getRadius());
@@ -184,7 +186,7 @@ public class CollisionTools
       return sphere3D;
    }
 
-   public static Torus3D toTorus3D(RigidBodyTransformReadOnly originPose, TorusGeometryDefinition definition)
+   public static Torus3D toTorus3D(RigidBodyTransformReadOnly originPose, Torus3DDefinition definition)
    {
       Torus3D torus3D = new Torus3D();
       double tubeRadius = 0.5 * (definition.getMajorRadius() - definition.getMinorRadius());
@@ -195,10 +197,10 @@ public class CollisionTools
       return torus3D;
    }
 
-   public static Ramp3D toRamp3D(RigidBodyTransformReadOnly originPose, WedgeGeometryDefinition definition)
+   public static Ramp3D toRamp3D(RigidBodyTransformReadOnly originPose, Wedge3DDefinition definition)
    {
       Ramp3D ramp3D = new Ramp3D();
-      ramp3D.getSize().set(definition.getSize());
+      ramp3D.getSize().set(definition.getSizeX(), definition.getSizeY(), definition.getSizeZ());
       if (originPose != null)
          ramp3D.getPose().set(originPose);
       return ramp3D;

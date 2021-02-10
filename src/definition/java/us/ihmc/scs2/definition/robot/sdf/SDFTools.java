@@ -22,16 +22,17 @@ import javax.xml.bind.Unmarshaller;
 import us.ihmc.euclid.Axis3D;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
+import us.ihmc.euclid.transform.AffineTransform;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.yawPitchRoll.YawPitchRoll;
 import us.ihmc.log.LogTools;
-import us.ihmc.scs2.definition.geometry.BoxGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.CylinderGeometryDefinition;
+import us.ihmc.scs2.definition.geometry.Box3DDefinition;
+import us.ihmc.scs2.definition.geometry.Cylinder3DDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 import us.ihmc.scs2.definition.geometry.ModelFileGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.SphereGeometryDefinition;
+import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
 import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
 import us.ihmc.scs2.definition.robot.FixedJointDefinition;
 import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
@@ -308,7 +309,7 @@ public class SDFTools
          // Correct visual transform
          for (VisualDefinition visualDescription : childDefinition.getVisualDefinitions())
          {
-            RigidBodyTransform visualPose = visualDescription.getOriginPose();
+            AffineTransform visualPose = visualDescription.getOriginPose();
             visualPose.prependOrientation(childLinkPose.getRotation());
          }
 
@@ -557,7 +558,7 @@ public class SDFTools
 
       VisualDefinition visualDefinition = new VisualDefinition();
       visualDefinition.setName(sdfVisual.getName());
-      visualDefinition.setOriginPose(parsePose(sdfVisual.getPose()));
+      visualDefinition.setOriginPose(new AffineTransform(parsePose(sdfVisual.getPose())));
       visualDefinition.setMaterialDefinition(toMaterialDefinition(sdfVisual.getMaterial()));
       visualDefinition.setGeometryDefinition(toGeometryDefinition(sdfVisual.getGeometry()));
       return visualDefinition;
@@ -572,20 +573,20 @@ public class SDFTools
    {
       if (sdfGeometry.getBox() != null)
       {
-         BoxGeometryDefinition boxGeometryDefinition = new BoxGeometryDefinition();
-         boxGeometryDefinition.getSize().set(parseVector3D(sdfGeometry.getBox().getSize(), null));
+         Box3DDefinition boxGeometryDefinition = new Box3DDefinition();
+         boxGeometryDefinition.setSize(parseVector3D(sdfGeometry.getBox().getSize(), null));
          return boxGeometryDefinition;
       }
       if (sdfGeometry.getCylinder() != null)
       {
-         CylinderGeometryDefinition cylinderGeometryDefinition = new CylinderGeometryDefinition();
+         Cylinder3DDefinition cylinderGeometryDefinition = new Cylinder3DDefinition();
          cylinderGeometryDefinition.setRadius(parseDouble(sdfGeometry.getCylinder().getRadius(), 0.0));
          cylinderGeometryDefinition.setLength(parseDouble(sdfGeometry.getCylinder().getLength(), 0.0));
          return cylinderGeometryDefinition;
       }
       if (sdfGeometry.getSphere() != null)
       {
-         SphereGeometryDefinition sphereGeometryDefinition = new SphereGeometryDefinition();
+         Sphere3DDefinition sphereGeometryDefinition = new Sphere3DDefinition();
          sphereGeometryDefinition.setRadius(parseDouble(sdfGeometry.getSphere().getRadius(), 0.0));
          return sphereGeometryDefinition;
       }

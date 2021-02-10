@@ -7,6 +7,7 @@ import java.util.List;
 
 import us.ihmc.euclid.interfaces.Transformable;
 import us.ihmc.euclid.matrix.Matrix3D;
+import us.ihmc.euclid.matrix.interfaces.Matrix3DReadOnly;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.Transform;
@@ -57,6 +58,11 @@ public class RigidBodyDefinition implements Transformable
    public double getMass()
    {
       return mass;
+   }
+
+   public void setMomentOfInertia(Matrix3DReadOnly momentOfInertia)
+   {
+      this.momentOfInertia.set(momentOfInertia);
    }
 
    public Matrix3D getMomentOfInertia()
