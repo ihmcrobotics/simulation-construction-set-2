@@ -1,7 +1,5 @@
 package us.ihmc.scs2.examples.simulations;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 import java.util.stream.Stream;
 
@@ -17,10 +15,10 @@ import us.ihmc.scs2.definition.geometry.Box3DDefinition;
 import us.ihmc.scs2.definition.geometry.Cone3DDefinition;
 import us.ihmc.scs2.definition.geometry.Cylinder3DDefinition;
 import us.ihmc.scs2.definition.geometry.Ellipsoid3DDefinition;
-import us.ihmc.scs2.definition.geometry.TruncatedCone3DDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 import us.ihmc.scs2.definition.geometry.HemiEllipsoid3DDefinition;
 import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
+import us.ihmc.scs2.definition.geometry.TruncatedCone3DDefinition;
 import us.ihmc.scs2.definition.robot.JointDefinition;
 import us.ihmc.scs2.definition.robot.OneDoFJointDefinition;
 import us.ihmc.scs2.definition.robot.RevoluteJointDefinition;
@@ -42,9 +40,6 @@ public class MobileDefinition extends RobotDefinition
    private static final double TOY_L = 0.02, TOY_W = 0.04, TOY_H = 0.03, TOY_R = 0.02;
 
    private static final double DAMP1 = 0.06, DAMP2 = 0.006, DAMP3 = 0.003;
-
-   private final Map<String, Double> initialJointAngles = new HashMap<>();
-   private final Map<String, Double> initialJointVelocities = new HashMap<>();
 
    private final OneDoFJointDampingControllerDefinition jointLvl1DampingControllerDefinition = new OneDoFJointDampingControllerDefinition();
    private final OneDoFJointDampingControllerDefinition jointLvl2DampingControllerDefinition = new OneDoFJointDampingControllerDefinition();
@@ -108,14 +103,6 @@ public class MobileDefinition extends RobotDefinition
                                                                   .addControllerDefinitions(jointLvl1DampingControllerDefinition,
                                                                                             jointLvl2DampingControllerDefinition,
                                                                                             jointLvl3DampingControllerDefinition));
-
-      setInitialStateProvider(jointName ->
-      {
-         OneDoFJointState jointState = new OneDoFJointState();
-         jointState.setConfiguration(initialJointAngles.getOrDefault(jointName, 0.0));
-         jointState.setVelocity(initialJointVelocities.getOrDefault(jointName, 0.0));
-         return jointState;
-      });
    }
 
    private OneDoFJointDefinition[] createGimbal(String name, RigidBodyDefinition predecessor, Tuple3DReadOnly jointOffset)
@@ -139,13 +126,9 @@ public class MobileDefinition extends RobotDefinition
       jointYBody.getChildrenJoints().add(jointZ);
 
       Random random = new Random();
-      initialJointAngles.put(jointX.getName(), EuclidCoreRandomTools.nextDouble(random, 0.25));
-      initialJointAngles.put(jointY.getName(), EuclidCoreRandomTools.nextDouble(random, 0.25));
-      initialJointAngles.put(jointZ.getName(), EuclidCoreRandomTools.nextDouble(random, Math.PI));
-
-      initialJointVelocities.put(jointX.getName(), EuclidCoreRandomTools.nextDouble(random, 0.5));
-      initialJointVelocities.put(jointY.getName(), EuclidCoreRandomTools.nextDouble(random, 0.5));
-      initialJointVelocities.put(jointZ.getName(), EuclidCoreRandomTools.nextDouble(random, 2.0));
+      jointX.setInitialJointState(new OneDoFJointState(EuclidCoreRandomTools.nextDouble(random, 0.25), EuclidCoreRandomTools.nextDouble(random, 0.5)));
+      jointY.setInitialJointState(new OneDoFJointState(EuclidCoreRandomTools.nextDouble(random, 0.25), EuclidCoreRandomTools.nextDouble(random, 0.5)));
+      jointZ.setInitialJointState(new OneDoFJointState(EuclidCoreRandomTools.nextDouble(random, Math.PI), EuclidCoreRandomTools.nextDouble(random, 2.0)));
 
       return new OneDoFJointDefinition[] {jointX, jointY, jointZ};
    }
