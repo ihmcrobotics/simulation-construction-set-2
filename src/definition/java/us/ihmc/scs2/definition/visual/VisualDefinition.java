@@ -1,6 +1,7 @@
 package us.ihmc.scs2.definition.visual;
 
 import us.ihmc.euclid.transform.AffineTransform;
+import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 
 public class VisualDefinition
@@ -20,6 +21,11 @@ public class VisualDefinition
       this.materialDefinition = materialDefinition;
    }
 
+   public VisualDefinition(RigidBodyTransformReadOnly originPose, GeometryDefinition geometryDefinition, MaterialDefinition materialDefinition)
+   {
+      this(new AffineTransform(originPose), geometryDefinition, materialDefinition);
+   }
+
    public VisualDefinition(AffineTransform originPose, GeometryDefinition geometryDefinition, MaterialDefinition materialDefinition)
    {
       this.originPose = originPose;
@@ -30,6 +36,11 @@ public class VisualDefinition
    public void setName(String name)
    {
       this.name = name;
+   }
+
+   public void setOriginPose(RigidBodyTransformReadOnly originPose)
+   {
+      this.originPose = new AffineTransform(originPose);
    }
 
    public void setOriginPose(AffineTransform originPose)
