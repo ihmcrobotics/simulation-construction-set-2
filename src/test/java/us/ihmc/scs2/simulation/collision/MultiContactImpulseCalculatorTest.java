@@ -273,16 +273,13 @@ public class MultiContactImpulseCalculatorTest
       floatingBody.setMass(mass);
       floatingBody.getMomentOfInertia().set(MomentOfInertiaFactory.solidBox(mass, size));
       floatingJoint.setSuccessor(floatingBody);
+      SixDoFJointState initialJointState = new SixDoFJointState();
+      initialJointState.setConfiguration(EuclidGeometryRandomTools.nextPose3D(random));
+      initialJointState.setVelocity(MecanoRandomTools.nextSpatialVector(random, ReferenceFrame.getWorldFrame()));
+      floatingJoint.setInitialJointState(initialJointState);
 
       RobotDefinition robotDefinition = new RobotDefinition(name);
       robotDefinition.setRootBodyDefinition(rootBody);
-      robotDefinition.setInitialStateProvider(jointName ->
-      {
-         SixDoFJointState sixDoFJointState = new SixDoFJointState();
-         sixDoFJointState.setConfiguration(EuclidGeometryRandomTools.nextPose3D(random));
-         sixDoFJointState.setVelocity(MecanoRandomTools.nextSpatialVector(random, ReferenceFrame.getWorldFrame()));
-         return sixDoFJointState;
-      });
       return robotDefinition;
    }
 

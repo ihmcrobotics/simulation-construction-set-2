@@ -10,6 +10,7 @@ import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.scs2.definition.state.interfaces.JointStateBasics;
 
 // TODO Add option for loop closure
 public abstract class JointDefinition implements Transformable
@@ -19,6 +20,7 @@ public abstract class JointDefinition implements Transformable
 
    private RigidBodyDefinition predecessor;
    private RigidBodyDefinition successor;
+   private JointStateBasics initialJointState = null;
 
    private final List<SensorDefinition> sensorDefinitions = new ArrayList<>();
    private final List<KinematicPointDefinition> kinematicPointDefinitions = new ArrayList<>();
@@ -86,6 +88,16 @@ public abstract class JointDefinition implements Transformable
          return null;
       else
          return predecessor.getParentJoint();
+   }
+
+   public void setInitialJointState(JointStateBasics initialJointState)
+   {
+      this.initialJointState = initialJointState;
+   }
+
+   public JointStateBasics getInitialJointState()
+   {
+      return initialJointState;
    }
 
    public void addSensorDefinition(SensorDefinition sensorDefinition)

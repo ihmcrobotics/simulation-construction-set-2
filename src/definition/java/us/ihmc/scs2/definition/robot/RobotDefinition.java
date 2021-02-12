@@ -8,7 +8,6 @@ import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.scs2.definition.controller.interfaces.ControllerDefinition;
-import us.ihmc.scs2.definition.robot.interfaces.RobotInitialStateProvider;
 
 public class RobotDefinition
 {
@@ -16,7 +15,6 @@ public class RobotDefinition
    private RigidBodyDefinition rootBodyDefinition;
    private List<String> nameOfJointsToIgnore = new ArrayList<>();
 
-   private RobotInitialStateProvider initialStateProvider;
    private final List<ControllerDefinition> controllerDefinitions = new ArrayList<>();
 
    public RobotDefinition()
@@ -41,11 +39,6 @@ public class RobotDefinition
    public void addJointToIgnore(String nameOfJointToIgnore)
    {
       nameOfJointsToIgnore.add(nameOfJointToIgnore);
-   }
-
-   public void setInitialStateProvider(RobotInitialStateProvider initialStateProvider)
-   {
-      this.initialStateProvider = initialStateProvider;
    }
 
    public void addControllerDefinition(ControllerDefinition controllerDefinition)
@@ -88,11 +81,6 @@ public class RobotDefinition
    public List<JointDefinition> getAllJoints()
    {
       return collectSubtreeJointDefinitions(rootBodyDefinition);
-   }
-
-   public RobotInitialStateProvider getInitialStateProvider()
-   {
-      return initialStateProvider;
    }
 
    public List<ControllerDefinition> getControllerDefinitions()

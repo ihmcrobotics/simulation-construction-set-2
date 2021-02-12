@@ -16,6 +16,18 @@ public interface OneDoFJointStateReadOnly extends JointStateReadOnly
    double getEffort();
 
    @Override
+   default int getConfigurationSize()
+   {
+      return 1;
+   }
+
+   @Override
+   default int getDegreesOfFreedom()
+   {
+      return 1;
+   }
+
+   @Override
    default int getConfiguration(int startRow, DMatrix configurationToPack)
    {
       configurationToPack.set(startRow, 0, getConfiguration());

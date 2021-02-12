@@ -7,7 +7,6 @@ import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.geometry.interfaces.Pose3DReadOnly;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
-import us.ihmc.mecano.multiBodySystem.interfaces.JointReadOnly;
 import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.scs2.definition.state.interfaces.SixDoFJointStateBasics;
 
@@ -67,48 +66,6 @@ public class SixDoFJointState implements SixDoFJointStateBasics
       availableStates.add(JointStateType.EFFORT);
       this.torque.set(torque);
       this.force.set(force);
-   }
-
-   @Override
-   public void addVelocity(JointReadOnly joint)
-   {
-      if (hasOutputFor(JointStateType.VELOCITY))
-      {
-         angularVelocity.add(joint.getJointTwist().getAngularPart());
-         linearVelocity.add(joint.getJointTwist().getLinearPart());
-      }
-      else
-      {
-         setVelocity(joint);
-      }
-   }
-
-   @Override
-   public void addAcceleration(JointReadOnly joint)
-   {
-      if (hasOutputFor(JointStateType.ACCELERATION))
-      {
-         angularAcceleration.add(joint.getJointAcceleration().getAngularPart());
-         linearAcceleration.add(joint.getJointAcceleration().getLinearPart());
-      }
-      else
-      {
-         setAcceleration(joint);
-      }
-   }
-
-   @Override
-   public void addEffort(JointReadOnly joint)
-   {
-      if (hasOutputFor(JointStateType.EFFORT))
-      {
-         torque.add(joint.getJointWrench().getAngularPart());
-         force.add(joint.getJointWrench().getLinearPart());
-      }
-      else
-      {
-         setEffort(joint);
-      }
    }
 
    @Override
