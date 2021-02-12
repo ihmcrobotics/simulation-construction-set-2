@@ -1,21 +1,18 @@
-package us.ihmc.exampleSimulations.experimentalPhysicsEngine;
+package us.ihmc.scs2.examples.simulations;
 
-import static us.ihmc.exampleSimulations.experimentalPhysicsEngine.ExampleExperimentalSimulationTools.newSphereRobot;
+import static us.ihmc.scs2.examples.simulations.ExampleExperimentalSimulationTools.newSphereRobot;
 
-import us.ihmc.euclid.referenceFrame.FrameSphere3D;
+import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
-import us.ihmc.graphicsDescription.appearance.YoAppearance;
-import us.ihmc.mecano.multiBodySystem.interfaces.FloatingJointBasics;
-import us.ihmc.robotics.physics.Collidable;
-import us.ihmc.robotics.physics.ContactParameters;
-import us.ihmc.robotics.physics.MultiBodySystemStateWriter;
-import us.ihmc.robotics.physics.RobotCollisionModel;
-import us.ihmc.robotics.robotDescription.RobotDescription;
-import us.ihmc.simulationToolkit.physicsEngine.ExperimentalSimulation;
-import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.simulationconstructionset.SimulationConstructionSetParameters;
-import us.ihmc.simulationconstructionset.SupportedGraphics3DAdapter;
+import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
+import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
+import us.ihmc.scs2.definition.robot.RobotDefinition;
+import us.ihmc.scs2.definition.state.SixDoFJointState;
+import us.ihmc.scs2.definition.visual.ColorDefinition;
+import us.ihmc.scs2.definition.visual.ColorDefinitions;
+import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizer;
+import us.ihmc.scs2.simulation.SimulationSession;
+import us.ihmc.scs2.simulation.parameters.ContactParameters;
 
 public class FlyingCollidingSpheresExperimentalSimulation
 {
@@ -30,55 +27,34 @@ public class FlyingCollidingSpheresExperimentalSimulation
       double radius1 = 0.2;
       double mass1 = 1.0;
       double radiusOfGyrationPercent1 = 1.0;
-      AppearanceDefinition appearance1 = YoAppearance.DarkGreen();
-      AppearanceDefinition stripesAppearance1 = YoAppearance.LightGreen();
-      RobotDescription sphereRobot1 = newSphereRobot("sphere1", radius1, mass1, radiusOfGyrationPercent1, appearance1, true, stripesAppearance1);
+      ColorDefinition appearance1 = ColorDefinitions.DarkGreen();
+      ColorDefinition stripesAppearance1 = ColorDefinitions.LightGreen();
+      RobotDefinition sphereRobot1 = newSphereRobot("sphere1", radius1, mass1, radiusOfGyrationPercent1, appearance1, true, stripesAppearance1);
 
       double radius2 = 0.2;
       double mass2 = 1.0;
       double radiusOfGyrationPercent2 = 1.0;
-      AppearanceDefinition appearance2 = YoAppearance.DarkRed();
-      AppearanceDefinition stripesAppearance2 = YoAppearance.LightSteelBlue();
-      RobotDescription sphereRobot2 = newSphereRobot("sphere2", radius2, mass2, radiusOfGyrationPercent2, appearance2, true, stripesAppearance2);
+      ColorDefinition appearance2 = ColorDefinitions.DarkRed();
+      ColorDefinition stripesAppearance2 = ColorDefinitions.LightSteelBlue();
+      RobotDefinition sphereRobot2 = newSphereRobot("sphere2", radius2, mass2, radiusOfGyrationPercent2, appearance2, true, stripesAppearance2);
 
-      RobotCollisionModel collisionModel1 = RobotCollisionModel.singleBodyCollisionModel("sphere1Link", body ->
-      {
-         return new Collidable(body, -1, -1, new FrameSphere3D(body.getBodyFixedFrame(), radius1));
-      });
-      RobotCollisionModel collisionModel2 = RobotCollisionModel.singleBodyCollisionModel("sphere2Link", body ->
-      {
-         return new Collidable(body, -1, -1, new FrameSphere3D(body.getBodyFixedFrame(), radius1));
-      });
+      sphereRobot1.getRigidBodyDefinition("sphere1RigidBody").addCollisionShapeDefinition(new CollisionShapeDefinition(new Sphere3DDefinition(radius1)));
+      sphereRobot2.getRigidBodyDefinition("sphere2RigidBody").addCollisionShapeDefinition(new CollisionShapeDefinition(new Sphere3DDefinition(radius2)));
 
-      MultiBodySystemStateWriter sphereInitialState1 = MultiBodySystemStateWriter.singleJointStateWriter("sphere1", (FloatingJointBasics joint) ->
-      {
-         joint.getJointPose().getPosition().set(-1.3, 1.0, 0.6);
-         joint.getJointTwist().getLinearPart().setX(2.0);
-      });
-      MultiBodySystemStateWriter sphereInitialState2 = MultiBodySystemStateWriter.singleJointStateWriter("sphere2", (FloatingJointBasics joint) ->
-      {
-         joint.getJointPose().getPosition().set(+0.2, 1.0, 0.4);
-      });
+      SixDoFJointState sphere1InitialState = new SixDoFJointState();
+      sphere1InitialState.setConfiguration(null, new Point3D(-1.3, 1.0, 0.6));
+      sphere1InitialState.setVelocity(null, new Vector3D(2.0, 0, 0));
+      sphereRobot1.getRootJointDefinitions().get(0).setInitialJointState(sphere1InitialState);
 
-      double simDT = 0.0001;
-      SimulationConstructionSetParameters parameters = new SimulationConstructionSetParameters();
-      ExperimentalSimulation experimentalSimulation = new ExperimentalSimulation(1 << 16);
-      experimentalSimulation.setGravity(new Vector3D(0.0, 0.0, 0.0));
-      experimentalSimulation.getPhysicsEngine().setGlobalContactParameters(contactParameters);
-      experimentalSimulation.addRobot(sphereRobot1, collisionModel1, sphereInitialState1);
-      experimentalSimulation.addRobot(sphereRobot2, collisionModel2, sphereInitialState2);
-      experimentalSimulation.addSimulationEnergyStatistics();
+      SixDoFJointState sphere2InitialState = new SixDoFJointState();
+      sphere2InitialState.setConfiguration(null, new Point3D(+0.2, 1.0, 0.4));
+      sphere2InitialState.setVelocity(null, new Vector3D(0.0, 0, 0));
+      sphereRobot2.getRootJointDefinitions().get(0).setInitialJointState(sphere2InitialState);
 
-      SimulationConstructionSet scs = new SimulationConstructionSet(experimentalSimulation,
-                                                                    SupportedGraphics3DAdapter.instantiateDefaultGraphicsAdapter(true),
-                                                                    parameters);
-      experimentalSimulation.simulate();
-      scs.getRootRegistry().addChild(experimentalSimulation.getPhysicsEngineRegistry());
-      scs.setDT(simDT, 1);
-      scs.setGroundVisible(false);
-      scs.setFastSimulate(true);
-      scs.startOnAThread();
-      scs.simulate(5.0);
+      SimulationSession simulationSession = new SimulationSession();
+      simulationSession.addRobot(sphereRobot1);
+      simulationSession.addRobot(sphereRobot2);
+      SessionVisualizer.startSessionVisualizer(simulationSession);
    }
 
    public static void main(String[] args)

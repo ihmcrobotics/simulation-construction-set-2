@@ -17,7 +17,7 @@ public class ExampleExperimentalSimulationTools
                                          ColorDefinition stripesColor)
    {
       RobotDefinition robotDefinition = new RobotDefinition(name);
-      RigidBodyDefinition rootBody = new RigidBodyDefinition("elevator");
+      RigidBodyDefinition rootBody = new RigidBodyDefinition(name + "RootBody");
       SixDoFJointDefinition rootJoint = new SixDoFJointDefinition(name);
       rootBody.addChildJoint(rootJoint);
       rootJoint.setSuccessor(newSphereRigidBody(name + "RigidBody", radius, mass, radiusOfGyrationPercent, color, addStripes, stripesColor));
@@ -53,7 +53,7 @@ public class ExampleExperimentalSimulationTools
    {
       RobotDefinition robotDefinition = new RobotDefinition(name);
 
-      RigidBodyDefinition rootBody = new RigidBodyDefinition("elevator");
+      RigidBodyDefinition rootBody = new RigidBodyDefinition(name + "RootBody");
       SixDoFJointDefinition rootJoint = new SixDoFJointDefinition(name);
       rootBody.addChildJoint(rootJoint);
       RigidBodyDefinition rigidBody = new RigidBodyDefinition(name + "RigidBody");
@@ -88,7 +88,7 @@ public class ExampleExperimentalSimulationTools
    {
       RobotDefinition robotDefinition = new RobotDefinition(name);
 
-      RigidBodyDefinition rootBody = new RigidBodyDefinition("elevator");
+      RigidBodyDefinition rootBody = new RigidBodyDefinition(name + "RootBody");
       SixDoFJointDefinition rootJoint = new SixDoFJointDefinition(name);
       rootBody.addChildJoint(rootJoint);
       RigidBodyDefinition rigidBody = new RigidBodyDefinition(name + "RigidBody");

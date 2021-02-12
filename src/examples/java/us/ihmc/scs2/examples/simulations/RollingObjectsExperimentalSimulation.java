@@ -1,34 +1,33 @@
-package us.ihmc.exampleSimulations.experimentalPhysicsEngine;
+package us.ihmc.scs2.examples.simulations;
 
-import us.ihmc.euclid.referenceFrame.FrameBox3D;
-import us.ihmc.euclid.referenceFrame.FrameCapsule3D;
-import us.ihmc.euclid.referenceFrame.FrameCylinder3D;
-import us.ihmc.euclid.referenceFrame.FrameSphere3D;
-import us.ihmc.euclid.referenceFrame.FrameVector3D;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.geometry.Pose3D;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
-import us.ihmc.graphicsDescription.appearance.YoAppearance;
-import us.ihmc.mecano.multiBodySystem.interfaces.FloatingJointBasics;
-import us.ihmc.robotics.physics.Collidable;
-import us.ihmc.robotics.physics.ContactParameters;
-import us.ihmc.robotics.physics.MultiBodySystemStateWriter;
-import us.ihmc.robotics.physics.RobotCollisionModel;
-import us.ihmc.robotics.robotDescription.RobotDescription;
-import us.ihmc.simulationToolkit.physicsEngine.ExperimentalSimulation;
-import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.simulationconstructionset.SimulationConstructionSetParameters;
-import us.ihmc.simulationconstructionset.SupportedGraphics3DAdapter;
+import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
+import us.ihmc.scs2.definition.geometry.Box3DDefinition;
+import us.ihmc.scs2.definition.geometry.Capsule3DDefinition;
+import us.ihmc.scs2.definition.geometry.Cylinder3DDefinition;
+import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
+import us.ihmc.scs2.definition.robot.RobotDefinition;
+import us.ihmc.scs2.definition.state.SixDoFJointState;
+import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
+import us.ihmc.scs2.definition.visual.ColorDefinition;
+import us.ihmc.scs2.definition.visual.ColorDefinitions;
+import us.ihmc.scs2.definition.visual.VisualDefinition;
+import us.ihmc.scs2.definition.visual.VisualDefinition.MaterialDefinition;
+import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizer;
+import us.ihmc.scs2.simulation.SimulationSession;
+import us.ihmc.scs2.simulation.parameters.ContactParameters;
 
 public class RollingObjectsExperimentalSimulation
 {
-   private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
    private static final String BALL_NAME = "ball";
    private static final String CAPSULE_NAME = "capsule";
    private static final String CYLINDER_NAME = "cylinder";
-   private static final String BALL_BODY_NAME = BALL_NAME + "Link";
-   private static final String CAPSULE_BODY_NAME = CAPSULE_NAME + "Link";
-   private static final String CYLINDER_BODY_NAME = CYLINDER_NAME + "Link";
+   private static final String BALL_BODY_NAME = BALL_NAME + "RigidBody";
+   private static final String CAPSULE_BODY_NAME = CAPSULE_NAME + "RigidBody";
+   private static final String CYLINDER_BODY_NAME = CYLINDER_NAME + "RigidBody";
 
    private final ContactParameters contactParameters = new ContactParameters();
 
@@ -54,86 +53,67 @@ public class RollingObjectsExperimentalSimulation
 
       double initialVelocity = 1.0;
 
-      AppearanceDefinition appearance = YoAppearance.DarkCyan();
+      ColorDefinition appearance = ColorDefinitions.DarkCyan();
       boolean addStripes = true;
-      AppearanceDefinition stripesAppearance = YoAppearance.Gold();
+      ColorDefinition stripesAppearance = ColorDefinitions.Gold();
 
-      RobotDescription ballRobot = ExampleExperimentalSimulationTools.newSphereRobot(BALL_NAME,
-                                                                                     ballRadius,
-                                                                                     ballMass,
-                                                                                     ballRadiusOfGyrationPercent,
-                                                                                     appearance,
-                                                                                     addStripes,
-                                                                                     stripesAppearance);
-      RobotDescription cylinderRobot = ExampleExperimentalSimulationTools.newCylinderRobot(CYLINDER_NAME,
-                                                                                           cylinderRadius,
-                                                                                           cylinderHeight,
-                                                                                           cylinderMass,
-                                                                                           cylinderRadiusOfGyrationPercent,
-                                                                                           appearance,
-                                                                                           addStripes,
-                                                                                           stripesAppearance);
-      RobotDescription capsuleRobot = ExampleExperimentalSimulationTools.newCapsuleRobot(CAPSULE_NAME,
-                                                                                         capsuleRadius,
-                                                                                         capsuleHeight,
-                                                                                         capsuleMass,
-                                                                                         capsuleRadiusOfGyrationPercent,
-                                                                                         appearance,
-                                                                                         addStripes,
-                                                                                         stripesAppearance);
+      RobotDefinition ballRobot = ExampleExperimentalSimulationTools.newSphereRobot(BALL_NAME,
+                                                                                    ballRadius,
+                                                                                    ballMass,
+                                                                                    ballRadiusOfGyrationPercent,
+                                                                                    appearance,
+                                                                                    addStripes,
+                                                                                    stripesAppearance);
+      RobotDefinition cylinderRobot = ExampleExperimentalSimulationTools.newCylinderRobot(CYLINDER_NAME,
+                                                                                          cylinderRadius,
+                                                                                          cylinderHeight,
+                                                                                          cylinderMass,
+                                                                                          cylinderRadiusOfGyrationPercent,
+                                                                                          appearance,
+                                                                                          addStripes,
+                                                                                          stripesAppearance);
+      RobotDefinition capsuleRobot = ExampleExperimentalSimulationTools.newCapsuleRobot(CAPSULE_NAME,
+                                                                                        capsuleRadius,
+                                                                                        capsuleHeight,
+                                                                                        capsuleMass,
+                                                                                        capsuleRadiusOfGyrationPercent,
+                                                                                        appearance,
+                                                                                        addStripes,
+                                                                                        stripesAppearance);
 
-      MultiBodySystemStateWriter ballInitialStateWriter = MultiBodySystemStateWriter.singleJointStateWriter(BALL_NAME, (FloatingJointBasics joint) ->
-      {
-         joint.getJointPose().getPosition().set(-1.0, -2.0 * ballRadius - cylinderHeight, ballRadius * 1.02);
-         joint.getJointTwist().getLinearPart().setMatchingFrame(new FrameVector3D(worldFrame, initialVelocity, 0.0, 0.0));
-      });
-      MultiBodySystemStateWriter cylinderInitialStateWriter = MultiBodySystemStateWriter.singleJointStateWriter(CYLINDER_NAME, (FloatingJointBasics joint) ->
-      {
-         joint.getJointPose().set(-1.0, 0.0, cylinderRadius * 1.02, 0.0, 0.0, Math.PI / 2.0);
-         joint.getJointTwist().getLinearPart().setMatchingFrame(new FrameVector3D(worldFrame, initialVelocity, 0.0, 0.0));
-      });
-      MultiBodySystemStateWriter capsuleInitialStateWriter = MultiBodySystemStateWriter.singleJointStateWriter(CAPSULE_NAME, (FloatingJointBasics joint) ->
-      {
-         joint.getJointPose().set(-1.0, cylinderHeight + capsuleHeight + capsuleRadius, capsuleRadius * 1.02, 0.0, 0.0, Math.PI / 2.0);
-         joint.getJointTwist().getLinearPart().setMatchingFrame(new FrameVector3D(worldFrame, initialVelocity, 0.0, 0.0));
-      });
+      SixDoFJointState ballInitialState = new SixDoFJointState(null, new Point3D(-1.0, -2.0 * ballRadius - cylinderHeight, ballRadius * 1.02));
+      ballInitialState.setVelocity(null, new Vector3D(initialVelocity, 0, 0));
+      ballRobot.getRootJointDefinitions().get(0).setInitialJointState(ballInitialState);
 
-      RobotCollisionModel ballCollision = RobotCollisionModel.singleBodyCollisionModel(BALL_BODY_NAME, body ->
-      {
-         return new Collidable(body, -1, -1, new FrameSphere3D(body.getBodyFixedFrame(), ballRadius));
-      });
-      RobotCollisionModel cylinderCollision = RobotCollisionModel.singleBodyCollisionModel(CYLINDER_BODY_NAME, body ->
-      {
-         return new Collidable(body, -1, -1, new FrameCylinder3D(body.getBodyFixedFrame(), cylinderHeight, cylinderRadius));
-      });
-      RobotCollisionModel capsuleCollision = RobotCollisionModel.singleBodyCollisionModel(CAPSULE_BODY_NAME, body ->
-      {
-         return new Collidable(body, -1, -1, new FrameCapsule3D(body.getBodyFixedFrame(), cylinderHeight, cylinderRadius));
-      });
+      SixDoFJointState cylinderInitialState = new SixDoFJointState();
+      cylinderInitialState.setConfiguration(new Pose3D(-1.0, 0.0, cylinderRadius * 1.02, 0.0, 0.0, Math.PI / 2.0));
+      cylinderInitialState.setVelocity(null, new Vector3D(initialVelocity, 0, 0));
+      cylinderRobot.getRootJointDefinitions().get(0).setInitialJointState(cylinderInitialState);
 
-      double simDT = 0.0001;
-      SimulationConstructionSetParameters parameters = new SimulationConstructionSetParameters();
-      ExperimentalSimulation experimentalSimulation = new ExperimentalSimulation(1 << 16);
-      experimentalSimulation.setGravity(new Vector3D(0.0, 0.0, -9.81));
-      experimentalSimulation.getPhysicsEngine().setGlobalContactParameters(contactParameters);
-      experimentalSimulation.addRobot(ballRobot, ballCollision, ballInitialStateWriter);
-      experimentalSimulation.addRobot(cylinderRobot, cylinderCollision, cylinderInitialStateWriter);
-      experimentalSimulation.addRobot(capsuleRobot, capsuleCollision, capsuleInitialStateWriter);
+      SixDoFJointState capsuleInitialState = new SixDoFJointState();
+      capsuleInitialState.setConfiguration(new Pose3D(-1.0, cylinderHeight + capsuleHeight + capsuleRadius, capsuleRadius * 1.02, 0.0, 0.0, Math.PI / 2.0));
+      capsuleInitialState.setVelocity(null, new Vector3D(initialVelocity, 0, 0));
+      capsuleRobot.getRootJointDefinitions().get(0).setInitialJointState(capsuleInitialState);
 
-      FrameBox3D groundShape = new FrameBox3D(worldFrame, 1000.0, 1000.0, 0.1);
-      groundShape.getPosition().subZ(0.05);
-      Collidable groundCollidable = new Collidable(null, -1, -1, groundShape);
-      experimentalSimulation.addEnvironmentCollidable(groundCollidable);
+      ballRobot.getRigidBodyDefinition(BALL_BODY_NAME).addCollisionShapeDefinition(new CollisionShapeDefinition(new Sphere3DDefinition(ballRadius)));
+      cylinderRobot.getRigidBodyDefinition(CYLINDER_BODY_NAME)
+                   .addCollisionShapeDefinition(new CollisionShapeDefinition(new Cylinder3DDefinition(cylinderHeight, cylinderRadius)));
+      capsuleRobot.getRigidBodyDefinition(CAPSULE_BODY_NAME)
+                  .addCollisionShapeDefinition(new CollisionShapeDefinition(new Capsule3DDefinition(cylinderHeight, cylinderRadius)));
 
-      SimulationConstructionSet scs = new SimulationConstructionSet(experimentalSimulation,
-                                                                    SupportedGraphics3DAdapter.instantiateDefaultGraphicsAdapter(true),
-                                                                    parameters);
-      scs.addYoGraphicsListRegistry(experimentalSimulation.getPhysicsEngineGraphicsRegistry());
-      scs.getRootRegistry().addChild(experimentalSimulation.getPhysicsEngineRegistry());
-      scs.setDT(simDT, 1);
-      scs.setFastSimulate(true);
-      scs.startOnAThread();
-      scs.simulate(2.0);
+      RigidBodyTransform terrainPose = new RigidBodyTransform();
+      terrainPose.getTranslation().subZ(0.05);
+      Box3DDefinition terrainGeometry = new Box3DDefinition(1000.0, 1000.0, 0.1);
+      TerrainObjectDefinition terrain = new TerrainObjectDefinition(new VisualDefinition(terrainPose,
+                                                                                         terrainGeometry,
+                                                                                         new MaterialDefinition(ColorDefinitions.SlateBlue())),
+                                                                    new CollisionShapeDefinition(terrainPose, terrainGeometry));
+      SimulationSession simulationSession = new SimulationSession();
+      simulationSession.addRobot(ballRobot);
+      simulationSession.addRobot(cylinderRobot);
+      simulationSession.addRobot(capsuleRobot);
+      simulationSession.addTerrainObject(terrain);
+      SessionVisualizer.startSessionVisualizer(simulationSession);
    }
 
    public static void main(String[] args)

@@ -1,30 +1,23 @@
-package us.ihmc.exampleSimulations.experimentalPhysicsEngine;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+package us.ihmc.scs2.examples.simulations;
 
 import us.ihmc.euclid.Axis3D;
-import us.ihmc.euclid.referenceFrame.FrameSphere3D;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
-import us.ihmc.graphicsDescription.appearance.YoAppearance;
-import us.ihmc.mecano.multiBodySystem.interfaces.MultiBodySystemBasics;
-import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointBasics;
-import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
-import us.ihmc.robotics.physics.Collidable;
-import us.ihmc.robotics.physics.CollidableHelper;
-import us.ihmc.robotics.physics.ContactParameters;
-import us.ihmc.robotics.physics.MultiBodySystemStateWriter;
-import us.ihmc.robotics.physics.RobotCollisionModel;
-import us.ihmc.robotics.robotDescription.LinkDescription;
-import us.ihmc.robotics.robotDescription.LinkGraphicsDescription;
-import us.ihmc.robotics.robotDescription.PinJointDescription;
-import us.ihmc.robotics.robotDescription.RobotDescription;
-import us.ihmc.simulationToolkit.physicsEngine.ExperimentalSimulation;
-import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.simulationconstructionset.SimulationConstructionSetParameters;
-import us.ihmc.simulationconstructionset.SupportedGraphics3DAdapter;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.mecano.tools.MomentOfInertiaFactory;
+import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
+import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
+import us.ihmc.scs2.definition.robot.RevoluteJointDefinition;
+import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
+import us.ihmc.scs2.definition.robot.RobotDefinition;
+import us.ihmc.scs2.definition.state.OneDoFJointState;
+import us.ihmc.scs2.definition.visual.ColorDefinition;
+import us.ihmc.scs2.definition.visual.ColorDefinitions;
+import us.ihmc.scs2.definition.visual.VisualDefinition.MaterialDefinition;
+import us.ihmc.scs2.definition.visual.VisualDefinitionFactory;
+import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizer;
+import us.ihmc.scs2.simulation.SimulationSession;
+import us.ihmc.scs2.simulation.parameters.ContactParameters;
 
 public class NewtonsCradleExperimentalSimulation
 {
@@ -43,91 +36,51 @@ public class NewtonsCradleExperimentalSimulation
       contactParameters.setCoefficientOfRestitution(1.0);
       contactParameters.setRestitutionThreshold(0.0);
 
-      RobotDescription robotDescription = new RobotDescription(NEWTONS_CRADLE);
+      RobotDefinition robotDefinition = new RobotDefinition(NEWTONS_CRADLE);
       double ballRadiusOfGyration = ballRadius * 0.6;
       double pinJointHeight = 1.1 * stringLength;
       double pinJointSeparation = 2.0001 * ballRadius; // FIXME Note the 1.0e-4 epsilon here, this is to prevent things from blowing up. Need to figure out how to fix this.
 
+      RigidBodyDefinition rootBody = new RigidBodyDefinition("rootBody");
+      robotDefinition.setRootBodyDefinition(rootBody);
+
       for (int i = 0; i < numberOfBalls; i++)
       {
          Vector3D offset = new Vector3D(i * pinJointSeparation, 1.0, pinJointHeight);
-         PinJointDescription pinJoint = new PinJointDescription("pin" + i, offset, Axis3D.Y);
+         RevoluteJointDefinition revoluteJoint = new RevoluteJointDefinition("pin" + i);
+         revoluteJoint.setAxis(Axis3D.Y);
+         revoluteJoint.setTransformToParent(new RigidBodyTransform(new Quaternion(), offset));
 
-         LinkDescription link = new LinkDescription(getBallBodyName(i));
-         link.setMassAndRadiiOfGyration(ballMass, ballRadiusOfGyration, ballRadiusOfGyration, ballRadiusOfGyration);
-         link.setCenterOfMassOffset(0.0, 0.0, -stringLength);
+         RigidBodyDefinition rigidBody = new RigidBodyDefinition(getBallBodyName(i));
+         rigidBody.setMass(ballMass);
+         rigidBody.setMomentOfInertia(MomentOfInertiaFactory.fromMassAndRadiiOfGyration(ballMass,
+                                                                                        ballRadiusOfGyration,
+                                                                                        ballRadiusOfGyration,
+                                                                                        ballRadiusOfGyration));
+         rigidBody.setCenterOfMassOffset(0.0, 0.0, -stringLength);
 
-         LinkGraphicsDescription linkGraphics = new LinkGraphicsDescription();
-         linkGraphics.translate(0.0, 0.0, -stringLength);
-         linkGraphics.addCylinder(stringLength, stringRadius, YoAppearance.Yellow());
-         AppearanceDefinition aliceBlue = YoAppearance.Red();
-         aliceBlue.setTransparency(0.4);
-         linkGraphics.addSphere(ballRadius, aliceBlue);
-         link.setLinkGraphics(linkGraphics);
+         VisualDefinitionFactory factory = new VisualDefinitionFactory();
+         factory.appendTranslation(0.0, 0.0, -0.5 * stringLength);
+         factory.addCylinder(stringLength, stringRadius, new MaterialDefinition(ColorDefinitions.Yellow()));
+         ColorDefinition aliceBlue = ColorDefinitions.Red();
+         aliceBlue.setAlpha(0.4);
+         factory.appendTranslation(0, 0, -0.5 * stringLength);
+         factory.addSphere(ballRadius, new MaterialDefinition(aliceBlue));
+         rigidBody.addVisualDefinitions(factory.getVisualDefinitions());
 
-         pinJoint.setLink(link);
-         robotDescription.addRootJoint(pinJoint);
+         rigidBody.addCollisionShapeDefinition(new CollisionShapeDefinition(new RigidBodyTransform(new Quaternion(), new Vector3D(0.0, 0.0, -stringLength)),
+                                                                            new Sphere3DDefinition(ballRadius)));
+
+         if (i == 0 || i == 1)
+            revoluteJoint.setInitialJointState(new OneDoFJointState(0.3));
+
+         revoluteJoint.setSuccessor(rigidBody);
+         rootBody.addChildJoint(revoluteJoint);
       }
 
-      CollidableHelper helper = new CollidableHelper();
-
-      RobotCollisionModel robotCollisionModel = new RobotCollisionModel()
-      {
-         @Override
-         public List<Collidable> getRobotCollidables(MultiBodySystemBasics multiBodySystem)
-         {
-            List<Collidable> collidables = new ArrayList<>();
-
-            for (int i = 0; i < numberOfBalls; i++)
-            {
-               long collisionMask = helper.getCollisionMask(getBallBodyName(i));
-               long collisionGroup = helper.createCollisionGroup(getOtherBallBodyNames(i));
-               RigidBodyBasics ballBody = RobotCollisionModel.findRigidBody(getBallBodyName(i), multiBodySystem);
-               FrameSphere3D ballShape = new FrameSphere3D(ballBody.getBodyFixedFrame(), ballRadius);
-               collidables.add(new Collidable(ballBody, collisionMask, collisionGroup, ballShape));
-            }
-
-            return collidables;
-         }
-      };
-
-      MultiBodySystemStateWriter robotInitialStateWriter = new MultiBodySystemStateWriter()
-      {
-         private List<OneDoFJointBasics> joints;
-
-         @Override
-         public boolean write()
-         {
-            joints.get(0).setQ(0.3);
-            joints.get(1).setQ(0.3);
-            return true;
-         }
-
-         @Override
-         public void setMultiBodySystem(MultiBodySystemBasics multiBodySystem)
-         {
-            joints = multiBodySystem.getAllJoints().stream().map(OneDoFJointBasics.class::cast).collect(Collectors.toList());
-         }
-      };
-
-      double simDT = 0.0001;
-      SimulationConstructionSetParameters parameters = new SimulationConstructionSetParameters();
-      ExperimentalSimulation experimentalSimulation = new ExperimentalSimulation(1 << 16);
-      experimentalSimulation.setDT(simDT, 1);
-      experimentalSimulation.setGravity(new Vector3D(0.0, 0.0, -9.81));
-      experimentalSimulation.getPhysicsEngine().setGlobalContactParameters(contactParameters);
-      experimentalSimulation.addRobot(robotDescription, robotCollisionModel, robotInitialStateWriter);
-      experimentalSimulation.addSimulationEnergyStatistics();
-
-      SimulationConstructionSet scs = new SimulationConstructionSet(experimentalSimulation,
-                                                                    SupportedGraphics3DAdapter.instantiateDefaultGraphicsAdapter(true),
-                                                                    parameters);
-      experimentalSimulation.simulate();
-      scs.getRootRegistry().addChild(experimentalSimulation.getPhysicsEngineRegistry());
-      scs.setDT(simDT, 1);
-      scs.setFastSimulate(true);
-      scs.startOnAThread();
-      scs.simulate(5.0);//2.1125);
+      SimulationSession simulationSession = new SimulationSession();
+      simulationSession.addRobot(robotDefinition);
+      SessionVisualizer.startSessionVisualizer(simulationSession);
    }
 
    private String getBallBodyName(int i)

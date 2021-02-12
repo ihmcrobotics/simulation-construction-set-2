@@ -77,6 +77,11 @@ public class RigidBodyDefinition implements Transformable
       this.inertiaPose.set(inertiaPose);
    }
 
+   public void setCenterOfMassOffset(double x, double y, double z)
+   {
+      inertiaPose.getTranslation().set(x, y, z);
+   }
+
    public void setCenterOfMassOffset(Tuple3DReadOnly centerOfMassOffset)
    {
       inertiaPose.getTranslation().set(centerOfMassOffset);
