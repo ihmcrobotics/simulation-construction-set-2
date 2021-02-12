@@ -1,6 +1,5 @@
 package us.ihmc.scs2.examples.simulations;
 
-import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.transform.AffineTransform;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
@@ -11,9 +10,7 @@ import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
 import us.ihmc.scs2.definition.geometry.Box3DDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
-import us.ihmc.scs2.definition.robot.interfaces.RobotInitialStateProvider;
 import us.ihmc.scs2.definition.state.SixDoFJointState;
-import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
 import us.ihmc.scs2.definition.visual.ColorDefinitions;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
@@ -54,20 +51,12 @@ public class BoxTeeteringEdgeToEdgeExperimentalSimulation
       boxRobot.getRigidBodyDefinition("boxRigidBody")
               .addCollisionShapeDefinition(new CollisionShapeDefinition(new Box3DDefinition(boxXLength, boxYWidth, boxZHeight)));
 
-      boxRobot.setInitialStateProvider(new RobotInitialStateProvider()
-      {
-         @Override
-         public JointStateReadOnly getInitialJointState(String jointName)
-         {
-            SixDoFJointState jointState = new SixDoFJointState();
-            jointState.setConfiguration(new Pose3D(new Point3D(0.0,
-                                                               groundWidth / 2.0 - 0.002,
-                                                               boxZHeight / 2.0 * 1.05 + boxYWidth / 2.0 * Math.sin(Math.abs(initialBoxRoll))),
-                                                   new YawPitchRoll(0, 0, initialBoxRoll)));
-            jointState.setVelocity(null, new Vector3D(initialVelocity, 0, 0));
-            return jointState;
-         }
-      });
+      SixDoFJointState initialJointState = new SixDoFJointState(new YawPitchRoll(0, 0, initialBoxRoll),
+                                                                new Point3D(0.0,
+                                                                            groundWidth / 2.0 - 0.002,
+                                                                            boxZHeight / 2.0 * 1.05 + boxYWidth / 2.0 * Math.sin(Math.abs(initialBoxRoll))));
+      initialJointState.setVelocity(null, new Vector3D(initialVelocity, 0, 0));
+      boxRobot.getRootJointDefinitions().get(0).setInitialJointState(initialJointState);
 
       GeometryDefinition terrainGeometry = new Box3DDefinition(groundLength, groundWidth, 0.1);
       RigidBodyTransform terrainPose = new RigidBodyTransform(new Quaternion(), new Vector3D(0.0, 0.0, -0.05));

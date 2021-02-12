@@ -44,14 +44,18 @@ public class RobotControllerManager
 
    public void initializeControllers()
    {
+      controllerInput.setTime(0.0);
+
       for (Controller controller : controllers)
       {
          controller.initialize();
       }
    }
 
-   public void updateControllers()
+   public void updateControllers(double time)
    {
+      controllerInput.setTime(time);
+
       for (Controller controller : controllers)
       {
          controller.doControl();

@@ -126,7 +126,7 @@ public class ExampleExperimentalSimulationTools
    {
       RobotDefinition robotDefinition = new RobotDefinition(name);
 
-      RigidBodyDefinition rootBody = new RigidBodyDefinition("elevator");
+      RigidBodyDefinition rootBody = new RigidBodyDefinition(name + "RootBody");
       SixDoFJointDefinition rootJoint = new SixDoFJointDefinition(name);
       rootBody.addChildJoint(rootJoint);
       rootJoint.setSuccessor(newBoxRigidBody(name + "RigidBody", sizeX, sizeY, sizeZ, mass, radiusOfGyrationPercent, color));

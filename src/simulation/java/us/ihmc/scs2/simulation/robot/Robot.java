@@ -78,6 +78,7 @@ public class Robot implements SimMultiBodySystemBasics, CollidableHolder
                                        .collect(Collectors.toList());
 
       controllerManager = new RobotControllerManager(this, registry);
+      robotDefinition.getControllerDefinitions().forEach(controllerManager::addController);
 
       robotPhysics = new RobotPhysics(this);
    }

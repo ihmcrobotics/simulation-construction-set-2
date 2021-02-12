@@ -59,6 +59,19 @@ public class Box3DDefinition extends GeometryDefinition
       this.centered = centered;
    }
 
+   /**
+    * Creates and initializes a definition for a 3D box.
+    * <p>
+    * The box is centered at the origin.
+    * </p>
+    * 
+    * @param size box size along each axis.
+    */
+   public Box3DDefinition(Tuple3DReadOnly size)
+   {
+      this(size.getX(), size.getY(), size.getZ(), true);
+   }
+
    public Box3DDefinition(Box3DDefinition other)
    {
       setName(other.getName());

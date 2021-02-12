@@ -156,7 +156,7 @@ public class PhysicsEngine
       for (Robot robot : robotList)
       {
          robot.getRobotPhysics().resetCalculators();
-         robot.getControllerManager().updateControllers();
+         robot.getControllerManager().updateControllers(time.getValue());
          robot.getRobotPhysics().updateCollidableBoundingBoxes();
       }
 

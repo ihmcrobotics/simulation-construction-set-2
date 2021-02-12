@@ -5,7 +5,9 @@ import java.util.Set;
 
 import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.geometry.interfaces.Pose3DReadOnly;
+import us.ihmc.euclid.orientation.interfaces.Orientation3DReadOnly;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.scs2.definition.state.interfaces.SixDoFJointStateBasics;
@@ -25,6 +27,11 @@ public class SixDoFJointState implements SixDoFJointStateBasics
    {
    }
 
+   public SixDoFJointState(Orientation3DReadOnly orientation, Tuple3DReadOnly position)
+   {
+      setConfiguration(orientation, position);
+   }
+
    @Override
    public void clear()
    {
@@ -32,10 +39,19 @@ public class SixDoFJointState implements SixDoFJointStateBasics
    }
 
    @Override
-   public void setConfiguration(Pose3DReadOnly configuration)
+   public void setConfiguration(Orientation3DReadOnly orientation, Tuple3DReadOnly position)
    {
       availableStates.add(JointStateType.CONFIGURATION);
-      this.configuration.set(configuration);
+
+      if (orientation != null)
+         configuration.getOrientation().set(orientation);
+      else
+         configuration.getOrientation().setToZero();
+
+      if (position != null)
+         configuration.getPosition().set(position);
+      else
+         configuration.getPosition().setToZero();
    }
 
    @Override

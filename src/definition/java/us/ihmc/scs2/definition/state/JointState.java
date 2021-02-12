@@ -144,11 +144,6 @@ public class JointState implements JointStateBasics
       jointToUpdate.setJointTau(0, effort);
    }
 
-   public void addAvailableState(JointStateType availableState)
-   {
-      availableStates.add(availableState);
-   }
-
    public DMatrixRMaj getConfiguration()
    {
       return configuration;
