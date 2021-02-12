@@ -131,7 +131,7 @@ public class RigidBodyDefinition implements Transformable
 
    public void addVisualDefinitions(Collection<VisualDefinition> visualDefinitions)
    {
-      visualDefinitions.addAll(visualDefinitions);
+      visualDefinitions.forEach(this::addVisualDefinition);
    }
 
    public List<VisualDefinition> getVisualDefinitions()

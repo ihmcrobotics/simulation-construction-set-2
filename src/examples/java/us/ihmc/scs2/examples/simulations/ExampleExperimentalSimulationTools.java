@@ -165,7 +165,6 @@ public class ExampleExperimentalSimulationTools
       VisualDefinitionFactory factory = new VisualDefinitionFactory();
       if (offsetFromParentJoint != null)
          factory.appendTranslation(offsetFromParentJoint);
-      factory.appendTranslation(0.0, 0.0, -sizeZ / 2.0);
       factory.addCube(sizeX, sizeY, sizeZ, new MaterialDefinition(color));
       rigidBody.addVisualDefinitions(factory.getVisualDefinitions());
       return rigidBody;

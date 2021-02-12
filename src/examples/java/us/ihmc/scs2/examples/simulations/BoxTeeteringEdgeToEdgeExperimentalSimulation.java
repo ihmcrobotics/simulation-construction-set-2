@@ -1,20 +1,29 @@
 package us.ihmc.scs2.examples.simulations;
 
-import us.ihmc.euclid.referenceFrame.FrameBox3D;
-import us.ihmc.euclid.referenceFrame.FrameVector3D;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.geometry.Pose3D;
+import us.ihmc.euclid.transform.AffineTransform;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.mecano.multiBodySystem.interfaces.FloatingJointBasics;
+import us.ihmc.euclid.tuple4D.Quaternion;
+import us.ihmc.euclid.yawPitchRoll.YawPitchRoll;
 import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
+import us.ihmc.scs2.definition.geometry.Box3DDefinition;
+import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
+import us.ihmc.scs2.definition.robot.interfaces.RobotInitialStateProvider;
+import us.ihmc.scs2.definition.state.SixDoFJointState;
+import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
+import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
 import us.ihmc.scs2.definition.visual.ColorDefinitions;
-import us.ihmc.scs2.simulation.collision.Collidable;
+import us.ihmc.scs2.definition.visual.VisualDefinition;
+import us.ihmc.scs2.definition.visual.VisualDefinition.MaterialDefinition;
+import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizer;
+import us.ihmc.scs2.simulation.SimulationSession;
 import us.ihmc.scs2.simulation.parameters.ContactParameters;
-import us.ihmc.scs2.simulation.physicsEngine.MultiBodySystemStateWriter;
 
 public class BoxTeeteringEdgeToEdgeExperimentalSimulation
 {
-   private static final ReferenceFrame worldFrame = ReferenceFrame.getWorldFrame();
    private final ContactParameters contactParameters = new ContactParameters();
 
    public BoxTeeteringEdgeToEdgeExperimentalSimulation()
@@ -36,48 +45,41 @@ public class BoxTeeteringEdgeToEdgeExperimentalSimulation
       double groundLength = 1.0;
 
       RobotDefinition boxRobot = ExampleExperimentalSimulationTools.newBoxRobot("box",
-                                                                                 boxXLength,
-                                                                                 boxYWidth,
-                                                                                 boxZHeight,
-                                                                                 boxMass,
-                                                                                 boxRadiusOfGyrationPercent,
-                                                                                 ColorDefinitions.DarkCyan());
+                                                                                boxXLength,
+                                                                                boxYWidth,
+                                                                                boxZHeight,
+                                                                                boxMass,
+                                                                                boxRadiusOfGyrationPercent,
+                                                                                ColorDefinitions.DarkCyan());
+      boxRobot.getRigidBodyDefinition("boxRigidBody")
+              .addCollisionShapeDefinition(new CollisionShapeDefinition(new Box3DDefinition(boxXLength, boxYWidth, boxZHeight)));
 
-      MultiBodySystemStateWriter boxInitialStateWriter = MultiBodySystemStateWriter.singleJointStateWriter("box", (FloatingJointBasics joint) ->
+      boxRobot.setInitialStateProvider(new RobotInitialStateProvider()
       {
-         joint.getJointPose().getPosition().set(0.0, groundWidth / 2.0 - 0.002, boxZHeight / 2.0 * 1.05 + boxYWidth / 2.0 * Math.sin(Math.abs(initialBoxRoll)));
-         joint.getJointPose().getOrientation().setToRollOrientation(initialBoxRoll);
-         joint.getJointTwist().getLinearPart().setMatchingFrame(new FrameVector3D(worldFrame, initialVelocity, 0, 0));
+         @Override
+         public JointStateReadOnly getInitialJointState(String jointName)
+         {
+            SixDoFJointState jointState = new SixDoFJointState();
+            jointState.setConfiguration(new Pose3D(new Point3D(0.0,
+                                                               groundWidth / 2.0 - 0.002,
+                                                               boxZHeight / 2.0 * 1.05 + boxYWidth / 2.0 * Math.sin(Math.abs(initialBoxRoll))),
+                                                   new YawPitchRoll(0, 0, initialBoxRoll)));
+            jointState.setVelocity(null, new Vector3D(initialVelocity, 0, 0));
+            return jointState;
+         }
       });
 
-      RobotCollisionModel boxCollision = RobotCollisionModel.singleBodyCollisionModel("boxLink", body ->
-      {
-         return new Collidable(body, -1, -1, new FrameBox3D(body.getBodyFixedFrame(), boxXLength, boxYWidth, boxZHeight));
-      });
+      GeometryDefinition terrainGeometry = new Box3DDefinition(groundLength, groundWidth, 0.1);
+      RigidBodyTransform terrainPose = new RigidBodyTransform(new Quaternion(), new Vector3D(0.0, 0.0, -0.05));
+      TerrainObjectDefinition terrain = new TerrainObjectDefinition(new VisualDefinition(new AffineTransform(terrainPose),
+                                                                                         terrainGeometry,
+                                                                                         new MaterialDefinition(ColorDefinitions.DarkKhaki())),
+                                                                    new CollisionShapeDefinition(terrainPose, terrainGeometry));
 
-      double simDT = 0.0001;
-      SimulationConstructionSetParameters parameters = new SimulationConstructionSetParameters();
-      ExperimentalSimulation experimentalSimulation = new ExperimentalSimulation(1 << 16);
-      experimentalSimulation.setGravity(new Vector3D(0.0, 0.0, -9.81));
-      experimentalSimulation.getPhysicsEngine().setGlobalContactParameters(contactParameters);
-      experimentalSimulation.addRobot(boxRobot, boxCollision, boxInitialStateWriter);
-
-      FrameBox3D groundShape = new FrameBox3D(worldFrame, groundLength, groundWidth, 0.1);
-      groundShape.getPosition().subZ(0.05);
-      Collidable groundCollidable = new Collidable(null, -1, -1, groundShape);
-      experimentalSimulation.addEnvironmentCollidable(groundCollidable);
-
-      SimulationConstructionSet scs = new SimulationConstructionSet(experimentalSimulation,
-                                                                    SupportedGraphics3DAdapter.instantiateDefaultGraphicsAdapter(true),
-                                                                    parameters);
-      scs.addYoGraphicsListRegistry(experimentalSimulation.getPhysicsEngineGraphicsRegistry());
-      scs.setGroundVisible(false);
-      scs.addStaticLinkGraphics(ExampleExperimentalSimulationTools.toGraphics3DObject(groundShape, worldFrame, YoAppearance.DarkKhaki()));
-      scs.getRootRegistry().addChild(experimentalSimulation.getPhysicsEngineRegistry());
-      scs.setDT(simDT, 1);
-      scs.setFastSimulate(true);
-      scs.startOnAThread();
-      scs.simulate(2.0);
+      SimulationSession simulationSession = new SimulationSession();
+      simulationSession.addRobot(boxRobot);
+      simulationSession.addTerrainObject(terrain);
+      SessionVisualizer.startSessionVisualizer(simulationSession);
    }
 
    public static void main(String[] args)

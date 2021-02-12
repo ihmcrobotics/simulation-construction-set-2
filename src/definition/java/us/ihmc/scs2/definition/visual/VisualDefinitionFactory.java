@@ -336,7 +336,7 @@ public class VisualDefinitionFactory
 
    public VisualDefinition addCube(double lengthX, double widthY, double heightZ, MaterialDefinition materialDefinition)
    {
-      return addCube(lengthX, widthY, heightZ, false, materialDefinition);
+      return addCube(lengthX, widthY, heightZ, true, materialDefinition);
    }
 
    public VisualDefinition addCube(double lengthX, double widthY, double heightZ, boolean centeredInTheCenter, MaterialDefinition materialDefinition)

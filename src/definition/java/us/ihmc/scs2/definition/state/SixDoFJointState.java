@@ -43,8 +43,14 @@ public class SixDoFJointState implements SixDoFJointStateBasics
    public void setVelocity(Vector3DReadOnly angularVelocity, Vector3DReadOnly linearVelocity)
    {
       availableStates.add(JointStateType.VELOCITY);
-      this.angularVelocity.set(angularVelocity);
-      this.linearVelocity.set(linearVelocity);
+      if (angularVelocity == null)
+         this.angularVelocity.setToZero();
+      else
+         this.angularVelocity.set(angularVelocity);
+      if (linearVelocity == null)
+         this.linearVelocity.setToZero();
+      else
+         this.linearVelocity.set(linearVelocity);
    }
 
    @Override
