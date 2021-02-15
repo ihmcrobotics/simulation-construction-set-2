@@ -79,6 +79,11 @@ public class SimulationSession extends Session
       return simulationName;
    }
 
+   public PhysicsEngine getPhysicsEngine()
+   {
+      return physicsEngine;
+   }
+
    @Override
    public List<RobotDefinition> getRobotDefinitions()
    {

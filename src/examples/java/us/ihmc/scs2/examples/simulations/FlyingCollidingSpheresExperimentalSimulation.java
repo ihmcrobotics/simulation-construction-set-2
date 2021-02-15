@@ -16,10 +16,9 @@ import us.ihmc.scs2.simulation.parameters.ContactParameters;
 
 public class FlyingCollidingSpheresExperimentalSimulation
 {
-   private final ContactParameters contactParameters = new ContactParameters();
-
    public FlyingCollidingSpheresExperimentalSimulation()
    {
+      ContactParameters contactParameters = new ContactParameters();
       contactParameters.setMinimumPenetration(5.0e-5);
       contactParameters.setCoefficientOfFriction(0.7);
       contactParameters.setCoefficientOfRestitution(1.0);
@@ -54,6 +53,7 @@ public class FlyingCollidingSpheresExperimentalSimulation
       SimulationSession simulationSession = new SimulationSession();
       simulationSession.addRobot(sphereRobot1);
       simulationSession.addRobot(sphereRobot2);
+      simulationSession.getPhysicsEngine().setGlobalContactParameters(contactParameters);
       SessionVisualizer.startSessionVisualizer(simulationSession);
    }
 

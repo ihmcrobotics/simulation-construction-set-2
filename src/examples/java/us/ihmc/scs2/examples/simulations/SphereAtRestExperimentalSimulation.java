@@ -1,75 +1,58 @@
-package us.ihmc.exampleSimulations.experimentalPhysicsEngine;
+package us.ihmc.scs2.examples.simulations;
 
-import us.ihmc.euclid.referenceFrame.FrameBox3D;
-import us.ihmc.euclid.referenceFrame.FrameSphere3D;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.graphicsDescription.appearance.YoAppearance;
-import us.ihmc.mecano.multiBodySystem.interfaces.FloatingJointBasics;
-import us.ihmc.robotics.physics.Collidable;
-import us.ihmc.robotics.physics.ContactParameters;
-import us.ihmc.robotics.physics.MultiBodySystemStateWriter;
-import us.ihmc.robotics.physics.RobotCollisionModel;
-import us.ihmc.robotics.robotDescription.RobotDescription;
-import us.ihmc.simulationToolkit.physicsEngine.ExperimentalSimulation;
-import us.ihmc.simulationconstructionset.SimulationConstructionSet;
-import us.ihmc.simulationconstructionset.SimulationConstructionSetParameters;
-import us.ihmc.simulationconstructionset.SupportedGraphics3DAdapter;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
+import us.ihmc.scs2.definition.geometry.Box3DDefinition;
+import us.ihmc.scs2.definition.geometry.GeometryDefinition;
+import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
+import us.ihmc.scs2.definition.robot.RobotDefinition;
+import us.ihmc.scs2.definition.state.SixDoFJointState;
+import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
+import us.ihmc.scs2.definition.visual.ColorDefinitions;
+import us.ihmc.scs2.definition.visual.VisualDefinition;
+import us.ihmc.scs2.definition.visual.VisualDefinition.MaterialDefinition;
+import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizer;
+import us.ihmc.scs2.simulation.SimulationSession;
+import us.ihmc.scs2.simulation.parameters.ContactParameters;
 
 public class SphereAtRestExperimentalSimulation
 {
-   private final ContactParameters contactParameters = new ContactParameters();
-
    public SphereAtRestExperimentalSimulation()
    {
+      ContactParameters contactParameters = new ContactParameters();
       contactParameters.setMinimumPenetration(5.0e-5);
       contactParameters.setErrorReductionParameter(0.01);
 
       double sphereRadius = 0.5;
       double sphereMass = 1.0;
 
-      RobotDescription sphereRobot = ExampleExperimentalSimulationTools.newSphereRobot("Sphere",
-                                                                                       sphereRadius,
-                                                                                       sphereMass,
-                                                                                       0.8,
-                                                                                       YoAppearance.AluminumMaterial(),
-                                                                                       true,
-                                                                                       YoAppearance.Gold());
-      MultiBodySystemStateWriter sphereInitialStateWriter = MultiBodySystemStateWriter.singleJointStateWriter("Sphere", (FloatingJointBasics joint) ->
-      {
-         joint.getJointPose().getPosition().setZ(sphereRadius);
-//         joint.getJointPose().getPosition().set(0.0, 0.0, 1.0);
-//         joint.getJointTwist().getLinearPart().set(10.0, 0.0, 10.0);
-//         joint.getJointTwist().getAngularPart().set(0.0, 0.0, 200.0);
-      });
-      RobotCollisionModel sphereCollisionModel = RobotCollisionModel.singleBodyCollisionModel("SphereLink", body ->
-      {
-         return new Collidable(body, -1, -1, new FrameSphere3D(body.getBodyFixedFrame(), sphereRadius));
-      });
+      RobotDefinition sphereRobot = ExampleExperimentalSimulationTools.newSphereRobot("Sphere",
+                                                                                      sphereRadius,
+                                                                                      sphereMass,
+                                                                                      0.8,
+                                                                                      ColorDefinitions.Maroon(),
+                                                                                      true,
+                                                                                      ColorDefinitions.Gold());
+      SixDoFJointState initialJointState = new SixDoFJointState();
+      initialJointState.setConfiguration(null, new Point3D(0, 0, sphereRadius));
+      sphereRobot.getRootJointDefinitions().get(0).setInitialJointState(initialJointState);
 
-      FrameBox3D groundShape = new FrameBox3D(ReferenceFrame.getWorldFrame(), 100.0, 100.0, 0.1);
-      groundShape.getPosition().subZ(0.05);
-      Collidable groundCollidable = new Collidable(null, -1, -1, groundShape);
+      sphereRobot.getRigidBodyDefinition("SphereRigidBody").addCollisionShapeDefinition(new CollisionShapeDefinition(new Sphere3DDefinition(sphereRadius)));
 
-      double simDT = 0.0001;
-      SimulationConstructionSetParameters parameters = new SimulationConstructionSetParameters();
-      ExperimentalSimulation experimentalSimulation = new ExperimentalSimulation(1 << 15);
-      experimentalSimulation.setGravity(new Vector3D(0.0, 0.0, -10.0));
-      experimentalSimulation.getPhysicsEngine().setGlobalContactParameters(contactParameters);
-      experimentalSimulation.addRobot(sphereRobot, sphereCollisionModel, sphereInitialStateWriter);
-      experimentalSimulation.addEnvironmentCollidable(groundCollidable);
-      experimentalSimulation.addSimulationEnergyStatistics();
+      RigidBodyTransform terrainPose = new RigidBodyTransform();
+      terrainPose.appendTranslation(0, 0, -0.05);
+      GeometryDefinition terrainGeometry = new Box3DDefinition(100.0, 100.0, 0.1);
+      TerrainObjectDefinition terrain = new TerrainObjectDefinition(new VisualDefinition(terrainPose,
+                                                                                         terrainGeometry,
+                                                                                         new MaterialDefinition(ColorDefinitions.LightGreen())),
+                                                                    new CollisionShapeDefinition(terrainPose, terrainGeometry));
 
-      SimulationConstructionSet scs = new SimulationConstructionSet(experimentalSimulation,
-                                                                    SupportedGraphics3DAdapter.instantiateDefaultGraphicsAdapter(true),
-                                                                    parameters);
-      ExampleExperimentalSimulationTools.configureSCSToTrackRobotRootJoint(scs, sphereRobot);
-      scs.getRootRegistry().addChild(experimentalSimulation.getPhysicsEngineRegistry());
-      scs.addYoGraphicsListRegistry(experimentalSimulation.getPhysicsEngineGraphicsRegistry());
-      scs.setDT(simDT, 1);
-      scs.setFastSimulate(true);
-      scs.startOnAThread();
-      scs.simulate(2.0);
+      SimulationSession simulationSession = new SimulationSession();
+      simulationSession.addRobot(sphereRobot);
+      simulationSession.addTerrainObject(terrain);
+      simulationSession.getPhysicsEngine().setGlobalContactParameters(contactParameters);
+      SessionVisualizer.startSessionVisualizer(simulationSession);
    }
 
    public static void main(String[] args)

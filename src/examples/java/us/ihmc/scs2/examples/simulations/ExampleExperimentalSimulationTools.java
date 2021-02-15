@@ -64,7 +64,6 @@ public class ExampleExperimentalSimulationTools
                                                                                      radiusOfGyrationPercent * height));
 
       VisualDefinitionFactory factory = new VisualDefinitionFactory();
-      factory.appendTranslation(0.0, 0.0, -height / 2.0);
       factory.addCylinder(height, radius, new MaterialDefinition(color));
 
       if (addStripes)
@@ -99,15 +98,14 @@ public class ExampleExperimentalSimulationTools
                                                                                      radiusOfGyrationPercent * height));
 
       VisualDefinitionFactory factory = new VisualDefinitionFactory();
-      factory.addCapsule(radius, height + 2.0 * radius, new MaterialDefinition(color));
+      factory.addCapsule(radius, height, new MaterialDefinition(color));
 
       if (addStripes)
       {
          double stripePercent = 0.05;
-         factory.appendTranslation(0.0, 0.0, -height / 2.0 + radius);
-         factory.addCube(2.0 * radius * 1.01, radius * stripePercent, height - 2.0 * radius, new MaterialDefinition(stripesColor));
+         factory.addCube(2.0 * radius * 1.01, radius * stripePercent, height, new MaterialDefinition(stripesColor));
          factory.appendRotation(Math.PI / 2.0, Axis3D.Z);
-         factory.addCube(2.0 * radius * 1.01, radius * stripePercent, height - 2.0 * radius, new MaterialDefinition(stripesColor));
+         factory.addCube(2.0 * radius * 1.01, radius * stripePercent, height, new MaterialDefinition(stripesColor));
       }
 
       rigidBody.addVisualDefinitions(factory.getVisualDefinitions());
@@ -158,7 +156,10 @@ public class ExampleExperimentalSimulationTools
    {
       RigidBodyDefinition rigidBody = new RigidBodyDefinition(rigidBodyName);
       rigidBody.setMass(mass);
-      rigidBody.setMomentOfInertia(MomentOfInertiaFactory.fromMassAndRadiiOfGyration(mass, radiusOfGyrationPercent * sizeX, radiusOfGyrationPercent * sizeY, radiusOfGyrationPercent * sizeZ));
+      rigidBody.setMomentOfInertia(MomentOfInertiaFactory.fromMassAndRadiiOfGyration(mass,
+                                                                                     radiusOfGyrationPercent * sizeX,
+                                                                                     radiusOfGyrationPercent * sizeY,
+                                                                                     radiusOfGyrationPercent * sizeZ));
       if (offsetFromParentJoint != null)
          rigidBody.setCenterOfMassOffset(offsetFromParentJoint);
 

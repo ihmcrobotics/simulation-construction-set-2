@@ -21,10 +21,9 @@ import us.ihmc.scs2.simulation.parameters.ContactParameters;
 
 public class BoxTeeteringEdgeToEdgeExperimentalSimulation
 {
-   private final ContactParameters contactParameters = new ContactParameters();
-
    public BoxTeeteringEdgeToEdgeExperimentalSimulation()
    {
+      ContactParameters contactParameters = new ContactParameters();
       contactParameters.setMinimumPenetration(5.0e-5);
       contactParameters.setCoefficientOfFriction(0.7);
       contactParameters.setErrorReductionParameter(0.001);
@@ -68,6 +67,7 @@ public class BoxTeeteringEdgeToEdgeExperimentalSimulation
       SimulationSession simulationSession = new SimulationSession();
       simulationSession.addRobot(boxRobot);
       simulationSession.addTerrainObject(terrain);
+      simulationSession.getPhysicsEngine().setGlobalContactParameters(contactParameters);
       SessionVisualizer.startSessionVisualizer(simulationSession);
    }
 

@@ -40,10 +40,10 @@ public class BridgeOfBoxesSimulation
    private static final String LEFT_SUPPORT = "LeftSupport";
    private static final boolean SUPPORT_STATIC = false;
 
-   private final ContactParameters contactParameters = new ContactParameters();
 
    public BridgeOfBoxesSimulation()
    {
+      ContactParameters contactParameters = new ContactParameters();
       contactParameters.setMinimumPenetration(5.0e-5);
       contactParameters.setCoefficientOfFriction(0.7);
       contactParameters.setCoefficientOfRestitution(0.0);
@@ -117,6 +117,7 @@ public class BridgeOfBoxesSimulation
       SimulationSession simulationSession = new SimulationSession();
       robots.forEach(simulationSession::addRobot);
       simulationSession.addTerrainObject(terrainObjectDefinition);
+      simulationSession.getPhysicsEngine().setGlobalContactParameters(contactParameters);
       SessionVisualizer.startSessionVisualizer(simulationSession);
    }
 

@@ -22,7 +22,6 @@ import us.ihmc.scs2.simulation.parameters.ContactParameters;
 public class NewtonsCradleExperimentalSimulation
 {
    private static final String NEWTONS_CRADLE = "NewtonsCradle";
-   private final ContactParameters contactParameters = new ContactParameters();
    private final int numberOfBalls = 6;
    private final double ballRadius = 0.05;
 
@@ -32,6 +31,7 @@ public class NewtonsCradleExperimentalSimulation
 
    public NewtonsCradleExperimentalSimulation()
    {
+      ContactParameters contactParameters = new ContactParameters();
       contactParameters.setMinimumPenetration(5.0e-5);
       contactParameters.setCoefficientOfRestitution(1.0);
       contactParameters.setRestitutionThreshold(0.0);
@@ -80,24 +80,13 @@ public class NewtonsCradleExperimentalSimulation
 
       SimulationSession simulationSession = new SimulationSession();
       simulationSession.addRobot(robotDefinition);
+      simulationSession.getPhysicsEngine().setGlobalContactParameters(contactParameters);
       SessionVisualizer.startSessionVisualizer(simulationSession);
    }
 
    private String getBallBodyName(int i)
    {
       return "ball" + i;
-   }
-
-   private String[] getOtherBallBodyNames(int i)
-   {
-      String[] otherNames = new String[numberOfBalls - 1];
-      int index = 0;
-      for (int j = 0; j < numberOfBalls; j++)
-      {
-         if (j != i)
-            otherNames[index++] = getBallBodyName(j);
-      }
-      return otherNames;
    }
 
    public static void main(String[] args)
