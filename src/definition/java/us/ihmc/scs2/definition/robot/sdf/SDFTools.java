@@ -558,7 +558,7 @@ public class SDFTools
 
       VisualDefinition visualDefinition = new VisualDefinition();
       visualDefinition.setName(sdfVisual.getName());
-      visualDefinition.setOriginPose(new AffineTransform(parsePose(sdfVisual.getPose())));
+      visualDefinition.setOriginPose(parsePose(sdfVisual.getPose()));
       visualDefinition.setMaterialDefinition(toMaterialDefinition(sdfVisual.getMaterial()));
       visualDefinition.setGeometryDefinition(toGeometryDefinition(sdfVisual.getGeometry()));
       return visualDefinition;

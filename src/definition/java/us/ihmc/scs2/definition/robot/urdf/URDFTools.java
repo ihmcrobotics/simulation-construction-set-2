@@ -24,7 +24,6 @@ import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.matrix.interfaces.Matrix3DBasics;
 import us.ihmc.euclid.matrix.interfaces.RotationMatrixBasics;
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
-import us.ihmc.euclid.transform.AffineTransform;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
@@ -693,7 +692,7 @@ public class URDFTools
 
       VisualDefinition visualDefinition = new VisualDefinition();
       visualDefinition.setName(urdfVisual.getName());
-      visualDefinition.setOriginPose(new AffineTransform(parseRigidBodyTransform(urdfVisual.getOrigin())));
+      visualDefinition.setOriginPose(parseRigidBodyTransform(urdfVisual.getOrigin()));
       visualDefinition.setMaterialDefinition(toMaterialDefinition(urdfVisual.getMaterial()));
       visualDefinition.setGeometryDefinition(toGeometryDefinition(urdfVisual.getGeometry()));
       return visualDefinition;

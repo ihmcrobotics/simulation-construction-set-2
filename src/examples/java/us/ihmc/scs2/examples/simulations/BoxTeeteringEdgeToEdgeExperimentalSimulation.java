@@ -1,6 +1,5 @@
 package us.ihmc.scs2.examples.simulations;
 
-import us.ihmc.euclid.transform.AffineTransform;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -59,7 +58,7 @@ public class BoxTeeteringEdgeToEdgeExperimentalSimulation
 
       GeometryDefinition terrainGeometry = new Box3DDefinition(groundLength, groundWidth, 0.1);
       RigidBodyTransform terrainPose = new RigidBodyTransform(new Quaternion(), new Vector3D(0.0, 0.0, -0.05));
-      TerrainObjectDefinition terrain = new TerrainObjectDefinition(new VisualDefinition(new AffineTransform(terrainPose),
+      TerrainObjectDefinition terrain = new TerrainObjectDefinition(new VisualDefinition(terrainPose,
                                                                                          terrainGeometry,
                                                                                          new MaterialDefinition(ColorDefinitions.DarkKhaki())),
                                                                     new CollisionShapeDefinition(terrainPose, terrainGeometry));

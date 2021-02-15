@@ -1,7 +1,6 @@
 package us.ihmc.scs2.examples.simulations;
 
 import us.ihmc.euclid.Axis3D;
-import us.ihmc.euclid.transform.AffineTransform;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -75,14 +74,16 @@ public class ConnectedShapesExperimentalSimulation
       pinJoint.setInitialJointState(initialPinJointState);
 
       rigidBody1.addCollisionShapeDefinition(new CollisionShapeDefinition(new Box3DDefinition(boxSize1)));
-      rigidBody2.addCollisionShapeDefinition(new CollisionShapeDefinition(new RigidBodyTransform(new Quaternion(), connectionOffset), new Box3DDefinition(boxSize2)));
+      rigidBody2.addCollisionShapeDefinition(new CollisionShapeDefinition(new RigidBodyTransform(new Quaternion(), connectionOffset),
+                                                                          new Box3DDefinition(boxSize2)));
 
       RigidBodyTransform terrainPose = new RigidBodyTransform();
       terrainPose.getTranslation().subZ(0.05);
-      TerrainObjectDefinition terrain = new TerrainObjectDefinition(new VisualDefinition(new AffineTransform(terrainPose),
-                                                                                         new Box3DDefinition(5.0, 5.0, 0.1),
+      Box3DDefinition terrainGeometry = new Box3DDefinition(5.0, 5.0, 0.1);
+      TerrainObjectDefinition terrain = new TerrainObjectDefinition(new VisualDefinition(terrainPose,
+                                                                                         terrainGeometry,
                                                                                          new MaterialDefinition(ColorDefinitions.DarkKhaki())),
-                                                                    new CollisionShapeDefinition(terrainPose, new Box3DDefinition(5.0, 5.0, 0.1)));
+                                                                    new CollisionShapeDefinition(terrainPose, terrainGeometry));
 
       SimulationSession simulationSession = new SimulationSession();
       simulationSession.addRobot(robotDefinition);
