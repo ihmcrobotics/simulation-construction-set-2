@@ -40,7 +40,6 @@ public class BridgeOfBoxesSimulation
    private static final String LEFT_SUPPORT = "LeftSupport";
    private static final boolean SUPPORT_STATIC = false;
 
-
    public BridgeOfBoxesSimulation()
    {
       ContactParameters contactParameters = new ContactParameters();
@@ -111,7 +110,7 @@ public class BridgeOfBoxesSimulation
 
          // controllers
          leftSupportRobot.addControllerDefinition((in, out) -> newSupportController(true, leftSupportPose, in, out, supportMass, bridgeMass));
-         rightSupportRobot.addControllerDefinition((in, out) -> newSupportController(true, rightSupportPose, in, out, supportMass, bridgeMass));
+         rightSupportRobot.addControllerDefinition((in, out) -> newSupportController(false, rightSupportPose, in, out, supportMass, bridgeMass));
       }
 
       SimulationSession simulationSession = new SimulationSession();
@@ -142,8 +141,8 @@ public class BridgeOfBoxesSimulation
       double kp = 1000.0;
       double kd = 200.0;
       double frequency = 1.0;
-      double amplitude = 0.0;
-      
+      double amplitude = 0.20;
+
       SpatialVector proportionalTerm = new SpatialVector();
       SpatialVector derivativeTerm = new SpatialVector();
       SpatialVector gravityTerm = new SpatialVector();
@@ -152,6 +151,7 @@ public class BridgeOfBoxesSimulation
       return () ->
       {
          controllerInput.readState(controllerRobot);
+         controllerRobot.getRootBody().updateFramesRecursively();
 
          errorPose.setIncludingFrame(ReferenceFrame.getWorldFrame(), desiredSupportPose);
 
@@ -159,6 +159,7 @@ public class BridgeOfBoxesSimulation
          errorPose.getPosition().addX(leftSide ? -offset : offset);
 
          errorPose.changeFrame(joint.getFrameAfterJoint());
+
          proportionalTerm.setToZero(joint.getFrameAfterJoint());
          proportionalTerm.getLinearPart().set(errorPose.getPosition());
          errorPose.getOrientation().getRotationVector(proportionalTerm.getAngularPart());
@@ -171,10 +172,9 @@ public class BridgeOfBoxesSimulation
          gravityTerm.setLinearPartZ(9.81 * (supportMass + 0.5 * bridgeMass));
          gravityTerm.changeFrame(joint.getFrameAfterJoint());
 
-//         joint.getJointWrench().set(proportionalTerm);
-//         joint.getJointWrench().add(derivativeTerm);
-//         joint.getJointWrench().add(gravityTerm);
-         joint.getJointWrench().set(gravityTerm);
+         joint.getJointWrench().set(proportionalTerm);
+         joint.getJointWrench().add(derivativeTerm);
+         joint.getJointWrench().add(gravityTerm);
 
          controllerOutput.getJointOutput(joint).setEffort(joint);
       };
