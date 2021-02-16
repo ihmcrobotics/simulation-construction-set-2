@@ -26,6 +26,7 @@ import us.ihmc.scs2.simulation.robot.multiBodySystem.SimFixedJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimSphericalJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimFloatingJointBasics;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimMultiBodySystemBasics;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimOneDoFJointBasics;
 
 public class SingleRobotFirstOrderIntegrator

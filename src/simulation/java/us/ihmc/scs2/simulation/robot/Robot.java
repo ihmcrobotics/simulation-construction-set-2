@@ -27,7 +27,7 @@ import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRevoluteJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRigidBody;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimSixDoFJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
-import us.ihmc.scs2.simulation.screwTools.SimMultiBodySystemBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimMultiBodySystemBasics;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class Robot implements SimMultiBodySystemBasics, CollidableHolder
