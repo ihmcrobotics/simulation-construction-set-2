@@ -69,7 +69,7 @@ public class Box3DDefinition extends GeometryDefinition
     */
    public Box3DDefinition(Tuple3DReadOnly size)
    {
-      this(size.getX(), size.getY(), size.getZ(), true);
+      this(size.getX(), size.getY(), size.getZ());
    }
 
    public Box3DDefinition(Box3DDefinition other)

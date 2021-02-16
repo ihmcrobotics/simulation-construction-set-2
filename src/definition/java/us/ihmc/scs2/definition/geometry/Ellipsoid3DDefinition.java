@@ -2,6 +2,7 @@ package us.ihmc.scs2.definition.geometry;
 
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 
 /**
  * Definition for creating a 3D ellipsoid.
@@ -52,6 +53,27 @@ public class Ellipsoid3DDefinition extends GeometryDefinition
       this.radiusY = radiusY;
       this.radiusZ = radiusZ;
       this.resolution = resolution;
+   }
+
+   /**
+    * Creates and initializes a definition for a 3D ellipsoid.
+    * 
+    * @param radii the tuple containing the 3 radii of the ellipsoid.
+    */
+   public Ellipsoid3DDefinition(Tuple3DReadOnly radii)
+   {
+      this(radii.getX(), radii.getY(), radii.getZ());
+   }
+
+   /**
+    * Creates and initializes a definition for a 3D ellipsoid.
+    * 
+    * @param radii      the tuple containing the 3 radii of the ellipsoid.
+    * @param resolution used for discretizing the geometry.
+    */
+   public Ellipsoid3DDefinition(Tuple3DReadOnly radii, int resolution)
+   {
+      this(radii.getX(), radii.getY(), radii.getZ(), resolution);
    }
 
    public Ellipsoid3DDefinition(Ellipsoid3DDefinition other)

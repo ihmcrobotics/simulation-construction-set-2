@@ -2,6 +2,7 @@ package us.ihmc.scs2.definition.geometry;
 
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 
 /**
  * Definition for creating a 3D wedge.
@@ -37,6 +38,16 @@ public class Wedge3DDefinition extends GeometryDefinition
       this.sizeX = sizeX;
       this.sizeY = sizeY;
       this.sizeZ = sizeZ;
+   }
+
+   /**
+    * Creates and initializes a definition for a 3D wedge.
+    * 
+    * @param size the size of the wedge along the 3 axes.
+    */
+   public Wedge3DDefinition(Tuple3DReadOnly size)
+   {
+      this(size.getX(), size.getY(), size.getZ());
    }
 
    public Wedge3DDefinition(Wedge3DDefinition other)

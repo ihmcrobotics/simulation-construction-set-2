@@ -290,10 +290,10 @@ public class URDFTools
             parentJoint.addKinematicPointDefinition(kp);
             return true;
          });
-         joint.getExternalForcePointDefinitions().removeIf(efp ->
+         joint.getExternalWrenchPointDefinitions().removeIf(efp ->
          {
             efp.applyTransform(transformToParentJoint);
-            parentJoint.addExternalForcePointDefinition(efp);
+            parentJoint.addExternalWrenchPointDefinition(efp);
             return true;
          });
          joint.getGroundContactPointDefinitions().removeIf(gcp ->

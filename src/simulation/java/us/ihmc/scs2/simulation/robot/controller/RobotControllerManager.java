@@ -29,6 +29,16 @@ public class RobotControllerManager
       controllerOutput = new ControllerOutput(input);
    }
 
+   public ControllerInput getControllerInput()
+   {
+      return controllerInput;
+   }
+
+   public ControllerOutput getControllerOutput()
+   {
+      return controllerOutput;
+   }
+
    public void addController(Controller controller)
    {
       if (controllers.add(controller))

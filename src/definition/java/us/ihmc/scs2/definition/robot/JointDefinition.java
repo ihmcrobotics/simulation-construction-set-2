@@ -24,7 +24,7 @@ public abstract class JointDefinition implements Transformable
 
    private final List<SensorDefinition> sensorDefinitions = new ArrayList<>();
    private final List<KinematicPointDefinition> kinematicPointDefinitions = new ArrayList<>();
-   private final List<ExternalWrenchPointDefinition> externalForcePointDefinitions = new ArrayList<>();
+   private final List<ExternalWrenchPointDefinition> externalWrenchPointDefinitions = new ArrayList<>();
    private final List<GroundContactPointDefinition> groundContactPointDefinitions = new ArrayList<>();
 
    public JointDefinition()
@@ -125,14 +125,14 @@ public abstract class JointDefinition implements Transformable
       kinematicPointDefinitions.add(kinematicPointDefinition);
    }
 
-   public List<ExternalWrenchPointDefinition> getExternalForcePointDefinitions()
+   public List<ExternalWrenchPointDefinition> getExternalWrenchPointDefinitions()
    {
-      return externalForcePointDefinitions;
+      return externalWrenchPointDefinitions;
    }
 
-   public void addExternalForcePointDefinition(ExternalWrenchPointDefinition externalForcePointDefinition)
+   public void addExternalWrenchPointDefinition(ExternalWrenchPointDefinition externalWrenchPointDefinition)
    {
-      externalForcePointDefinitions.add(externalForcePointDefinition);
+      externalWrenchPointDefinitions.add(externalWrenchPointDefinition);
    }
 
    public List<GroundContactPointDefinition> getGroundContactPointDefinitions()
@@ -152,7 +152,7 @@ public abstract class JointDefinition implements Transformable
    {
       transform.transform(transformToParent);
       kinematicPointDefinitions.forEach(kp -> kp.applyTransform(transform));
-      externalForcePointDefinitions.forEach(efp -> efp.applyTransform(transform));
+      externalWrenchPointDefinitions.forEach(efp -> efp.applyTransform(transform));
       groundContactPointDefinitions.forEach(gcp -> gcp.applyTransform(transform));
       sensorDefinitions.forEach(sensor -> sensor.applyTransform(transform));
    }
@@ -162,7 +162,7 @@ public abstract class JointDefinition implements Transformable
    {
       transform.inverseTransform(transformToParent);
       kinematicPointDefinitions.forEach(kp -> kp.applyInverseTransform(transform));
-      externalForcePointDefinitions.forEach(efp -> efp.applyInverseTransform(transform));
+      externalWrenchPointDefinitions.forEach(efp -> efp.applyInverseTransform(transform));
       groundContactPointDefinitions.forEach(gcp -> gcp.applyInverseTransform(transform));
       sensorDefinitions.forEach(sensor -> sensor.applyInverseTransform(transform));
    }
