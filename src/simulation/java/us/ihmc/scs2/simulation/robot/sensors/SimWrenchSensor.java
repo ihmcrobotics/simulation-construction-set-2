@@ -6,8 +6,8 @@ import us.ihmc.mecano.spatial.interfaces.WrenchReadOnly;
 import us.ihmc.mecano.yoVariables.spatial.YoFixedFrameWrench;
 import us.ihmc.scs2.definition.robot.WrenchSensorDefinition;
 import us.ihmc.scs2.simulation.robot.RobotPhysicsOutput;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.SimJointBasics;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRigidBodyBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
 import us.ihmc.yoVariables.registry.YoRegistry;
 

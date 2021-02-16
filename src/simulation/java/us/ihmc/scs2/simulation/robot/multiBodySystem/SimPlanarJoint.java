@@ -12,6 +12,9 @@ import us.ihmc.mecano.yoVariables.multiBodySystem.YoPlanarJoint;
 import us.ihmc.mecano.yoVariables.tools.YoMecanoFactories;
 import us.ihmc.scs2.definition.robot.PlanarJointDefinition;
 import us.ihmc.scs2.simulation.robot.SimJointAuxiliaryData;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimFloatingJointBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 

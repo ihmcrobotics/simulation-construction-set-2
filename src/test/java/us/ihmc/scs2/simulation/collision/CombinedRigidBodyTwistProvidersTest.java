@@ -30,7 +30,7 @@ import us.ihmc.mecano.tools.MecanoTestTools;
 import us.ihmc.mecano.tools.MultiBodySystemFactories;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.scs2.simulation.physicsEngine.CombinedRigidBodyTwistProviders;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.SimJointBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
 import us.ihmc.scs2.simulation.screwTools.SimJointStateType;
 import us.ihmc.scs2.simulation.screwTools.SimMultiBodySystemRandomTools;
 

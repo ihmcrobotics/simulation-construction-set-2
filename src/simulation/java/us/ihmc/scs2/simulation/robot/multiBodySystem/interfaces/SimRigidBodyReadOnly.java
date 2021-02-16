@@ -1,4 +1,4 @@
-package us.ihmc.scs2.simulation.robot.multiBodySystem;
+package us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -9,6 +9,7 @@ import us.ihmc.mecano.multiBodySystem.iterators.JointIterable;
 import us.ihmc.mecano.multiBodySystem.iterators.RigidBodyIterable;
 import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
 import us.ihmc.scs2.simulation.collision.CollidableHolder;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRigidBody;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
 public interface SimRigidBodyReadOnly extends RigidBodyReadOnly, CollidableHolder

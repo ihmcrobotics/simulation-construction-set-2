@@ -21,12 +21,12 @@ import us.ihmc.scs2.simulation.collision.Collidable;
 import us.ihmc.scs2.simulation.collision.CollidableHolder;
 import us.ihmc.scs2.simulation.robot.controller.RobotControllerManager;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimFixedJoint;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.SimJointBasics;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimPlanarJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimPrismaticJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRevoluteJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRigidBody;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimSixDoFJoint;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
 import us.ihmc.scs2.simulation.screwTools.SimMultiBodySystemBasics;
 import us.ihmc.yoVariables.registry.YoRegistry;
 

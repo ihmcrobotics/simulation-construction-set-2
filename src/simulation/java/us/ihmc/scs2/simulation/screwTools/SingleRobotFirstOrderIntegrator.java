@@ -23,10 +23,10 @@ import us.ihmc.mecano.spatial.interfaces.FixedFrameSpatialAccelerationBasics;
 import us.ihmc.mecano.spatial.interfaces.FixedFrameTwistBasics;
 import us.ihmc.mecano.spatial.interfaces.SpatialVectorReadOnly;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimFixedJoint;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.SimFloatingJointBasics;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.SimJointBasics;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.SimOneDoFJointBasics;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimSphericalJoint;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimFloatingJointBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimOneDoFJointBasics;
 
 public class SingleRobotFirstOrderIntegrator
 {

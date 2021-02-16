@@ -8,7 +8,7 @@ import us.ihmc.scs2.definition.robot.GroundContactPointDefinition;
 import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
 import us.ihmc.scs2.definition.robot.KinematicPointDefinition;
 import us.ihmc.scs2.definition.robot.WrenchSensorDefinition;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.SimJointBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
 import us.ihmc.scs2.simulation.robot.sensors.SimIMUSensor;
 import us.ihmc.scs2.simulation.robot.sensors.SimWrenchSensor;
 import us.ihmc.scs2.simulation.robot.trackers.ExternalWrenchPoint;

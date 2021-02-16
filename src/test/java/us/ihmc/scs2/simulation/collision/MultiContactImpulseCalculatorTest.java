@@ -44,7 +44,7 @@ import us.ihmc.scs2.simulation.physicsEngine.MultiContactImpulseCalculator;
 import us.ihmc.scs2.simulation.physicsEngine.MultiRobotCollisionGroup;
 import us.ihmc.scs2.simulation.physicsEngine.SingleContactImpulseCalculator;
 import us.ihmc.scs2.simulation.robot.Robot;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRigidBodyBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
 
 /**
  * The {@link MultiContactImpulseCalculator} often doesn't converge, which is still to be debugged

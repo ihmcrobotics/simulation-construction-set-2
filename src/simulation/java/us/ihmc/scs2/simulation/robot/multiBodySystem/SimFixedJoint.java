@@ -11,6 +11,8 @@ import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.mecano.spatial.interfaces.TwistReadOnly;
 import us.ihmc.scs2.definition.robot.FixedJointDefinition;
 import us.ihmc.scs2.simulation.robot.SimJointAuxiliaryData;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class SimFixedJoint extends FixedJoint implements SimJointBasics

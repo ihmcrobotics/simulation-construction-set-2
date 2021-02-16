@@ -1,4 +1,4 @@
-package us.ihmc.scs2.simulation.robot.multiBodySystem;
+package us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces;
 
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.FloatingJointBasics;

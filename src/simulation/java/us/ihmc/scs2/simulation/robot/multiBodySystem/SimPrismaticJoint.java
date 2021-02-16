@@ -11,6 +11,8 @@ import us.ihmc.mecano.tools.MecanoFactories;
 import us.ihmc.mecano.yoVariables.multiBodySystem.YoPrismaticJoint;
 import us.ihmc.scs2.definition.robot.PrismaticJointDefinition;
 import us.ihmc.scs2.simulation.robot.SimJointAuxiliaryData;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimOneDoFJointBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 

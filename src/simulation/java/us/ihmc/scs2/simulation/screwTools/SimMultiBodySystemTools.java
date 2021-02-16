@@ -12,11 +12,11 @@ import org.ejml.data.DMatrix;
 
 import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.SimJointBasics;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.SimJointReadOnly;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.SimOneDoFJointBasics;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRigidBodyBasics;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRigidBodyReadOnly;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointReadOnly;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimOneDoFJointBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyReadOnly;
 
 /**
  * This class provides a variety of tools to facilitate operations that need to navigate through a

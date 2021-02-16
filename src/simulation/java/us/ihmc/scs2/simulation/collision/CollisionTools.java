@@ -38,7 +38,7 @@ import us.ihmc.scs2.definition.geometry.Wedge3DDefinition;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRigidBodyBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
 
 public class CollisionTools
 {

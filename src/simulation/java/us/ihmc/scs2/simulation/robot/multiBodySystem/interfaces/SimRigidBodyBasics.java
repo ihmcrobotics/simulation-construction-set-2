@@ -1,4 +1,4 @@
-package us.ihmc.scs2.simulation.robot.multiBodySystem;
+package us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces;
 
 import java.util.List;
 import java.util.stream.Collectors;

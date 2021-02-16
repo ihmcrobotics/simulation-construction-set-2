@@ -12,6 +12,9 @@ import us.ihmc.mecano.yoVariables.multiBodySystem.YoSixDoFJoint;
 import us.ihmc.mecano.yoVariables.spatial.YoFixedFrameTwist;
 import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
 import us.ihmc.scs2.simulation.robot.SimJointAuxiliaryData;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimFloatingJointBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class SimSixDoFJoint extends YoSixDoFJoint implements SimJointBasics, SimFloatingJointBasics

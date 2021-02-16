@@ -17,6 +17,8 @@ import us.ihmc.mecano.tools.MecanoTools;
 import us.ihmc.mecano.yoVariables.multiBodySystem.YoSphericalJoint;
 import us.ihmc.scs2.definition.robot.SphericalJointDefinition;
 import us.ihmc.scs2.simulation.robot.SimJointAuxiliaryData;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
 import us.ihmc.yoVariables.registry.YoRegistry;
 

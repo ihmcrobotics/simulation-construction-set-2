@@ -15,15 +15,15 @@ import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
 import us.ihmc.mecano.tools.MecanoRandomTools;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimFixedJoint;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.SimJointBasics;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.SimOneDoFJointBasics;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimPlanarJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimPrismaticJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRevoluteJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRigidBody;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRigidBodyBasics;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimSixDoFJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimSphericalJoint;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimOneDoFJointBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
 
 public class SimMultiBodySystemRandomTools
 {
