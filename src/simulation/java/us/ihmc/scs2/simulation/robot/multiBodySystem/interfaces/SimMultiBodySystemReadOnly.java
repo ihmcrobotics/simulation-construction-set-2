@@ -45,6 +45,20 @@ public interface SimMultiBodySystemReadOnly extends MultiBodySystemReadOnly
       return getAllJoints().stream().filter(joint -> !getJointsToConsider().contains(joint)).collect(Collectors.toList());
    }
 
+   /** {@inheritDoc} */
+   @Override
+   default SimJointReadOnly findJoint(String jointName)
+   {
+      return (SimJointReadOnly) MultiBodySystemReadOnly.super.findJoint(jointName);
+   }
+
+   /** {@inheritDoc} */
+   @Override
+   default SimRigidBodyReadOnly findRigidBody(String rigidBodyName)
+   {
+      return (SimRigidBodyReadOnly) MultiBodySystemReadOnly.super.findRigidBody(rigidBodyName);
+   }
+
    /**
     * Creates a new input from the given {@code rootBody}. The resulting input will consider all the
     * joints composing the subtree starting off the given body.

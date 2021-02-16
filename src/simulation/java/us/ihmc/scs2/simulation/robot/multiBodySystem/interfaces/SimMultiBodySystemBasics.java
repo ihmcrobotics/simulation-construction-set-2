@@ -46,6 +46,20 @@ public interface SimMultiBodySystemBasics extends MultiBodySystemBasics, SimMult
       return getAllJoints().stream().filter(joint -> !getJointsToConsider().contains(joint)).collect(Collectors.toList());
    }
 
+   /** {@inheritDoc} */
+   @Override
+   default SimJointBasics findJoint(String jointName)
+   {
+      return (SimJointBasics) MultiBodySystemBasics.super.findJoint(jointName);
+   }
+
+   /** {@inheritDoc} */
+   @Override
+   default SimRigidBodyBasics findRigidBody(String rigidBodyName)
+   {
+      return (SimRigidBodyBasics) MultiBodySystemBasics.super.findRigidBody(rigidBodyName);
+   }
+
    /**
     * Creates a new input from the given {@code rootBody}. The resulting input will consider all the
     * joints composing the subtree starting off the given body.

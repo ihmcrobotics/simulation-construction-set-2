@@ -66,4 +66,33 @@ public class SimJointAuxiliaryData
       wrenchSensors.add(new SimWrenchSensor(definition, joint));
    }
 
+   public SimJointBasics getJoint()
+   {
+      return joint;
+   }
+
+   public List<KinematicPoint> getKinematicPoints()
+   {
+      return kinematicPoints;
+   }
+
+   public List<ExternalWrenchPoint> getExternalWrenchPoints()
+   {
+      return externalWrenchPoints;
+   }
+
+   public List<GroundContactPoint> getGroundContactPoints()
+   {
+      return groundContactPoints;
+   }
+
+   public List<SimIMUSensor> getIMUSensors()
+   {
+      return imuSensors;
+   }
+
+   public List<SimWrenchSensor> getWrenchSensors()
+   {
+      return wrenchSensors;
+   }
 }
