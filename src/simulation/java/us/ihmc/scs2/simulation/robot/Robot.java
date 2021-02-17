@@ -6,16 +6,20 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.log.LogTools;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointMatrixIndexProvider;
 import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
 import us.ihmc.scs2.definition.robot.FixedJointDefinition;
+import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
 import us.ihmc.scs2.definition.robot.JointDefinition;
 import us.ihmc.scs2.definition.robot.PlanarJointDefinition;
 import us.ihmc.scs2.definition.robot.PrismaticJointDefinition;
 import us.ihmc.scs2.definition.robot.RevoluteJointDefinition;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
+import us.ihmc.scs2.definition.robot.SensorDefinition;
 import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
+import us.ihmc.scs2.definition.robot.WrenchSensorDefinition;
 import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
 import us.ihmc.scs2.simulation.collision.Collidable;
 import us.ihmc.scs2.simulation.collision.CollidableHolder;
@@ -97,6 +101,18 @@ public class Robot implements SimMultiBodySystemBasics, CollidableHolder
       for (JointDefinition childJointDefinition : rigidBodyDefinition.getChildrenJoints())
       {
          SimJointBasics childJoint = jointBuilder.fromDefinition(childJointDefinition, rigidBody);
+         childJointDefinition.getKinematicPointDefinitions().forEach(childJoint.getAuxialiryData()::addKinematicPoint);
+         childJointDefinition.getExternalWrenchPointDefinitions().forEach(childJoint.getAuxialiryData()::addExternalWrenchPoint);
+         childJointDefinition.getGroundContactPointDefinitions().forEach(childJoint.getAuxialiryData()::addGroundContactPoint);
+         for (SensorDefinition sensorDefinition : childJointDefinition.getSensorDefinitions())
+         {
+            if (sensorDefinition instanceof IMUSensorDefinition)
+               childJoint.getAuxialiryData().addIMUSensor((IMUSensorDefinition) sensorDefinition);
+            else if (sensorDefinition instanceof WrenchSensorDefinition)
+               childJoint.getAuxialiryData().addWrenchSensor((WrenchSensorDefinition) sensorDefinition);
+            else
+               LogTools.warn("Unsupported sensor: " + sensorDefinition);
+         }
          SimRigidBody childSuccessor = bodyBuilder.fromDefinition(childJointDefinition.getSuccessor(), childJoint);
          createJointsRecursive(childSuccessor, childJointDefinition.getSuccessor(), jointBuilder, bodyBuilder, registry);
       }
