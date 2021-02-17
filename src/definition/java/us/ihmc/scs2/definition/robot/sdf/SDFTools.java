@@ -607,11 +607,11 @@ public class SDFTools
          return null;
 
       MaterialDefinition materialDefinition = new MaterialDefinition();
-      materialDefinition.setLighting(parseDouble(sdfMaterial.getLighting(), Double.NaN));
-      materialDefinition.setAmbientcolorDefinition(toColorDefinition(sdfMaterial.getAmbient()));
-      materialDefinition.setDiffuseColorDefinition(toColorDefinition(sdfMaterial.getDiffuse()));
-      materialDefinition.setSpecularColorDefinition(toColorDefinition(sdfMaterial.getSpecular()));
-      materialDefinition.setEmissiveColorDefinition(toColorDefinition(sdfMaterial.getEmissive()));
+      materialDefinition.setShininess(parseDouble(sdfMaterial.getLighting(), Double.NaN));
+      materialDefinition.setAmbientColor(toColorDefinition(sdfMaterial.getAmbient()));
+      materialDefinition.setDiffuseColor(toColorDefinition(sdfMaterial.getDiffuse()));
+      materialDefinition.setSpecularColor(toColorDefinition(sdfMaterial.getSpecular()));
+      materialDefinition.setEmissiveColor(toColorDefinition(sdfMaterial.getEmissive()));
       // TODO handle the script
       return materialDefinition;
    }

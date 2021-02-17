@@ -668,7 +668,7 @@ public class JavaFXVisualTools
       if (materialDefinition == null)
          return DEFAULT_MATERIAL;
 
-      Color color = toColor(materialDefinition.getDiffuseColorDefinition());
+      Color color = toColor(materialDefinition.getDiffuseColor());
       return new PhongMaterial(color);
    }
 

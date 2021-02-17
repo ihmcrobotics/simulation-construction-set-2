@@ -742,8 +742,8 @@ public class URDFTools
 
       MaterialDefinition materialDefinition = new MaterialDefinition();
       materialDefinition.setName(urdfMaterial.getName());
-      materialDefinition.setDiffuseColorDefinition(toColorDefinition(urdfMaterial.getColor()));
-      materialDefinition.setTextureDefinition(toTextureDefinition(urdfMaterial.getTexture()));
+      materialDefinition.setDiffuseColor(toColorDefinition(urdfMaterial.getColor()));
+      materialDefinition.setDiffuseMap(toTextureDefinition(urdfMaterial.getTexture()));
       return materialDefinition;
    }
 

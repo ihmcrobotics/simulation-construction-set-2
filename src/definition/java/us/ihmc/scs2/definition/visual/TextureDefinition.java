@@ -7,12 +7,27 @@ import us.ihmc.scs2.definition.geometry.ExtrusionDefinition;
 
 public class TextureDefinition
 {
-   private URL textureFileURL;
-   private String textureFilename;
-   private BufferedImage textureImage;
+   private URL fileURL;
+   private String filename;
+   private BufferedImage image;
 
    public TextureDefinition()
    {
+   }
+
+   public TextureDefinition(URL fileURL)
+   {
+      setFileURL(fileURL);
+   }
+
+   public TextureDefinition(String filename)
+   {
+      setFilename(filename);
+   }
+
+   public TextureDefinition(BufferedImage image)
+   {
+      setImage(image);
    }
 
    public TextureDefinition(TextureDefinition other)
@@ -22,39 +37,39 @@ public class TextureDefinition
 
    public void set(TextureDefinition other)
    {
-      textureFileURL = other.textureFileURL;
-      textureFilename = other.textureFilename;
-      textureImage = ExtrusionDefinition.copyImage(other.textureImage);
+      fileURL = other.fileURL;
+      filename = other.filename;
+      image = ExtrusionDefinition.copyImage(other.image);
    }
 
-   public void setTextureFileURL(URL textureFileURL)
+   public void setFileURL(URL fileURL)
    {
-      this.textureFileURL = textureFileURL;
+      this.fileURL = fileURL;
    }
 
-   public void setTextureFilename(String textureFilename)
+   public void setFilename(String filename)
    {
-      this.textureFilename = textureFilename;
+      this.filename = filename;
    }
 
-   public void setTextureImage(BufferedImage textureImage)
+   public void setImage(BufferedImage image)
    {
-      this.textureImage = textureImage;
+      this.image = image;
    }
 
-   public URL getTextureFileURL()
+   public URL getFileURL()
    {
-      return textureFileURL;
+      return fileURL;
    }
 
-   public String getTextureFilename()
+   public String getFilename()
    {
-      return textureFilename;
+      return filename;
    }
 
-   public BufferedImage getTextureImage()
+   public BufferedImage getImage()
    {
-      return textureImage;
+      return image;
    }
 
    public TextureDefinition copy()
