@@ -52,7 +52,8 @@ public class PhysicsEngine
 {
    private final ReferenceFrame inertialFrame;
 
-   private final YoRegistry registry;
+   private final YoRegistry rootRegistry;
+   private final YoRegistry physicsEngineRegistry = new YoRegistry(getClass().getSimpleName());
    private final List<Robot> robotList = new ArrayList<>();
    private final Map<RigidBodyBasics, Robot> robotMap = new HashMap<>();
    private final YoMultiContactImpulseCalculatorPool multiContactImpulseCalculatorPool;
@@ -79,27 +80,29 @@ public class PhysicsEngine
 
    private boolean initialize = true;
 
-   public PhysicsEngine(ReferenceFrame inertialFrame, YoRegistry registry)
+   public PhysicsEngine(ReferenceFrame inertialFrame, YoRegistry rootRegistry)
    {
-      this.registry = registry;
+      this.rootRegistry = rootRegistry;
       this.inertialFrame = inertialFrame;
+
+      rootRegistry.addChild(physicsEngineRegistry);
 
       collisionDetectionPlugin = new SimpleCollisionDetection(inertialFrame);
 
       YoRegistry multiContactCalculatorRegistry = new YoRegistry(MultiContactImpulseCalculator.class.getSimpleName());
-      registry.addChild(multiContactCalculatorRegistry);
+      physicsEngineRegistry.addChild(multiContactCalculatorRegistry);
 
-      hasGlobalContactParameters = new YoBoolean("hasGlobalContactParameters", registry);
-      globalContactParameters = new YoContactParameters("globalContact", registry);
-      hasGlobalConstraintParameters = new YoBoolean("hasGlobalConstraintParameters", registry);
-      globalConstraintParameters = new YoConstraintParameters("globalConstraint", registry);
+      hasGlobalContactParameters = new YoBoolean("hasGlobalContactParameters", physicsEngineRegistry);
+      globalContactParameters = new YoContactParameters("globalContact", physicsEngineRegistry);
+      hasGlobalConstraintParameters = new YoBoolean("hasGlobalConstraintParameters", physicsEngineRegistry);
+      globalConstraintParameters = new YoConstraintParameters("globalConstraint", physicsEngineRegistry);
       multiContactImpulseCalculatorPool = new YoMultiContactImpulseCalculatorPool(1, inertialFrame, multiContactCalculatorRegistry);
 
-      time = new YoDouble("physicsTime", registry);
-      rawTickDurationMilliseconds = new YoDouble("rawTickDurationMilliseconds", registry);
-      averageTickDurationMilliseconds = new YoDouble("averageTickDurationMilliseconds", registry);
-      rawRealTimeRate = new YoDouble("rawRealTimeRate", registry);
-      averageRealTimeRate = new YoDouble("averageRealTimeRate", registry);
+      time = new YoDouble("physicsTime", physicsEngineRegistry);
+      rawTickDurationMilliseconds = new YoDouble("rawTickDurationMilliseconds", physicsEngineRegistry);
+      averageTickDurationMilliseconds = new YoDouble("averageTickDurationMilliseconds", physicsEngineRegistry);
+      rawRealTimeRate = new YoDouble("rawRealTimeRate", physicsEngineRegistry);
+      averageRealTimeRate = new YoDouble("averageRealTimeRate", physicsEngineRegistry);
    }
 
    public void addTerrainObject(TerrainObjectDefinition terrainObjectDefinition)
@@ -116,7 +119,7 @@ public class PhysicsEngine
    public void addRobot(Robot robot)
    {
       robotMap.put(robot.getRootBody(), robot);
-      registry.addChild(robot.getRegistry());
+      rootRegistry.addChild(robot.getRegistry());
       robotList.add(robot);
    }
 
@@ -259,6 +262,6 @@ public class PhysicsEngine
 
    public YoRegistry getPhysicsEngineRegistry()
    {
-      return registry;
+      return rootRegistry;
    }
 }
