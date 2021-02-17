@@ -69,4 +69,10 @@ public abstract class SimSensor
    {
       return offset;
    }
+
+   @Override
+   public String toString()
+   {
+      return getClass().getSimpleName() + " - " + getName();
+   }
 }

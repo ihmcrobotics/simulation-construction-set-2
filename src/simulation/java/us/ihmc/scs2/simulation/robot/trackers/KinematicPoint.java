@@ -94,4 +94,10 @@ public class KinematicPoint
    {
       return twist;
    }
+
+   @Override
+   public String toString()
+   {
+      return getClass().getSimpleName() + " - " + getName();
+   }
 }
