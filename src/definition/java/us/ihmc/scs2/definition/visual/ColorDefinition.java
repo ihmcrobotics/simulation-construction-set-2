@@ -103,6 +103,11 @@ public class ColorDefinition
       return alpha;
    }
 
+   public ColorDefinition copy()
+   {
+      return new ColorDefinition(red, green, blue, alpha);
+   }
+
    @Override
    public boolean equals(Object object)
    {

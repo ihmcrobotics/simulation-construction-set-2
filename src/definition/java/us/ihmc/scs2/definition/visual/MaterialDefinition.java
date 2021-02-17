@@ -3,25 +3,65 @@ package us.ihmc.scs2.definition.visual;
 public class MaterialDefinition
 {
    private String name;
-   private TextureDefinition textureDefinition;
-   private double lighting;
-   private ColorDefinition ambientcolorDefinition;
-   private ColorDefinition diffuseColorDefinition;
-   private ColorDefinition specularColorDefinition;
-   private ColorDefinition emissiveColorDefinition;
+   private ColorDefinition ambientColor;
+   private ColorDefinition diffuseColor;
+   private ColorDefinition specularColor;
+   private ColorDefinition emissiveColor;
+
+   private double shininess = Double.NaN;
+
+   private TextureDefinition diffuseMap;
+   private TextureDefinition normalMap;
+   private TextureDefinition specularMap;
+   private TextureDefinition emissiveMap;
+
+   private MaterialScriptDefinition scriptDefinition;
 
    public MaterialDefinition()
    {
    }
 
-   public MaterialDefinition(TextureDefinition textureDefinition)
+   public MaterialDefinition(TextureDefinition diffuseMap)
    {
-      this.textureDefinition = textureDefinition;
+      this.diffuseMap = diffuseMap;
    }
 
-   public MaterialDefinition(ColorDefinition diffuseColorDefinition)
+   public MaterialDefinition(ColorDefinition diffuseColor)
    {
-      this.diffuseColorDefinition = diffuseColorDefinition;
+      this.diffuseColor = diffuseColor;
+   }
+
+   public MaterialDefinition(ColorDefinition ambientColor, ColorDefinition diffuseColor, ColorDefinition specularColor, ColorDefinition emissiveColor,
+                             double shininess)
+   {
+      this.ambientColor = ambientColor;
+      this.diffuseColor = diffuseColor;
+      this.specularColor = specularColor;
+      this.emissiveColor = emissiveColor;
+      this.shininess = shininess;
+   }
+
+   public MaterialDefinition(MaterialDefinition other)
+   {
+      set(other);
+   }
+
+   public void set(MaterialDefinition other)
+   {
+      name = other.name;
+      ambientColor = other.ambientColor == null ? null : other.ambientColor.copy();
+      diffuseColor = other.diffuseColor == null ? null : other.diffuseColor.copy();
+      specularColor = other.specularColor == null ? null : other.specularColor.copy();
+      emissiveColor = other.emissiveColor == null ? null : other.emissiveColor.copy();
+
+      shininess = other.shininess;
+
+      diffuseMap = other.diffuseMap == null ? null : other.diffuseMap.copy();
+      normalMap = other.normalMap == null ? null : other.normalMap.copy();
+      specularMap = other.specularMap == null ? null : other.specularMap.copy();
+      emissiveMap = other.emissiveMap == null ? null : other.emissiveMap.copy();
+
+      scriptDefinition = other.scriptDefinition == null ? null : other.scriptDefinition.copy();
    }
 
    public void setName(String name)
@@ -29,34 +69,54 @@ public class MaterialDefinition
       this.name = name;
    }
 
-   public void setTextureDefinition(TextureDefinition textureDefinition)
+   public void setAmbientColor(ColorDefinition ambientColor)
    {
-      this.textureDefinition = textureDefinition;
+      this.ambientColor = ambientColor;
    }
 
-   public void setLighting(double lighting)
+   public void setDiffuseColor(ColorDefinition diffuseColor)
    {
-      this.lighting = lighting;
+      this.diffuseColor = diffuseColor;
    }
 
-   public void setAmbientcolorDefinition(ColorDefinition ambientcolorDefinition)
+   public void setSpecularColor(ColorDefinition specularColor)
    {
-      this.ambientcolorDefinition = ambientcolorDefinition;
+      this.specularColor = specularColor;
    }
 
-   public void setDiffuseColorDefinition(ColorDefinition diffuseColorDefinition)
+   public void setEmissiveColor(ColorDefinition emissiveColor)
    {
-      this.diffuseColorDefinition = diffuseColorDefinition;
+      this.emissiveColor = emissiveColor;
    }
 
-   public void setSpecularColorDefinition(ColorDefinition specularColorDefinition)
+   public void setShininess(double shininess)
    {
-      this.specularColorDefinition = specularColorDefinition;
+      this.shininess = shininess;
    }
 
-   public void setEmissiveColorDefinition(ColorDefinition emissiveColorDefinition)
+   public void setDiffuseMap(TextureDefinition diffuseMap)
    {
-      this.emissiveColorDefinition = emissiveColorDefinition;
+      this.diffuseMap = diffuseMap;
+   }
+
+   public void setNormalMap(TextureDefinition normalMap)
+   {
+      this.normalMap = normalMap;
+   }
+
+   public void setSpecularMap(TextureDefinition specularMap)
+   {
+      this.specularMap = specularMap;
+   }
+
+   public void setEmissiveMap(TextureDefinition emissiveMap)
+   {
+      this.emissiveMap = emissiveMap;
+   }
+
+   public void setScriptDefinition(MaterialScriptDefinition scriptDefinition)
+   {
+      this.scriptDefinition = scriptDefinition;
    }
 
    public String getName()
@@ -64,33 +124,58 @@ public class MaterialDefinition
       return name;
    }
 
-   public TextureDefinition getTextureDefinition()
+   public ColorDefinition getAmbientColor()
    {
-      return textureDefinition;
+      return ambientColor;
    }
 
-   public double getLighting()
+   public ColorDefinition getDiffuseColor()
    {
-      return lighting;
+      return diffuseColor;
    }
 
-   public ColorDefinition getAmbientcolorDefinition()
+   public ColorDefinition getSpecularColor()
    {
-      return ambientcolorDefinition;
+      return specularColor;
    }
 
-   public ColorDefinition getDiffuseColorDefinition()
+   public ColorDefinition getEmissiveColor()
    {
-      return diffuseColorDefinition;
+      return emissiveColor;
    }
 
-   public ColorDefinition getSpecularColorDefinition()
+   public double getShininess()
    {
-      return specularColorDefinition;
+      return shininess;
    }
 
-   public ColorDefinition getEmissiveColorDefinition()
+   public TextureDefinition getDiffuseMap()
    {
-      return emissiveColorDefinition;
+      return diffuseMap;
+   }
+
+   public TextureDefinition getNormalMap()
+   {
+      return normalMap;
+   }
+
+   public TextureDefinition getSpecularMap()
+   {
+      return specularMap;
+   }
+
+   public TextureDefinition getEmissiveMap()
+   {
+      return emissiveMap;
+   }
+
+   public MaterialScriptDefinition getScriptDefinition()
+   {
+      return scriptDefinition;
+   }
+
+   public MaterialDefinition copy()
+   {
+      return new MaterialDefinition(this);
    }
 }
