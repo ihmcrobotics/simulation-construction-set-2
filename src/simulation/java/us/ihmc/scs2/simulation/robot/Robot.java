@@ -101,6 +101,8 @@ public class Robot implements SimMultiBodySystemBasics, CollidableHolder
       for (JointDefinition childJointDefinition : rigidBodyDefinition.getChildrenJoints())
       {
          SimJointBasics childJoint = jointBuilder.fromDefinition(childJointDefinition, rigidBody);
+         SimRigidBody childSuccessor = bodyBuilder.fromDefinition(childJointDefinition.getSuccessor(), childJoint);
+
          childJointDefinition.getKinematicPointDefinitions().forEach(childJoint.getAuxialiryData()::addKinematicPoint);
          childJointDefinition.getExternalWrenchPointDefinitions().forEach(childJoint.getAuxialiryData()::addExternalWrenchPoint);
          childJointDefinition.getGroundContactPointDefinitions().forEach(childJoint.getAuxialiryData()::addGroundContactPoint);
@@ -113,7 +115,7 @@ public class Robot implements SimMultiBodySystemBasics, CollidableHolder
             else
                LogTools.warn("Unsupported sensor: " + sensorDefinition);
          }
-         SimRigidBody childSuccessor = bodyBuilder.fromDefinition(childJointDefinition.getSuccessor(), childJoint);
+
          createJointsRecursive(childSuccessor, childJointDefinition.getSuccessor(), jointBuilder, bodyBuilder, registry);
       }
    }
