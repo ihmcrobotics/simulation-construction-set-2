@@ -70,8 +70,8 @@ import us.ihmc.scs2.definition.robot.sdf.items.SDFURIHolder;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFVisual;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFVisual.SDFMaterial;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
+import us.ihmc.scs2.definition.visual.MaterialDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
-import us.ihmc.scs2.definition.visual.VisualDefinition.MaterialDefinition;
 
 public class SDFTools
 {

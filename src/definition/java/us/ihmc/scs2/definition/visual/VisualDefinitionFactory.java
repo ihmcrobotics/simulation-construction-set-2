@@ -51,7 +51,6 @@ import us.ihmc.scs2.definition.geometry.PyramidBox3DDefinition;
 import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
 import us.ihmc.scs2.definition.geometry.TruncatedCone3DDefinition;
 import us.ihmc.scs2.definition.geometry.Wedge3DDefinition;
-import us.ihmc.scs2.definition.visual.VisualDefinition.MaterialDefinition;
 
 // TODO Needs major cleanup
 public class VisualDefinitionFactory

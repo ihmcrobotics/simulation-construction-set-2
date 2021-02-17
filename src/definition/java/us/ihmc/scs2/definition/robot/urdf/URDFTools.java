@@ -78,9 +78,9 @@ import us.ihmc.scs2.definition.robot.urdf.items.URDFSensor.URDFRay.URDFScan.URDF
 import us.ihmc.scs2.definition.robot.urdf.items.URDFTexture;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFVisual;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
+import us.ihmc.scs2.definition.visual.MaterialDefinition;
+import us.ihmc.scs2.definition.visual.TextureDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
-import us.ihmc.scs2.definition.visual.VisualDefinition.MaterialDefinition;
-import us.ihmc.scs2.definition.visual.VisualDefinition.TextureDefinition;
 
 public class URDFTools
 {
