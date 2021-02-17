@@ -69,4 +69,10 @@ public class KinematicPointDefinition implements Transformable
    {
       transform.inverseTransform(transformToParent);
    }
+
+   @Override
+   public String toString()
+   {
+      return getClass().getSimpleName() + " - " + name;
+   }
 }
