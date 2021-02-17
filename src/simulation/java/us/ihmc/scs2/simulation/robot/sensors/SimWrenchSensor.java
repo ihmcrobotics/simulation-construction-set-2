@@ -1,6 +1,7 @@
 package us.ihmc.scs2.simulation.robot.sensors;
 
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
+import us.ihmc.mecano.spatial.Wrench;
 import us.ihmc.mecano.spatial.interfaces.SpatialImpulseReadOnly;
 import us.ihmc.mecano.spatial.interfaces.WrenchReadOnly;
 import us.ihmc.mecano.yoVariables.spatial.YoFixedFrameWrench;
@@ -30,6 +31,8 @@ public class SimWrenchSensor extends SimSensor
                                       new YoFrameVector3D(name + "Force", getFrame(), registry));
    }
 
+   private final Wrench intermediateWrench = new Wrench();
+
    @Override
    public void update(RobotPhysicsOutput robotPhysicsOutput)
    {
@@ -42,15 +45,19 @@ public class SimWrenchSensor extends SimSensor
 
       if (externalImpulse != null)
       {
-         wrench.set(externalImpulse);
+         wrench.setMatchingFrame(externalImpulse);
          wrench.scale(1.0 / dt);
 
          if (externalWrench != null)
-            wrench.add(externalWrench);
+         {
+            intermediateWrench.setIncludingFrame(externalWrench);
+            intermediateWrench.changeFrame(getFrame());
+            wrench.add(intermediateWrench);
+         }
       }
       else if (externalWrench != null)
       {
-         wrench.set(externalWrench);
+         wrench.setMatchingFrame(externalWrench);
       }
       else
       {

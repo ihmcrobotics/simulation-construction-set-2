@@ -62,7 +62,8 @@ public class KinematicPoint
    {
       frame.update();
       pose.setFromReferenceFrame(frame);
-      twist.set(frame.getTwistOfFrame());
+      twist.getAngularPart().set(frame.getTwistOfFrame().getAngularPart());
+      twist.getLinearPart().set(frame.getTwistOfFrame().getLinearPart());
    }
 
    public String getName()

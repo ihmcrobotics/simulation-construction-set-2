@@ -1,5 +1,7 @@
 package us.ihmc.scs2.simulation.robot.sensors;
 
+import us.ihmc.euclid.referenceFrame.FramePoint3D;
+import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.mecano.algorithms.interfaces.RigidBodyAccelerationProvider;
@@ -8,7 +10,6 @@ import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
 import us.ihmc.scs2.simulation.robot.RobotPhysicsOutput;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
-import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePoint3D;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameQuaternion;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
 import us.ihmc.yoVariables.registry.YoRegistry;
@@ -34,6 +35,9 @@ public class SimIMUSensor extends SimSensor
       linearAcceleration = new YoFrameVector3D(name + "LinearAcceleration", getFrame(), registry);
    }
 
+   private final FramePoint3D bodyFixedPoint = new FramePoint3D();
+   private final FrameVector3D intermediateAcceleration = new FrameVector3D();
+
    @Override
    public void update(RobotPhysicsOutput robotPhysicsOutput)
    {
@@ -45,10 +49,11 @@ public class SimIMUSensor extends SimSensor
       RigidBodyTwistProvider deltaTwistProvider = robotPhysicsOutput.getDeltaTwistProvider();
       RigidBodyAccelerationProvider accelerationProvider = robotPhysicsOutput.getAccelerationProvider();
       SimRigidBodyBasics body = getParentJoint().getSuccessor();
-      YoFramePoint3D bodyFixedPoint = getOffset().getPosition();
-      linearAcceleration.scaleAdd(1.0 / dt,
-                                  deltaTwistProvider.getLinearVelocityOfBodyFixedPoint(body, bodyFixedPoint),
-                                  accelerationProvider.getLinearAccelerationOfBodyFixedPoint(body, bodyFixedPoint));
+      bodyFixedPoint.setIncludingFrame(getOffset().getPosition());
+      bodyFixedPoint.changeFrame(body.getBodyFixedFrame());
+      accelerationProvider.getAccelerationOfBody(body).getLinearAccelerationAt(body.getBodyFixedFrame().getTwistOfFrame(), bodyFixedPoint, intermediateAcceleration);
+      intermediateAcceleration.scaleAdd(1.0 / dt, deltaTwistProvider.getLinearVelocityOfBodyFixedPoint(body, bodyFixedPoint), intermediateAcceleration);
+      linearAcceleration.setMatchingFrame(intermediateAcceleration);
    }
 
    public YoFrameQuaternion getOrientation()
