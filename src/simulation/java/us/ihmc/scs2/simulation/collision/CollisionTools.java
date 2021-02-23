@@ -32,6 +32,10 @@ import us.ihmc.scs2.definition.geometry.Cylinder3DDefinition;
 import us.ihmc.scs2.definition.geometry.Ellipsoid3DDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 import us.ihmc.scs2.definition.geometry.Point3DDefinition;
+import us.ihmc.scs2.definition.geometry.STPBox3DDefinition;
+import us.ihmc.scs2.definition.geometry.STPCapsule3DDefinition;
+import us.ihmc.scs2.definition.geometry.STPCylinder3DDefinition;
+import us.ihmc.scs2.definition.geometry.STPRamp3DDefinition;
 import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
 import us.ihmc.scs2.definition.geometry.Torus3DDefinition;
 import us.ihmc.scs2.definition.geometry.Wedge3DDefinition;
@@ -39,6 +43,14 @@ import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
+import us.ihmc.scs2.simulation.shapes.FrameSTPBox3D;
+import us.ihmc.scs2.simulation.shapes.FrameSTPCapsule3D;
+import us.ihmc.scs2.simulation.shapes.FrameSTPCylinder3D;
+import us.ihmc.scs2.simulation.shapes.FrameSTPRamp3D;
+import us.ihmc.scs2.simulation.shapes.STPBox3D;
+import us.ihmc.scs2.simulation.shapes.STPCapsule3D;
+import us.ihmc.scs2.simulation.shapes.STPCylinder3D;
+import us.ihmc.scs2.simulation.shapes.STPRamp3D;
 
 public class CollisionTools
 {
@@ -77,12 +89,18 @@ public class CollisionTools
 
    public static Shape3DReadOnly toShape3D(RigidBodyTransformReadOnly originPose, GeometryDefinition definition)
    {
-      if (definition instanceof Box3DDefinition)
+      if (definition instanceof STPBox3DDefinition)
+         return toSTPBox3D(originPose, (STPBox3DDefinition) definition);
+      else if (definition instanceof Box3DDefinition)
          return toBox3D(originPose, (Box3DDefinition) definition);
+      else if (definition instanceof STPCapsule3DDefinition)
+         return toSTPCapsule3D(originPose, (STPCapsule3DDefinition) definition);
       else if (definition instanceof Capsule3DDefinition)
          return toCapsule3D(originPose, (Capsule3DDefinition) definition);
       else if (definition instanceof Cone3DDefinition)
          return toConvexPolytope3D(originPose, (Cone3DDefinition) definition);
+      else if (definition instanceof STPCylinder3DDefinition)
+         return toSTPCylinder3D(originPose, (STPCylinder3DDefinition) definition);
       else if (definition instanceof Cylinder3DDefinition)
          return toCylinder3D(originPose, (Cylinder3DDefinition) definition);
       else if (definition instanceof Ellipsoid3DDefinition)
@@ -93,6 +111,8 @@ public class CollisionTools
          return toSphere3D(originPose, (Sphere3DDefinition) definition);
       else if (definition instanceof Torus3DDefinition)
          return toTorus3D(originPose, (Torus3DDefinition) definition);
+      else if (definition instanceof STPRamp3DDefinition)
+         return toSTPRamp3D(originPose, (STPRamp3DDefinition) definition);
       else if (definition instanceof Wedge3DDefinition)
          return toRamp3D(originPose, (Wedge3DDefinition) definition);
       else
@@ -101,12 +121,18 @@ public class CollisionTools
 
    public static FrameShape3DReadOnly toFrameShape3D(RigidBodyTransformReadOnly originPose, ReferenceFrame referenceFrame, GeometryDefinition definition)
    {
+      if (definition instanceof STPBox3DDefinition)
+         return new FrameSTPBox3D(referenceFrame, toSTPBox3D(originPose, (STPBox3DDefinition) definition));
       if (definition instanceof Box3DDefinition)
          return new FrameBox3D(referenceFrame, toBox3D(originPose, (Box3DDefinition) definition));
+      else if (definition instanceof STPCapsule3DDefinition)
+         return new FrameSTPCapsule3D(referenceFrame, toSTPCapsule3D(originPose, (STPCapsule3DDefinition) definition));
       else if (definition instanceof Capsule3DDefinition)
          return new FrameCapsule3D(referenceFrame, toCapsule3D(originPose, (Capsule3DDefinition) definition));
       else if (definition instanceof Cone3DDefinition)
          return new FrameConvexPolytope3D(referenceFrame, toConvexPolytope3D(originPose, (Cone3DDefinition) definition));
+      else if (definition instanceof STPCylinder3DDefinition)
+         return new FrameSTPCylinder3D(referenceFrame, toSTPCylinder3D(originPose, (STPCylinder3DDefinition) definition));
       else if (definition instanceof Cylinder3DDefinition)
          return new FrameCylinder3D(referenceFrame, toCylinder3D(originPose, (Cylinder3DDefinition) definition));
       else if (definition instanceof Ellipsoid3DDefinition)
@@ -117,10 +143,22 @@ public class CollisionTools
          return new FrameSphere3D(referenceFrame, toSphere3D(originPose, (Sphere3DDefinition) definition));
       else if (definition instanceof Torus3DDefinition)
          throw new UnsupportedOperationException("Torus shape is not supported as collidable.");
+      else if (definition instanceof STPRamp3DDefinition)
+         return new FrameSTPRamp3D(referenceFrame, toSTPRamp3D(originPose, (STPRamp3DDefinition) definition));
       else if (definition instanceof Wedge3DDefinition)
          return new FrameRamp3D(referenceFrame, toRamp3D(originPose, (Wedge3DDefinition) definition));
       else
          throw new UnsupportedOperationException("Unhandled geometry type: " + definition.getClass().getSimpleName());
+   }
+
+   public static STPBox3D toSTPBox3D(RigidBodyTransformReadOnly originPose, STPBox3DDefinition definition)
+   {
+      STPBox3D stpBox3D = new STPBox3D();
+      stpBox3D.getSize().set(definition.getSizeX(), definition.getSizeY(), definition.getSizeZ());
+      stpBox3D.setMargins(definition.getMinimumMargin(), definition.getMaximumMargin());
+      if (originPose != null)
+         stpBox3D.getPose().set(originPose);
+      return stpBox3D;
    }
 
    public static Box3D toBox3D(RigidBodyTransformReadOnly originPose, Box3DDefinition definition)
@@ -130,6 +168,18 @@ public class CollisionTools
       if (originPose != null)
          box3D.getPose().set(originPose);
       return box3D;
+   }
+
+   public static STPCapsule3D toSTPCapsule3D(RigidBodyTransformReadOnly originPose, STPCapsule3DDefinition definition)
+   {
+      if (!definition.isRegular())
+         throw new UnsupportedOperationException("Only regular capsules are supported.");
+      STPCapsule3D stpCapsule3D = new STPCapsule3D();
+      stpCapsule3D.setSize(definition.getLength(), definition.getRadiusX());
+      stpCapsule3D.setMargins(definition.getMinimumMargin(), definition.getMaximumMargin());
+      if (originPose != null)
+         stpCapsule3D.applyTransform(originPose);
+      return stpCapsule3D;
    }
 
    public static Capsule3D toCapsule3D(RigidBodyTransformReadOnly originPose, Capsule3DDefinition definition)
@@ -149,6 +199,16 @@ public class CollisionTools
       if (originPose != null)
          cone3D.applyTransform(originPose);
       return cone3D;
+   }
+
+   public static STPCylinder3D toSTPCylinder3D(RigidBodyTransformReadOnly originPose, STPCylinder3DDefinition definition)
+   {
+      STPCylinder3D stpCylinder3D = new STPCylinder3D();
+      stpCylinder3D.setSize(definition.getLength(), definition.getRadius());
+      stpCylinder3D.setMargins(definition.getMinimumMargin(), definition.getMaximumMargin());
+      if (originPose != null)
+         stpCylinder3D.applyTransform(originPose);
+      return stpCylinder3D;
    }
 
    public static Cylinder3D toCylinder3D(RigidBodyTransformReadOnly originPose, Cylinder3DDefinition definition)
@@ -195,6 +255,16 @@ public class CollisionTools
       if (originPose != null)
          torus3D.applyTransform(originPose);
       return torus3D;
+   }
+
+   public static STPRamp3D toSTPRamp3D(RigidBodyTransformReadOnly originPose, STPRamp3DDefinition definition)
+   {
+      STPRamp3D stpRamp3D = new STPRamp3D();
+      stpRamp3D.getSize().set(definition.getSizeX(), definition.getSizeY(), definition.getSizeZ());
+      stpRamp3D.setMargins(definition.getMinimumMargin(), definition.getMaximumMargin());
+      if (originPose != null)
+         stpRamp3D.getPose().set(originPose);
+      return stpRamp3D;
    }
 
    public static Ramp3D toRamp3D(RigidBodyTransformReadOnly originPose, Wedge3DDefinition definition)
