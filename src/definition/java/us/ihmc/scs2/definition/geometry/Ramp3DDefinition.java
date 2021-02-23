@@ -5,12 +5,12 @@ import us.ihmc.euclid.tools.EuclidHashCodeTools;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 
 /**
- * Definition for creating a 3D wedge.
+ * Definition for creating a 3D ramp.
  * <p>
- * It is assumed that the wedge's bottom face is centered at the origin.
+ * It is assumed that the ramp's bottom face is centered at the origin.
  * </p>
  */
-public class Wedge3DDefinition extends GeometryDefinition
+public class Ramp3DDefinition extends GeometryDefinition
 {
    private double sizeX;
    private double sizeY;
@@ -20,19 +20,19 @@ public class Wedge3DDefinition extends GeometryDefinition
     * Creates an empty definition. The parameters have to be all set before this definition can be
     * used.
     */
-   public Wedge3DDefinition()
+   public Ramp3DDefinition()
    {
-      setName("wedge");
+      setName("ramp");
    }
 
    /**
-    * Creates and initializes a definition for a 3D wedge.
+    * Creates and initializes a definition for a 3D ramp.
     * 
-    * @param sizeX the length of the wedge along the x-axis.
-    * @param sizeY the width of the wedge along the y-axis.
-    * @param sizeZ the height of the wedge along the z-axis.
+    * @param sizeX the length of the ramp along the x-axis.
+    * @param sizeY the width of the ramp along the y-axis.
+    * @param sizeZ the height of the ramp along the z-axis.
     */
-   public Wedge3DDefinition(double sizeX, double sizeY, double sizeZ)
+   public Ramp3DDefinition(double sizeX, double sizeY, double sizeZ)
    {
       this();
       this.sizeX = sizeX;
@@ -41,16 +41,16 @@ public class Wedge3DDefinition extends GeometryDefinition
    }
 
    /**
-    * Creates and initializes a definition for a 3D wedge.
+    * Creates and initializes a definition for a 3D ramp.
     * 
-    * @param size the size of the wedge along the 3 axes.
+    * @param size the size of the ramp along the 3 axes.
     */
-   public Wedge3DDefinition(Tuple3DReadOnly size)
+   public Ramp3DDefinition(Tuple3DReadOnly size)
    {
       this(size.getX(), size.getY(), size.getZ());
    }
 
-   public Wedge3DDefinition(Wedge3DDefinition other)
+   public Ramp3DDefinition(Ramp3DDefinition other)
    {
       setName(other.getName());
       sizeX = other.sizeX;
@@ -59,9 +59,9 @@ public class Wedge3DDefinition extends GeometryDefinition
    }
 
    /**
-    * Sets the length of the wedge along the x-axis.
+    * Sets the length of the ramp along the x-axis.
     * 
-    * @param sizeX the length of the wedge along the x-axis.
+    * @param sizeX the length of the ramp along the x-axis.
     */
    public void setSizeX(double sizeX)
    {
@@ -69,9 +69,9 @@ public class Wedge3DDefinition extends GeometryDefinition
    }
 
    /**
-    * Sets the width of the wedge along the y-axis.
+    * Sets the width of the ramp along the y-axis.
     * 
-    * @param sizeY the width of the wedge along the y-axis.
+    * @param sizeY the width of the ramp along the y-axis.
     */
    public void setSizeY(double sizeY)
    {
@@ -79,9 +79,9 @@ public class Wedge3DDefinition extends GeometryDefinition
    }
 
    /**
-    * Sets the height of the wedge along the z-axis.
+    * Sets the height of the ramp along the z-axis.
     * 
-    * @param sizeZ the height of the wedge along the z-axis.
+    * @param sizeZ the height of the ramp along the z-axis.
     */
    public void setSizeZ(double sizeZ)
    {
@@ -89,11 +89,11 @@ public class Wedge3DDefinition extends GeometryDefinition
    }
 
    /**
-    * Sets the size of the wedge.
+    * Sets the size of the ramp.
     * 
-    * @param sizeX the length of the wedge along the x-axis.
-    * @param sizeY the width of the wedge along the y-axis.
-    * @param sizeZ the height of the wedge along the z-axis.
+    * @param sizeX the length of the ramp along the x-axis.
+    * @param sizeY the width of the ramp along the y-axis.
+    * @param sizeZ the height of the ramp along the z-axis.
     */
    public void setSize(double sizeX, double sizeY, double sizeZ)
    {
@@ -103,9 +103,9 @@ public class Wedge3DDefinition extends GeometryDefinition
    }
 
    /**
-    * Returns the length of the wedge along the x-axis.
+    * Returns the length of the ramp along the x-axis.
     * 
-    * @return the length of the wedge along the x-axis.
+    * @return the length of the ramp along the x-axis.
     */
    public double getSizeX()
    {
@@ -113,9 +113,9 @@ public class Wedge3DDefinition extends GeometryDefinition
    }
 
    /**
-    * Returns the width of the wedge along the y-axis.
+    * Returns the width of the ramp along the y-axis.
     * 
-    * @return the width of the wedge along the y-axis.
+    * @return the width of the ramp along the y-axis.
     */
    public double getSizeY()
    {
@@ -123,9 +123,9 @@ public class Wedge3DDefinition extends GeometryDefinition
    }
 
    /**
-    * Returns the height of the wedge along the z-axis.
+    * Returns the height of the ramp along the z-axis.
     * 
-    * @return the height of the wedge along the z-axis.
+    * @return the height of the ramp along the z-axis.
     */
    public double getSizeZ()
    {
@@ -133,9 +133,9 @@ public class Wedge3DDefinition extends GeometryDefinition
    }
 
    @Override
-   public Wedge3DDefinition copy()
+   public Ramp3DDefinition copy()
    {
-      return new Wedge3DDefinition(this);
+      return new Ramp3DDefinition(this);
    }
 
    @Override
@@ -156,9 +156,9 @@ public class Wedge3DDefinition extends GeometryDefinition
       {
          return true;
       }
-      else if (object instanceof Wedge3DDefinition)
+      else if (object instanceof Ramp3DDefinition)
       {
-         Wedge3DDefinition other = (Wedge3DDefinition) object;
+         Ramp3DDefinition other = (Ramp3DDefinition) object;
          if (sizeX != other.sizeX)
             return false;
          if (sizeY != other.sizeY)
@@ -176,6 +176,6 @@ public class Wedge3DDefinition extends GeometryDefinition
    @Override
    public String toString()
    {
-      return EuclidCoreIOTools.getStringOf("Wedge: [name: " + getName() + ", size: (", ")]", ", ", sizeX, sizeY, sizeZ);
+      return EuclidCoreIOTools.getStringOf("Ramp: [name: " + getName() + ", size: (", ")]", ", ", sizeX, sizeY, sizeZ);
    }
 }

@@ -70,9 +70,9 @@ public class ExampleExperimentalSimulationTools
       {
          double stripePercent = 0.05;
          factory.appendTranslation(0.0, 0.0, -height * 0.01);
-         factory.addCube(2.0 * radius * 1.01, radius * stripePercent, height * 1.02, new MaterialDefinition(stripesColor));
+         factory.addBox(2.0 * radius * 1.01, radius * stripePercent, height * 1.02, new MaterialDefinition(stripesColor));
          factory.appendRotation(Math.PI / 2.0, Axis3D.Z);
-         factory.addCube(2.0 * radius * 1.01, radius * stripePercent, height * 1.02, new MaterialDefinition(stripesColor));
+         factory.addBox(2.0 * radius * 1.01, radius * stripePercent, height * 1.02, new MaterialDefinition(stripesColor));
       }
 
       rigidBody.addVisualDefinitions(factory.getVisualDefinitions());
@@ -103,9 +103,9 @@ public class ExampleExperimentalSimulationTools
       if (addStripes)
       {
          double stripePercent = 0.05;
-         factory.addCube(2.0 * radius * 1.01, radius * stripePercent, height, new MaterialDefinition(stripesColor));
+         factory.addBox(2.0 * radius * 1.01, radius * stripePercent, height, new MaterialDefinition(stripesColor));
          factory.appendRotation(Math.PI / 2.0, Axis3D.Z);
-         factory.addCube(2.0 * radius * 1.01, radius * stripePercent, height, new MaterialDefinition(stripesColor));
+         factory.addBox(2.0 * radius * 1.01, radius * stripePercent, height, new MaterialDefinition(stripesColor));
       }
 
       rigidBody.addVisualDefinitions(factory.getVisualDefinitions());
@@ -166,7 +166,7 @@ public class ExampleExperimentalSimulationTools
       VisualDefinitionFactory factory = new VisualDefinitionFactory();
       if (offsetFromParentJoint != null)
          factory.appendTranslation(offsetFromParentJoint);
-      factory.addCube(sizeX, sizeY, sizeZ, new MaterialDefinition(color));
+      factory.addBox(sizeX, sizeY, sizeZ, new MaterialDefinition(color));
       rigidBody.addVisualDefinitions(factory.getVisualDefinitions());
       return rigidBody;
    }

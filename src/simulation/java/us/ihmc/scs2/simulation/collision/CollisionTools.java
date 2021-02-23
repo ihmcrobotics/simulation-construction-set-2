@@ -38,7 +38,7 @@ import us.ihmc.scs2.definition.geometry.STPCylinder3DDefinition;
 import us.ihmc.scs2.definition.geometry.STPRamp3DDefinition;
 import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
 import us.ihmc.scs2.definition.geometry.Torus3DDefinition;
-import us.ihmc.scs2.definition.geometry.Wedge3DDefinition;
+import us.ihmc.scs2.definition.geometry.Ramp3DDefinition;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
@@ -113,8 +113,8 @@ public class CollisionTools
          return toTorus3D(originPose, (Torus3DDefinition) definition);
       else if (definition instanceof STPRamp3DDefinition)
          return toSTPRamp3D(originPose, (STPRamp3DDefinition) definition);
-      else if (definition instanceof Wedge3DDefinition)
-         return toRamp3D(originPose, (Wedge3DDefinition) definition);
+      else if (definition instanceof Ramp3DDefinition)
+         return toRamp3D(originPose, (Ramp3DDefinition) definition);
       else
          throw new UnsupportedOperationException("Unhandled geometry type: " + definition.getClass().getSimpleName());
    }
@@ -145,8 +145,8 @@ public class CollisionTools
          throw new UnsupportedOperationException("Torus shape is not supported as collidable.");
       else if (definition instanceof STPRamp3DDefinition)
          return new FrameSTPRamp3D(referenceFrame, toSTPRamp3D(originPose, (STPRamp3DDefinition) definition));
-      else if (definition instanceof Wedge3DDefinition)
-         return new FrameRamp3D(referenceFrame, toRamp3D(originPose, (Wedge3DDefinition) definition));
+      else if (definition instanceof Ramp3DDefinition)
+         return new FrameRamp3D(referenceFrame, toRamp3D(originPose, (Ramp3DDefinition) definition));
       else
          throw new UnsupportedOperationException("Unhandled geometry type: " + definition.getClass().getSimpleName());
    }
@@ -267,7 +267,7 @@ public class CollisionTools
       return stpRamp3D;
    }
 
-   public static Ramp3D toRamp3D(RigidBodyTransformReadOnly originPose, Wedge3DDefinition definition)
+   public static Ramp3D toRamp3D(RigidBodyTransformReadOnly originPose, Ramp3DDefinition definition)
    {
       Ramp3D ramp3D = new Ramp3D();
       ramp3D.getSize().set(definition.getSizeX(), definition.getSizeY(), definition.getSizeZ());

@@ -57,9 +57,9 @@ public class SpinningCoinExperimentalSimulation
       factory.addCylinder(coinWidth, coinRadius, new MaterialDefinition(ColorDefinitions.Purple()));
       factory.identity();
       factory.appendTranslation(0.0, 0.0, coinWidth / 2.0);
-      factory.addCube(coinRadius / 3.0, coinRadius / 3.0, coinWidth / 4.0, new MaterialDefinition(ColorDefinitions.AliceBlue()));
+      factory.addBox(coinRadius / 3.0, coinRadius / 3.0, coinWidth / 4.0, new MaterialDefinition(ColorDefinitions.AliceBlue()));
       factory.appendTranslation(0.0, 0.0, -coinWidth - coinWidth / 4.0);
-      factory.addCube(coinRadius / 3.0, coinRadius / 3.0, coinWidth / 4.0, new MaterialDefinition(ColorDefinitions.Gold()));
+      factory.addBox(coinRadius / 3.0, coinRadius / 3.0, coinWidth / 4.0, new MaterialDefinition(ColorDefinitions.Gold()));
       coinBody.addVisualDefinitions(factory.getVisualDefinitions());
 
       coinBody.addCollisionShapeDefinition(new CollisionShapeDefinition(new Cylinder3DDefinition(coinWidth, coinRadius)));

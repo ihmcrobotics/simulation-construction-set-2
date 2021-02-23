@@ -4,7 +4,7 @@ import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 
-public class STPRamp3DDefinition extends Wedge3DDefinition
+public class STPRamp3DDefinition extends Ramp3DDefinition
 {
    private double minimumMargin, maximumMargin;
 

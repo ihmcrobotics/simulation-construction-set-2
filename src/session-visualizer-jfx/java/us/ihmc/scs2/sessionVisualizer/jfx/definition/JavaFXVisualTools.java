@@ -68,7 +68,7 @@ import us.ihmc.scs2.definition.geometry.ModelFileGeometryDefinition;
 import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
 import us.ihmc.scs2.definition.geometry.Torus3DDefinition;
 import us.ihmc.scs2.definition.geometry.TruncatedCone3DDefinition;
-import us.ihmc.scs2.definition.geometry.Wedge3DDefinition;
+import us.ihmc.scs2.definition.geometry.Ramp3DDefinition;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
 import us.ihmc.scs2.definition.visual.MaterialDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
@@ -218,11 +218,11 @@ public class JavaFXVisualTools
          torus.setMaterial(toMaterial(materialDefinition));
          return torus;
       }
-      else if (geometryDefinition instanceof Wedge3DDefinition)
+      else if (geometryDefinition instanceof Ramp3DDefinition)
       {
-         MeshView wedge = toWedge((Wedge3DDefinition) geometryDefinition);
-         wedge.setMaterial(toMaterial(materialDefinition));
-         return wedge;
+         MeshView ramp = toRamp((Ramp3DDefinition) geometryDefinition);
+         ramp.setMaterial(toMaterial(materialDefinition));
+         return ramp;
       }
       else if (geometryDefinition instanceof ModelFileGeometryDefinition)
       {
@@ -371,7 +371,7 @@ public class JavaFXVisualTools
       return meshView;
    }
 
-   public static MeshView toWedge(Wedge3DDefinition geometryDefinition)
+   public static MeshView toRamp(Ramp3DDefinition geometryDefinition)
    {
       if (geometryDefinition == null)
          return null;

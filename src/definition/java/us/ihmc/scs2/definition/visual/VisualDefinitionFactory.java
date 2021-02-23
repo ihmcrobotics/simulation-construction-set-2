@@ -50,7 +50,7 @@ import us.ihmc.scs2.definition.geometry.Polygon3DDefinition;
 import us.ihmc.scs2.definition.geometry.PyramidBox3DDefinition;
 import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
 import us.ihmc.scs2.definition.geometry.TruncatedCone3DDefinition;
-import us.ihmc.scs2.definition.geometry.Wedge3DDefinition;
+import us.ihmc.scs2.definition.geometry.Ramp3DDefinition;
 
 // TODO Needs major cleanup
 public class VisualDefinitionFactory
@@ -257,7 +257,7 @@ public class VisualDefinitionFactory
       {
          Box3DReadOnly box = (Box3DReadOnly) shape;
          appendTransform(box.getPose());
-         addCube(box.getSizeX(), box.getSizeY(), box.getSizeZ(), true, materialDefinition);
+         addBox(box.getSizeX(), box.getSizeY(), box.getSizeZ(), true, materialDefinition);
       }
       else if (shape instanceof Capsule3DReadOnly)
       {
@@ -293,7 +293,7 @@ public class VisualDefinitionFactory
          Ramp3DReadOnly ramp = (Ramp3DReadOnly) shape;
          appendTransform(ramp.getPose());
          appendTranslation(-0.5 * ramp.getSizeX(), 0.0, 0.0);
-         addWedge(ramp.getSizeX(), ramp.getSizeY(), ramp.getSizeZ(), materialDefinition);
+         addRamp(ramp.getSizeX(), ramp.getSizeY(), ramp.getSizeZ(), materialDefinition);
       }
       else if (shape instanceof Sphere3DReadOnly)
       {
@@ -330,27 +330,27 @@ public class VisualDefinitionFactory
 
    public VisualDefinition addBox(double lengthX, double widthY, double heightZ)
    {
-      return addCube(lengthX, widthY, heightZ, DEFAULT_MATERIAL);
+      return addBox(lengthX, widthY, heightZ, DEFAULT_MATERIAL);
    }
 
-   public VisualDefinition addCube(double lengthX, double widthY, double heightZ, MaterialDefinition materialDefinition)
+   public VisualDefinition addBox(double lengthX, double widthY, double heightZ, MaterialDefinition materialDefinition)
    {
-      return addCube(lengthX, widthY, heightZ, true, materialDefinition);
+      return addBox(lengthX, widthY, heightZ, true, materialDefinition);
    }
 
-   public VisualDefinition addCube(double lengthX, double widthY, double heightZ, boolean centeredInTheCenter, MaterialDefinition materialDefinition)
+   public VisualDefinition addBox(double lengthX, double widthY, double heightZ, boolean centeredInTheCenter, MaterialDefinition materialDefinition)
    {
       return addGeometryDefinition(new Box3DDefinition(lengthX, widthY, heightZ, centeredInTheCenter), materialDefinition);
    }
 
-   public VisualDefinition addWedge(double lengthX, double widthY, double heightZ)
+   public VisualDefinition addRamp(double lengthX, double widthY, double heightZ)
    {
-      return addWedge(lengthX, widthY, heightZ, DEFAULT_MATERIAL);
+      return addRamp(lengthX, widthY, heightZ, DEFAULT_MATERIAL);
    }
 
-   public VisualDefinition addWedge(double lengthX, double widthY, double heightZ, MaterialDefinition materialDefinition)
+   public VisualDefinition addRamp(double lengthX, double widthY, double heightZ, MaterialDefinition materialDefinition)
    {
-      return addGeometryDefinition(new Wedge3DDefinition(lengthX, widthY, heightZ), materialDefinition);
+      return addGeometryDefinition(new Ramp3DDefinition(lengthX, widthY, heightZ), materialDefinition);
    }
 
    public VisualDefinition addSphere(double radius)
