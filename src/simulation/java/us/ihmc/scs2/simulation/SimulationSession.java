@@ -17,8 +17,10 @@ import us.ihmc.yoVariables.variable.YoDouble;
 
 public class SimulationSession extends Session
 {
-   private final ReferenceFrame worldFrame = ReferenceFrameTools.constructARootFrame("worldFrame");
-   private final PhysicsEngine physicsEngine = new PhysicsEngine(worldFrame, rootRegistry);
+   public static final ReferenceFrame DEFAULT_INERTIAL_FRAME = ReferenceFrameTools.constructARootFrame("worldFrame");
+
+   private final ReferenceFrame inertialFrame;
+   private final PhysicsEngine physicsEngine;
    private final YoDouble simulationTime = new YoDouble("simulationTime", rootRegistry);
    private final YoFrameVector3D gravity = new YoFrameVector3D("gravity", ReferenceFrame.getWorldFrame(), rootRegistry);
    private final String simulationName;
@@ -30,7 +32,24 @@ public class SimulationSession extends Session
 
    public SimulationSession(String simulationName)
    {
+      this(DEFAULT_INERTIAL_FRAME, simulationName);
+   }
+
+   public SimulationSession(ReferenceFrame inertialFrame)
+   {
+      this(inertialFrame, retrieveCallerName());
+   }
+
+   public SimulationSession(ReferenceFrame inertialFrame, String simulationName)
+   {
+      if (!inertialFrame.isRootFrame())
+         throw new IllegalArgumentException("The given inertialFrame is not a root frame: " + inertialFrame);
+
+      this.inertialFrame = inertialFrame;
       this.simulationName = simulationName;
+
+      physicsEngine = new PhysicsEngine(inertialFrame, rootRegistry);
+
       submitBufferSizeRequest(200000);
       setSessionTickToTimeIncrement(Conversions.secondsToNanoseconds(0.0001));
       setSessionMode(SessionMode.PAUSE);
@@ -65,6 +84,11 @@ public class SimulationSession extends Session
    public void addTerrainObject(TerrainObjectDefinition terrainObjectDefinition)
    {
       physicsEngine.addTerrainObject(terrainObjectDefinition);
+   }
+
+   public ReferenceFrame getInertialFrame()
+   {
+      return inertialFrame;
    }
 
    @Override
