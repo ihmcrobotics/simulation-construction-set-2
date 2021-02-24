@@ -150,11 +150,11 @@ public class TriangleMesh3DFactoriesVisualizer
       polytope.setTranslateY(-1.0);
       view3dFactory.addNodeToView(polytope);
 
-      MeshView cube = new MeshView(interpretDefinition(TriangleMesh3DFactories.Box(0.1, 0.2, 0.3, true)));
-      cube.setMaterial(defaultMaterial);
-      cube.setTranslateX(1.0);
-      cube.setTranslateY(0.0);
-      view3dFactory.addNodeToView(cube);
+      MeshView box = new MeshView(interpretDefinition(TriangleMesh3DFactories.Box(0.1, 0.2, 0.3, true)));
+      box.setMaterial(defaultMaterial);
+      box.setTranslateX(1.0);
+      box.setTranslateY(0.0);
+      view3dFactory.addNodeToView(box);
 
       MeshView polygon3D = new MeshView(interpretDefinition(TriangleMesh3DFactories.PolygonCounterClockwise(polygonVertices.stream().map(p2D ->
       {
@@ -172,6 +172,18 @@ public class TriangleMesh3DFactoriesVisualizer
       torus.setTranslateX(1.0);
       torus.setTranslateY(-0.5);
       view3dFactory.addNodeToView(torus);
+
+      MeshView stpBox = new MeshView(interpretDefinition(TriangleMesh3DFactories.toSTPBox3DMesh(null, 0.3, 0.4, 0.5, 0.05, 5.0, true)));
+      stpBox.setMaterial(defaultMaterial);
+      stpBox.setTranslateX(1.5);
+      stpBox.setTranslateY(-0.5);
+      view3dFactory.addNodeToView(stpBox);
+
+      MeshView stpCapsule = new MeshView(interpretDefinition(TriangleMesh3DFactories.toSTPCapsule3DMesh(null, 0.4, 0.8, 0.025, 5.0, true)));
+      stpCapsule.setMaterial(defaultMaterial);
+      stpCapsule.setTranslateX(1.5);
+      stpCapsule.setTranslateY(0.0);
+      view3dFactory.addNodeToView(stpCapsule);
 
       primaryStage.setMaximized(true);
       primaryStage.setScene(view3dFactory.getScene());

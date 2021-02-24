@@ -3050,23 +3050,19 @@ public class TriangleMesh3DFactories
     * TODO: The following is for drawing STP shapes. Needs some cleanup.
     */
 
-   public static TriangleMesh3DDefinition toSTPBox3DMesh(RigidBodyTransformReadOnly pose, double sizeX, double sizeY, double sizeZ, double minimumMargin,
-                                                         double maximumMargin, boolean highlightLimits)
+   public static TriangleMesh3DDefinition toSTPBox3DMesh(RigidBodyTransformReadOnly pose, double sizeX, double sizeY, double sizeZ, double smallRadius,
+                                                         double largeRadius, boolean highlightLimits)
    {
-      return combine(true, false, toSTPBox3DMeshes(pose, sizeX, sizeY, sizeZ, minimumMargin, maximumMargin, highlightLimits));
+      return combine(true, false, toSTPBox3DMeshes(pose, sizeX, sizeY, sizeZ, smallRadius, largeRadius, highlightLimits));
    }
 
-   public static TriangleMesh3DDefinition[] toSTPBox3DMeshes(RigidBodyTransformReadOnly pose, double sizeX, double sizeY, double sizeZ, double minimumMargin,
-                                                             double maximumMargin, boolean highlightLimits)
+   public static TriangleMesh3DDefinition[] toSTPBox3DMeshes(RigidBodyTransformReadOnly pose, double sizeX, double sizeY, double sizeZ, double smallRadius,
+                                                             double largeRadius, boolean highlightLimits)
    {
       STPBox3D stpBox3D = new STPBox3D(sizeX, sizeY, sizeZ);
       if (pose != null)
          stpBox3D.getPose().set(pose);
-      stpBox3D.setMargins(minimumMargin, maximumMargin);
       BoxPolytope3DView boxPolytope = stpBox3D.asConvexPolytope();
-      double largeRadius = stpBox3D.getLargeRadius();
-      double smallRadius = stpBox3D.getSmallRadius();
-
       return toSTPConvexPolytope3DMeshes(boxPolytope, smallRadius, largeRadius, highlightLimits);
    }
 
@@ -3082,7 +3078,12 @@ public class TriangleMesh3DFactories
       List<TriangleMesh3DDefinition> faceMeshes = new ArrayList<>();
 
       UnitVector3D axis = new UnitVector3D(Axis3D.Z);
-      Point3DReadOnly position = new Point3D(pose.getTranslation());
+      Point3D position = new Point3D();
+      if (pose != null)
+      {
+         pose.transform(axis);
+         position.set(pose.getTranslation());
+      }
       Point3DReadOnly topCenter = new Point3D();
       Point3DReadOnly bottomCenter = new Point3D();
 
