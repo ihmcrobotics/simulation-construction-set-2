@@ -1,5 +1,8 @@
 package us.ihmc.scs2.definition.geometry;
 
+import java.util.Arrays;
+import java.util.stream.Stream;
+
 import us.ihmc.euclid.tuple2D.Point2D32;
 import us.ihmc.euclid.tuple3D.Point3D32;
 import us.ihmc.euclid.tuple3D.Vector3D32;
@@ -37,7 +40,11 @@ public class TriangleMesh3DDefinition extends GeometryDefinition
 
    public TriangleMesh3DDefinition(TriangleMesh3DDefinition other)
    {
-      this(other.name, other.vertices, other.textures, other.normals, other.triangleIndices);
+      name = other.name;
+      vertices = other.vertices == null ? null : Stream.of(other.vertices).map(Point3D32::new).toArray(Point3D32[]::new);
+      textures = other.textures == null ? null : Stream.of(other.textures).map(Point2D32::new).toArray(Point2D32[]::new);
+      normals = other.normals == null ? null : Stream.of(other.normals).map(Vector3D32::new).toArray(Vector3D32[]::new);
+      triangleIndices = other.triangleIndices == null ? null : Arrays.copyOf(other.triangleIndices, other.triangleIndices.length);
    }
 
    public void setVertices(Point3D32[] vertices)
@@ -83,7 +90,6 @@ public class TriangleMesh3DDefinition extends GeometryDefinition
    @Override
    public TriangleMesh3DDefinition copy()
    {
-      return null;
+      return new TriangleMesh3DDefinition(this);
    }
-
 }
