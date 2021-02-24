@@ -47,6 +47,10 @@ simulationDependencies {
    api("us.ihmc:mecano-yovariables:0.8.0")
 }
 
+sessionVisualizerDependencies {
+   api(ihmc.sourceSetProject("definition"))
+}
+
 sessionVisualizerJfxDependencies {
    api(ihmc.sourceSetProject("simulation"))
    api(ihmc.sourceSetProject("session"))
