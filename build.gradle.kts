@@ -54,6 +54,7 @@ sessionVisualizerDependencies {
 sessionVisualizerJfxDependencies {
    api(ihmc.sourceSetProject("simulation"))
    api(ihmc.sourceSetProject("session"))
+   api(ihmc.sourceSetProject("session-visualizer"))
 
    compile("us.ihmc:ihmc-javafx-toolkit:0.19.3") {
       exclude(group="us.ihmc", module="jassimp")

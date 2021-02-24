@@ -52,9 +52,7 @@ import javafx.scene.transform.Scale;
 import javafx.scene.transform.Transform;
 import us.ihmc.euclid.tools.EuclidCoreTools;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.graphicsDescription.MeshDataGenerator;
 import us.ihmc.javaFXToolkit.JavaFXTools;
-import us.ihmc.javaFXToolkit.graphics.JavaFXMeshDataInterpreter;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.geometry.ArcTorus3DDefinition;
 import us.ihmc.scs2.definition.geometry.Box3DDefinition;
@@ -65,13 +63,14 @@ import us.ihmc.scs2.definition.geometry.Ellipsoid3DDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 import us.ihmc.scs2.definition.geometry.HemiEllipsoid3DDefinition;
 import us.ihmc.scs2.definition.geometry.ModelFileGeometryDefinition;
+import us.ihmc.scs2.definition.geometry.Ramp3DDefinition;
 import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
 import us.ihmc.scs2.definition.geometry.Torus3DDefinition;
 import us.ihmc.scs2.definition.geometry.TruncatedCone3DDefinition;
-import us.ihmc.scs2.definition.geometry.Ramp3DDefinition;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
 import us.ihmc.scs2.definition.visual.MaterialDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
+import us.ihmc.scs2.sessionVisualizer.TriangleMesh3DFactories;
 
 public class JavaFXVisualTools
 {
@@ -249,11 +248,7 @@ public class JavaFXVisualTools
       if (geometryDefinition == null)
          return null;
 
-      double startAngle = geometryDefinition.getStartAngle();
-      double endAngle = geometryDefinition.getEndAngle();
-      double majorRadius = geometryDefinition.getMajorRadius();
-      double minorRadius = geometryDefinition.getMinorRadius();
-      TriangleMesh mesh = JavaFXMeshDataInterpreter.interpretMeshData(MeshDataGenerator.ArcTorus(startAngle, endAngle, majorRadius, minorRadius, 64));
+      TriangleMesh mesh = JavaFXTriangleMesh3DDefinitionInterpreter.interpretDefinition(TriangleMesh3DFactories.TriangleMesh(geometryDefinition));
       MeshView meshView = new MeshView(mesh);
       return meshView;
    }
@@ -271,12 +266,7 @@ public class JavaFXVisualTools
       if (geometryDefinition == null)
          return null;
 
-      TriangleMesh mesh = JavaFXMeshDataInterpreter.interpretMeshData(MeshDataGenerator.Capsule(geometryDefinition.getLength(),
-                                                                                                geometryDefinition.getRadiusX(),
-                                                                                                geometryDefinition.getRadiusY(),
-                                                                                                geometryDefinition.getRadiusZ(),
-                                                                                                geometryDefinition.getResolution(),
-                                                                                                geometryDefinition.getResolution()));
+      TriangleMesh mesh = JavaFXTriangleMesh3DDefinitionInterpreter.interpretDefinition(geometryDefinition);
       MeshView meshView = new MeshView(mesh);
       return meshView;
    }
@@ -286,9 +276,7 @@ public class JavaFXVisualTools
       if (geometryDefinition == null)
          return null;
 
-      double height = geometryDefinition.getHeight();
-      double radius = geometryDefinition.getRadius();
-      TriangleMesh mesh = JavaFXMeshDataInterpreter.interpretMeshData(MeshDataGenerator.Cone(height, radius, 64));
+      TriangleMesh mesh = JavaFXTriangleMesh3DDefinitionInterpreter.interpretDefinition(geometryDefinition);
       MeshView meshView = new MeshView(mesh);
       return meshView;
    }
@@ -308,11 +296,7 @@ public class JavaFXVisualTools
       if (geometryDefinition == null)
          return null;
 
-      TriangleMesh mesh = JavaFXMeshDataInterpreter.interpretMeshData(MeshDataGenerator.Ellipsoid(geometryDefinition.getRadiusX(),
-                                                                                                  geometryDefinition.getRadiusY(),
-                                                                                                  geometryDefinition.getRadiusZ(),
-                                                                                                  geometryDefinition.getResolution(),
-                                                                                                  geometryDefinition.getResolution()));
+      TriangleMesh mesh = JavaFXTriangleMesh3DDefinitionInterpreter.interpretDefinition(geometryDefinition);
       MeshView meshView = new MeshView(mesh);
       return meshView;
    }
@@ -322,17 +306,7 @@ public class JavaFXVisualTools
       if (geometryDefinition == null)
          return null;
 
-      double height = geometryDefinition.getHeight();
-      double xBaseRadius = geometryDefinition.getBaseRadiusX();
-      double yBaseRadius = geometryDefinition.getBaseRadiusY();
-      double xTopRadius = geometryDefinition.getTopRadiusX();
-      double yTopRadius = geometryDefinition.getTopRadiusY();
-      TriangleMesh mesh = JavaFXMeshDataInterpreter.interpretMeshData(MeshDataGenerator.GenTruncatedCone(height,
-                                                                                                         xBaseRadius,
-                                                                                                         yBaseRadius,
-                                                                                                         xTopRadius,
-                                                                                                         yTopRadius,
-                                                                                                         64));
+      TriangleMesh mesh = JavaFXTriangleMesh3DDefinitionInterpreter.interpretDefinition(geometryDefinition);
       MeshView meshView = new MeshView(mesh);
       return meshView;
    }
@@ -342,11 +316,7 @@ public class JavaFXVisualTools
       if (geometryDefinition == null)
          return null;
 
-      TriangleMesh mesh = JavaFXMeshDataInterpreter.interpretMeshData(MeshDataGenerator.HemiEllipsoid(geometryDefinition.getRadiusX(),
-                                                                                                      geometryDefinition.getRadiusY(),
-                                                                                                      geometryDefinition.getRadiusZ(),
-                                                                                                      geometryDefinition.getResolution(),
-                                                                                                      geometryDefinition.getResolution()));
+      TriangleMesh mesh = JavaFXTriangleMesh3DDefinitionInterpreter.interpretDefinition(geometryDefinition);
       MeshView meshView = new MeshView(mesh);
       return meshView;
    }
@@ -364,9 +334,7 @@ public class JavaFXVisualTools
       if (geometryDefinition == null)
          return null;
 
-      double majorRadius = geometryDefinition.getMajorRadius();
-      double minorRadius = geometryDefinition.getMinorRadius();
-      TriangleMesh mesh = JavaFXMeshDataInterpreter.interpretMeshData(MeshDataGenerator.ArcTorus(0.0, 2.0 * Math.PI, majorRadius, minorRadius, 64));
+      TriangleMesh mesh = JavaFXTriangleMesh3DDefinitionInterpreter.interpretDefinition(geometryDefinition);
       MeshView meshView = new MeshView(mesh);
       return meshView;
    }
@@ -376,9 +344,7 @@ public class JavaFXVisualTools
       if (geometryDefinition == null)
          return null;
 
-      TriangleMesh mesh = JavaFXMeshDataInterpreter.interpretMeshData(MeshDataGenerator.Wedge(geometryDefinition.getSizeX(),
-                                                                                              geometryDefinition.getSizeY(),
-                                                                                              geometryDefinition.getSizeZ()));
+      TriangleMesh mesh = JavaFXTriangleMesh3DDefinitionInterpreter.interpretDefinition(geometryDefinition);
       MeshView meshView = new MeshView(mesh);
       return meshView;
    }

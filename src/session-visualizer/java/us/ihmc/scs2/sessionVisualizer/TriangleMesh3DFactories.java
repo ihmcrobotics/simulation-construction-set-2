@@ -82,7 +82,7 @@ public class TriangleMesh3DFactories
     * @return the generic triangle mesh or {@code null} if the given {@code description} is not
     *         supported.
     */
-   public static TriangleMesh3DDefinition Mesh(GeometryDefinition description)
+   public static TriangleMesh3DDefinition TriangleMesh(GeometryDefinition description)
    {
       if (description == null)
          return null;
