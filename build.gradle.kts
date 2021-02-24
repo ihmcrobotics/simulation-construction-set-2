@@ -48,6 +48,7 @@ simulationDependencies {
 }
 
 sessionVisualizerDependencies {
+   api(ihmc.sourceSetProject("simulation"))
    api(ihmc.sourceSetProject("definition"))
 }
 
