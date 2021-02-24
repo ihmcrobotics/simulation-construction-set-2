@@ -1,4 +1,4 @@
-package us.ihmc.scs2.examples.plotter2D;
+package us.ihmc.scs2.examples.sessionVisualizer.jfx.plotter2D;
 
 import javafx.application.Application;
 import javafx.scene.Scene;

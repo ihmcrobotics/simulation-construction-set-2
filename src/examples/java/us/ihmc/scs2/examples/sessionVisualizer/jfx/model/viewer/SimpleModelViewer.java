@@ -1,4 +1,4 @@
-package us.ihmc.scs2.examples.model.viewer;
+package us.ihmc.scs2.examples.sessionVisualizer.jfx.model.viewer;
 
 import java.io.File;
 import java.util.List;

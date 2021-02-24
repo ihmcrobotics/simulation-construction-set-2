@@ -1,4 +1,4 @@
-package us.ihmc.scs2.controls;
+package us.ihmc.scs2.examples.sessionVisualizer.jfx.controls;
 
 import com.jfoenix.controls.JFXSlider.IndicatorPosition;
 
