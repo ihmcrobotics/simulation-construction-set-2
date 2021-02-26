@@ -9,7 +9,6 @@ import us.ihmc.euclid.tuple3D.Vector3D32;
 
 public class TriangleMesh3DDefinition extends GeometryDefinition
 {
-   private String name;
    private Point3D32[] vertices;
    private Point2D32[] textures;
    private Vector3D32[] normals;
@@ -40,7 +39,7 @@ public class TriangleMesh3DDefinition extends GeometryDefinition
 
    public TriangleMesh3DDefinition(TriangleMesh3DDefinition other)
    {
-      name = other.name;
+      setName(other.getName());
       vertices = other.vertices == null ? null : Stream.of(other.vertices).map(Point3D32::new).toArray(Point3D32[]::new);
       textures = other.textures == null ? null : Stream.of(other.textures).map(Point2D32::new).toArray(Point2D32[]::new);
       normals = other.normals == null ? null : Stream.of(other.normals).map(Vector3D32::new).toArray(Vector3D32[]::new);

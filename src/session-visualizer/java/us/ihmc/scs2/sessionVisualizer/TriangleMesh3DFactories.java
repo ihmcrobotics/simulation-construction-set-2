@@ -367,7 +367,7 @@ public class TriangleMesh3DFactories
          triangleIndices[index++] = (nPointsLatitude - 2) * nPointsLongitude + nextLongitudeIndex;
       }
 
-      return new TriangleMesh3DDefinition(points, textPoints, normals, triangleIndices);
+      return new TriangleMesh3DDefinition("Ellipsoid Factory", points, textPoints, normals, triangleIndices);
    }
 
    /**
@@ -537,7 +537,7 @@ public class TriangleMesh3DFactories
          triangleIndices[index++] = j;
       }
 
-      return new TriangleMesh3DDefinition(vertices, texturePoints, normals, triangleIndices);
+      return new TriangleMesh3DDefinition("Polygon Factory", vertices, texturePoints, normals, triangleIndices);
    }
 
    /**
@@ -703,7 +703,7 @@ public class TriangleMesh3DFactories
          triangleIndices[index++] = j;
       }
 
-      return new TriangleMesh3DDefinition(vertices, texturePoints, normals, triangleIndices);
+      return new TriangleMesh3DDefinition("Polygon Factory", vertices, texturePoints, normals, triangleIndices);
    }
 
    /**
@@ -949,7 +949,7 @@ public class TriangleMesh3DFactories
          triangleIndices[index++] = 2 * i + 4 * numberOfVertices + 2;
       }
 
-      return new TriangleMesh3DDefinition(vertices, texturePoints, normals, triangleIndices);
+      return new TriangleMesh3DDefinition("ExtrudedPolygon Factory", vertices, texturePoints, normals, triangleIndices);
    }
 
    /**
@@ -1105,7 +1105,7 @@ public class TriangleMesh3DFactories
          triangleIndices[index++] = (nPointsLatitude - 1) * nPointsLongitude + nextLongitudeIndex;
       }
 
-      return new TriangleMesh3DDefinition(points, textPoints, normals, triangleIndices);
+      return new TriangleMesh3DDefinition("HemiEllipsoid Factory", points, textPoints, normals, triangleIndices);
    }
 
    /**
@@ -1242,7 +1242,7 @@ public class TriangleMesh3DFactories
          triangleIndices[index++] = i + 3 * resolution;
       }
 
-      return new TriangleMesh3DDefinition(points, texturePoints, normals, triangleIndices);
+      return new TriangleMesh3DDefinition("Cylinder Factory", points, texturePoints, normals, triangleIndices);
    }
 
    /**
@@ -1350,7 +1350,7 @@ public class TriangleMesh3DFactories
          triangleIndices[index++] = i + 2 * resolution;
       }
 
-      return new TriangleMesh3DDefinition(vertices, texturePoints, normals, triangleIndices);
+      return new TriangleMesh3DDefinition("Cone Factory", vertices, texturePoints, normals, triangleIndices);
    }
 
    /**
@@ -1499,7 +1499,7 @@ public class TriangleMesh3DFactories
          triangleIndices[index++] = i + 3 * resolution;
       }
 
-      return new TriangleMesh3DDefinition(points, textPoints, normals, triangleIndices);
+      return new TriangleMesh3DDefinition("TruncatedCone Factory", points, textPoints, normals, triangleIndices);
    }
 
    /**
@@ -1767,7 +1767,7 @@ public class TriangleMesh3DFactories
          }
       }
 
-      return new TriangleMesh3DDefinition(points, texturePoints, normals, triangleIndices);
+      return new TriangleMesh3DDefinition("ArcTorus Factory", points, texturePoints, normals, triangleIndices);
    }
 
    /**
@@ -1962,7 +1962,7 @@ public class TriangleMesh3DFactories
       triangleIndices[index++] = 21;
       triangleIndices[index++] = 23;
 
-      return new TriangleMesh3DDefinition(points, textPoints, normals, triangleIndices);
+      return new TriangleMesh3DDefinition("Box Factory", points, textPoints, normals, triangleIndices);
    }
 
    /**
@@ -2047,7 +2047,7 @@ public class TriangleMesh3DFactories
       triangleIndices[index++] = 2;
       triangleIndices[index++] = 3;
 
-      return new TriangleMesh3DDefinition(points, textPoints, normals, triangleIndices);
+      return new TriangleMesh3DDefinition("FlatRectangle Factory", points, textPoints, normals, triangleIndices);
    }
 
    /**
@@ -2212,7 +2212,7 @@ public class TriangleMesh3DFactories
       triangleIndices[index++] = 16;
       triangleIndices[index++] = 17;
 
-      return new TriangleMesh3DDefinition(points, textPoints, normals, triangleIndices);
+      return new TriangleMesh3DDefinition("Ramp Factory", points, textPoints, normals, triangleIndices);
    }
 
    /**
@@ -2491,7 +2491,7 @@ public class TriangleMesh3DFactories
       polygonIndices[index++] = 39;
       polygonIndices[index++] = 38;
 
-      return new TriangleMesh3DDefinition(points, textPoints, normals, polygonIndices);
+      return new TriangleMesh3DDefinition("PyramidBox Factory", points, textPoints, normals, polygonIndices);
    }
 
    /**
@@ -2566,6 +2566,7 @@ public class TriangleMesh3DFactories
       float lineLength = (float) lineDirection.length();
       lineDirection.scale(1.0f / lineLength);
       TriangleMesh3DDefinition line = Box(width, width, lineLength, false);
+      line.setName("Line Factory");
       Point3D32[] vertices = line.getVertices();
       Vector3D32[] normals = line.getNormals();
 
@@ -2808,7 +2809,7 @@ public class TriangleMesh3DFactories
          triangleIndices[index++] = (latitudeResolution - 2) * longitudeResolution + nextLongitudeIndex;
       }
 
-      return new TriangleMesh3DDefinition(points, textPoints, normals, triangleIndices);
+      return new TriangleMesh3DDefinition("Capsule Factory", points, textPoints, normals, triangleIndices);
    }
 
    /**
@@ -2958,7 +2959,7 @@ public class TriangleMesh3DFactories
       triangleIndices[index++] = 11;
       triangleIndices[index++] = 10;
 
-      return new TriangleMesh3DDefinition(vertices, texturePoints, normals, triangleIndices);
+      return new TriangleMesh3DDefinition("Tetrahedron Factory", vertices, texturePoints, normals, triangleIndices);
    }
 
    /**
@@ -3043,7 +3044,7 @@ public class TriangleMesh3DFactories
          vertexOffset += face.getNumberOfEdges();
       }
 
-      return new TriangleMesh3DDefinition(vertices, texturePoints, normals, triangleIndices);
+      return new TriangleMesh3DDefinition("ConvexPolytope Factory", vertices, texturePoints, normals, triangleIndices);
    }
 
    /*
@@ -3084,8 +3085,10 @@ public class TriangleMesh3DFactories
          pose.transform(axis);
          position.set(pose.getTranslation());
       }
-      Point3DReadOnly topCenter = new Point3D();
-      Point3DReadOnly bottomCenter = new Point3D();
+      Point3D topCenter = new Point3D();
+      topCenter.scaleAdd(0.5 * length, axis, position);
+      Point3D bottomCenter = new Point3D();
+      bottomCenter.scaleAdd(-0.5 * length, axis, position);
 
       // Side face
       Vector3D axisOrthogonal = newOrthogonalVector(axis);
@@ -3151,8 +3154,12 @@ public class TriangleMesh3DFactories
       List<TriangleMesh3DDefinition> edgeMeshes = new ArrayList<>();
 
       UnitVector3D axis = new UnitVector3D(Axis3D.Z);
-      axis.applyTransform(pose);
-      Point3D position = new Point3D(pose.getTranslation());
+      Point3D position = new Point3D();
+      if (pose != null)
+      {
+         axis.applyTransform(pose);
+         position.set(pose.getTranslation());
+      }
       Point3D topCenter = new Point3D();
       topCenter.scaleAdd(0.5 * length, axis, position);
       Point3D bottomCenter = new Point3D();
@@ -3325,7 +3332,7 @@ public class TriangleMesh3DFactories
          vertexMeshes.addAll(toVertexSphere(vertex, largeRadius, smallRadius, false));
       }
 
-      return new TriangleMesh3DDefinition[] {combine(true, false, faceMeshes), combine(true, false, vertexMeshes), combine(true, false, vertexMeshes)};
+      return new TriangleMesh3DDefinition[] {combine(true, false, faceMeshes), combine(true, false, edgeMeshes), combine(true, false, vertexMeshes)};
    }
 
    public static List<TriangleMesh3DDefinition> toFaceSpheres(Face3DReadOnly face, double largeRadius, double smallRadius, boolean highlightLimits)
@@ -4045,6 +4052,7 @@ public class TriangleMesh3DFactories
          Point3D32[] inVertices = definition.getVertices();
          Point2D32[] inTextures = definition.getTextures();
          Vector3D32[] inNormals = definition.getNormals();
+         int[] inIndices = definition.getTriangleIndices();
 
          if (inVertices != null)
          {
@@ -4088,10 +4096,10 @@ public class TriangleMesh3DFactories
             }
          }
 
-         if (definition.getTriangleIndices() != null)
+         if (inIndices != null)
          {
-            System.arraycopy(definition.getTriangleIndices(), 0, outIndices, indexIndex, definition.getTriangleIndices().length);
-            indexIndex += definition.getTriangleIndices().length;
+            System.arraycopy(inIndices, 0, outIndices, indexIndex, inIndices.length);
+            indexIndex += inIndices.length;
          }
       }
 
@@ -4099,19 +4107,22 @@ public class TriangleMesh3DFactories
       {
          Iterator<TriangleMesh3DDefinition> iterator = definitions.iterator();
 
-         int shift = iterator.next().getVertices().length;
+         TriangleMesh3DDefinition definition = iterator.next();
+         int shift = definition.getVertices().length;
+         int startIndex = definition.getTriangleIndices().length;
 
          while (iterator.hasNext())
          {
-            TriangleMesh3DDefinition definition = iterator.next();
-            int length = definition.getVertices().length;
+            definition = iterator.next();
+            int endIndex = startIndex + definition.getTriangleIndices().length;
 
-            for (indexIndex = shift; indexIndex < length; indexIndex++)
+            for (int i = startIndex; i < endIndex; i++)
             {
-               outIndices[indexIndex] += shift;
+               outIndices[i] += shift;
             }
 
-            shift += length;
+            shift += definition.getVertices().length;
+            startIndex = endIndex;
          }
       }
 
