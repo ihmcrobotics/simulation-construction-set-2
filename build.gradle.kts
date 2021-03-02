@@ -73,7 +73,6 @@ sessionVisualizerJfxDependencies {
    api("de.jensd:fontawesomefx:8.9")
    api("com.jfoenix:jfoenix:8.0.10")
    api("org.apache.commons:commons-text:1.9")
-   api("de.gsi.chart:chartfx-chart:8.1.4") // FIXME Seems to be having an issue with 8.1.5 where the GUI freezes when adding a chart.
 
    api(fileTree(mapOf("dir" to "src/session-visualizer-jfx/libs/JavaFXModelImporters", "include" to "*.jar")))
 }
