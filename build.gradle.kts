@@ -20,53 +20,54 @@ mainDependencies {
 }
 
 definitionDependencies {
-   api("us.ihmc:euclid:0.12.2")
-   api("us.ihmc:ihmc-commons:0.26.6")
-   api("us.ihmc:ihmc-yovariables:0.4.0")
-   api("us.ihmc:mecano:0.0.22")
+   api("us.ihmc:euclid:0.16.2")
+   api("us.ihmc:euclid-shape:0.16.2")
+   api("us.ihmc:ihmc-commons:0.30.4")
+   api("us.ihmc:ihmc-yovariables:0.9.8")
+   api("us.ihmc:mecano:0.8.1")
 }
 
 sharedMemoryDependencies {
-   api("us.ihmc:ihmc-yovariables:0.4.0")
+   api("us.ihmc:ihmc-yovariables:0.9.8")
 }
 
 sessionDependencies {
    api(ihmc.sourceSetProject("definition"))
    api(ihmc.sourceSetProject("shared-memory"))
 
-   api("us.ihmc:ihmc-messager:0.1.3")
+   api("us.ihmc:ihmc-messager:0.1.7")
 }
 
 simulationDependencies {
    api(ihmc.sourceSetProject("definition"))
    api(ihmc.sourceSetProject("shared-memory"))
    api(ihmc.sourceSetProject("session"))
-   api("us.ihmc:euclid-shape:0.12.2")
-   api("us.ihmc:ihmc-messager:0.1.3")
-   api("us.ihmc:mecano-yovariables:0.0.22")
+   api("us.ihmc:euclid-frame-shape:0.16.2")
+   api("us.ihmc:ihmc-messager:0.1.7")
+   api("us.ihmc:mecano-yovariables:0.8.1")
 }
 
 sessionVisualizerDependencies {
    api(ihmc.sourceSetProject("simulation"))
    api(ihmc.sourceSetProject("session"))
 
-   compile("us.ihmc:ihmc-javafx-toolkit:0.13.0") {
+   compile("us.ihmc:ihmc-javafx-toolkit:0.19.3") {
       exclude(group="us.ihmc", module="jassimp")
    }
-   api("us.ihmc:ihmc-graphics-description:0.13.0")
-   api("us.ihmc:ihmc-video-codecs:2.1.5")
-   api("us.ihmc:ihmc-robot-data-logger:0.14.0")
+   api("us.ihmc:ihmc-graphics-description:0.19.3")
+   api("us.ihmc:ihmc-video-codecs:2.1.6")
+   api("us.ihmc:ihmc-robot-data-logger:0.20.7")
    api("us.ihmc:svgloader:0.0")
-   api("us.ihmc:ihmc-javafx-extensions:0.0")
+   api("us.ihmc:ihmc-javafx-extensions:0.0.1")
 
    api("com.google.guava:guava:18.0")
    api("org.reflections:reflections:0.9.10")
 
    // JavaFX extensions
-   api("org.controlsfx:controlsfx:8.40.15")
+   api("org.controlsfx:controlsfx:8.40.18")
    api("de.jensd:fontawesomefx:8.9")
-   api("com.jfoenix:jfoenix:8.0.9")
-   api("org.apache.commons:commons-text:1.4")
+   api("com.jfoenix:jfoenix:8.0.10")
+   api("org.apache.commons:commons-text:1.9")
 
    api(fileTree(mapOf("dir" to "src/session-visualizer/libs/JavaFXModelImporters", "include" to "*.jar")))
 }
