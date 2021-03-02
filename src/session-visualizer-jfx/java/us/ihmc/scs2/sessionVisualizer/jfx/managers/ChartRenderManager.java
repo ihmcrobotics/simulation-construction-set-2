@@ -10,7 +10,7 @@ import us.ihmc.scs2.session.Session;
 
 public class ChartRenderManager extends AnimationTimer implements Manager
 {
-   private final IntegerProperty numberOfLayersToRenderPerUpdate = new SimpleIntegerProperty(this, "numberOfLayersToRenderPerUpdate", 10);
+   private final IntegerProperty numberOfLayersToRenderPerUpdate = new SimpleIntegerProperty(this, "numberOfLayersToRenderPerUpdate", -1);
    private final Deque<Runnable> chartUpdaterToCall = new ArrayDeque<>();
 
    public void submitRenderRequest(Runnable chartUpdater)
