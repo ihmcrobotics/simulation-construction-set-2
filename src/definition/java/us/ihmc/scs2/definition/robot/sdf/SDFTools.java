@@ -593,7 +593,7 @@ public class SDFTools
       if (sdfGeometry.getMesh() != null)
       {
          ModelFileGeometryDefinition modelFileGeometryDefinition = new ModelFileGeometryDefinition();
-         modelFileGeometryDefinition.getResourceDirectories().addAll(resourceDirectories);
+         modelFileGeometryDefinition.setResourceDirectories(resourceDirectories);
          modelFileGeometryDefinition.setFileName(sdfGeometry.getMesh().getUri());
          modelFileGeometryDefinition.setScale(parseVector3D(sdfGeometry.getMesh().getScale(), new Vector3D(1, 1, 1)));
          return modelFileGeometryDefinition;

@@ -727,7 +727,7 @@ public class URDFTools
       if (urdfGeometry.getMesh() != null)
       {
          ModelFileGeometryDefinition modelFileGeometryDefinition = new ModelFileGeometryDefinition();
-         modelFileGeometryDefinition.getResourceDirectories().addAll(resourceDirectories);
+         modelFileGeometryDefinition.setResourceDirectories(resourceDirectories);
          modelFileGeometryDefinition.setFileName(urdfGeometry.getMesh().getFilename());
          modelFileGeometryDefinition.setScale(parseVector3D(urdfGeometry.getMesh().getScale(), new Vector3D(1, 1, 1)));
          return modelFileGeometryDefinition;
