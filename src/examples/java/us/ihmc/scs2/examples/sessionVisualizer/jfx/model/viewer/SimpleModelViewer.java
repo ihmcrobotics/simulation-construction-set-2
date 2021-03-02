@@ -4,7 +4,8 @@ import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javafx.application.Application;
+import javax.xml.bind.JAXBException;
+
 import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.stage.FileChooser;
@@ -12,6 +13,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.javaFXToolkit.scenes.View3DFactory;
+import us.ihmc.javaFXToolkit.starter.ApplicationRunner;
 import us.ihmc.log.LogTools;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
@@ -24,14 +26,13 @@ import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.FrameNode;
 import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.JavaFXMultiBodySystemFactories;
 import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.JavaFXRigidBody;
 
-public class SimpleModelViewer extends Application
+public class SimpleModelViewer
 {
    private static final ReferenceFrame rootFrame = ReferenceFrame.getWorldFrame();
    private static final String MODEL_FILE_KEY = "ROBOT_MODEL_FILE_SIMPLE_VIEWER";
    private File modelFile = null;
 
-   @Override
-   public void start(Stage primaryStage) throws Exception
+   public SimpleModelViewer(Stage primaryStage)
    {
       if (modelFile == null)
       {
@@ -55,12 +56,28 @@ public class SimpleModelViewer extends Application
 
       if (modelFile.getName().toLowerCase().endsWith("urdf"))
       {
-         URDFModel urdfModel = URDFTools.loadURDFModel(modelFile);
+         URDFModel urdfModel;
+         try
+         {
+            urdfModel = URDFTools.loadURDFModel(modelFile);
+         }
+         catch (JAXBException e)
+         {
+            throw new RuntimeException(e);
+         }
          robotDefinition = URDFTools.toFloatingRobotDefinition(urdfModel);
       }
       else if (modelFile.getName().toLowerCase().endsWith("sdf"))
       {
-         SDFModel sdfModel = SDFTools.loadSDFRoot(modelFile).getModels().get(0);
+         SDFModel sdfModel;
+         try
+         {
+            sdfModel = SDFTools.loadSDFRoot(modelFile).getModels().get(0);
+         }
+         catch (JAXBException e)
+         {
+            throw new RuntimeException(e);
+         }
          robotDefinition = SDFTools.toFloatingRobotDefinition(sdfModel);
       }
       else
@@ -92,7 +109,6 @@ public class SimpleModelViewer extends Application
                      .collect(Collectors.toList());
    }
 
-   @Override
    public void stop()
    {
       System.out.println(getClass().getSimpleName() + " is going down.");
@@ -100,6 +116,6 @@ public class SimpleModelViewer extends Application
 
    public static void main(String[] args)
    {
-      launch(args);
+      ApplicationRunner.runApplication(SimpleModelViewer::new);
    }
 }
