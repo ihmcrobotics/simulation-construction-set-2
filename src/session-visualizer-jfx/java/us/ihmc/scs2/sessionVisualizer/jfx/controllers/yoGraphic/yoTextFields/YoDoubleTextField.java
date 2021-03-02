@@ -2,10 +2,10 @@ package us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.yoTextFields;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.controlsfx.control.textfield.AutoCompletionBinding.ISuggestionRequest;
 
-import impl.org.controlsfx.autocompletion.SuggestionProvider;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.control.TextField;
@@ -57,14 +57,20 @@ public class YoDoubleTextField extends YoVariableTextField<DoubleProperty>
    @Override
    protected Callback<ISuggestionRequest, Collection<String>> createSuggestions()
    {
-      SuggestionProvider<String> suggestionProvider = SuggestionProvider.create(yoVariableCollection.uniqueNameCollection());
+      Collection<String> uniqueNameCollection = yoVariableCollection.uniqueNameCollection();
 
       return request ->
       {
-         if (CompositePropertyTools.isParsableAsDouble(request.getUserText()))
+         String userText = request.getUserText();
+
+         if (CompositePropertyTools.isParsableAsDouble(userText))
             return null;
 
-         return suggestionProvider.call(request);
+         if (userText.isEmpty())
+            return uniqueNameCollection;
+
+         String userTextLowerCase = userText.toLowerCase();
+         return uniqueNameCollection.stream().filter(v -> v.toLowerCase().contains(userTextLowerCase)).collect(Collectors.toList());
       };
    }
 

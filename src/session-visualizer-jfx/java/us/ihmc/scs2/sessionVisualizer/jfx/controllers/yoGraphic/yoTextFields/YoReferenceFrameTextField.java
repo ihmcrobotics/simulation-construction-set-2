@@ -2,10 +2,10 @@ package us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.yoTextFields;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.controlsfx.control.textfield.AutoCompletionBinding.ISuggestionRequest;
 
-import impl.org.controlsfx.autocompletion.SuggestionProvider;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TextField;
@@ -62,7 +62,18 @@ public class YoReferenceFrameTextField extends YoVariableTextField<Property<Refe
    @Override
    protected Callback<ISuggestionRequest, Collection<String>> createSuggestions()
    {
-      return SuggestionProvider.create(referenceFrameManager.getReferenceFrameUniqueNames());
+      Collection<String> referenceFrameUniqueNames = referenceFrameManager.getReferenceFrameUniqueNames();
+
+      return request ->
+      {
+         String userText = request.getUserText();
+         if (userText.isEmpty())
+            return referenceFrameUniqueNames;
+
+         String userTextLowerCase = userText.toLowerCase();
+         return referenceFrameUniqueNames.stream().filter(v -> v.toLowerCase().contains(userTextLowerCase))
+                                     .collect(Collectors.toList());
+      };
    }
 
    @Override
