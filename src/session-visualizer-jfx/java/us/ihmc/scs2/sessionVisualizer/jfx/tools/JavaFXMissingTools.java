@@ -1,5 +1,7 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.tools;
 
+import java.util.concurrent.CountDownLatch;
+
 import com.sun.javafx.application.PlatformImpl;
 
 import javafx.animation.AnimationTimer;
@@ -66,6 +68,47 @@ public class JavaFXMissingTools
             }
          }
       }.start();
+   }
+
+   public static void runAndWait(final Runnable runnable)
+   {
+      if (Platform.isFxApplicationThread())
+      {
+         try
+         {
+            runnable.run();
+         }
+         catch (Throwable t)
+         {
+            System.err.println("Exception in runnable");
+            t.printStackTrace();
+         }
+      }
+      else
+      {
+         final CountDownLatch doneLatch = new CountDownLatch(1);
+
+         Platform.runLater(() ->
+         {
+            try
+            {
+               runnable.run();
+            }
+            finally
+            {
+               doneLatch.countDown();
+            }
+         });
+
+         try
+         {
+            doneLatch.await();
+         }
+         catch (InterruptedException ex)
+         {
+            ex.printStackTrace();
+         }
+      }
    }
 
    public static void setAnchorConstraints(Node child, double allSides)

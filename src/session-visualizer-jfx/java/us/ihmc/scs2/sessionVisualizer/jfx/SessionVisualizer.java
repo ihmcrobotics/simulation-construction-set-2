@@ -1,6 +1,5 @@
 package us.ihmc.scs2.sessionVisualizer.jfx;
 
-import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -10,7 +9,6 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import us.ihmc.javaFXToolkit.cameraControllers.FocusBasedCameraMouseEventHandler;
 import us.ihmc.javaFXToolkit.scenes.View3DFactory;
-import us.ihmc.javaFXToolkit.starter.ApplicationRunner;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools;
@@ -18,6 +16,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.MultiSessionManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.plotter.Plotter2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.CameraTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXApplicationCreator;
 import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
 
 public class SessionVisualizer
@@ -134,23 +133,20 @@ public class SessionVisualizer
 
    public static void startSessionVisualizer(Session session)
    {
-      ApplicationRunner.runApplication(new Application()
-      {
-         private SessionVisualizer sessionVisualizer;
+      JavaFXApplicationCreator.spawnJavaFXMainApplication();
 
-         @Override
-         public void start(Stage primaryStage) throws Exception
+      Platform.runLater(() ->
+      {
+         try
          {
-            sessionVisualizer = new SessionVisualizer(primaryStage);
+            SessionVisualizer sessionVisualizer = new SessionVisualizer(new Stage());
             if (session != null)
                sessionVisualizer.startSession(session);
+            JavaFXApplicationCreator.attachStopListener(sessionVisualizer::stop);
          }
-
-         @Override
-         public void stop() throws Exception
+         catch (Exception e)
          {
-            super.stop();
-            sessionVisualizer.stop();
+            throw new RuntimeException(e);
          }
       });
    }
