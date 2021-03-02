@@ -10,6 +10,7 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import us.ihmc.javaFXToolkit.cameraControllers.FocusBasedCameraMouseEventHandler;
 import us.ihmc.javaFXToolkit.scenes.View3DFactory;
+import us.ihmc.javaFXToolkit.starter.ApplicationRunner;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools;
@@ -17,10 +18,9 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.MultiSessionManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.plotter.Plotter2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.CameraTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
 
-public class SessionVisualizer extends Application
+public class SessionVisualizer
 {
    public static final String NO_ACTIVE_SESSION_TITLE = "No Active Session";
 
@@ -38,12 +38,7 @@ public class SessionVisualizer extends Application
    private final Plotter2D plotter2D = new Plotter2D();
    private MainWindowController mainWindowController;
 
-   public SessionVisualizer()
-   {
-   }
-
-   @Override
-   public void start(Stage primaryStage) throws Exception
+   public SessionVisualizer(Stage primaryStage) throws Exception
    {
       toolkit = new SessionVisualizerToolkit(primaryStage);
 
@@ -103,7 +98,6 @@ public class SessionVisualizer extends Application
       multiSessionManager.stopSession();
    }
 
-   @Override
    public void stop()
    {
       LogTools.info("Simulation GUI is going down.");
@@ -135,12 +129,29 @@ public class SessionVisualizer extends Application
 
    public static void main(String[] args)
    {
-      launch(args);
+      startSessionVisualizer(null);
    }
 
    public static void startSessionVisualizer(Session session)
    {
-      SessionVisualizer sessionVisualizer = new SessionVisualizer();
-      JavaFXMissingTools.runApplication(sessionVisualizer, () -> sessionVisualizer.startSession(session));
+      ApplicationRunner.runApplication(new Application()
+      {
+         private SessionVisualizer sessionVisualizer;
+
+         @Override
+         public void start(Stage primaryStage) throws Exception
+         {
+            sessionVisualizer = new SessionVisualizer(primaryStage);
+            if (session != null)
+               sessionVisualizer.startSession(session);
+         }
+
+         @Override
+         public void stop() throws Exception
+         {
+            super.stop();
+            sessionVisualizer.stop();
+         }
+      });
    }
 }
