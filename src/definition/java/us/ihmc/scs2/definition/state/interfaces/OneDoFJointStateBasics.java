@@ -69,22 +69,4 @@ public interface OneDoFJointStateBasics extends JointStateBasics, OneDoFJointSta
    {
       setEffort(((OneDoFJointReadOnly) joint).getTau());
    }
-
-   @Override
-   default void addVelocity(JointReadOnly joint)
-   {
-      addVelocity(((OneDoFJointReadOnly) joint).getQd());
-   }
-
-   @Override
-   default void addAcceleration(JointReadOnly joint)
-   {
-      addAcceleration(((OneDoFJointReadOnly) joint).getQdd());
-   }
-
-   @Override
-   default void addEffort(JointReadOnly joint)
-   {
-      addEffort(((OneDoFJointReadOnly) joint).getTau());
-   }
 }

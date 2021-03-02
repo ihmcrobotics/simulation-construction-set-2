@@ -1,9 +1,15 @@
 package us.ihmc.scs2.sharedMemory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 
+import us.ihmc.log.LogTools;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
+import us.ihmc.yoVariables.listener.YoRegistryChangedListener;
 import us.ihmc.yoVariables.registry.YoNamespace;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -22,6 +28,16 @@ public class YoRegistryBuffer
       this.rootRegistry = rootRegistry;
       this.properties = properties;
       registerMissingBuffers();
+
+      this.rootRegistry.addListener(new YoRegistryChangedListener()
+      {
+         @Override
+         public void changed(Change change)
+         {
+            if (change.wasVariableAdded())
+               registerNewYoVariable(change.getTargetVariable(), true);
+         }
+      });
    }
 
    public void registerMissingBuffers()
@@ -32,15 +48,25 @@ public class YoRegistryBuffer
       {
          for (YoVariable yoVariable : allYoVariables)
          {
-            String fullName = yoVariable.getFullNameString();
-            if (yoVariableFullnameToBufferMap.containsKey(fullName))
-               continue;
-
-            YoVariableBuffer<?> yoVariableBuffer = YoVariableBuffer.newYoVariableBuffer(yoVariable, properties);
-            yoVariableBuffers.add(yoVariableBuffer);
-            yoVariableFullnameToBufferMap.put(fullName, yoVariableBuffer);
+            registerNewYoVariable(yoVariable, false);
          }
       }
+   }
+
+   private void registerNewYoVariable(YoVariable yoVariable, boolean printNameCollisionWarning)
+   {
+      String fullName = yoVariable.getFullNameString();
+
+      if (yoVariableFullnameToBufferMap.containsKey(fullName))
+      {
+         if (printNameCollisionWarning)
+            LogTools.warn("Name collision while trying to register new YoVariable: " + fullName);
+         return;
+      }
+
+      YoVariableBuffer<?> yoVariableBuffer = YoVariableBuffer.newYoVariableBuffer(yoVariable, properties);
+      yoVariableBuffers.add(yoVariableBuffer);
+      yoVariableFullnameToBufferMap.put(fullName, yoVariableBuffer);
    }
 
    public void resizeBuffer(int from, int length)

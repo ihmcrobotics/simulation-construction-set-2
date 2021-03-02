@@ -88,4 +88,10 @@ public class SensorDefinition implements Transformable
    {
       transform.inverseTransform(transformToJoint);
    }
+
+   @Override
+   public String toString()
+   {
+      return getClass().getSimpleName() + " - " + name;
+   }
 }

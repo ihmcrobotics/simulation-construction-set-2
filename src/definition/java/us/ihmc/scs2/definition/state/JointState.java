@@ -15,15 +15,22 @@ import us.ihmc.scs2.definition.state.interfaces.JointStateBasics;
 public class JointState implements JointStateBasics
 {
    private final Set<JointStateType> availableStates = EnumSet.noneOf(JointStateType.class);
-   private final DMatrixRMaj configuration = new DMatrixRMaj(JointReadOnly.MAX_NUMBER_OF_DOFS, 1);
-   private final DMatrixRMaj velocity = new DMatrixRMaj(JointReadOnly.MAX_NUMBER_OF_DOFS, 1);
-   private final DMatrixRMaj acceleration = new DMatrixRMaj(JointReadOnly.MAX_NUMBER_OF_DOFS, 1);
-   private final DMatrixRMaj effort = new DMatrixRMaj(JointReadOnly.MAX_NUMBER_OF_DOFS, 1);
+   private final DMatrixRMaj configuration;
+   private final DMatrixRMaj velocity;
+   private final DMatrixRMaj acceleration;
+   private final DMatrixRMaj effort;
 
-   private final DMatrixRMaj intermediateMatrix = new DMatrixRMaj(JointReadOnly.MAX_NUMBER_OF_DOFS, 1);
+   private final int configurationSize;
+   private final int degreesOfFreedom;
 
-   public JointState()
+   public JointState(int configurationSize, int degreesOfFreedom)
    {
+      this.configurationSize = configurationSize;
+      this.degreesOfFreedom = degreesOfFreedom;
+      configuration = new DMatrixRMaj(configurationSize, 1);
+      velocity = new DMatrixRMaj(degreesOfFreedom, 1);
+      acceleration = new DMatrixRMaj(degreesOfFreedom, 1);
+      effort = new DMatrixRMaj(degreesOfFreedom, 1);
    }
 
    @Override
@@ -33,80 +40,50 @@ public class JointState implements JointStateBasics
    }
 
    @Override
+   public int getConfigurationSize()
+   {
+      return configurationSize;
+   }
+
+   @Override
+   public int getDegreesOfFreedom()
+   {
+      return degreesOfFreedom;
+   }
+
+   @Override
    public void setConfiguration(JointReadOnly joint)
    {
+      checkConfigurationSize(joint);
       availableStates.add(JointStateType.CONFIGURATION);
-      configuration.reshape(joint.getConfigurationMatrixSize(), 1);
       joint.getJointConfiguration(0, configuration);
    }
 
    @Override
    public void setVelocity(JointReadOnly joint)
    {
+      checkDegreesOfFreedom(joint);
       availableStates.add(JointStateType.VELOCITY);
       velocity.reshape(joint.getDegreesOfFreedom(), 1);
       joint.getJointVelocity(0, velocity);
    }
 
    @Override
-   public void addVelocity(JointReadOnly joint)
-   {
-      if (!availableStates.contains(JointStateType.VELOCITY))
-      {
-         setVelocity(joint);
-      }
-      else
-      {
-         intermediateMatrix.reshape(joint.getDegreesOfFreedom(), 1);
-         joint.getJointVelocity(0, intermediateMatrix);
-         CommonOps_DDRM.addEquals(velocity, intermediateMatrix);
-      }
-   }
-
-   @Override
    public void setAcceleration(JointReadOnly joint)
    {
+      checkDegreesOfFreedom(joint);
       availableStates.add(JointStateType.ACCELERATION);
       acceleration.reshape(joint.getDegreesOfFreedom(), 1);
       joint.getJointAcceleration(0, acceleration);
    }
 
    @Override
-   public void addAcceleration(JointReadOnly joint)
-   {
-      if (!hasOutputFor(JointStateType.ACCELERATION))
-      {
-         setAcceleration(joint);
-      }
-      else
-      {
-         intermediateMatrix.reshape(joint.getDegreesOfFreedom(), 1);
-         joint.getJointAcceleration(0, intermediateMatrix);
-         CommonOps_DDRM.addEquals(acceleration, intermediateMatrix);
-      }
-   }
-
-   @Override
    public void setEffort(JointReadOnly joint)
    {
+      checkDegreesOfFreedom(joint);
       availableStates.add(JointStateType.EFFORT);
       effort.reshape(joint.getDegreesOfFreedom(), 1);
       joint.getJointTau(0, effort);
-   }
-
-   @Override
-   public void addEffort(JointReadOnly joint)
-   {
-      if (!hasOutputFor(JointStateType.ACCELERATION))
-      {
-         setEffort(joint);
-      }
-      else
-      {
-         intermediateMatrix.reshape(joint.getDegreesOfFreedom(), 1);
-         joint.getJointTau(0, intermediateMatrix);
-         CommonOps_DDRM.addEquals(effort, intermediateMatrix);
-      }
    }
 
    @Override
@@ -165,5 +142,25 @@ public class JointState implements JointStateBasics
    public void getEffort(JointBasics jointToUpdate)
    {
       jointToUpdate.setJointTau(0, effort);
+   }
+
+   public DMatrixRMaj getConfiguration()
+   {
+      return configuration;
+   }
+
+   public DMatrixRMaj getVelocity()
+   {
+      return velocity;
+   }
+
+   public DMatrixRMaj getAcceleration()
+   {
+      return acceleration;
+   }
+
+   public DMatrixRMaj getEffort()
+   {
+      return effort;
    }
 }

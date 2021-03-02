@@ -6,9 +6,11 @@ import java.util.stream.Collectors;
 
 import us.ihmc.euclid.interfaces.Transformable;
 import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.scs2.definition.state.interfaces.JointStateBasics;
 
 // TODO Add option for loop closure
 public abstract class JointDefinition implements Transformable
@@ -18,10 +20,11 @@ public abstract class JointDefinition implements Transformable
 
    private RigidBodyDefinition predecessor;
    private RigidBodyDefinition successor;
+   private JointStateBasics initialJointState = null;
 
    private final List<SensorDefinition> sensorDefinitions = new ArrayList<>();
    private final List<KinematicPointDefinition> kinematicPointDefinitions = new ArrayList<>();
-   private final List<ExternalForcePointDefinition> externalForcePointDefinitions = new ArrayList<>();
+   private final List<ExternalWrenchPointDefinition> externalWrenchPointDefinitions = new ArrayList<>();
    private final List<GroundContactPointDefinition> groundContactPointDefinitions = new ArrayList<>();
 
    public JointDefinition()
@@ -36,6 +39,11 @@ public abstract class JointDefinition implements Transformable
    public void setName(String name)
    {
       this.name = name;
+   }
+
+   public void setTransformToParent(RigidBodyTransformReadOnly transformToParent)
+   {
+      this.transformToParent.set(transformToParent);
    }
 
    public String getName()
@@ -82,6 +90,16 @@ public abstract class JointDefinition implements Transformable
          return predecessor.getParentJoint();
    }
 
+   public void setInitialJointState(JointStateBasics initialJointState)
+   {
+      this.initialJointState = initialJointState;
+   }
+
+   public JointStateBasics getInitialJointState()
+   {
+      return initialJointState;
+   }
+
    public void addSensorDefinition(SensorDefinition sensorDefinition)
    {
       sensorDefinitions.add(sensorDefinition);
@@ -107,14 +125,14 @@ public abstract class JointDefinition implements Transformable
       kinematicPointDefinitions.add(kinematicPointDefinition);
    }
 
-   public List<ExternalForcePointDefinition> getExternalForcePointDefinitions()
+   public List<ExternalWrenchPointDefinition> getExternalWrenchPointDefinitions()
    {
-      return externalForcePointDefinitions;
+      return externalWrenchPointDefinitions;
    }
 
-   public void addExternalForcePointDefinition(ExternalForcePointDefinition externalForcePointDefinition)
+   public void addExternalWrenchPointDefinition(ExternalWrenchPointDefinition externalWrenchPointDefinition)
    {
-      externalForcePointDefinitions.add(externalForcePointDefinition);
+      externalWrenchPointDefinitions.add(externalWrenchPointDefinition);
    }
 
    public List<GroundContactPointDefinition> getGroundContactPointDefinitions()
@@ -134,7 +152,7 @@ public abstract class JointDefinition implements Transformable
    {
       transform.transform(transformToParent);
       kinematicPointDefinitions.forEach(kp -> kp.applyTransform(transform));
-      externalForcePointDefinitions.forEach(efp -> efp.applyTransform(transform));
+      externalWrenchPointDefinitions.forEach(efp -> efp.applyTransform(transform));
       groundContactPointDefinitions.forEach(gcp -> gcp.applyTransform(transform));
       sensorDefinitions.forEach(sensor -> sensor.applyTransform(transform));
    }
@@ -144,7 +162,7 @@ public abstract class JointDefinition implements Transformable
    {
       transform.inverseTransform(transformToParent);
       kinematicPointDefinitions.forEach(kp -> kp.applyInverseTransform(transform));
-      externalForcePointDefinitions.forEach(efp -> efp.applyInverseTransform(transform));
+      externalWrenchPointDefinitions.forEach(efp -> efp.applyInverseTransform(transform));
       groundContactPointDefinitions.forEach(gcp -> gcp.applyInverseTransform(transform));
       sensorDefinitions.forEach(sensor -> sensor.applyInverseTransform(transform));
    }

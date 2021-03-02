@@ -18,6 +18,24 @@ public class OneDoFJointState implements OneDoFJointStateBasics
    {
    }
 
+   public OneDoFJointState(double q)
+   {
+      setConfiguration(q);
+   }
+
+   public OneDoFJointState(double q, double qd)
+   {
+      setConfiguration(q);
+      setVelocity(qd);
+   }
+
+   public OneDoFJointState(double q, double qd, double tau)
+   {
+      setConfiguration(q);
+      setVelocity(qd);
+      setEffort(tau);
+   }
+
    @Override
    public void clear()
    {

@@ -16,7 +16,7 @@ import us.ihmc.yoVariables.variable.YoVariable;
 public class LinkedYoRegistry extends LinkedBuffer
 {
    private final YoRegistry rootRegistry;
-   private final YoRegistryBuffer YoRegistryBuffer;
+   private final YoRegistryBuffer yoRegistryBuffer;
 
    private final ReentrantLock lock;
    private final List<LinkedYoVariable> linkedYoVariables = new ArrayList<>();
@@ -25,7 +25,7 @@ public class LinkedYoRegistry extends LinkedBuffer
    LinkedYoRegistry(YoRegistry rootRegistry, YoRegistryBuffer YoRegistryBuffer)
    {
       this.rootRegistry = rootRegistry;
-      this.YoRegistryBuffer = YoRegistryBuffer;
+      this.yoRegistryBuffer = YoRegistryBuffer;
       lock = YoRegistryBuffer.getLock();
       linkConsumerVariables();
    }
@@ -45,7 +45,7 @@ public class LinkedYoRegistry extends LinkedBuffer
     */
    public int linkManagerVariables()
    {
-      YoRegistry bufferRootRegistry = YoRegistryBuffer.getRootRegistry().findRegistry(rootRegistry.getNamespace());
+      YoRegistry bufferRootRegistry = yoRegistryBuffer.getRootRegistry().findRegistry(rootRegistry.getNamespace());
 
       int numberOfNewVariables = 0;
 
@@ -53,7 +53,7 @@ public class LinkedYoRegistry extends LinkedBuffer
 
       try
       {
-         YoRegistryBuffer.registerMissingBuffers();
+         yoRegistryBuffer.registerMissingBuffers();
          numberOfNewVariables = YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(bufferRootRegistry, rootRegistry, this::setupNewLinkedYoVariable);
       }
       finally
@@ -107,7 +107,7 @@ public class LinkedYoRegistry extends LinkedBuffer
     */
    private void setupNewLinkedYoVariable(YoVariable variableToLink)
    {
-      YoVariableBuffer yoVariableBuffer = YoRegistryBuffer.findOrCreateYoVariableBuffer(variableToLink);
+      YoVariableBuffer yoVariableBuffer = yoRegistryBuffer.findOrCreateYoVariableBuffer(variableToLink);
       LinkedYoVariable newLinkedYoVariable = yoVariableBuffer.newLinkedYoVariable(variableToLink);
       linkedYoVariables.add(newLinkedYoVariable);
       linkedYoVariableMap.put(newLinkedYoVariable.getLinkedYoVariable(), newLinkedYoVariable);

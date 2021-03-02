@@ -12,9 +12,9 @@ import us.ihmc.euclid.axisAngle.AxisAngle;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
 import us.ihmc.euclid.tools.EuclidCoreTools;
 import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.graphicsDescription.MeshDataGenerator;
 import us.ihmc.javaFXToolkit.JavaFXTools;
-import us.ihmc.javaFXToolkit.graphics.JavaFXMeshDataInterpreter;
+import us.ihmc.scs2.sessionVisualizer.TriangleMesh3DFactories;
+import us.ihmc.scs2.sessionVisualizer.jfx.definition.JavaFXTriangleMesh3DDefinitionInterpreter;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple3DProperty;
 
 public class YoCapsuleFX3D extends YoGraphicFX3D
@@ -97,12 +97,12 @@ public class YoCapsuleFX3D extends YoGraphicFX3D
          return;
       }
 
-      newMesh = JavaFXMeshDataInterpreter.interpretMeshData(MeshDataGenerator.Capsule(newDataLocal.length,
-                                                                                      newDataLocal.radius,
-                                                                                      newDataLocal.radius,
-                                                                                      newDataLocal.radius,
-                                                                                      32,
-                                                                                      32));
+      newMesh = JavaFXTriangleMesh3DDefinitionInterpreter.interpretDefinition(TriangleMesh3DFactories.Capsule(newDataLocal.length,
+                                                                                                              newDataLocal.radius,
+                                                                                                              newDataLocal.radius,
+                                                                                                              newDataLocal.radius,
+                                                                                                              32,
+                                                                                                              32));
       oldData = newDataLocal;
    }
 

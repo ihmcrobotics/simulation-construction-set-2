@@ -1,6 +1,7 @@
 package us.ihmc.scs2.definition.robot;
 
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 
 public abstract class OneDoFJointDefinition extends JointDefinition
 {
@@ -18,6 +19,11 @@ public abstract class OneDoFJointDefinition extends JointDefinition
    public OneDoFJointDefinition(String name)
    {
       setName(name);
+   }
+
+   public void setAxis(Vector3DReadOnly axis)
+   {
+      this.axis.set(axis);
    }
 
    public Vector3D getAxis()

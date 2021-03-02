@@ -58,7 +58,7 @@ public abstract class Session
    private final AtomicReference<Integer> pendingBufferSizeRequest = new AtomicReference<>(null);
 
    // Strictly internal fields
-   private SessionTopicListeners sessionTopicListeners = null;
+   private final List<SessionTopicListenerManager> sessionTopicListenerManagers = new ArrayList<>();
    private boolean sessionStarted = false;
    private boolean sessionInitialized = false;
    private boolean isSessionShutdown = false;
@@ -86,10 +86,13 @@ public abstract class Session
 
    public void setupWithMessager(Messager messager)
    {
-      if (sessionTopicListeners != null)
-         throw new IllegalArgumentException("This session has already been setup with a messager.");
+      for (SessionTopicListenerManager manager : sessionTopicListenerManagers)
+      {
+         if (messager == manager.messager)
+            throw new IllegalArgumentException("Messager already registered.");
+      }
 
-      sessionTopicListeners = new SessionTopicListeners(messager);
+      sessionTopicListenerManagers.add(new SessionTopicListenerManager(messager));
    }
 
    public void setSessionMode(SessionMode sessionMode)
@@ -230,11 +233,10 @@ public abstract class Session
 
       LogTools.info("Stopped session's thread");
       sessionStarted = false;
-      if (sessionTopicListeners != null)
-      {
-         sessionTopicListeners.detachFromMessager();
-         sessionTopicListeners = null;
-      }
+
+      sessionTopicListenerManagers.forEach(SessionTopicListenerManager::detachFromMessager);
+      sessionTopicListenerManagers.clear();
+
       executorService.shutdown();
    }
 
@@ -586,7 +588,7 @@ public abstract class Session
       return sharedBuffer;
    }
 
-   private class SessionTopicListeners
+   private class SessionTopicListenerManager
    {
       private final Messager messager;
 
@@ -607,7 +609,7 @@ public abstract class Session
       private final Consumer<YoBufferPropertiesReadOnly> bufferPropertiesListener = createBufferPropertiesListener();
       private final Consumer<SessionProperties> sessionPropertiesListener = createSessionPropertiesListener();
 
-      private SessionTopicListeners(Messager messager)
+      private SessionTopicListenerManager(Messager messager)
       {
          this.messager = messager;
 

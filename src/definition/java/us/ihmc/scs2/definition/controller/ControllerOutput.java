@@ -31,7 +31,7 @@ public class ControllerOutput implements ControllerOutputBasics
          if (joint instanceof OneDoFJointReadOnly)
             output = new OneDoFJointState();
          else
-            output = new JointState();
+            output = new JointState(joint.getConfigurationMatrixSize(), joint.getDegreesOfFreedom());
          jointOutputs[i] = output;
          jointOutputMap.put(joint.getName(), output);
       }
