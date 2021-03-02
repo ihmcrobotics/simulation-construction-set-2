@@ -11,7 +11,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import com.jfoenix.controls.JFXButton;
-import com.sun.javafx.scene.control.skin.LabeledText;
 
 import javafx.animation.AnimationTimer;
 import javafx.beans.property.ObjectProperty;
@@ -39,6 +38,7 @@ import javafx.scene.input.PickResult;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.text.Text;
 import javafx.stage.Window;
 import us.ihmc.commons.MathTools;
 import us.ihmc.euclid.tuple2D.Point2D;
@@ -48,8 +48,8 @@ import us.ihmc.log.LogTools;
 import us.ihmc.messager.TopicListener;
 import us.ihmc.scs2.definition.yoChart.ChartDoubleBoundsDefinition;
 import us.ihmc.scs2.definition.yoChart.YoChartConfigurationDefinition;
-import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartIdentifier;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartIntegerBounds;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartMarker;
@@ -180,9 +180,9 @@ public class YoChartPanelController extends AnimationTimer
       dynamicLineChart.setOnScroll(this::handleScroll);
       dynamicLineChart.addEventHandler(MouseEvent.MOUSE_PRESSED, e ->
       {
-         if (e.isMiddleButtonDown() && e.getPickResult().getIntersectedNode() instanceof LabeledText)
+         if (e.isMiddleButtonDown() && e.getPickResult().getIntersectedNode() instanceof Text)
          { // TODO The legend's name needs to be unique within a single graph
-            String pickedName = ((LabeledText) e.getPickResult().getIntersectedNode()).getText();
+            String pickedName = ((Text) e.getPickResult().getIntersectedNode()).getText();
             Optional<YoVariableChartPackage> chartData = charts.values().stream().filter(dataPackage -> dataPackage.series.getSeriesName().equals(pickedName))
                                                                .findFirst();
             if (chartData.isPresent())
@@ -437,7 +437,7 @@ public class YoChartPanelController extends AnimationTimer
          {
             Node intersectedNode = event.getPickResult().getIntersectedNode();
 
-            if (intersectedNode == null || intersectedNode instanceof DynamicChartLegend || intersectedNode instanceof LabeledText
+            if (intersectedNode == null || intersectedNode instanceof DynamicChartLegend || intersectedNode instanceof Text
                   || intersectedNode instanceof Label)
                return; // Don't perform scroll when clicking on the legend
 
@@ -542,9 +542,9 @@ public class YoChartPanelController extends AnimationTimer
       if (intersectedNode == null)
          return;
 
-      if (intersectedNode instanceof LabeledText)
+      if (intersectedNode instanceof Text)
       {
-         LabeledText legend = (LabeledText) intersectedNode;
+         Text legend = (Text) intersectedNode;
          String yoVariableName = legend.getText().split("\\s+")[0];
          YoVariable yoVariableSelected = charts.keySet().stream().filter(yoVariable -> yoVariable.getName().equals(yoVariableName)).findFirst().orElse(null);
          if (yoVariableSelected == null)
