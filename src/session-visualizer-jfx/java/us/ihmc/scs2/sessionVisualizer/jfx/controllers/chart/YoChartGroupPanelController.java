@@ -13,7 +13,6 @@ import javax.xml.bind.Unmarshaller;
 
 import com.jfoenix.controls.JFXButton;
 
-import de.gsi.chart.XYChart;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -51,6 +50,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartGroupLayout;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartGroupModel;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartGroupTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartIdentifier;
+import us.ihmc.scs2.sessionVisualizer.jfx.charts.DynamicLineChart;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.TableSizeQuickAccess;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
@@ -316,7 +316,7 @@ public class YoChartGroupPanelController
          AnchorPane graphNode = loader.load();
          YoChartPanelController controller = loader.getController();
          controller.initialize(toolkit, owner);
-         XYChart chartNode = controller.getLineChart();
+         DynamicLineChart chartNode = controller.getLineChart();
          chartNode.setOnDragOver(e -> handleDragOver(e, controller));
          chartNode.setOnDragDropped(e -> handleDragDropped(e, controller));
          chartNode.setOnDragEntered(e -> handleDragEntered(e, controller));

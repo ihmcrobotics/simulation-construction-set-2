@@ -3,50 +3,12 @@ package us.ihmc.scs2.sessionVisualizer.jfx.charts;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import de.gsi.chart.axes.Axis;
-import de.gsi.chart.plugins.XValueIndicator;
-import de.gsi.chart.plugins.YValueIndicator;
-import javafx.scene.shape.Line;
 import us.ihmc.scs2.definition.yoChart.ChartDoubleBoundsDefinition;
 import us.ihmc.scs2.definition.yoChart.YoChartGroupModelDefinition;
 import us.ihmc.scs2.definition.yoChart.YoChartIdentifierDefinition;
 
 public class YoChartTools
 {
-   public static XValueIndicator readOnlyLineOnlyXValueIndicator(Axis axis, double value, String styleClass)
-   {
-      XValueIndicator xValueIndicator = new XValueIndicator(axis, value)
-      {
-         @Override
-         public void updateStyleClass()
-         {
-            line.getStyleClass().add(styleClass);
-         }
-      };
-      // The default implementation allows to drag the indicators with the mouse.
-      xValueIndicator.setEditable(false);
-      // The default implementation comes with an optional label and a top triangle that we won't use.
-      xValueIndicator.getChartChildren().removeIf(node -> node.getClass() != Line.class);
-      return xValueIndicator;
-   }
-
-   public static YValueIndicator readOnlyLineOnlyYValueIndicator(Axis axis, double value, String styleClass)
-   {
-      YValueIndicator yValueIndicator = new YValueIndicator(axis, value)
-      {
-         @Override
-         public void updateStyleClass()
-         {
-            line.getStyleClass().add(styleClass);
-         }
-      };
-      // The default implementation allows to drag the indicators with the mouse.
-      yValueIndicator.setEditable(false);
-      // The default implementation comes with an optional label and a top triangle that we won't use.
-      yValueIndicator.getChartChildren().removeIf(node -> node.getClass() != Line.class);
-      return yValueIndicator;
-   }
-
    public static ChartIdentifier toChartIdentifier(YoChartIdentifierDefinition xmlChartIdentifier)
    {
       return new ChartIdentifier(xmlChartIdentifier.getRow(), xmlChartIdentifier.getColumn());
@@ -55,7 +17,7 @@ public class YoChartTools
    public static ChartGroupModel toChartIdentifierList(YoChartGroupModelDefinition definition)
    {
       return new ChartGroupModel(definition.getName(),
-                                 definition.getChartIdentifiers().stream().map(YoChartTools::toChartIdentifier).collect(Collectors.toList()));
+                                     definition.getChartIdentifiers().stream().map(YoChartTools::toChartIdentifier).collect(Collectors.toList()));
    }
 
    public static ChartDoubleBounds toChartDoubleBounds(ChartDoubleBoundsDefinition definition)

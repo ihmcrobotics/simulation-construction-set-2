@@ -1,26 +1,20 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.charts;
 
-import us.ihmc.messager.Messager;
+import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sharedMemory.BufferSample;
 import us.ihmc.scs2.sharedMemory.LinkedYoLong;
-import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.scs2.sharedMemory.tools.BufferTools;
 
 public class YoLongChartData extends YoVariableChartData<LinkedYoLong, long[]>
 {
-   public YoLongChartData(Messager messager, SessionVisualizerTopics topics, LinkedYoLong linkedYoLong)
+   public YoLongChartData(JavaFXMessager messager, SessionVisualizerTopics topics, LinkedYoLong linkedYoLong)
    {
       super(messager, topics, linkedYoLong);
    }
 
    @Override
-   protected BufferSample<double[]> toDoubleBuffer(BufferSample<long[]> yoVariableBuffer)
+   protected DataEntry extractChartData(BufferSample<long[]> yoVariableBuffer, int startIndex, int endIndex, double epsilon)
    {
-      int from = yoVariableBuffer.getFrom();
-      YoBufferPropertiesReadOnly bufferProperties = yoVariableBuffer.getBufferProperties();
-      double[] sample = BufferTools.toDoubleArray(yoVariableBuffer.getSample());
-      int sampleLength = yoVariableBuffer.getSampleLength();
-      return new BufferSample<>(from, sample, sampleLength, bufferProperties);
+      return LineChartTools.fromLongBufferSampleToLineChartData(yoVariableBuffer, startIndex, endIndex, epsilon);
    }
 }
