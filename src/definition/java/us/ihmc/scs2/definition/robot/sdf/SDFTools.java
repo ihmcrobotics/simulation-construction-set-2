@@ -22,16 +22,17 @@ import javax.xml.bind.Unmarshaller;
 import us.ihmc.euclid.Axis3D;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
+import us.ihmc.euclid.transform.AffineTransform;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.yawPitchRoll.YawPitchRoll;
 import us.ihmc.log.LogTools;
-import us.ihmc.scs2.definition.geometry.BoxGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.CylinderGeometryDefinition;
+import us.ihmc.scs2.definition.geometry.Box3DDefinition;
+import us.ihmc.scs2.definition.geometry.Cylinder3DDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 import us.ihmc.scs2.definition.geometry.ModelFileGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.SphereGeometryDefinition;
+import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
 import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
 import us.ihmc.scs2.definition.robot.FixedJointDefinition;
 import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
@@ -69,8 +70,8 @@ import us.ihmc.scs2.definition.robot.sdf.items.SDFURIHolder;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFVisual;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFVisual.SDFMaterial;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
+import us.ihmc.scs2.definition.visual.MaterialDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
-import us.ihmc.scs2.definition.visual.VisualDefinition.MaterialDefinition;
 
 public class SDFTools
 {
@@ -308,7 +309,7 @@ public class SDFTools
          // Correct visual transform
          for (VisualDefinition visualDescription : childDefinition.getVisualDefinitions())
          {
-            RigidBodyTransform visualPose = visualDescription.getOriginPose();
+            AffineTransform visualPose = visualDescription.getOriginPose();
             visualPose.prependOrientation(childLinkPose.getRotation());
          }
 
@@ -572,27 +573,27 @@ public class SDFTools
    {
       if (sdfGeometry.getBox() != null)
       {
-         BoxGeometryDefinition boxGeometryDefinition = new BoxGeometryDefinition();
-         boxGeometryDefinition.getSize().set(parseVector3D(sdfGeometry.getBox().getSize(), null));
+         Box3DDefinition boxGeometryDefinition = new Box3DDefinition();
+         boxGeometryDefinition.setSize(parseVector3D(sdfGeometry.getBox().getSize(), null));
          return boxGeometryDefinition;
       }
       if (sdfGeometry.getCylinder() != null)
       {
-         CylinderGeometryDefinition cylinderGeometryDefinition = new CylinderGeometryDefinition();
+         Cylinder3DDefinition cylinderGeometryDefinition = new Cylinder3DDefinition();
          cylinderGeometryDefinition.setRadius(parseDouble(sdfGeometry.getCylinder().getRadius(), 0.0));
          cylinderGeometryDefinition.setLength(parseDouble(sdfGeometry.getCylinder().getLength(), 0.0));
          return cylinderGeometryDefinition;
       }
       if (sdfGeometry.getSphere() != null)
       {
-         SphereGeometryDefinition sphereGeometryDefinition = new SphereGeometryDefinition();
+         Sphere3DDefinition sphereGeometryDefinition = new Sphere3DDefinition();
          sphereGeometryDefinition.setRadius(parseDouble(sdfGeometry.getSphere().getRadius(), 0.0));
          return sphereGeometryDefinition;
       }
       if (sdfGeometry.getMesh() != null)
       {
          ModelFileGeometryDefinition modelFileGeometryDefinition = new ModelFileGeometryDefinition();
-         modelFileGeometryDefinition.getResourceDirectories().addAll(resourceDirectories);
+         modelFileGeometryDefinition.setResourceDirectories(resourceDirectories);
          modelFileGeometryDefinition.setFileName(sdfGeometry.getMesh().getUri());
          modelFileGeometryDefinition.setScale(parseVector3D(sdfGeometry.getMesh().getScale(), new Vector3D(1, 1, 1)));
          return modelFileGeometryDefinition;
@@ -606,11 +607,11 @@ public class SDFTools
          return null;
 
       MaterialDefinition materialDefinition = new MaterialDefinition();
-      materialDefinition.setLighting(parseDouble(sdfMaterial.getLighting(), Double.NaN));
-      materialDefinition.setAmbientcolorDefinition(toColorDefinition(sdfMaterial.getAmbient()));
-      materialDefinition.setDiffuseColorDefinition(toColorDefinition(sdfMaterial.getDiffuse()));
-      materialDefinition.setSpecularColorDefinition(toColorDefinition(sdfMaterial.getSpecular()));
-      materialDefinition.setEmissiveColorDefinition(toColorDefinition(sdfMaterial.getEmissive()));
+      materialDefinition.setShininess(parseDouble(sdfMaterial.getLighting(), Double.NaN));
+      materialDefinition.setAmbientColor(toColorDefinition(sdfMaterial.getAmbient()));
+      materialDefinition.setDiffuseColor(toColorDefinition(sdfMaterial.getDiffuse()));
+      materialDefinition.setSpecularColor(toColorDefinition(sdfMaterial.getSpecular()));
+      materialDefinition.setEmissiveColor(toColorDefinition(sdfMaterial.getEmissive()));
       // TODO handle the script
       return materialDefinition;
    }

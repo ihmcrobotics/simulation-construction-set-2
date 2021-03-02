@@ -21,9 +21,10 @@ mainDependencies {
 
 definitionDependencies {
    api("us.ihmc:euclid:0.16.2")
+   api("us.ihmc:euclid-shape:0.16.2")
    api("us.ihmc:ihmc-commons:0.30.4")
    api("us.ihmc:ihmc-yovariables:0.9.8")
-   api("us.ihmc:mecano:0.8.0")
+   api("us.ihmc:mecano:0.8.1")
 }
 
 sharedMemoryDependencies {
@@ -41,14 +42,20 @@ simulationDependencies {
    api(ihmc.sourceSetProject("definition"))
    api(ihmc.sourceSetProject("shared-memory"))
    api(ihmc.sourceSetProject("session"))
-   api("us.ihmc:euclid-shape:0.16.2")
+   api("us.ihmc:euclid-frame-shape:0.16.2")
    api("us.ihmc:ihmc-messager:0.1.7")
-   api("us.ihmc:mecano-yovariables:0.8.0")
+   api("us.ihmc:mecano-yovariables:0.8.1")
+}
+
+sessionVisualizerDependencies {
+   api(ihmc.sourceSetProject("simulation"))
+   api(ihmc.sourceSetProject("definition"))
 }
 
 sessionVisualizerJfxDependencies {
    api(ihmc.sourceSetProject("simulation"))
    api(ihmc.sourceSetProject("session"))
+   api(ihmc.sourceSetProject("session-visualizer"))
 
    compile("us.ihmc:ihmc-javafx-toolkit:0.19.3") {
       exclude(group="us.ihmc", module="jassimp")

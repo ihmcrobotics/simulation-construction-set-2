@@ -24,6 +24,18 @@ public interface SixDoFJointStateReadOnly extends JointStateReadOnly
    Vector3DReadOnly getForce();
 
    @Override
+   default int getConfigurationSize()
+   {
+      return 7;
+   }
+
+   @Override
+   default int getDegreesOfFreedom()
+   {
+      return 6;
+   }
+
+   @Override
    default int getConfiguration(int startRow, DMatrix configurationToPack)
    {
       getConfiguration().getOrientation().get(startRow, configurationToPack);

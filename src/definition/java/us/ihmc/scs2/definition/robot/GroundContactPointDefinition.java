@@ -1,8 +1,9 @@
 package us.ihmc.scs2.definition.robot;
 
+import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 
-public class GroundContactPointDefinition extends ExternalForcePointDefinition
+public class GroundContactPointDefinition extends ExternalWrenchPointDefinition
 {
    private int groupIdentifier = 0;
 
@@ -19,6 +20,17 @@ public class GroundContactPointDefinition extends ExternalForcePointDefinition
    public GroundContactPointDefinition(String name, Tuple3DReadOnly offsetFromJoint, int groupIdentifier)
    {
       super(name, offsetFromJoint);
+      this.groupIdentifier = groupIdentifier;
+   }
+
+   public GroundContactPointDefinition(String name, RigidBodyTransformReadOnly transformToParent)
+   {
+      super(name, transformToParent);
+   }
+
+   public GroundContactPointDefinition(String name, RigidBodyTransformReadOnly transformToParent, int groupIdentifier)
+   {
+      super(name, transformToParent);
       this.groupIdentifier = groupIdentifier;
    }
 

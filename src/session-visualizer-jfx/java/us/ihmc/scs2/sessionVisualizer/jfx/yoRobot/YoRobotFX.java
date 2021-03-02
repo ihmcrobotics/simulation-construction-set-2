@@ -45,6 +45,7 @@ public class YoRobotFX
       this.referenceFrameManager = referenceFrameManager;
       this.robotDefinition = robotDefinition;
 
+      // FIXME This is britle any change to the registry structure of the active Session will break this robot visualization 
       robotRegistry = YoMirroredRegistryTools.newRegistryFromNamespace(SimulationSession.ROOT_REGISTRY_NAME, robotDefinition.getName());
    }
 

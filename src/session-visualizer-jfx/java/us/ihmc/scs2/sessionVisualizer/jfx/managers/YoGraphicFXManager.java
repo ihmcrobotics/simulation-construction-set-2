@@ -122,7 +122,8 @@ public class YoGraphicFXManager extends AnimationTimer implements Manager
                                                                             yoGraphicFXResourceManager,
                                                                             referenceFrameManager,
                                                                             yoGraphicListDefinition);
-            Platform.runLater(() -> items.forEach(root::addYoGraphicFXItem));
+            if (items != null && !items.isEmpty())
+               Platform.runLater(() -> items.forEach(root::addYoGraphicFXItem));
          });
       }
       catch (Exception e)

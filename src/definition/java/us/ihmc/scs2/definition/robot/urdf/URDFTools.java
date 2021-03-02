@@ -30,11 +30,11 @@ import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.yawPitchRoll.YawPitchRoll;
 import us.ihmc.log.LogTools;
-import us.ihmc.scs2.definition.geometry.BoxGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.CylinderGeometryDefinition;
+import us.ihmc.scs2.definition.geometry.Box3DDefinition;
+import us.ihmc.scs2.definition.geometry.Cylinder3DDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 import us.ihmc.scs2.definition.geometry.ModelFileGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.SphereGeometryDefinition;
+import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
 import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
 import us.ihmc.scs2.definition.robot.FixedJointDefinition;
 import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
@@ -78,9 +78,9 @@ import us.ihmc.scs2.definition.robot.urdf.items.URDFSensor.URDFRay.URDFScan.URDF
 import us.ihmc.scs2.definition.robot.urdf.items.URDFTexture;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFVisual;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
+import us.ihmc.scs2.definition.visual.MaterialDefinition;
+import us.ihmc.scs2.definition.visual.TextureDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
-import us.ihmc.scs2.definition.visual.VisualDefinition.MaterialDefinition;
-import us.ihmc.scs2.definition.visual.VisualDefinition.TextureDefinition;
 
 public class URDFTools
 {
@@ -290,10 +290,10 @@ public class URDFTools
             parentJoint.addKinematicPointDefinition(kp);
             return true;
          });
-         joint.getExternalForcePointDefinitions().removeIf(efp ->
+         joint.getExternalWrenchPointDefinitions().removeIf(efp ->
          {
             efp.applyTransform(transformToParentJoint);
-            parentJoint.addExternalForcePointDefinition(efp);
+            parentJoint.addExternalWrenchPointDefinition(efp);
             return true;
          });
          joint.getGroundContactPointDefinitions().removeIf(gcp ->
@@ -707,27 +707,27 @@ public class URDFTools
    {
       if (urdfGeometry.getBox() != null)
       {
-         BoxGeometryDefinition boxGeometryDefinition = new BoxGeometryDefinition();
-         boxGeometryDefinition.getSize().set(parseVector3D(urdfGeometry.getBox().getSize(), null));
+         Box3DDefinition boxGeometryDefinition = new Box3DDefinition();
+         boxGeometryDefinition.setSize(parseVector3D(urdfGeometry.getBox().getSize(), null));
          return boxGeometryDefinition;
       }
       if (urdfGeometry.getCylinder() != null)
       {
-         CylinderGeometryDefinition cylinderGeometryDefinition = new CylinderGeometryDefinition();
+         Cylinder3DDefinition cylinderGeometryDefinition = new Cylinder3DDefinition();
          cylinderGeometryDefinition.setRadius(parseDouble(urdfGeometry.getCylinder().getRadius(), 0.0));
          cylinderGeometryDefinition.setLength(parseDouble(urdfGeometry.getCylinder().getLength(), 0.0));
          return cylinderGeometryDefinition;
       }
       if (urdfGeometry.getSphere() != null)
       {
-         SphereGeometryDefinition sphereGeometryDefinition = new SphereGeometryDefinition();
+         Sphere3DDefinition sphereGeometryDefinition = new Sphere3DDefinition();
          sphereGeometryDefinition.setRadius(parseDouble(urdfGeometry.getSphere().getRadius(), 0.0));
          return sphereGeometryDefinition;
       }
       if (urdfGeometry.getMesh() != null)
       {
          ModelFileGeometryDefinition modelFileGeometryDefinition = new ModelFileGeometryDefinition();
-         modelFileGeometryDefinition.getResourceDirectories().addAll(resourceDirectories);
+         modelFileGeometryDefinition.setResourceDirectories(resourceDirectories);
          modelFileGeometryDefinition.setFileName(urdfGeometry.getMesh().getFilename());
          modelFileGeometryDefinition.setScale(parseVector3D(urdfGeometry.getMesh().getScale(), new Vector3D(1, 1, 1)));
          return modelFileGeometryDefinition;
@@ -742,8 +742,8 @@ public class URDFTools
 
       MaterialDefinition materialDefinition = new MaterialDefinition();
       materialDefinition.setName(urdfMaterial.getName());
-      materialDefinition.setDiffuseColorDefinition(toColorDefinition(urdfMaterial.getColor()));
-      materialDefinition.setTextureDefinition(toTextureDefinition(urdfMaterial.getTexture()));
+      materialDefinition.setDiffuseColor(toColorDefinition(urdfMaterial.getColor()));
+      materialDefinition.setDiffuseMap(toTextureDefinition(urdfMaterial.getTexture()));
       return materialDefinition;
    }
 

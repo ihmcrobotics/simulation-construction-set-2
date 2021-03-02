@@ -1,6 +1,8 @@
 package us.ihmc.scs2.definition.state.interfaces;
 
 import us.ihmc.euclid.geometry.interfaces.Pose3DReadOnly;
+import us.ihmc.euclid.orientation.interfaces.Orientation3DReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.SixDoFJointReadOnly;
@@ -8,7 +10,12 @@ import us.ihmc.mecano.spatial.interfaces.SpatialVectorReadOnly;
 
 public interface SixDoFJointStateBasics extends JointStateBasics, SixDoFJointStateReadOnly
 {
-   void setConfiguration(Pose3DReadOnly configuration);
+   default void setConfiguration(Pose3DReadOnly configuration)
+   {
+      setConfiguration(configuration.getOrientation(), configuration.getPosition());
+   }
+
+   void setConfiguration(Orientation3DReadOnly orientation, Tuple3DReadOnly position);
 
    void setVelocity(Vector3DReadOnly angularVelocity, Vector3DReadOnly linearVelocity);
 

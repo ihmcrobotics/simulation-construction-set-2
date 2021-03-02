@@ -7,9 +7,12 @@ import java.util.List;
 
 import us.ihmc.euclid.interfaces.Transformable;
 import us.ihmc.euclid.matrix.Matrix3D;
+import us.ihmc.euclid.matrix.interfaces.Matrix3DReadOnly;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.transform.interfaces.Transform;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DBasics;
 import us.ihmc.mecano.multiBodySystem.RigidBody;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
@@ -59,9 +62,29 @@ public class RigidBodyDefinition implements Transformable
       return mass;
    }
 
+   public void setMomentOfInertia(Matrix3DReadOnly momentOfInertia)
+   {
+      this.momentOfInertia.set(momentOfInertia);
+   }
+
    public Matrix3D getMomentOfInertia()
    {
       return momentOfInertia;
+   }
+
+   public void setInertiaPose(RigidBodyTransformReadOnly inertiaPose)
+   {
+      this.inertiaPose.set(inertiaPose);
+   }
+
+   public void setCenterOfMassOffset(double x, double y, double z)
+   {
+      inertiaPose.getTranslation().set(x, y, z);
+   }
+
+   public void setCenterOfMassOffset(Tuple3DReadOnly centerOfMassOffset)
+   {
+      inertiaPose.getTranslation().set(centerOfMassOffset);
    }
 
    public RigidBodyTransform getInertiaPose()
@@ -113,7 +136,7 @@ public class RigidBodyDefinition implements Transformable
 
    public void addVisualDefinitions(Collection<VisualDefinition> visualDefinitions)
    {
-      visualDefinitions.addAll(visualDefinitions);
+      visualDefinitions.forEach(this::addVisualDefinition);
    }
 
    public List<VisualDefinition> getVisualDefinitions()
@@ -162,7 +185,7 @@ public class RigidBodyDefinition implements Transformable
    @Override
    public String toString()
    {
-      return name + ": pose: (x,y,z) " + inertiaPose.getTranslation() + "(y,p,r) " + inertiaPose.getRotation().toStringAsYawPitchRoll() + "children: "
+      return name + ": inertia pose: (x,y,z) " + inertiaPose.getTranslation() + "(y,p,r) " + inertiaPose.getRotation().toStringAsYawPitchRoll() + "children: "
             + Arrays.toString(childrenJoints.stream().map(JointDefinition::getName).toArray(String[]::new));
    }
 }

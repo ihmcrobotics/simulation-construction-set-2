@@ -10,13 +10,24 @@ import us.ihmc.mecano.multiBodySystem.interfaces.MultiBodySystemReadOnly;
 
 public class ControllerInput
 {
+   private double time;
    private final MultiBodySystemReadOnly input;
 
    public ControllerInput(MultiBodySystemReadOnly input)
    {
       this.input = input;
    }
-   
+
+   public void setTime(double time)
+   {
+      this.time = time;
+   }
+
+   public double getTime()
+   {
+      return time;
+   }
+
    public MultiBodySystemReadOnly getInput()
    {
       return input;
@@ -31,7 +42,7 @@ public class ControllerInput
    {
       List<? extends JointReadOnly> inputJoints = input.getAllJoints();
       List<? extends JointBasics> outputJoints = multiBodySystemToUpdate.getAllJoints();
-      
+
       for (int jointIndex = 0; jointIndex < inputJoints.size(); jointIndex++)
       {
          JointReadOnly inputJoint = inputJoints.get(jointIndex);

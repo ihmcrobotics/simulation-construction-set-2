@@ -52,26 +52,25 @@ import javafx.scene.transform.Scale;
 import javafx.scene.transform.Transform;
 import us.ihmc.euclid.tools.EuclidCoreTools;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.graphicsDescription.MeshDataGenerator;
 import us.ihmc.javaFXToolkit.JavaFXTools;
-import us.ihmc.javaFXToolkit.graphics.JavaFXMeshDataInterpreter;
 import us.ihmc.log.LogTools;
-import us.ihmc.scs2.definition.geometry.ArcTorusGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.BoxGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.CapsuleGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.ConeGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.CylinderGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.EllipsoidGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.GenTruncatedConeGeometryDefinition;
+import us.ihmc.scs2.definition.geometry.ArcTorus3DDefinition;
+import us.ihmc.scs2.definition.geometry.Box3DDefinition;
+import us.ihmc.scs2.definition.geometry.Capsule3DDefinition;
+import us.ihmc.scs2.definition.geometry.Cone3DDefinition;
+import us.ihmc.scs2.definition.geometry.Cylinder3DDefinition;
+import us.ihmc.scs2.definition.geometry.Ellipsoid3DDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
-import us.ihmc.scs2.definition.geometry.HemiEllipsoidGeometryDefinition;
+import us.ihmc.scs2.definition.geometry.HemiEllipsoid3DDefinition;
 import us.ihmc.scs2.definition.geometry.ModelFileGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.SphereGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.TorusGeometryDefinition;
-import us.ihmc.scs2.definition.geometry.WedgeGeometryDefinition;
+import us.ihmc.scs2.definition.geometry.Ramp3DDefinition;
+import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
+import us.ihmc.scs2.definition.geometry.Torus3DDefinition;
+import us.ihmc.scs2.definition.geometry.TruncatedCone3DDefinition;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
+import us.ihmc.scs2.definition.visual.MaterialDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
-import us.ihmc.scs2.definition.visual.VisualDefinition.MaterialDefinition;
+import us.ihmc.scs2.sessionVisualizer.TriangleMesh3DFactories;
 
 public class JavaFXVisualTools
 {
@@ -144,7 +143,8 @@ public class JavaFXVisualTools
 
       if (node != null && visualDefinition.getOriginPose() != null)
       {
-         Affine nodeAffine = JavaFXTools.createRigidBodyTransformToAffine(visualDefinition.getOriginPose());
+         Affine nodeAffine = new Affine();
+         JavaFXTools.convertEuclidAffineToJavaFXAffine(visualDefinition.getOriginPose(), nodeAffine);
          node.getTransforms().add(0, nodeAffine);
       }
 
@@ -157,71 +157,71 @@ public class JavaFXVisualTools
       {
          return DEFAULT_GEOMETRY;
       }
-      else if (geometryDefinition instanceof ArcTorusGeometryDefinition)
+      else if (geometryDefinition instanceof ArcTorus3DDefinition)
       {
-         MeshView arcTorus = toArcTorus((ArcTorusGeometryDefinition) geometryDefinition);
+         MeshView arcTorus = toArcTorus((ArcTorus3DDefinition) geometryDefinition);
          arcTorus.setMaterial(toMaterial(materialDefinition));
          return arcTorus;
       }
-      else if (geometryDefinition instanceof BoxGeometryDefinition)
+      else if (geometryDefinition instanceof Box3DDefinition)
       {
-         Box box = toBox((BoxGeometryDefinition) geometryDefinition);
+         Box box = toBox((Box3DDefinition) geometryDefinition);
          box.setMaterial(toMaterial(materialDefinition));
          return box;
       }
-      else if (geometryDefinition instanceof CapsuleGeometryDefinition)
+      else if (geometryDefinition instanceof Capsule3DDefinition)
       {
-         MeshView capsule = toCapsule((CapsuleGeometryDefinition) geometryDefinition);
+         MeshView capsule = toCapsule((Capsule3DDefinition) geometryDefinition);
          capsule.setMaterial(toMaterial(materialDefinition));
          return capsule;
       }
-      else if (geometryDefinition instanceof ConeGeometryDefinition)
+      else if (geometryDefinition instanceof Cone3DDefinition)
       {
-         MeshView cone = toCone((ConeGeometryDefinition) geometryDefinition);
+         MeshView cone = toCone((Cone3DDefinition) geometryDefinition);
          cone.setMaterial(toMaterial(materialDefinition));
          return cone;
       }
-      else if (geometryDefinition instanceof CylinderGeometryDefinition)
+      else if (geometryDefinition instanceof Cylinder3DDefinition)
       {
-         Shape3D cylinder = toCylinder((CylinderGeometryDefinition) geometryDefinition);
+         Shape3D cylinder = toCylinder((Cylinder3DDefinition) geometryDefinition);
          cylinder.setMaterial(toMaterial(materialDefinition));
          return cylinder;
       }
-      else if (geometryDefinition instanceof EllipsoidGeometryDefinition)
+      else if (geometryDefinition instanceof Ellipsoid3DDefinition)
       {
-         MeshView ellipsoid = toEllipsoid((EllipsoidGeometryDefinition) geometryDefinition);
+         MeshView ellipsoid = toEllipsoid((Ellipsoid3DDefinition) geometryDefinition);
          ellipsoid.setMaterial(toMaterial(materialDefinition));
          return ellipsoid;
       }
-      else if (geometryDefinition instanceof GenTruncatedConeGeometryDefinition)
+      else if (geometryDefinition instanceof TruncatedCone3DDefinition)
       {
-         MeshView genTruncatedCone = toGenTruncatedCone((GenTruncatedConeGeometryDefinition) geometryDefinition);
+         MeshView genTruncatedCone = toGenTruncatedCone((TruncatedCone3DDefinition) geometryDefinition);
          genTruncatedCone.setMaterial(toMaterial(materialDefinition));
          return genTruncatedCone;
       }
-      else if (geometryDefinition instanceof HemiEllipsoidGeometryDefinition)
+      else if (geometryDefinition instanceof HemiEllipsoid3DDefinition)
       {
-         MeshView hemiEllipsoid = toHemiEllipsoid((HemiEllipsoidGeometryDefinition) geometryDefinition);
+         MeshView hemiEllipsoid = toHemiEllipsoid((HemiEllipsoid3DDefinition) geometryDefinition);
          hemiEllipsoid.setMaterial(toMaterial(materialDefinition));
          return hemiEllipsoid;
       }
-      else if (geometryDefinition instanceof SphereGeometryDefinition)
+      else if (geometryDefinition instanceof Sphere3DDefinition)
       {
-         Sphere sphere = toSphere((SphereGeometryDefinition) geometryDefinition);
+         Sphere sphere = toSphere((Sphere3DDefinition) geometryDefinition);
          sphere.setMaterial(toMaterial(materialDefinition));
          return sphere;
       }
-      else if (geometryDefinition instanceof TorusGeometryDefinition)
+      else if (geometryDefinition instanceof Torus3DDefinition)
       {
-         MeshView torus = toTorus((TorusGeometryDefinition) geometryDefinition);
+         MeshView torus = toTorus((Torus3DDefinition) geometryDefinition);
          torus.setMaterial(toMaterial(materialDefinition));
          return torus;
       }
-      else if (geometryDefinition instanceof WedgeGeometryDefinition)
+      else if (geometryDefinition instanceof Ramp3DDefinition)
       {
-         MeshView wedge = toWedge((WedgeGeometryDefinition) geometryDefinition);
-         wedge.setMaterial(toMaterial(materialDefinition));
-         return wedge;
+         MeshView ramp = toRamp((Ramp3DDefinition) geometryDefinition);
+         ramp.setMaterial(toMaterial(materialDefinition));
+         return ramp;
       }
       else if (geometryDefinition instanceof ModelFileGeometryDefinition)
       {
@@ -243,54 +243,45 @@ public class JavaFXVisualTools
       }
    }
 
-   public static MeshView toArcTorus(ArcTorusGeometryDefinition geometryDefinition)
+   public static MeshView toArcTorus(ArcTorus3DDefinition geometryDefinition)
    {
       if (geometryDefinition == null)
          return null;
 
-      double startAngle = geometryDefinition.getStartAngle();
-      double endAngle = geometryDefinition.getEndAngle();
-      double majorRadius = geometryDefinition.getMajorRadius();
-      double minorRadius = geometryDefinition.getMinorRadius();
-      TriangleMesh mesh = JavaFXMeshDataInterpreter.interpretMeshData(MeshDataGenerator.ArcTorus(startAngle, endAngle, majorRadius, minorRadius, 64));
+      TriangleMesh mesh = JavaFXTriangleMesh3DDefinitionInterpreter.interpretDefinition(TriangleMesh3DFactories.TriangleMesh(geometryDefinition));
       MeshView meshView = new MeshView(mesh);
       return meshView;
    }
 
-   public static Box toBox(BoxGeometryDefinition geometryDefinition)
+   public static Box toBox(Box3DDefinition geometryDefinition)
    {
       if (geometryDefinition == null)
          return DEFAULT_BOX;
 
-      Vector3D size = geometryDefinition.getSize();
-      return new Box(size.getX(), size.getY(), size.getZ());
+      return new Box(geometryDefinition.getSizeX(), geometryDefinition.getSizeY(), geometryDefinition.getSizeZ());
    }
 
-   public static MeshView toCapsule(CapsuleGeometryDefinition geometryDefinition)
+   public static MeshView toCapsule(Capsule3DDefinition geometryDefinition)
    {
       if (geometryDefinition == null)
          return null;
 
-      double height = geometryDefinition.getLength();
-      double radius = geometryDefinition.getRadius();
-      TriangleMesh mesh = JavaFXMeshDataInterpreter.interpretMeshData(MeshDataGenerator.Capsule(height, radius, radius, radius, 64, 64));
+      TriangleMesh mesh = JavaFXTriangleMesh3DDefinitionInterpreter.interpretDefinition(geometryDefinition);
       MeshView meshView = new MeshView(mesh);
       return meshView;
    }
 
-   public static MeshView toCone(ConeGeometryDefinition geometryDefinition)
+   public static MeshView toCone(Cone3DDefinition geometryDefinition)
    {
       if (geometryDefinition == null)
          return null;
 
-      double height = geometryDefinition.getHeight();
-      double radius = geometryDefinition.getRadius();
-      TriangleMesh mesh = JavaFXMeshDataInterpreter.interpretMeshData(MeshDataGenerator.Cone(height, radius, 64));
+      TriangleMesh mesh = JavaFXTriangleMesh3DDefinitionInterpreter.interpretDefinition(geometryDefinition);
       MeshView meshView = new MeshView(mesh);
       return meshView;
    }
 
-   public static Shape3D toCylinder(CylinderGeometryDefinition geometryDefinition)
+   public static Shape3D toCylinder(Cylinder3DDefinition geometryDefinition)
    {
       if (geometryDefinition == null)
          return DEFAULT_CYLINDER;
@@ -300,53 +291,37 @@ public class JavaFXVisualTools
       return cylinder;
    }
 
-   public static MeshView toEllipsoid(EllipsoidGeometryDefinition geometryDefinition)
+   public static MeshView toEllipsoid(Ellipsoid3DDefinition geometryDefinition)
    {
       if (geometryDefinition == null)
          return null;
 
-      double xRadius = geometryDefinition.getRadii().getX();
-      double yRadius = geometryDefinition.getRadii().getY();
-      double zRadius = geometryDefinition.getRadii().getZ();
-      TriangleMesh mesh = JavaFXMeshDataInterpreter.interpretMeshData(MeshDataGenerator.Ellipsoid(xRadius, yRadius, zRadius, 64, 64));
+      TriangleMesh mesh = JavaFXTriangleMesh3DDefinitionInterpreter.interpretDefinition(geometryDefinition);
       MeshView meshView = new MeshView(mesh);
       return meshView;
    }
 
-   public static MeshView toGenTruncatedCone(GenTruncatedConeGeometryDefinition geometryDefinition)
+   public static MeshView toGenTruncatedCone(TruncatedCone3DDefinition geometryDefinition)
    {
       if (geometryDefinition == null)
          return null;
 
-      double height = geometryDefinition.getHeight();
-      double xBaseRadius = geometryDefinition.getBaseRadiusX();
-      double yBaseRadius = geometryDefinition.getBaseRadiusY();
-      double xTopRadius = geometryDefinition.getTopRadiusX();
-      double yTopRadius = geometryDefinition.getTopRadiusY();
-      TriangleMesh mesh = JavaFXMeshDataInterpreter.interpretMeshData(MeshDataGenerator.GenTruncatedCone(height,
-                                                                                                         xBaseRadius,
-                                                                                                         yBaseRadius,
-                                                                                                         xTopRadius,
-                                                                                                         yTopRadius,
-                                                                                                         64));
+      TriangleMesh mesh = JavaFXTriangleMesh3DDefinitionInterpreter.interpretDefinition(geometryDefinition);
       MeshView meshView = new MeshView(mesh);
       return meshView;
    }
 
-   public static MeshView toHemiEllipsoid(HemiEllipsoidGeometryDefinition geometryDefinition)
+   public static MeshView toHemiEllipsoid(HemiEllipsoid3DDefinition geometryDefinition)
    {
       if (geometryDefinition == null)
          return null;
 
-      double xRadius = geometryDefinition.getRadii().getX();
-      double yRadius = geometryDefinition.getRadii().getY();
-      double zRadius = geometryDefinition.getRadii().getZ();
-      TriangleMesh mesh = JavaFXMeshDataInterpreter.interpretMeshData(MeshDataGenerator.HemiEllipsoid(xRadius, yRadius, zRadius, 64, 64));
+      TriangleMesh mesh = JavaFXTriangleMesh3DDefinitionInterpreter.interpretDefinition(geometryDefinition);
       MeshView meshView = new MeshView(mesh);
       return meshView;
    }
 
-   public static Sphere toSphere(SphereGeometryDefinition geometryDefinition)
+   public static Sphere toSphere(Sphere3DDefinition geometryDefinition)
    {
       if (geometryDefinition == null)
          return DEFAULT_SPHERE;
@@ -354,27 +329,22 @@ public class JavaFXVisualTools
       return new Sphere(geometryDefinition.getRadius());
    }
 
-   public static MeshView toTorus(TorusGeometryDefinition geometryDefinition)
+   public static MeshView toTorus(Torus3DDefinition geometryDefinition)
    {
       if (geometryDefinition == null)
          return null;
 
-      double majorRadius = geometryDefinition.getMajorRadius();
-      double minorRadius = geometryDefinition.getMinorRadius();
-      TriangleMesh mesh = JavaFXMeshDataInterpreter.interpretMeshData(MeshDataGenerator.ArcTorus(0.0, 2.0 * Math.PI, majorRadius, minorRadius, 64));
+      TriangleMesh mesh = JavaFXTriangleMesh3DDefinitionInterpreter.interpretDefinition(geometryDefinition);
       MeshView meshView = new MeshView(mesh);
       return meshView;
    }
 
-   public static MeshView toWedge(WedgeGeometryDefinition geometryDefinition)
+   public static MeshView toRamp(Ramp3DDefinition geometryDefinition)
    {
       if (geometryDefinition == null)
          return null;
 
-      double lx = geometryDefinition.getSize().getX();
-      double ly = geometryDefinition.getSize().getY();
-      double lz = geometryDefinition.getSize().getZ();
-      TriangleMesh mesh = JavaFXMeshDataInterpreter.interpretMeshData(MeshDataGenerator.Wedge(lx, ly, lz));
+      TriangleMesh mesh = JavaFXTriangleMesh3DDefinitionInterpreter.interpretDefinition(geometryDefinition);
       MeshView meshView = new MeshView(mesh);
       return meshView;
    }
@@ -664,7 +634,7 @@ public class JavaFXVisualTools
       if (materialDefinition == null)
          return DEFAULT_MATERIAL;
 
-      Color color = toColor(materialDefinition.getDiffuseColorDefinition());
+      Color color = toColor(materialDefinition.getDiffuseColor());
       return new PhongMaterial(color);
    }
 

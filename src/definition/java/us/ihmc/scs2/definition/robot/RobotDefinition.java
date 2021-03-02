@@ -3,20 +3,19 @@ package us.ihmc.scs2.definition.robot;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
-import us.ihmc.mecano.multiBodySystem.interfaces.MultiBodySystemBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
-import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
+import us.ihmc.scs2.definition.controller.interfaces.ControllerDefinition;
 
 public class RobotDefinition
 {
    private String name;
    private RigidBodyDefinition rootBodyDefinition;
-   private List<JointDefinition> definitionsOfJointsToIgnore = new ArrayList<>();
+   private List<String> nameOfJointsToIgnore = new ArrayList<>();
+
+   private final List<ControllerDefinition> controllerDefinitions = new ArrayList<>();
 
    public RobotDefinition()
    {
@@ -37,6 +36,16 @@ public class RobotDefinition
       this.rootBodyDefinition = rootBodyDefinition;
    }
 
+   public void addJointToIgnore(String nameOfJointToIgnore)
+   {
+      nameOfJointsToIgnore.add(nameOfJointToIgnore);
+   }
+
+   public void addControllerDefinition(ControllerDefinition controllerDefinition)
+   {
+      controllerDefinitions.add(controllerDefinition);
+   }
+
    public String getName()
    {
       return name;
@@ -52,9 +61,9 @@ public class RobotDefinition
       return rootBodyDefinition.getChildrenJoints();
    }
 
-   public List<JointDefinition> getDefinitionsOfJointsToIgnore()
+   public List<String> getNameOfJointsToIgnore()
    {
-      return definitionsOfJointsToIgnore;
+      return nameOfJointsToIgnore;
    }
 
    public JointDefinition getJointDefinition(String jointName)
@@ -74,6 +83,11 @@ public class RobotDefinition
       return collectSubtreeJointDefinitions(rootBodyDefinition);
    }
 
+   public List<ControllerDefinition> getControllerDefinitions()
+   {
+      return controllerDefinitions;
+   }
+
    private static List<JointDefinition> collectSubtreeJointDefinitions(RigidBodyDefinition start)
    {
       if (start == null)
@@ -88,15 +102,6 @@ public class RobotDefinition
       }
 
       return joints;
-   }
-
-   public MultiBodySystemBasics toMultiBodySystemBasics(ReferenceFrame rootFrame)
-   {
-      RigidBodyBasics rootBody = newIntance(rootFrame);
-      Set<String> namesOfJointsToIgnore = definitionsOfJointsToIgnore.stream().map(JointDefinition::getName).collect(Collectors.toSet());
-      List<JointBasics> jointsToIgnore = SubtreeStreams.fromChildren(rootBody).filter(joint -> namesOfJointsToIgnore.contains(joint.getName()))
-                                                       .collect(Collectors.toList());
-      return MultiBodySystemBasics.toMultiBodySystemBasics(rootBody, jointsToIgnore);
    }
 
    public RigidBodyBasics newIntance(ReferenceFrame rootFrame)
