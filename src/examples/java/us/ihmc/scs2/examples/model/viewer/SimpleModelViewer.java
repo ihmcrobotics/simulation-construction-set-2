@@ -65,7 +65,7 @@ public class SimpleModelViewer
          {
             throw new RuntimeException(e);
          }
-         robotDefinition = URDFTools.toRobotDefinition(urdfModel);
+         robotDefinition = URDFTools.toFloatingRobotDefinition(urdfModel);
       }
       else if (modelFile.getName().toLowerCase().endsWith("sdf"))
       {

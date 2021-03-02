@@ -54,6 +54,11 @@ public class RobotDefinition
       return rootBodyDefinition;
    }
 
+   public List<JointDefinition> getRootJointDefinitions()
+   {
+      return rootBodyDefinition.getChildrenJoints();
+   }
+
    public List<JointDefinition> getDefinitionsOfJointsToIgnore()
    {
       return definitionsOfJointsToIgnore;

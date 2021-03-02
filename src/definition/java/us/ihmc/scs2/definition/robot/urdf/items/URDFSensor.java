@@ -1,4 +1,4 @@
-package us.ihmc.scs2.definition.robot.sdf.items;
+package us.ihmc.scs2.definition.robot.urdf.items;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -7,52 +7,21 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 
-public class SDFSensor implements SDFItem
+public class URDFSensor implements URDFItem
 {
    private String name;
    private String type;
-   private String updateRate;
    private String pose;
-   private List<SDFCamera> camera;
-   private SDFRay ray;
-   private SDFIMU imu;
-
-   public String getName()
-   {
-      return name;
-   }
+   private String visualize;
+   private String updateRate;
+   private List<URDFCamera> camera;
+   private URDFRay ray;
+   private URDFIMU imu;
 
    @XmlAttribute(name = "name")
    public void setName(String name)
    {
       this.name = name;
-   }
-
-   public String getType()
-   {
-      return type;
-   }
-
-   @XmlAttribute(name = "type")
-   public void setType(String type)
-   {
-      this.type = type;
-   }
-
-   public String getUpdateRate()
-   {
-      return updateRate;
-   }
-
-   @XmlElement(name = "update_rate")
-   public void setUpdateRate(String updateRate)
-   {
-      this.updateRate = updateRate;
-   }
-
-   public String getPose()
-   {
-      return pose;
    }
 
    @XmlElement(name = "pose")
@@ -61,37 +30,80 @@ public class SDFSensor implements SDFItem
       this.pose = pose;
    }
 
-   public List<SDFCamera> getCamera()
+   @XmlAttribute(name = "type")
+   public void setType(String type)
    {
-      return camera;
+      this.type = type;
    }
 
-   @XmlElement(name = "camera")
-   public void setCamera(List<SDFCamera> camera)
+   @XmlElement(name = "visualize")
+   public void setVisualize(String visualize)
    {
-      this.camera = camera;
+      this.visualize = visualize;
+   }
+
+   @XmlElement(name = "update_rate")
+   public void setUpdateRate(String updateRate)
+   {
+      this.updateRate = updateRate;
    }
 
    @XmlElement(name = "ray")
-   public void setRay(SDFRay ray)
+   public void setRay(URDFRay ray)
    {
       this.ray = ray;
    }
 
-   public SDFRay getRay()
+   @XmlElement(name = "camera")
+   public void setCamera(List<URDFCamera> camera)
+   {
+      this.camera = camera;
+   }
+
+   @XmlElement(name = "imu")
+   public void setImu(URDFIMU imu)
+   {
+      this.imu = imu;
+   }
+
+   public String getName()
+   {
+      return name;
+   }
+
+   public String getPose()
+   {
+      return pose;
+   }
+
+   public String getType()
+   {
+      return type;
+   }
+
+   public String getVisualize()
+   {
+      return visualize;
+   }
+
+   public String getUpdateRate()
+   {
+      return updateRate;
+   }
+
+   public URDFRay getRay()
    {
       return ray;
    }
 
-   public SDFIMU getImu()
+   public List<URDFCamera> getCamera()
    {
-      return imu;
+      return camera;
    }
 
-   @XmlElement(name = "imu")
-   public void setImu(SDFIMU imu)
+   public URDFIMU getImu()
    {
-      this.imu = imu;
+      return imu;
    }
 
    @Override
@@ -101,9 +113,9 @@ public class SDFSensor implements SDFItem
    }
 
    @Override
-   public List<SDFURIHolder> getURIHolders()
+   public List<URDFFilenameHolder> getFilenameHolders()
    {
-      return SDFItem.combineItemListsURIHolders(camera, Arrays.asList(ray, imu));
+      return URDFItem.combineItemListsFilenameHolders(camera, Arrays.asList(ray, imu));
    }
 
    @Override
@@ -112,12 +124,12 @@ public class SDFSensor implements SDFItem
       return itemToString();
    }
 
-   public static class SDFRay implements SDFItem
+   public static class URDFRay implements URDFItem
    {
       private String pose;
-      private SDFRange range;
-      private SDFScan scan;
-      private SDFNoise noise;
+      private URDFRange range;
+      private URDFScan scan;
+      private URDFNoise noise;
 
       @XmlElement(name = "pose")
       public void setPose(String pose)
@@ -126,13 +138,13 @@ public class SDFSensor implements SDFItem
       }
 
       @XmlElement(name = "range")
-      public void setRange(SDFRange range)
+      public void setRange(URDFRange range)
       {
          this.range = range;
       }
 
       @XmlElement(name = "scan")
-      public void setScan(SDFScan scan)
+      public void setScan(URDFScan scan)
       {
          this.scan = scan;
       }
@@ -142,23 +154,23 @@ public class SDFSensor implements SDFItem
          return pose;
       }
 
-      public SDFRange getRange()
+      public URDFRange getRange()
       {
          return range;
       }
 
-      public SDFScan getScan()
+      public URDFScan getScan()
       {
          return scan;
       }
 
-      public SDFNoise getNoise()
+      public URDFNoise getNoise()
       {
          return noise;
       }
 
       @XmlElement(name = "noise")
-      public void setNoise(SDFNoise noise)
+      public void setNoise(URDFNoise noise)
       {
          this.noise = noise;
       }
@@ -170,9 +182,9 @@ public class SDFSensor implements SDFItem
       }
 
       @Override
-      public List<SDFURIHolder> getURIHolders()
+      public List<URDFFilenameHolder> getFilenameHolders()
       {
-         return SDFItem.combineItemURIHolders(range, scan, noise);
+         return URDFItem.combineItemFilenameHolders(range, scan, noise);
       }
 
       @Override
@@ -181,7 +193,7 @@ public class SDFSensor implements SDFItem
          return itemToString();
       }
 
-      public static class SDFRange implements SDFItem
+      public static class URDFRange implements URDFItem
       {
          private String min;
          private String max;
@@ -227,7 +239,7 @@ public class SDFSensor implements SDFItem
          }
 
          @Override
-         public List<SDFURIHolder> getURIHolders()
+         public List<URDFFilenameHolder> getFilenameHolders()
          {
             return Collections.emptyList();
          }
@@ -239,31 +251,31 @@ public class SDFSensor implements SDFItem
          }
       }
 
-      public static class SDFScan implements SDFItem
+      public static class URDFScan implements URDFItem
       {
-         private SDFHorizontalScan horizontal;
-         private SDFVerticalScan vertical;
+         private URDFHorizontalScan horizontal;
+         private URDFVerticalScan vertical;
 
          @XmlElement(name = "horizontal")
-         public void setHorizontal(SDFHorizontalScan horizontal)
+         public void setHorizontal(URDFHorizontalScan horizontal)
          {
             this.horizontal = horizontal;
          }
 
-         public SDFHorizontalScan getHorizontal()
+         @XmlElement(name = "vertical")
+         public void setVertical(URDFVerticalScan vertical)
+         {
+            this.vertical = vertical;
+         }
+
+         public URDFHorizontalScan getHorizontal()
          {
             return horizontal;
          }
 
-         @XmlElement(name = "vertical")
-         public SDFVerticalScan getVertical()
+         public URDFVerticalScan getVertical()
          {
             return vertical;
-         }
-
-         public void setVertical(SDFVerticalScan vertical)
-         {
-            this.vertical = vertical;
          }
 
          @Override
@@ -273,9 +285,9 @@ public class SDFSensor implements SDFItem
          }
 
          @Override
-         public List<SDFURIHolder> getURIHolders()
+         public List<URDFFilenameHolder> getFilenameHolders()
          {
-            return SDFItem.combineItemURIHolders(horizontal, vertical);
+            return URDFItem.combineItemFilenameHolders(horizontal, vertical);
          }
 
          @Override
@@ -284,7 +296,7 @@ public class SDFSensor implements SDFItem
             return itemToString();
          }
 
-         public static class SDFHorizontalScan implements SDFItem
+         public static class URDFHorizontalScan implements URDFItem
          {
             private String samples;
             private String resolution;
@@ -342,7 +354,7 @@ public class SDFSensor implements SDFItem
             }
 
             @Override
-            public List<SDFURIHolder> getURIHolders()
+            public List<URDFFilenameHolder> getFilenameHolders()
             {
                return Collections.emptyList();
             }
@@ -354,7 +366,7 @@ public class SDFSensor implements SDFItem
             }
          }
 
-         public static class SDFVerticalScan implements SDFItem
+         public static class URDFVerticalScan implements URDFItem
          {
             private String samples;
             private String resolution;
@@ -412,7 +424,7 @@ public class SDFSensor implements SDFItem
             }
 
             @Override
-            public List<SDFURIHolder> getURIHolders()
+            public List<URDFFilenameHolder> getFilenameHolders()
             {
                return Collections.emptyList();
             }
@@ -425,7 +437,7 @@ public class SDFSensor implements SDFItem
          }
       }
 
-      public static class SDFNoise implements SDFItem
+      public static class URDFNoise implements URDFItem
       {
          private String type;
          private String mean;
@@ -471,7 +483,7 @@ public class SDFSensor implements SDFItem
          }
 
          @Override
-         public List<SDFURIHolder> getURIHolders()
+         public List<URDFFilenameHolder> getFilenameHolders()
          {
             return Collections.emptyList();
          }
@@ -484,13 +496,13 @@ public class SDFSensor implements SDFItem
       }
    }
 
-   public static class SDFCamera implements SDFItem
+   public static class URDFCamera implements URDFItem
    {
       private String name;
       private String pose;
       private String horizontalFov;
-      private SDFSensorImage image;
-      private SDFClip clip;
+      private URDFSensorImage image;
+      private URDFClip clip;
 
       public String getPose()
       {
@@ -514,24 +526,24 @@ public class SDFSensor implements SDFItem
          this.horizontalFov = horizontalFov;
       }
 
-      public SDFSensorImage getImage()
+      public URDFSensorImage getImage()
       {
          return image;
       }
 
       @XmlElement(name = "image")
-      public void setImage(SDFSensorImage image)
+      public void setImage(URDFSensorImage image)
       {
          this.image = image;
       }
 
-      public SDFClip getClip()
+      public URDFClip getClip()
       {
          return clip;
       }
 
       @XmlElement(name = "clip")
-      public void setClip(SDFClip clip)
+      public void setClip(URDFClip clip)
       {
          this.clip = clip;
       }
@@ -554,7 +566,7 @@ public class SDFSensor implements SDFItem
       }
 
       @Override
-      public List<SDFURIHolder> getURIHolders()
+      public List<URDFFilenameHolder> getFilenameHolders()
       {
          return Collections.emptyList();
       }
@@ -565,7 +577,7 @@ public class SDFSensor implements SDFItem
          return itemToString();
       }
 
-      public static class SDFSensorImage implements SDFItem
+      public static class URDFSensorImage implements URDFItem
       {
          private String width;
          private String height;
@@ -611,7 +623,7 @@ public class SDFSensor implements SDFItem
          }
 
          @Override
-         public List<SDFURIHolder> getURIHolders()
+         public List<URDFFilenameHolder> getFilenameHolders()
          {
             return Collections.emptyList();
          }
@@ -623,7 +635,7 @@ public class SDFSensor implements SDFItem
          }
       }
 
-      public static class SDFClip implements SDFItem
+      public static class URDFClip implements URDFItem
       {
          private String near;
          private String far;
@@ -657,7 +669,7 @@ public class SDFSensor implements SDFItem
          }
 
          @Override
-         public List<SDFURIHolder> getURIHolders()
+         public List<URDFFilenameHolder> getFilenameHolders()
          {
             return Collections.emptyList();
          }
@@ -670,17 +682,17 @@ public class SDFSensor implements SDFItem
       }
    }
 
-   public static class SDFIMU implements SDFItem
+   public static class URDFIMU implements URDFItem
    {
-      private SDFIMUNoise noise;
+      private URDFIMUNoise noise;
 
-      public SDFIMUNoise getNoise()
+      public URDFIMUNoise getNoise()
       {
          return noise;
       }
 
       @XmlElement(name = "noise")
-      public void setNoise(SDFIMUNoise noise)
+      public void setNoise(URDFIMUNoise noise)
       {
          this.noise = noise;
       }
@@ -692,7 +704,7 @@ public class SDFSensor implements SDFItem
       }
 
       @Override
-      public List<SDFURIHolder> getURIHolders()
+      public List<URDFFilenameHolder> getFilenameHolders()
       {
          return Collections.emptyList();
       }
@@ -703,23 +715,23 @@ public class SDFSensor implements SDFItem
          return itemToString();
       }
 
-      public static class SDFIMUNoise implements SDFItem
+      public static class URDFIMUNoise implements URDFItem
       {
          private String type;
-         private SDFNoiseParameters rate;
-         private SDFNoiseParameters accel;
+         private URDFNoiseParameters rate;
+         private URDFNoiseParameters accel;
 
          public String getType()
          {
             return type;
          }
 
-         public SDFNoiseParameters getRate()
+         public URDFNoiseParameters getRate()
          {
             return rate;
          }
 
-         public SDFNoiseParameters getAccel()
+         public URDFNoiseParameters getAccel()
          {
             return accel;
          }
@@ -731,13 +743,13 @@ public class SDFSensor implements SDFItem
          }
 
          @XmlElement(name = "rate")
-         public void setRate(SDFNoiseParameters rate)
+         public void setRate(URDFNoiseParameters rate)
          {
             this.rate = rate;
          }
 
          @XmlElement(name = "accel")
-         public void setAccel(SDFNoiseParameters accel)
+         public void setAccel(URDFNoiseParameters accel)
          {
             this.accel = accel;
          }
@@ -749,7 +761,7 @@ public class SDFSensor implements SDFItem
          }
 
          @Override
-         public List<SDFURIHolder> getURIHolders()
+         public List<URDFFilenameHolder> getFilenameHolders()
          {
             return Collections.emptyList();
          }
@@ -760,7 +772,7 @@ public class SDFSensor implements SDFItem
             return itemToString();
          }
 
-         public static class SDFNoiseParameters implements SDFItem
+         public static class URDFNoiseParameters implements URDFItem
          {
             private String mean;
             private String stddev;
@@ -818,7 +830,7 @@ public class SDFSensor implements SDFItem
             }
 
             @Override
-            public List<SDFURIHolder> getURIHolders()
+            public List<URDFFilenameHolder> getFilenameHolders()
             {
                return Collections.emptyList();
             }

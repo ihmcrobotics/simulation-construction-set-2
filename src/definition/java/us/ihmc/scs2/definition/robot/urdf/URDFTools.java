@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -20,27 +21,39 @@ import javax.xml.bind.Unmarshaller;
 
 import us.ihmc.euclid.Axis3D;
 import us.ihmc.euclid.matrix.Matrix3D;
+import us.ihmc.euclid.matrix.interfaces.Matrix3DBasics;
+import us.ihmc.euclid.matrix.interfaces.RotationMatrixBasics;
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.euclid.yawPitchRoll.YawPitchRoll;
+import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.geometry.BoxGeometryDefinition;
 import us.ihmc.scs2.definition.geometry.CylinderGeometryDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 import us.ihmc.scs2.definition.geometry.ModelFileGeometryDefinition;
 import us.ihmc.scs2.definition.geometry.SphereGeometryDefinition;
+import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
 import us.ihmc.scs2.definition.robot.FixedJointDefinition;
+import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
 import us.ihmc.scs2.definition.robot.JointDefinition;
+import us.ihmc.scs2.definition.robot.LidarSensorDefinition;
 import us.ihmc.scs2.definition.robot.OneDoFJointDefinition;
 import us.ihmc.scs2.definition.robot.PlanarJointDefinition;
 import us.ihmc.scs2.definition.robot.PrismaticJointDefinition;
 import us.ihmc.scs2.definition.robot.RevoluteJointDefinition;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
+import us.ihmc.scs2.definition.robot.SensorDefinition;
 import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
+import us.ihmc.scs2.definition.robot.WrenchSensorDefinition;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFAxis;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFColor;
+import us.ihmc.scs2.definition.robot.urdf.items.URDFDynamics;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFFilenameHolder;
+import us.ihmc.scs2.definition.robot.urdf.items.URDFGazebo;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFGeometry;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFInertia;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFInertial;
@@ -52,6 +65,16 @@ import us.ihmc.scs2.definition.robot.urdf.items.URDFMass;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFMaterial;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFModel;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFOrigin;
+import us.ihmc.scs2.definition.robot.urdf.items.URDFSensor;
+import us.ihmc.scs2.definition.robot.urdf.items.URDFSensor.URDFCamera;
+import us.ihmc.scs2.definition.robot.urdf.items.URDFSensor.URDFIMU;
+import us.ihmc.scs2.definition.robot.urdf.items.URDFSensor.URDFIMU.URDFIMUNoise;
+import us.ihmc.scs2.definition.robot.urdf.items.URDFSensor.URDFIMU.URDFIMUNoise.URDFNoiseParameters;
+import us.ihmc.scs2.definition.robot.urdf.items.URDFSensor.URDFRay;
+import us.ihmc.scs2.definition.robot.urdf.items.URDFSensor.URDFRay.URDFNoise;
+import us.ihmc.scs2.definition.robot.urdf.items.URDFSensor.URDFRay.URDFRange;
+import us.ihmc.scs2.definition.robot.urdf.items.URDFSensor.URDFRay.URDFScan.URDFHorizontalScan;
+import us.ihmc.scs2.definition.robot.urdf.items.URDFSensor.URDFRay.URDFScan.URDFVerticalScan;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFTexture;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFVisual;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
@@ -179,10 +202,16 @@ public class URDFTools
       return null;
    }
 
-   public static RobotDefinition toRobotDefinition(URDFModel urdfModel)
+   public static RobotDefinition toFloatingRobotDefinition(URDFModel urdfModel)
+   {
+      return toRobotDefinition(new SixDoFJointDefinition(), urdfModel);
+   }
+
+   public static RobotDefinition toRobotDefinition(JointDefinition rootJointDefinition, URDFModel urdfModel)
    {
       List<URDFLink> urdfLinks = urdfModel.getLinks();
       List<URDFJoint> urdfJoints = urdfModel.getJoints();
+      List<URDFGazebo> urdfGazebos = urdfModel.getGazebos();
 
       List<RigidBodyDefinition> rigidBodyDefinitions = urdfLinks.stream().map(URDFTools::toRigidBodyDefinition).collect(Collectors.toList());
       List<JointDefinition> jointDefinitions;
@@ -190,7 +219,15 @@ public class URDFTools
          jointDefinitions = Collections.emptyList();
       else
          jointDefinitions = urdfJoints.stream().map(URDFTools::toJointDefinition).collect(Collectors.toList());
-      RigidBodyDefinition rootBodyDefinition = connectKinematics(rigidBodyDefinitions, jointDefinitions, urdfJoints);
+      RigidBodyDefinition startBodyDefinition = connectKinematics(rigidBodyDefinitions, jointDefinitions, urdfJoints);
+      if (rootJointDefinition.getName() == null)
+         rootJointDefinition.setName(startBodyDefinition.getName());
+      rootJointDefinition.setSuccessor(startBodyDefinition);
+      RigidBodyDefinition rootBodyDefinition = new RigidBodyDefinition("rootBody");
+      rootBodyDefinition.addChildJoint(rootJointDefinition);
+      addSensor(urdfGazebos, jointDefinitions);
+      simplifyKinematics(rootJointDefinition);
+      correctTransforms(rootJointDefinition);
 
       RobotDefinition robotDefinition = new RobotDefinition(urdfModel.getName());
       robotDefinition.setRootBodyDefinition(rootBodyDefinition);
@@ -198,20 +235,220 @@ public class URDFTools
       return robotDefinition;
    }
 
-   public static RobotDefinition toFloatingRobotDefinition(URDFModel urdfModel)
+   public static void addSensor(List<URDFGazebo> urdfGazebos, List<JointDefinition> jointDefinitions)
    {
-      return addFloatingJoint(toRobotDefinition(urdfModel), "");
+      Map<String, JointDefinition> jointDefinitionMap = jointDefinitions.stream().collect(Collectors.toMap(JointDefinition::getName, Function.identity()));
+      Map<String, JointDefinition> linkNameToJointDefinitionMap = jointDefinitions.stream().collect(Collectors.toMap(joint -> joint.getSuccessor().getName(),
+                                                                                                                     Function.identity()));
+
+      for (URDFGazebo urdfGazebo : urdfGazebos)
+      {
+         if (urdfGazebo.getSensor() == null)
+            continue;
+
+         List<SensorDefinition> sensorDefinitions = toSensorDefinition(urdfGazebo.getSensor());
+         JointDefinition jointDefinition = jointDefinitionMap.get(urdfGazebo.getReference());
+         if (jointDefinition == null)
+            jointDefinition = linkNameToJointDefinitionMap.get(urdfGazebo.getReference());
+
+         if (jointDefinition == null)
+         {
+            LogTools.error("Could not find reference: " + urdfGazebo.getReference());
+            continue;
+         }
+
+         if (sensorDefinitions != null)
+            sensorDefinitions.forEach(jointDefinition::addSensorDefinition);
+      }
    }
 
-   public static RobotDefinition addFloatingJoint(RobotDefinition robotDefinition, String jointName)
+   public static void simplifyKinematics(JointDefinition joint)
    {
-      RigidBodyDefinition elevatorDefinition = new RigidBodyDefinition("elevator");
-      SixDoFJointDefinition rootJoint = new SixDoFJointDefinition(jointName);
-      elevatorDefinition.addChildJoint(rootJoint);
-      rootJoint.setSuccessor(robotDefinition.getRootBodyDefinition());
-      robotDefinition.setRootBodyDefinition(elevatorDefinition);
+      List<JointDefinition> childrenJoints = new ArrayList<>(joint.getSuccessor().getChildrenJoints());
 
-      return robotDefinition;
+      for (JointDefinition child : childrenJoints)
+      {
+         simplifyKinematics(child);
+      }
+
+      JointDefinition parentJoint = joint.getParentJoint();
+      if (parentJoint == null)
+         return;
+
+      if (joint instanceof FixedJointDefinition)
+      {
+         RigidBodyDefinition rigidBody = joint.getSuccessor();
+         RigidBodyTransform transformToParentJoint = joint.getTransformToParent();
+         rigidBody.applyTransform(transformToParentJoint);
+         RigidBodyDefinition oldParentRigidBody = parentJoint.getSuccessor();
+         parentJoint.setSuccessor(merge(oldParentRigidBody.getName(), oldParentRigidBody, rigidBody));
+         parentJoint.getSuccessor().addChildJoints(oldParentRigidBody.getChildrenJoints());
+
+         joint.getKinematicPointDefinitions().removeIf(kp ->
+         {
+            kp.applyTransform(transformToParentJoint);
+            parentJoint.addKinematicPointDefinition(kp);
+            return true;
+         });
+         joint.getExternalForcePointDefinitions().removeIf(efp ->
+         {
+            efp.applyTransform(transformToParentJoint);
+            parentJoint.addExternalForcePointDefinition(efp);
+            return true;
+         });
+         joint.getGroundContactPointDefinitions().removeIf(gcp ->
+         {
+            gcp.applyTransform(transformToParentJoint);
+            parentJoint.addGroundContactPointDefinition(gcp);
+            return true;
+         });
+         joint.getSensorDefinitions().removeIf(sensor ->
+         {
+            sensor.applyTransform(transformToParentJoint);
+            parentJoint.addSensorDefinition(sensor);
+            return true;
+         });
+         childrenJoints.removeIf(child ->
+         {
+            child.getTransformToParent().preMultiply(transformToParentJoint);
+            parentJoint.getSuccessor().addChildJoint(child);
+            return true;
+         });
+         parentJoint.getSuccessor().removeChildJoint(joint);
+      }
+   }
+
+   public static RigidBodyDefinition merge(String name, RigidBodyDefinition rigidBodyA, RigidBodyDefinition rigidBodyB)
+   {
+      double mergedMass = rigidBodyA.getMass() + rigidBodyB.getMass();
+      Vector3D mergedCoM = new Vector3D();
+      mergedCoM.setAndScale(rigidBodyA.getMass(), rigidBodyA.getCenterOfMassOffset());
+      mergedCoM.scaleAdd(rigidBodyB.getMass(), rigidBodyB.getCenterOfMassOffset(), mergedCoM);
+      mergedCoM.scale(1.0 / mergedMass);
+
+      Vector3D translationInertiaA = new Vector3D();
+      translationInertiaA.sub(mergedCoM, rigidBodyA.getCenterOfMassOffset());
+      Matrix3D inertiaA = new Matrix3D(rigidBodyA.getMomentOfInertia());
+      translateMomentOfInertia(rigidBodyA.getMass(), translationInertiaA, inertiaA);
+
+      Vector3D translationInertiaB = new Vector3D();
+      translationInertiaB.sub(mergedCoM, rigidBodyB.getCenterOfMassOffset());
+      Matrix3D inertiaB = new Matrix3D(rigidBodyB.getMomentOfInertia());
+      translateMomentOfInertia(rigidBodyB.getMass(), translationInertiaB, inertiaB);
+
+      Matrix3D mergedInertia = new Matrix3D();
+      mergedInertia.add(inertiaA);
+      mergedInertia.add(inertiaB);
+
+      RigidBodyDefinition merged = new RigidBodyDefinition(name);
+      merged.setMass(mergedMass);
+      merged.getInertiaPose().getTranslation().set(mergedCoM);
+      merged.getMomentOfInertia().set(mergedInertia);
+
+      List<VisualDefinition> mergedGraphics = new ArrayList<>();
+      mergedGraphics.addAll(rigidBodyA.getVisualDefinitions());
+      mergedGraphics.addAll(rigidBodyB.getVisualDefinitions());
+      merged.addVisualDefinitions(mergedGraphics);
+
+      return merged;
+   }
+
+   public static void translateMomentOfInertia(double mass, Tuple3DReadOnly translation, Matrix3DBasics momentOfInertiaToTransform)
+   {
+      double xp = translation.getX();
+      double yp = translation.getY();
+      double zp = translation.getZ();
+
+      double xp_xp = xp * xp;
+      double yp_yp = yp * yp;
+      double zp_zp = zp * zp;
+
+      double txx = mass * (yp_yp + zp_zp);
+      double tyy = mass * (xp_xp + zp_zp);
+      double tzz = mass * (xp_xp + yp_yp);
+
+      double txy = -mass * xp * yp;
+      double txz = -mass * xp * zp;
+      double tyz = -mass * yp * zp;
+
+      double m00 = momentOfInertiaToTransform.getM00() + txx;
+      double m01 = momentOfInertiaToTransform.getM01() + txy;
+      double m02 = momentOfInertiaToTransform.getM02() + txz;
+      double m10 = momentOfInertiaToTransform.getM10() + txy;
+      double m11 = momentOfInertiaToTransform.getM11() + tyy;
+      double m12 = momentOfInertiaToTransform.getM12() + tyz;
+      double m20 = momentOfInertiaToTransform.getM20() + txz;
+      double m21 = momentOfInertiaToTransform.getM21() + tyz;
+      double m22 = momentOfInertiaToTransform.getM22() + tzz;
+
+      momentOfInertiaToTransform.set(m00, m01, m02, m10, m11, m12, m20, m21, m22);
+   }
+
+   public static RigidBodyDefinition connectKinematics(List<RigidBodyDefinition> rigidBodyDefinitions, List<JointDefinition> jointDefinitions,
+                                                       List<URDFJoint> urdfJoints)
+   {
+      Map<String, RigidBodyDefinition> rigidBodyDefinitionMap = rigidBodyDefinitions.stream().collect(Collectors.toMap(RigidBodyDefinition::getName,
+                                                                                                                       Function.identity()));
+      Map<String, JointDefinition> jointDefinitionMap = jointDefinitions.stream().collect(Collectors.toMap(JointDefinition::getName, Function.identity()));
+
+      if (urdfJoints != null)
+      {
+         for (URDFJoint urdfJoint : urdfJoints)
+         {
+            URDFLinkReference parent = urdfJoint.getParent();
+            URDFLinkReference child = urdfJoint.getChild();
+            RigidBodyDefinition parentRigidBodyDefinition = rigidBodyDefinitionMap.get(parent.getLink());
+            RigidBodyDefinition childRigidBodyDefinition = rigidBodyDefinitionMap.get(child.getLink());
+            JointDefinition jointDefinition = jointDefinitionMap.get(urdfJoint.getName());
+
+            jointDefinition.setSuccessor(childRigidBodyDefinition);
+            parentRigidBodyDefinition.addChildJoint(jointDefinition);
+         }
+      }
+
+      if (urdfJoints == null)
+      {
+         return rigidBodyDefinitions.get(0);
+      }
+      else
+      {
+         Map<String, URDFJoint> childToParentJoint = urdfJoints.stream()
+                                                               .collect(Collectors.toMap(urdfJoint -> urdfJoint.getChild().getLink(), Function.identity()));
+
+         String rootBodyName = urdfJoints.iterator().next().getParent().getLink();
+         URDFJoint parentJoint = childToParentJoint.get(rootBodyName);
+
+         while (parentJoint != null)
+         {
+            rootBodyName = parentJoint.getParent().getLink();
+            parentJoint = childToParentJoint.get(rootBodyName);
+         }
+
+         return rigidBodyDefinitionMap.get(rootBodyName);
+      }
+   }
+
+   public static void correctTransforms(JointDefinition jointDefinition)
+   {
+      RotationMatrixBasics jointRotation = jointDefinition.getTransformToParent().getRotation();
+      if (jointDefinition instanceof OneDoFJointDefinition)
+         jointRotation.transform(((OneDoFJointDefinition) jointDefinition).getAxis());
+      RigidBodyDefinition linkDefinition = jointDefinition.getSuccessor();
+      RigidBodyTransform inertiaPose = linkDefinition.getInertiaPose();
+      inertiaPose.prependOrientation(jointRotation);
+      inertiaPose.transform(linkDefinition.getMomentOfInertia());
+      inertiaPose.getRotation().setToZero();
+
+      for (SensorDefinition sensorDefinition : jointDefinition.getSensorDefinitions())
+         sensorDefinition.getTransformToJoint().prependOrientation(jointRotation);
+
+      for (JointDefinition childDefinition : jointDefinition.getSuccessor().getChildrenJoints())
+      {
+         childDefinition.getTransformToParent().prependOrientation(jointRotation);
+         correctTransforms(childDefinition);
+      }
+
+      jointRotation.setToZero();
    }
 
    public static RigidBodyDefinition toRigidBodyDefinition(URDFLink urdfLink)
@@ -260,73 +497,31 @@ public class URDFTools
       }
    }
 
-   public static RigidBodyDefinition connectKinematics(List<RigidBodyDefinition> rigidBodyDefinitions, List<JointDefinition> jointDefinitions,
-                                                       List<URDFJoint> urdfJoints)
-   {
-      Map<String, RigidBodyDefinition> rigidBodyDefinitionMap = rigidBodyDefinitions.stream().collect(Collectors.toMap(RigidBodyDefinition::getName,
-                                                                                                                       Function.identity()));
-      Map<String, JointDefinition> jointDefinitionMap = jointDefinitions.stream().collect(Collectors.toMap(JointDefinition::getName, Function.identity()));
-
-      if (urdfJoints != null)
-      {
-         for (URDFJoint urdfJoint : urdfJoints)
-         {
-            URDFLinkReference parent = urdfJoint.getParent();
-            URDFLinkReference child = urdfJoint.getChild();
-            RigidBodyDefinition parentRigidBodyDefinition = rigidBodyDefinitionMap.get(parent.getLink());
-            RigidBodyDefinition childRigidBodyDefinition = rigidBodyDefinitionMap.get(child.getLink());
-            JointDefinition jointDefinition = jointDefinitionMap.get(urdfJoint.getName());
-
-            jointDefinition.setSuccessor(childRigidBodyDefinition);
-            parentRigidBodyDefinition.getChildrenJoints().add(jointDefinition);
-         }
-      }
-
-      if (urdfJoints == null)
-      {
-         return rigidBodyDefinitions.get(0);
-      }
-      else
-      {
-         Map<String, URDFJoint> childToParentJoint = urdfJoints.stream()
-                                                               .collect(Collectors.toMap(urdfJoint -> urdfJoint.getChild().getLink(), Function.identity()));
-
-         String rootBodyName = urdfJoints.iterator().next().getParent().getLink();
-         URDFJoint parentJoint = childToParentJoint.get(rootBodyName);
-
-         while (parentJoint != null)
-         {
-            rootBodyName = parentJoint.getParent().getLink();
-            parentJoint = childToParentJoint.get(rootBodyName);
-         }
-
-         return rigidBodyDefinitionMap.get(rootBodyName);
-      }
-   }
-
-   private static RevoluteJointDefinition toRevoluteJointDefinition(URDFJoint urdfJoint, boolean ignorePositionLimits)
+   public static RevoluteJointDefinition toRevoluteJointDefinition(URDFJoint urdfJoint, boolean ignorePositionLimits)
    {
       RevoluteJointDefinition definition = new RevoluteJointDefinition(urdfJoint.getName());
 
       definition.getTransformToParent().set(parseRigidBodyTransform(urdfJoint.getOrigin()));
       definition.getAxis().set(parseAxis(urdfJoint.getAxis()));
       parseLimit(urdfJoint.getLimit(), definition, ignorePositionLimits);
+      parseDynamics(urdfJoint.getDynamics(), definition);
 
       return definition;
    }
 
-   private static PrismaticJointDefinition toPrismaticJointDefinition(URDFJoint urdfJoint)
+   public static PrismaticJointDefinition toPrismaticJointDefinition(URDFJoint urdfJoint)
    {
       PrismaticJointDefinition definition = new PrismaticJointDefinition(urdfJoint.getName());
 
       definition.getTransformToParent().set(parseRigidBodyTransform(urdfJoint.getOrigin()));
       definition.getAxis().set(parseAxis(urdfJoint.getAxis()));
       parseLimit(urdfJoint.getLimit(), definition, false);
+      parseDynamics(urdfJoint.getDynamics(), definition);
 
       return definition;
    }
 
-   private static FixedJointDefinition toFixedJoint(URDFJoint urdfJoint)
+   public static FixedJointDefinition toFixedJoint(URDFJoint urdfJoint)
    {
       FixedJointDefinition definition = new FixedJointDefinition(urdfJoint.getName());
 
@@ -336,7 +531,7 @@ public class URDFTools
       return definition;
    }
 
-   private static SixDoFJointDefinition toSixDoFJointDefinition(URDFJoint urdfJoint)
+   public static SixDoFJointDefinition toSixDoFJointDefinition(URDFJoint urdfJoint)
    {
       SixDoFJointDefinition definition = new SixDoFJointDefinition(urdfJoint.getName());
 
@@ -345,7 +540,7 @@ public class URDFTools
       return definition;
    }
 
-   private static PlanarJointDefinition toPlanarJointDefinition(URDFJoint urdfJoint)
+   public static PlanarJointDefinition toPlanarJointDefinition(URDFJoint urdfJoint)
    {
       PlanarJointDefinition definition = new PlanarJointDefinition(urdfJoint.getName());
 
@@ -354,8 +549,138 @@ public class URDFTools
       Vector3D surfaceNormal = parseAxis(urdfJoint.getAxis());
 
       if (!surfaceNormal.geometricallyEquals(Axis3D.Y, 1.0e-5))
-         throw new UnsupportedOperationException("Planar joint are supported only with a surface normal equal to: " + EuclidCoreIOTools.getTuple3DString(Axis3D.Y)
-               + ", received:" + surfaceNormal);
+         throw new UnsupportedOperationException("Planar joint are supported only with a surface normal equal to: "
+               + EuclidCoreIOTools.getTuple3DString(Axis3D.Y) + ", received:" + surfaceNormal);
+
+      return definition;
+   }
+
+   public static List<SensorDefinition> toSensorDefinition(URDFSensor urdfSensor)
+   {
+      List<SensorDefinition> definitions = new ArrayList<>();
+
+      switch (urdfSensor.getType())
+      {
+         case "camera":
+         case "multicamera":
+         case "depth":
+            definitions.addAll(toCameraSensorDefinition(urdfSensor.getCamera()));
+            break;
+         case "imu":
+            definitions.add(toIMUSensorDefinition(urdfSensor.getImu()));
+            break;
+         case "gpu_ray":
+         case "ray":
+            definitions.add(toLidarSensorDefinition(urdfSensor.getRay()));
+            break;
+         case "force_torque":
+            definitions.add(new WrenchSensorDefinition());
+            break;
+         default:
+            LogTools.error("Unsupport sensor type: " + urdfSensor.getType());
+            return null;
+      }
+
+      int updatePeriod = urdfSensor.getUpdateRate() == null ? -1 : (int) (1000.0 / parseDouble(urdfSensor.getUpdateRate(), 1000.0));
+
+      for (SensorDefinition definition : definitions)
+      {
+         if (definition.getName() != null && !definition.getName().isEmpty())
+            definition.setName(urdfSensor.getName() + "_" + definition.getName());
+         else
+            definition.setName(urdfSensor.getName());
+         definition.getTransformToJoint().preMultiply(parsePose(urdfSensor.getPose()));
+         definition.setUpdatePeriod(updatePeriod);
+      }
+
+      return definitions;
+   }
+
+   public static List<CameraSensorDefinition> toCameraSensorDefinition(List<URDFCamera> urdfCameras)
+   {
+      return urdfCameras.stream().map(URDFTools::toCameraSensorDefinition).collect(Collectors.toList());
+   }
+
+   public static CameraSensorDefinition toCameraSensorDefinition(URDFCamera urdfCamera)
+   {
+      CameraSensorDefinition definition = new CameraSensorDefinition();
+      definition.setName(urdfCamera.getName());
+      definition.getTransformToJoint().set(parsePose(urdfCamera.getPose()));
+      definition.setFieldOfView(parseDouble(urdfCamera.getHorizontalFov(), Double.NaN));
+      definition.setClipNear(parseDouble(urdfCamera.getClip().getNear(), Double.NaN));
+      definition.setClipFar(parseDouble(urdfCamera.getClip().getFar(), Double.NaN));
+      definition.setImageWidth(parseInteger(urdfCamera.getImage().getWidth(), -1));
+      definition.setImageHeight(parseInteger(urdfCamera.getImage().getHeight(), -1));
+      return definition;
+   }
+
+   public static LidarSensorDefinition toLidarSensorDefinition(URDFRay urdfRay)
+   {
+      LidarSensorDefinition definition = new LidarSensorDefinition();
+
+      URDFRange urdfRange = urdfRay.getRange();
+      double urdfRangeMax = parseDouble(urdfRange.getMax(), Double.NaN);
+      double urdfRangeMin = parseDouble(urdfRange.getMin(), Double.NaN);
+      double urdfRangeResolution = parseDouble(urdfRange.getResolution(), Double.NaN);
+
+      URDFHorizontalScan urdfHorizontalScan = urdfRay.getScan().getHorizontal();
+      URDFVerticalScan urdfVerticalScan = urdfRay.getScan().getVertical();
+      double maxSweepAngle = parseDouble(urdfHorizontalScan.getMaxAngle(), 0.0);
+      double minSweepAngle = parseDouble(urdfHorizontalScan.getMinAngle(), 0.0);
+      double maxHeightAngle = urdfVerticalScan == null ? 0.0 : parseDouble(urdfVerticalScan.getMaxAngle(), 0.0);
+      double minHeightAngle = urdfVerticalScan == null ? 0.0 : parseDouble(urdfVerticalScan.getMinAngle(), 0.0);
+
+      int samples = parseInteger(urdfHorizontalScan.getSamples(), -1) / 3 * 3;
+      int scanHeight = urdfVerticalScan == null ? 1 : parseInteger(urdfVerticalScan.getSamples(), 1);
+
+      URDFNoise urdfNoise = urdfRay.getNoise();
+      if (urdfNoise != null)
+      {
+         if ("gaussian".equals(urdfNoise.getType()))
+         {
+            definition.setGaussianNoiseMean(parseDouble(urdfNoise.getMean(), 0.0));
+            definition.setGaussianNoiseStandardDeviation(parseDouble(urdfNoise.getStddev(), 0.0));
+         }
+         else
+         {
+            LogTools.error("Unknown noise model: {}.", urdfNoise.getType());
+         }
+      }
+
+      definition.getTransformToJoint().set(parsePose(urdfRay.getPose()));
+      definition.setPointsPerSweep(samples);
+      definition.setSweepYawLimits(minSweepAngle, maxSweepAngle);
+      definition.setHeightPitchLimits(minHeightAngle, maxHeightAngle);
+      definition.setRangeLimits(urdfRangeMin, urdfRangeMax);
+      definition.setRangeResolution(urdfRangeResolution);
+      definition.setScanHeight(scanHeight);
+      return definition;
+   }
+
+   public static IMUSensorDefinition toIMUSensorDefinition(URDFIMU urdfIMU)
+   {
+      IMUSensorDefinition definition = new IMUSensorDefinition();
+
+      URDFIMUNoise urdfNoise = urdfIMU.getNoise();
+      if (urdfNoise != null)
+      {
+         if ("gaussian".equals(urdfNoise.getType()))
+         {
+            URDFNoiseParameters accelerationNoise = urdfNoise.getAccel();
+            URDFNoiseParameters angularVelocityNoise = urdfNoise.getRate();
+
+            definition.setAccelerationNoiseParameters(parseDouble(accelerationNoise.getMean(), 0.0), parseDouble(accelerationNoise.getStddev(), 0.0));
+            definition.setAccelerationBiasParameters(parseDouble(accelerationNoise.getBias_mean(), 0.0), parseDouble(accelerationNoise.getBias_stddev(), 0.0));
+
+            definition.setAngularVelocityNoiseParameters(parseDouble(angularVelocityNoise.getMean(), 0.0), parseDouble(angularVelocityNoise.getStddev(), 0.0));
+            definition.setAngularVelocityBiasParameters(parseDouble(angularVelocityNoise.getBias_mean(), 0.0),
+                                                        parseDouble(angularVelocityNoise.getBias_stddev(), 0.0));
+         }
+         else
+         {
+            LogTools.error("Unknown IMU noise model: {}.", urdfNoise.getType());
+         }
+      }
 
       return definition;
    }
@@ -440,6 +765,20 @@ public class URDFTools
       return new ColorDefinition(parseArray(urdfColor.getRGBA(), null));
    }
 
+   public static RigidBodyTransform parsePose(String pose)
+   {
+      RigidBodyTransform rigidBodyTransform = new RigidBodyTransform();
+
+      if (pose != null)
+      {
+         String[] split = pose.split("\\s+");
+         Vector3D position = new Vector3D(Double.parseDouble(split[0]), Double.parseDouble(split[1]), Double.parseDouble(split[2]));
+         YawPitchRoll orientation = new YawPitchRoll(Double.parseDouble(split[5]), Double.parseDouble(split[4]), Double.parseDouble(split[3]));
+         rigidBodyTransform.set(orientation, position);
+      }
+      return rigidBodyTransform;
+   }
+
    public static RigidBodyTransform parseRigidBodyTransform(URDFOrigin origin)
    {
       if (origin == null)
@@ -490,34 +829,41 @@ public class URDFTools
 
    public static void parseLimit(URDFLimit urdfLimit, OneDoFJointDefinition jointDefinitionToParseLimitInto, boolean ignorePositionLimits)
    {
-      double lowerLimit, upperLimit, effortLimit, velocityLimit;
+      jointDefinitionToParseLimitInto.setPositionLimits(DEFAULT_LOWER_LIMIT, DEFAULT_UPPER_LIMIT);
+      jointDefinitionToParseLimitInto.setEffortLimits(DEFAULT_EFFORT_LIMIT);
+      jointDefinitionToParseLimitInto.setVelocityLimits(DEFAULT_VELOCITY_LIMIT);
 
       if (urdfLimit != null)
       {
-         if (ignorePositionLimits)
+         if (!ignorePositionLimits)
          {
-            lowerLimit = DEFAULT_LOWER_LIMIT;
-            upperLimit = DEFAULT_UPPER_LIMIT;
+            double positionLowerLimit = parseDouble(urdfLimit.getLower(), DEFAULT_LOWER_LIMIT);
+            double positionUpperLimit = parseDouble(urdfLimit.getUpper(), DEFAULT_UPPER_LIMIT);
+            if (positionLowerLimit < positionUpperLimit)
+               jointDefinitionToParseLimitInto.setPositionLimits(positionLowerLimit, positionUpperLimit);
          }
-         else
-         {
-            lowerLimit = parseDouble(urdfLimit.getLower(), DEFAULT_LOWER_LIMIT);
-            upperLimit = parseDouble(urdfLimit.getUpper(), DEFAULT_UPPER_LIMIT);
-         }
-         effortLimit = parseDouble(urdfLimit.getEffort(), DEFAULT_EFFORT_LIMIT);
-         velocityLimit = parseDouble(urdfLimit.getVelocity(), DEFAULT_VELOCITY_LIMIT);
+         double effortLimit = parseDouble(urdfLimit.getEffort(), DEFAULT_EFFORT_LIMIT);
+         if (Double.isFinite(effortLimit) && effortLimit >= 0)
+            jointDefinitionToParseLimitInto.setEffortLimits(effortLimit);
+         double velocityLimit = parseDouble(urdfLimit.getVelocity(), DEFAULT_VELOCITY_LIMIT);
+         if (Double.isFinite(velocityLimit) && velocityLimit >= 0)
+            jointDefinitionToParseLimitInto.setVelocityLimits(velocityLimit);
       }
-      else
+   }
+
+   public static void parseDynamics(URDFDynamics urdfDynamics, OneDoFJointDefinition jointDefinitionToParseDynamicsInto)
+   {
+      double damping = 0.0;
+      double stiction = 0.0;
+
+      if (urdfDynamics != null)
       {
-         lowerLimit = DEFAULT_LOWER_LIMIT;
-         upperLimit = DEFAULT_UPPER_LIMIT;
-         effortLimit = DEFAULT_EFFORT_LIMIT;
-         velocityLimit = DEFAULT_VELOCITY_LIMIT;
+         damping = parseDouble(urdfDynamics.getDamping(), 0.0);
+         stiction = parseDouble(urdfDynamics.getFriction(), 0.0);
       }
 
-      jointDefinitionToParseLimitInto.setPositionLimits(lowerLimit, upperLimit);
-      jointDefinitionToParseLimitInto.setEffortLimits(effortLimit);
-      jointDefinitionToParseLimitInto.setVelocityLimits(velocityLimit);
+      jointDefinitionToParseDynamicsInto.setDamping(damping);
+      jointDefinitionToParseDynamicsInto.setStiction(stiction);
    }
 
    public static Vector3D parseAxis(URDFAxis axis)
@@ -534,6 +880,13 @@ public class URDFTools
       if (value == null)
          return defaultValue;
       return Double.parseDouble(value);
+   }
+
+   public static int parseInteger(String value, int defaultValue)
+   {
+      if (value == null)
+         return defaultValue;
+      return Integer.parseInt(value);
    }
 
    public static Vector3D parseVector3D(String value, Vector3D defaultValue)
