@@ -2,7 +2,6 @@ package us.ihmc.scs2.sessionVisualizer.jfx.tools;
 
 import com.jfoenix.controls.JFXSlider.IndicatorPosition;
 import com.jfoenix.skins.JFXSliderSkin;
-import com.sun.javafx.util.Utils;
 
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -16,6 +15,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
+import us.ihmc.commons.MathTools;
 
 public class CropSliderSkin extends JFXSliderSkin
 {
@@ -322,7 +322,7 @@ public class CropSliderSkin extends JFXSliderSkin
    private double unnormalize(double normalizedValue)
    {
       double value = (normalizedValue * (getSlider().getMax() - getSlider().getMin())) + getSlider().getMin();
-      return Utils.clamp(getSlider().getMin(), value, getSlider().getMax());
+      return MathTools.clamp(value, getSlider().getMin(), getSlider().getMax());
    }
 
    private double normalize(double value)

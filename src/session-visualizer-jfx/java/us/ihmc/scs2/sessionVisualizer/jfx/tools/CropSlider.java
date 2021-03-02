@@ -1,7 +1,6 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.tools;
 
 import com.jfoenix.controls.JFXSlider;
-import com.sun.javafx.util.Utils;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -10,6 +9,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.AccessibleAttribute;
 import javafx.scene.control.Skin;
+import us.ihmc.commons.MathTools;
 
 public class CropSlider extends JFXSlider
 {
@@ -113,7 +113,7 @@ public class CropSlider extends JFXSlider
             protected void invalidated()
             {
                if (getTrimStartValue() < getMin() || getTrimStartValue() > getTrimEndValue())
-                  setTrimStartValue(Utils.clamp(getMin(), getTrimStartValue(), getTrimEndValue()));
+                  setTrimStartValue(MathTools.clamp(getTrimStartValue(), getMin(), getTrimEndValue()));
 
                notifyAccessibleAttributeChanged(AccessibleAttribute.VALUE);
             }
@@ -157,7 +157,7 @@ public class CropSlider extends JFXSlider
             protected void invalidated()
             {
                if (getTrimEndValue() < getTrimStartValue() || getTrimEndValue() > getMax())
-                  setTrimEndValue(Utils.clamp(getTrimStartValue(), getTrimEndValue(), getMax()));
+                  setTrimEndValue(MathTools.clamp(getTrimEndValue(), getTrimStartValue(), getMax()));
                notifyAccessibleAttributeChanged(AccessibleAttribute.VALUE);
             }
 
@@ -278,8 +278,17 @@ public class CropSlider extends JFXSlider
          int prevTick = (int) ((v - getMin()) / tickSpacing);
          double prevTickValue = (prevTick) * tickSpacing + getMin();
          double nextTickValue = (prevTick + 1) * tickSpacing + getMin();
-         v = Utils.nearest(prevTickValue, v, nextTickValue);
+         v = nearest(prevTickValue, v, nextTickValue);
       }
-      return Utils.clamp(getMin(), v, getMax());
+      return MathTools.clamp(v, getMin(), getMax());
+   }
+
+   public static double nearest(double less, double value, double more)
+   {
+      double lessDiff = value - less;
+      double moreDiff = more - value;
+      if (lessDiff < moreDiff)
+         return less;
+      return more;
    }
 }
