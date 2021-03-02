@@ -175,6 +175,8 @@ public class NumberSeriesLayer extends ImageView
       imageWaitingToRender = null;
    }
 
+   private int[] xData, yData;
+
    private BufferedImage newImage()
    {
       if (numberSeries.getDataEntry() == null)
@@ -187,6 +189,9 @@ public class NumberSeriesLayer extends ImageView
 
       if (data.isEmpty())
          return null;
+
+      xData = resize(xData, data.size());
+      yData = resize(yData, data.size());
 
       double width = imageScaleProperty.get() * xAxis.getWidth();
       double height = imageScaleProperty.get() * yAxis.getHeight();
@@ -215,25 +220,28 @@ public class NumberSeriesLayer extends ImageView
          yTransform = yTransform.compose(negateTransform());
       }
 
-      drawMultiLine(graphics, data, xTransform, yTransform);
+      drawMultiLine(graphics, data, xTransform, yTransform, xData, yData);
 
       return bufferedImage;
    }
 
-   private static void drawMultiLine(Graphics2D graphics, List<Point2D> points, DoubleUnaryOperator xTransform, DoubleUnaryOperator yTransform)
+   private static int[] resize(int[] in, int length)
    {
-      Point2D previousPoint = points.get(0);
-      int xPrev = (int) Math.round(xTransform.applyAsDouble(previousPoint.getX()));
-      int yPrev = (int) Math.round(yTransform.applyAsDouble(previousPoint.getY()));
+      if (in == null || in.length < length)
+         return new int[length];
+      else
+         return in;
+   }
 
-      for (Point2D point : points.subList(1, points.size()))
+   private static void drawMultiLine(Graphics2D graphics, List<Point2D> points, DoubleUnaryOperator xTransform, DoubleUnaryOperator yTransform, int[] xData, int[] yData)
+   {
+      for (int i = 0; i < points.size(); i++)
       {
-         int x = (int) Math.round(xTransform.applyAsDouble(point.getX()));
-         int y = (int) Math.round(yTransform.applyAsDouble(point.getY()));
-         graphics.drawLine(xPrev, yPrev, x, y);
-         xPrev = x;
-         yPrev = y;
+         Point2D point = points.get(i);
+         xData[i] = (int) Math.round(xTransform.applyAsDouble(point.getX()));
+         yData[i] = (int) Math.round(yTransform.applyAsDouble(point.getY()));
       }
+      graphics.drawPolyline(xData, yData, points.size());
    }
 
    private static java.awt.Color toAWTColor(Color color)
