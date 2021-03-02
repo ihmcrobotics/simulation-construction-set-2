@@ -120,7 +120,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable, B>
          int length = upper - lower;
          int margin = Math.max(length / 20, 1);
          lower = Math.max(0, lower - margin);
-         upper = Math.min(rawData.getBufferSize() - 1, upper + margin);
+         upper = Math.min(rawData.getBufferProperties().getSize() - 1, upper + margin);
          chartData = extractChartData(rawData, lower, upper, 0.001);
       }
 
@@ -135,7 +135,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable, B>
 
    protected DataEntry extractChartData(BufferSample<B> yoVariableBuffer, double epsilon)
    {
-      return extractChartData(yoVariableBuffer, 0, yoVariableBuffer.getBufferSize() - 1, epsilon);
+      return extractChartData(yoVariableBuffer, 0, yoVariableBuffer.getBufferProperties().getSize() - 1, epsilon);
    }
 
    protected abstract DataEntry extractChartData(BufferSample<B> yoVariableBuffer, int startIndex, int endIndex, double epsilon);

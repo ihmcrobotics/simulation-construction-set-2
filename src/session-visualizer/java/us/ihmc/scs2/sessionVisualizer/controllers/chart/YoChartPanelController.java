@@ -98,7 +98,7 @@ public class YoChartPanelController extends AnimationTimer
 
    private ChartDataManager chartDataManager;
    private final ObservableList<YoNumberSeries> yoNumberSeriesList = FXCollections.observableArrayList();
-   private final ObservableMap<YoVariable<?>, YoVariableChartPackage> charts = FXCollections.observableMap(new LinkedHashMap<>());
+   private final ObservableMap<YoVariable, YoVariableChartPackage> charts = FXCollections.observableMap(new LinkedHashMap<>());
    private AtomicReference<YoBufferPropertiesReadOnly> bufferPropertiesForMarkers;
    private AtomicReference<YoBufferPropertiesReadOnly> bufferPropertiesForScrolling;
    private final TopicListener<int[]> keyFrameMarkerListener = newKeyFrames -> updateKeyFrameMarkers(newKeyFrames);
@@ -194,7 +194,7 @@ public class YoChartPanelController extends AnimationTimer
          if (oldValue != null)
             oldValue.hide();
       });
-      charts.addListener((MapChangeListener<YoVariable<?>, YoVariableChartPackage>) change ->
+      charts.addListener((MapChangeListener<YoVariable, YoVariableChartPackage>) change ->
       {
          if (change.wasAdded())
             yoNumberSeriesList.add(change.getValueAdded().getSeries());
@@ -239,7 +239,7 @@ public class YoChartPanelController extends AnimationTimer
 
       for (YoVariableChartPackage pack : charts.values())
       {
-         int definitionIndex = definition.getYoVariables().indexOf(pack.getYoVariable().getFullNameWithNameSpace());
+         int definitionIndex = definition.getYoVariables().indexOf(pack.getYoVariable().getFullNameString());
          if (definitionIndex == -1)
             continue;
 
@@ -295,7 +295,7 @@ public class YoChartPanelController extends AnimationTimer
    public void addYoVariableToPlot(String yoVariableFullName)
    {
       YoVariableDatabase rootRegistryDatabase = yoManager.getRootRegistryDatabase();
-      YoVariable<?> yoVariable = rootRegistryDatabase.searchExact(yoVariableFullName);
+      YoVariable yoVariable = rootRegistryDatabase.searchExact(yoVariableFullName);
       if (yoVariable == null)
       {
          LogTools.warn("Incompatible variable name, searching similar variables to " + yoVariableFullName);
@@ -309,14 +309,14 @@ public class YoChartPanelController extends AnimationTimer
       addYoVariableToPlot(yoVariable);
    }
 
-   public void addYoVariableToPlot(YoVariable<?> yoVariable)
+   public void addYoVariableToPlot(YoVariable yoVariable)
    {
       if (charts.containsKey(yoVariable))
          return;
       charts.put(yoVariable, new YoVariableChartPackage(yoVariable));
    }
 
-   public void addYoVariablesToPlot(Collection<? extends YoVariable<?>> yoVariables)
+   public void addYoVariablesToPlot(Collection<? extends YoVariable> yoVariables)
    {
       yoVariables.forEach(this::addYoVariableToPlot);
    }
@@ -331,7 +331,7 @@ public class YoChartPanelController extends AnimationTimer
       removeYoVariableFromPlot(yoManager.getRootRegistry().getVariable(yoVariableFullName));
    }
 
-   public void removeYoVariableFromPlot(YoVariable<?> yoVariable)
+   public void removeYoVariableFromPlot(YoVariable yoVariable)
    {
       YoVariableChartPackage chart = charts.remove(yoVariable);
       if (chart != null)
@@ -411,7 +411,7 @@ public class YoChartPanelController extends AnimationTimer
    private ContextMenu newGraphContextMenu()
    {
       ContextMenu contextMenu = new ContextMenu();
-      for (YoVariable<?> yoVariable : charts.keySet())
+      for (YoVariable yoVariable : charts.keySet())
       {
          MenuItem menuItem = new MenuItem("Remove " + yoVariable.getName());
          menuItem.setMnemonicParsing(false);
@@ -546,13 +546,13 @@ public class YoChartPanelController extends AnimationTimer
       {
          LabeledText legend = (LabeledText) intersectedNode;
          String yoVariableName = legend.getText().split("\\s+")[0];
-         YoVariable<?> yoVariableSelected = charts.keySet().stream().filter(yoVariable -> yoVariable.getName().equals(yoVariableName)).findFirst().orElse(null);
+         YoVariable yoVariableSelected = charts.keySet().stream().filter(yoVariable -> yoVariable.getName().equals(yoVariableName)).findFirst().orElse(null);
          if (yoVariableSelected == null)
             return;
          Dragboard dragBoard = legend.startDragAndDrop(TransferMode.ANY);
          ClipboardContent clipboardContent = new ClipboardContent();
          clipboardContent.put(DragAndDropTools.YO_COMPOSITE_REFERENCE,
-                              Arrays.asList(YoCompositeTools.YO_VARIABLE, yoVariableSelected.getFullNameWithNameSpace()));
+                              Arrays.asList(YoCompositeTools.YO_VARIABLE, yoVariableSelected.getFullNameString()));
          dragBoard.setContent(clipboardContent);
       }
 
@@ -640,7 +640,7 @@ public class YoChartPanelController extends AnimationTimer
       YoChartConfigurationDefinition definition = new YoChartConfigurationDefinition();
       definition.setIdentifier(YoChartTools.toYoChartIdentifierDefinition(chartIdentifier));
       definition.setChartStyle(dynamicLineChart.getChartStyle().name());
-      definition.setYoVariables(charts.keySet().stream().map(YoVariable::getFullNameWithNameSpace).collect(Collectors.toList()));
+      definition.setYoVariables(charts.keySet().stream().map(YoVariable::getFullNameString).collect(Collectors.toList()));
       definition.setYBounds(charts.values().stream().map(pack -> YoChartTools.toChartDoubleBoundsDefinition(pack.getSeries().getCustomYBounds()))
                                   .collect(Collectors.toList()));
       definition.setNegates(charts.values().stream().map(pack -> pack.getSeries().isNegated()).collect(Collectors.toList()));
@@ -653,7 +653,7 @@ public class YoChartPanelController extends AnimationTimer
       private final YoVariableChartData<?, ?> chartData;
       private final Object callerID = YoChartPanelController.this;
 
-      public YoVariableChartPackage(YoVariable<?> yoVariable)
+      public YoVariableChartPackage(YoVariable yoVariable)
       {
          series = new YoNumberSeries(yoVariable);
          chartData = chartDataManager.getYoVariableChartData(callerID, yoVariable);
@@ -672,7 +672,7 @@ public class YoChartPanelController extends AnimationTimer
             series.setDataEntry(newData);
       }
 
-      public YoVariable<?> getYoVariable()
+      public YoVariable getYoVariable()
       {
          return series.getYoVariable();
       }

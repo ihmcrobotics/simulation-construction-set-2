@@ -6,9 +6,9 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoNumberSeries extends NumberSeries
 {
-   private final YoVariable<?> yoVariable;
+   private final YoVariable yoVariable;
 
-   public YoNumberSeries(YoVariable<?> yoVariable)
+   public YoNumberSeries(YoVariable yoVariable)
    {
       super(yoVariable.getName());
 
@@ -20,7 +20,7 @@ public class YoNumberSeries extends NumberSeries
       setCurrentValue(LineChartTools.defaultYoVariableValueFormatter(yoVariable));
    }
 
-   public YoVariable<?> getYoVariable()
+   public YoVariable getYoVariable()
    {
       return yoVariable;
    }

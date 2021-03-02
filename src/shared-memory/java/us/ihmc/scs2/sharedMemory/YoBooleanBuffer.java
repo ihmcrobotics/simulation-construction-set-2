@@ -41,9 +41,9 @@ public class YoBooleanBuffer extends YoVariableBuffer<YoBoolean>
    }
 
    @Override
-   public BufferSample<boolean[]> copy(int from, int length)
+   public BufferSample<boolean[]> copy(int from, int length, YoBufferPropertiesReadOnly properties)
    {
-      return new BufferSample<>(from, buffer.length, BufferTools.ringArrayCopy(buffer, from, length), length);
+      return new BufferSample<>(from, BufferTools.ringArrayCopy(buffer, from, length), length, properties);
    }
 
    @Override
