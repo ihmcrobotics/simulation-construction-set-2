@@ -11,7 +11,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import com.jfoenix.controls.JFXButton;
-import com.sun.javafx.scene.control.skin.LabeledText;
 
 import de.gsi.chart.XYChart;
 import de.gsi.chart.plugins.XValueIndicator;
@@ -39,6 +38,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.PickResult;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.text.Text;
 import javafx.stage.Window;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.log.LogTools;
@@ -60,9 +60,9 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.CompositePropertyTools.YoVariableDatabase;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.CompositePropertyTools.YoVariableDatabase;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -434,9 +434,9 @@ public class YoChartPanelController extends AnimationTimer
 
    private void handleMouseMiddleClick(MouseEvent e)
    {
-      if (e.isMiddleButtonDown() && e.getPickResult().getIntersectedNode() instanceof LabeledText)
+      if (e.isMiddleButtonDown() && e.getPickResult().getIntersectedNode() instanceof Text)
       { // TODO The legend's name needs to be unique within a single graph
-         String pickedName = ((LabeledText) e.getPickResult().getIntersectedNode()).getText();
+         String pickedName = ((Text) e.getPickResult().getIntersectedNode()).getText();
          Optional<YoVariableChartPackage> chartData = charts.values().stream().filter(dataPackage -> dataPackage.yoDataSet.getName().equals(pickedName))
                                                             .findFirst();
          if (chartData.isPresent())
@@ -462,9 +462,9 @@ public class YoChartPanelController extends AnimationTimer
       if (intersectedNode == null)
          return;
 
-      if (intersectedNode instanceof LabeledText)
+      if (intersectedNode instanceof Text)
       {
-         LabeledText legend = (LabeledText) intersectedNode;
+         Text legend = (Text) intersectedNode;
          String yoVariableName = legend.getText().split("\\s+")[0];
          YoVariable yoVariableSelected = charts.keySet().stream().filter(yoVariable -> yoVariable.getName().equals(yoVariableName)).findFirst().orElse(null);
          if (yoVariableSelected == null)
