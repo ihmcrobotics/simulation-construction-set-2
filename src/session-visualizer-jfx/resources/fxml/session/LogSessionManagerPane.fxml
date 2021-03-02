@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import us.ihmc.scs2.sessionVisualizer.tools.CropSlider?>
+<?import us.ihmc.scs2.sessionVisualizer.jfx.tools.CropSlider?>
 
 <AnchorPane fx:id="mainPane" minHeight="-Infinity" minWidth="-Infinity" stylesheets="@../../css/GeneralStylesheet.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.session.log.LogSessionManagerController">
    <children>

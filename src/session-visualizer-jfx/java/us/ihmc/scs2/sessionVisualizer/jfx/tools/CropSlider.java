@@ -2,7 +2,11 @@ package us.ihmc.scs2.sessionVisualizer.jfx.tools;
 
 import com.jfoenix.controls.JFXSlider;
 
-import javafx.beans.property.*;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.DoublePropertyBase;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.AccessibleAttribute;
 import javafx.scene.control.Skin;
 import us.ihmc.commons.MathTools;

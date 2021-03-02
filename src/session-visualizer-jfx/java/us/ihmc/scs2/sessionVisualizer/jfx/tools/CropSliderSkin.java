@@ -3,7 +3,11 @@ package us.ihmc.scs2.sessionVisualizer.jfx.tools;
 import com.jfoenix.controls.JFXSlider.IndicatorPosition;
 import com.jfoenix.skins.JFXSliderSkin;
 
-import javafx.animation.*;
+import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
+import javafx.animation.Transition;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.geometry.Orientation;
