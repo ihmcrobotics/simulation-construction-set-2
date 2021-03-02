@@ -10,7 +10,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import us.ihmc.scs2.sessionVisualizer.tools.CropSlider;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.CropSlider;
 
 public class CropSliderDemo extends Application
 {

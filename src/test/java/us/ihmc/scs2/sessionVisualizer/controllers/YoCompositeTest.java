@@ -10,7 +10,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.scs2.sessionVisualizer.yoComposite.YoComposite;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.yoVariables.registry.YoNamespace;
 
 public class YoCompositeTest

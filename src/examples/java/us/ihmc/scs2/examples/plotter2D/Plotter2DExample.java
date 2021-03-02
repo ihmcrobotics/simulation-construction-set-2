@@ -3,7 +3,7 @@ package us.ihmc.scs2.examples.plotter2D;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import us.ihmc.scs2.sessionVisualizer.plotter.Plotter2D;
+import us.ihmc.scs2.sessionVisualizer.jfx.plotter.Plotter2D;
 
 public class Plotter2DExample extends Application
 {

@@ -1,6 +1,6 @@
 package us.ihmc.scs2.examples.mobile;
 
-import us.ihmc.scs2.sessionVisualizer.SessionVisualizer;
+import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizer;
 import us.ihmc.scs2.simulation.SimulationSession;
 
 public class MobileSimulation
