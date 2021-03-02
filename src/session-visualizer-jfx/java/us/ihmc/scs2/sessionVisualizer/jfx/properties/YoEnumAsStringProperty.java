@@ -3,6 +3,9 @@ package us.ihmc.scs2.sessionVisualizer.jfx.properties;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.mutable.MutableBoolean;
+
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.StringPropertyBase;
@@ -58,6 +61,41 @@ public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBas
    private void pullYoEnumValue()
    {
       super.set(toEnumString(yoEnum.getOrdinal()));
+   }
+
+   public void bindStringProperty(Property<String> property)
+   {
+      bindStringProperty(property, null);
+   }
+
+   public void bindStringProperty(Property<String> property, Runnable pushValueAction)
+   {
+      property.setValue(getValue());
+
+      MutableBoolean updatingControl = new MutableBoolean(false);
+      MutableBoolean updatingThis = new MutableBoolean(false);
+
+      addListener((o, oldValue, newValue) ->
+      { // YoVariable changed, updating control
+         if (updatingThis.isTrue())
+            return;
+
+         updatingControl.setTrue();
+         property.setValue(newValue);
+         updatingControl.setFalse();
+      });
+
+      property.addListener((o, oldValue, newValue) ->
+      {
+         if (updatingControl.isTrue())
+            return;
+
+         updatingThis.setTrue();
+         set(newValue);
+         if (pushValueAction != null)
+            pushValueAction.run();
+         updatingThis.setFalse();
+      });
    }
 
    public int toEnumOrdinal(String newValue)

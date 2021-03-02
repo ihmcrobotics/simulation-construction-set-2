@@ -4,9 +4,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.sun.javafx.binding.BidirectionalBinding;
-
-import javafx.beans.InvalidationListener;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
@@ -164,17 +161,11 @@ public class YoCompositeListCell extends ListCell<YoComposite>
       Spinner<Double> spinner = new Spinner<>(valueFactory);
       spinner.setPrefWidth(GRAPHIC_PREF_WIDTH);
       spinner.setEditable(true);
-      BidirectionalBinding.bindNumber(yoDoubleProperty, spinner.getValueFactory().valueProperty());
-      yoDoubleProperty.userInputProperty().addListener((InvalidationListener) observable ->
-      {
-         YoDouble yoDouble = yoDoubleProperty.getYoVariable();
-         yoDouble.set(yoDoubleProperty.userInputProperty().get());
-         linkedRegistry.push(yoDouble);
-      });
+      yoDoubleProperty.bindDoubleProperty(spinner.getValueFactory().valueProperty(), () -> linkedRegistry.push(yoDoubleProperty.getYoVariable()));
 
       Tooltip tooltip = new Tooltip();
       tooltip.textProperty().bind(spinner.valueProperty().asString());
-      spinner.getEditor().setTooltip(tooltip);
+      spinner.setTooltip(tooltip);
 
       return spinner;
    }
@@ -184,13 +175,8 @@ public class YoCompositeListCell extends ListCell<YoComposite>
       CheckBox checkBox = new CheckBox();
       checkBox.setPrefWidth(GRAPHIC_PREF_WIDTH);
       checkBox.setSelected(yoBooleanProperty.getValue());
-      BidirectionalBinding.bind(yoBooleanProperty, checkBox.selectedProperty());
-      yoBooleanProperty.userInputProperty().addListener((InvalidationListener) observable ->
-      {
-         YoBoolean yoBoolean = yoBooleanProperty.getYoVariable();
-         yoBoolean.set(yoBooleanProperty.userInputProperty().get());
-         linkedRegistry.push(yoBoolean);
-      });
+      yoBooleanProperty.bindBooleanProperty(checkBox.selectedProperty(), () -> linkedRegistry.push(yoBooleanProperty.getYoVariable()));
+
       return checkBox;
    }
 
@@ -199,17 +185,11 @@ public class YoCompositeListCell extends ListCell<YoComposite>
       Spinner<Long> spinner = new Spinner<>(new LongSpinnerValueFactory(Long.MIN_VALUE, Long.MAX_VALUE, yoLongProperty.getValue(), 1L));
       spinner.setPrefWidth(GRAPHIC_PREF_WIDTH);
       spinner.setEditable(true);
-      BidirectionalBinding.bindNumber(yoLongProperty, spinner.getValueFactory().valueProperty());
-      yoLongProperty.userInputProperty().addListener((InvalidationListener) observable ->
-      {
-         YoLong yoLong = yoLongProperty.getYoVariable();
-         yoLong.set(yoLongProperty.userInputProperty().get());
-         linkedRegistry.push(yoLong);
-      });
+      yoLongProperty.bindLongProperty(spinner.getValueFactory().valueProperty(), () -> linkedRegistry.push(yoLongProperty.getYoVariable()));
 
       Tooltip tooltip = new Tooltip();
       tooltip.textProperty().bind(spinner.valueProperty().asString());
-      spinner.getEditor().setTooltip(tooltip);
+      spinner.setTooltip(tooltip);
 
       return spinner;
    }
@@ -219,17 +199,11 @@ public class YoCompositeListCell extends ListCell<YoComposite>
       Spinner<Integer> spinner = new Spinner<>(Integer.MIN_VALUE, Integer.MAX_VALUE, yoIntegerProperty.getValue(), 1);
       spinner.setPrefWidth(GRAPHIC_PREF_WIDTH);
       spinner.setEditable(true);
-      BidirectionalBinding.bindNumber(yoIntegerProperty, spinner.getValueFactory().valueProperty());
-      yoIntegerProperty.userInputProperty().addListener((InvalidationListener) observable ->
-      {
-         YoInteger yoInteger = yoIntegerProperty.getYoVariable();
-         yoInteger.set(yoIntegerProperty.userInputProperty().get());
-         linkedRegistry.push(yoInteger);
-      });
+      yoIntegerProperty.bindIntegerProperty(spinner.getValueFactory().valueProperty(), () -> linkedRegistry.push(yoIntegerProperty.getYoVariable()));
 
       Tooltip tooltip = new Tooltip();
       tooltip.textProperty().bind(spinner.valueProperty().asString());
-      spinner.getEditor().setTooltip(tooltip);
+      spinner.setTooltip(tooltip);
 
       return spinner;
    }
@@ -240,13 +214,7 @@ public class YoCompositeListCell extends ListCell<YoComposite>
       comboBox.setValue(yoEnumProperty.getValue());
       comboBox.setPrefWidth(GRAPHIC_PREF_WIDTH);
       comboBox.setEditable(false);
-      BidirectionalBinding.bind(yoEnumProperty, comboBox.valueProperty());
-      yoEnumProperty.userInputProperty().addListener((InvalidationListener) observable ->
-      {
-         YoEnum<E> yoEnum = yoEnumProperty.getYoVariable();
-         yoEnum.set(yoEnumProperty.toEnumOrdinal(yoEnumProperty.userInputProperty().get()));
-         linkedRegistry.push(yoEnum);
-      });
+      yoEnumProperty.bindStringProperty(comboBox.valueProperty(), () -> linkedRegistry.push(yoEnumProperty.getYoVariable()));
 
       Tooltip tooltip = new Tooltip();
       tooltip.textProperty().bind(comboBox.valueProperty());
