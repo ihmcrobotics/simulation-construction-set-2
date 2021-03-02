@@ -5,6 +5,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.RenderingHints.Key;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,10 +22,10 @@ import javafx.css.Styleable;
 import javafx.css.StyleableDoubleProperty;
 import javafx.css.StyleableObjectProperty;
 import javafx.css.StyleablePropertyFactory;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.chart.NumberAxis;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.PixelFormat;
+import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.transform.Scale;
@@ -108,6 +109,7 @@ public class NumberSeriesLayer extends ImageView
    private final ObjectProperty<ChartStyle> chartStyleProperty = new SimpleObjectProperty<>(this, "chartStyle", ChartStyle.RAW);
    private final DoubleProperty imageScaleProperty = new SimpleDoubleProperty(this, "imageScale", 0.0);
    private final Scale imageScale = new Scale();
+   private WritableImage writableImage = null;
 
    public NumberSeriesLayer(NumberAxis xAxis, NumberAxis yAxis, NumberSeries numberSeries, Executor backgroundExecutor, ChartRenderManager renderManager)
    {
@@ -139,7 +141,7 @@ public class NumberSeriesLayer extends ImageView
       updateRequested.set(true);
    }
 
-   private Image imageWaitingToRender = null;
+   private BufferedImage imageWaitingToRender = null;
 
    public void prepareToRender()
    {
@@ -159,11 +161,21 @@ public class NumberSeriesLayer extends ImageView
       if (imageWaitingToRender == null)
          return;
 
-      setImage(imageWaitingToRender);
+      int width = imageWaitingToRender.getWidth();
+      int height = imageWaitingToRender.getHeight();
+
+      if (writableImage == null || (int) Math.round(writableImage.getWidth()) != width || (int) Math.round(writableImage.getHeight()) != height)
+      {
+         writableImage = new WritableImage(width, height);
+         setImage(writableImage);
+      }
+
+      int[] data = ((DataBufferInt) imageWaitingToRender.getRaster().getDataBuffer()).getData();
+      writableImage.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbPreInstance(), data, 0, width);
       imageWaitingToRender = null;
    }
 
-   private Image newImage()
+   private BufferedImage newImage()
    {
       if (numberSeries.getDataEntry() == null)
          return null;
@@ -205,7 +217,7 @@ public class NumberSeriesLayer extends ImageView
 
       drawMultiLine(graphics, data, xTransform, yTransform);
 
-      return SwingFXUtils.toFXImage(bufferedImage, null);
+      return bufferedImage;
    }
 
    private static void drawMultiLine(Graphics2D graphics, List<Point2D> points, DoubleUnaryOperator xTransform, DoubleUnaryOperator yTransform)
