@@ -172,7 +172,7 @@ public class AtlasModelLoadingTest
    public void testSDFTools() throws Exception
    {
       InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream("models/atlas/atlas_unplugged_v5_dual_robotiq.sdf");
-      SDFRoot sdfRoot = SDFTools.loadSDFRoot(resourceAsStream, Collections.emptyList());
+      SDFRoot sdfRoot = SDFTools.loadSDFRoot(resourceAsStream, Collections.emptyList(), this.getClass().getClassLoader());
       RobotDefinition robotDefinition = SDFTools.toFloatingRobotDefinition(sdfRoot.getModels().get(0));
       performAssertionsOnRobotDefinition(robotDefinition);
    }
@@ -181,7 +181,7 @@ public class AtlasModelLoadingTest
    public void testURDFTools() throws Exception
    {
       InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream("models/atlas/atlas_unplugged_v5_dual_robotiq_with_head.urdf");
-      URDFModel urdfModel = URDFTools.loadURDFModel(resourceAsStream, Collections.emptyList());
+      URDFModel urdfModel = URDFTools.loadURDFModel(resourceAsStream, Collections.emptyList(), this.getClass().getClassLoader());
       RobotDefinition robotDefinition = URDFTools.toFloatingRobotDefinition(urdfModel);
       performAssertionsOnRobotDefinition(robotDefinition);
    }

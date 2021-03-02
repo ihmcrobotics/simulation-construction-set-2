@@ -127,7 +127,13 @@ public class JavaFXVisualTools
 
    public static Node collectNodes(List<VisualDefinition> visualDefinitions)
    {
-      List<Node> nodes = visualDefinitions.stream().map(JavaFXVisualTools::toNode).filter(node -> node != null).collect(Collectors.toList());
+      return collectNodes(visualDefinitions, null);
+   }
+
+   public static Node collectNodes(List<VisualDefinition> visualDefinitions, ClassLoader resourceClassLoader)
+   {
+      List<Node> nodes = visualDefinitions.stream().map(definition -> toNode(definition, resourceClassLoader)).filter(node -> node != null)
+                                          .collect(Collectors.toList());
 
       if (nodes.isEmpty())
          return null;
@@ -137,9 +143,9 @@ public class JavaFXVisualTools
          return new Group(nodes);
    }
 
-   public static Node toNode(VisualDefinition visualDefinition)
+   public static Node toNode(VisualDefinition visualDefinition, ClassLoader resourceClassLoader)
    {
-      Node node = toShape3D(visualDefinition.getGeometryDefinition(), visualDefinition.getMaterialDefinition());
+      Node node = toShape3D(visualDefinition.getGeometryDefinition(), visualDefinition.getMaterialDefinition(), resourceClassLoader);
 
       if (node != null && visualDefinition.getOriginPose() != null)
       {
@@ -151,7 +157,7 @@ public class JavaFXVisualTools
       return node;
    }
 
-   public static Node toShape3D(GeometryDefinition geometryDefinition, MaterialDefinition materialDefinition)
+   public static Node toShape3D(GeometryDefinition geometryDefinition, MaterialDefinition materialDefinition, ClassLoader resourceClassLoader)
    {
       if (geometryDefinition == null)
       {
@@ -225,7 +231,7 @@ public class JavaFXVisualTools
       }
       else if (geometryDefinition instanceof ModelFileGeometryDefinition)
       {
-         Node[] nodes = importModel((ModelFileGeometryDefinition) geometryDefinition);
+         Node[] nodes = importModel((ModelFileGeometryDefinition) geometryDefinition, resourceClassLoader);
          if (nodes == null)
             return null;
 
@@ -349,14 +355,16 @@ public class JavaFXVisualTools
       return meshView;
    }
 
-   public static Node[] importModel(ModelFileGeometryDefinition geometryDefinition)
+   public static Node[] importModel(ModelFileGeometryDefinition geometryDefinition, ClassLoader resourceClassLoader)
    {
       if (geometryDefinition == null || geometryDefinition.getFileName() == null)
          return DEFAULT_MESH_VIEWS;
 
       String filename = geometryDefinition.getFileName();
 
-      URL fileURL = JavaFXTools.class.getClassLoader().getResource(filename);
+      if (resourceClassLoader == null)
+         resourceClassLoader = JavaFXTools.class.getClassLoader();
+      URL fileURL = resourceClassLoader.getResource(filename);
 
       if (fileURL == null)
       {

@@ -73,15 +73,19 @@ public class JavaFXMultiBodySystemFactories
 
    public static RigidBodyBuilder newJavaFXRigidBodyBuilder(RobotDefinition robotDefinition, Executor graphicLoader)
    {
-      return newJavaFXRigidBodyBuilder(MultiBodySystemFactories.DEFAULT_RIGID_BODY_BUILDER, robotDefinition, graphicLoader);
+      return newJavaFXRigidBodyBuilder(MultiBodySystemFactories.DEFAULT_RIGID_BODY_BUILDER,
+                                       robotDefinition,
+                                       graphicLoader,
+                                       robotDefinition.getResourceClassLoader());
    }
 
    public static RigidBodyBuilder newJavaFXRigidBodyBuilder(RigidBodyBuilder rigidBodyBuilder, RobotDefinition robotDefinition)
    {
-      return newJavaFXRigidBodyBuilder(rigidBodyBuilder, robotDefinition, null);
+      return newJavaFXRigidBodyBuilder(rigidBodyBuilder, robotDefinition, null, robotDefinition.getResourceClassLoader());
    }
 
-   public static RigidBodyBuilder newJavaFXRigidBodyBuilder(RigidBodyBuilder rigidBodyBuilder, RobotDefinition robotDefinition, Executor graphicLoader)
+   public static RigidBodyBuilder newJavaFXRigidBodyBuilder(RigidBodyBuilder rigidBodyBuilder, RobotDefinition robotDefinition, Executor graphicLoader,
+                                                            ClassLoader resourceClassLoader)
    {
       return new RigidBodyBuilder()
       {
@@ -89,43 +93,44 @@ public class JavaFXMultiBodySystemFactories
          public JavaFXRigidBody buildRoot(String bodyName, RigidBodyTransform transformToParent, ReferenceFrame parentStationaryFrame)
          {
             RigidBodyBasics rootBody = rigidBodyBuilder.buildRoot(bodyName, transformToParent, parentStationaryFrame);
-            return toJavaFXRigidBody(rootBody, robotDefinition.getRigidBodyDefinition(rootBody.getName()), graphicLoader);
+            return toJavaFXRigidBody(rootBody, robotDefinition.getRigidBodyDefinition(rootBody.getName()), graphicLoader, resourceClassLoader);
          }
 
          @Override
          public JavaFXRigidBody build(String bodyName, JointBasics parentJoint, Matrix3DReadOnly momentOfInertia, double mass, RigidBodyTransform inertiaPose)
          {
             RigidBodyBasics rigidBody = rigidBodyBuilder.build(bodyName, parentJoint, momentOfInertia, mass, inertiaPose);
-            return toJavaFXRigidBody(rigidBody, robotDefinition.getRigidBodyDefinition(rigidBody.getName()), graphicLoader);
+            return toJavaFXRigidBody(rigidBody, robotDefinition.getRigidBodyDefinition(rigidBody.getName()), graphicLoader, resourceClassLoader);
          }
       };
    }
 
-   public static JavaFXRigidBody toJavaFXRigidBody(RigidBodyBasics rigidBody, RigidBodyDefinition rigidBodyDefinition)
+   public static JavaFXRigidBody toJavaFXRigidBody(RigidBodyBasics rigidBody, RigidBodyDefinition rigidBodyDefinition, ClassLoader resourceClassLoader)
    {
-      return toJavaFXRigidBody(rigidBody, rigidBodyDefinition, null);
+      return toJavaFXRigidBody(rigidBody, rigidBodyDefinition, null, resourceClassLoader);
    }
 
-   public static JavaFXRigidBody toJavaFXRigidBody(RigidBodyBasics rigidBody, RigidBodyDefinition rigidBodyDefinition, Executor graphicLoader)
+   public static JavaFXRigidBody toJavaFXRigidBody(RigidBodyBasics rigidBody, RigidBodyDefinition rigidBodyDefinition, Executor graphicLoader,
+                                                   ClassLoader resourceClassLoader)
    {
       JavaFXRigidBody javaFXRigidBody = new JavaFXRigidBody(rigidBody);
       List<VisualDefinition> visualDefinitions = rigidBodyDefinition.getVisualDefinitions();
 
       if (graphicLoader != null)
       {
-         graphicLoader.execute(() -> loadRigidBodyGraphic(visualDefinitions, javaFXRigidBody));
+         graphicLoader.execute(() -> loadRigidBodyGraphic(visualDefinitions, javaFXRigidBody, resourceClassLoader));
       }
       else
       {
-         loadRigidBodyGraphic(visualDefinitions, javaFXRigidBody);
+         loadRigidBodyGraphic(visualDefinitions, javaFXRigidBody, resourceClassLoader);
       }
 
       return javaFXRigidBody;
    }
 
-   private static void loadRigidBodyGraphic(List<VisualDefinition> visualDefinitions, JavaFXRigidBody javaFXRigidBody)
+   private static void loadRigidBodyGraphic(List<VisualDefinition> visualDefinitions, JavaFXRigidBody javaFXRigidBody, ClassLoader resourceClassLoader)
    {
-      Node graphicNode = JavaFXVisualTools.collectNodes(visualDefinitions);
+      Node graphicNode = JavaFXVisualTools.collectNodes(visualDefinitions, resourceClassLoader);
       ReferenceFrame graphicFrame = javaFXRigidBody.isRootBody() ? javaFXRigidBody.getBodyFixedFrame() : javaFXRigidBody.getParentJoint().getFrameAfterJoint();
 
       if (graphicNode != null)

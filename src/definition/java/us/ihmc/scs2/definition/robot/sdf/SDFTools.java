@@ -114,28 +114,36 @@ public class SDFTools
       return sdfRoot;
    }
 
-   public static SDFRoot loadSDFRoot(InputStream inputStream, Collection<String> resourceDirectories) throws JAXBException
+   public static SDFRoot loadSDFRoot(InputStream inputStream, Collection<String> resourceDirectories, ClassLoader resourceClassLoader) throws JAXBException
    {
       JAXBContext context = JAXBContext.newInstance(SDFRoot.class);
       Unmarshaller um = context.createUnmarshaller();
       SDFRoot sdfRoot = (SDFRoot) um.unmarshal(inputStream);
 
-      resolvePaths(sdfRoot, resourceDirectories);
+      resolvePaths(sdfRoot, resourceDirectories, resourceClassLoader);
 
       return sdfRoot;
    }
 
    public static void resolvePaths(SDFRoot sdfRoot, Collection<String> resourceDirectories)
    {
+      resolvePaths(sdfRoot, resourceDirectories, null);
+   }
+
+   public static void resolvePaths(SDFRoot sdfRoot, Collection<String> resourceDirectories, ClassLoader resourceClassLoader)
+   {
+      if (resourceClassLoader == null)
+         resourceClassLoader = SDFTools.class.getClassLoader();
+
       List<SDFURIHolder> uriHolders = sdfRoot.getURIHolders();
 
       for (SDFURIHolder sdfURIHolder : uriHolders)
       {
-         sdfURIHolder.setUri(tryToConvertToPath(sdfURIHolder.getUri(), resourceDirectories));
+         sdfURIHolder.setUri(tryToConvertToPath(sdfURIHolder.getUri(), resourceDirectories, resourceClassLoader));
       }
    }
 
-   public static String tryToConvertToPath(String filename, Collection<String> resourceDirectories)
+   public static String tryToConvertToPath(String filename, Collection<String> resourceDirectories, ClassLoader resourceClassLoader)
    {
       try
       {
@@ -147,7 +155,7 @@ public class SDFTools
          {
             String fullname = resourceDirectory + authority + uri.getPath();
             // Path relative to class root
-            if (SDFTools.class.getClassLoader().getResource(fullname) != null)
+            if (resourceClassLoader.getResource(fullname) != null)
             {
                return fullname;
             }
@@ -178,7 +186,7 @@ public class SDFTools
             if (!resourceDirectories.contains(newResource))
             {
                resourceDirectories.add(newResource);
-               return tryToConvertToPath(filename, resourceDirectories);
+               return tryToConvertToPath(filename, resourceDirectories, resourceClassLoader);
             }
          }
       }

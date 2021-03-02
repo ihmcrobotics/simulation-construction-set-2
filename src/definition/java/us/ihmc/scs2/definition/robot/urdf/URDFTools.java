@@ -126,28 +126,36 @@ public class URDFTools
       return urdfModel;
    }
 
-   public static URDFModel loadURDFModel(InputStream inputStream, Collection<String> resourceDirectories) throws JAXBException
+   public static URDFModel loadURDFModel(InputStream inputStream, Collection<String> resourceDirectories, ClassLoader resourceClassLoader) throws JAXBException
    {
       JAXBContext context = JAXBContext.newInstance(URDFModel.class);
       Unmarshaller um = context.createUnmarshaller();
       URDFModel urdfModel = (URDFModel) um.unmarshal(inputStream);
 
-      resolvePaths(urdfModel, resourceDirectories);
+      resolvePaths(urdfModel, resourceDirectories, resourceClassLoader);
 
       return urdfModel;
    }
 
    public static void resolvePaths(URDFModel urdfModel, Collection<String> resourceDirectories)
    {
+      resolvePaths(urdfModel, resourceDirectories, null);
+   }
+
+   public static void resolvePaths(URDFModel urdfModel, Collection<String> resourceDirectories, ClassLoader resourceClassLoader)
+   {
+      if (resourceClassLoader == null)
+         resourceClassLoader = URDFTools.class.getClassLoader();
+
       List<URDFFilenameHolder> filenameHolders = urdfModel.getFilenameHolders();
 
       for (URDFFilenameHolder urdfFilenameHolder : filenameHolders)
       {
-         urdfFilenameHolder.setFilename(tryToConvertToPath(urdfFilenameHolder.getFilename(), resourceDirectories));
+         urdfFilenameHolder.setFilename(tryToConvertToPath(urdfFilenameHolder.getFilename(), resourceDirectories, resourceClassLoader));
       }
    }
 
-   public static String tryToConvertToPath(String filename, Collection<String> resourceDirectories)
+   public static String tryToConvertToPath(String filename, Collection<String> resourceDirectories, ClassLoader resourceClassLoader)
    {
       try
       {
@@ -159,7 +167,7 @@ public class URDFTools
          {
             String fullname = resourceDirectory + authority + uri.getPath();
             // Path relative to class root
-            if (URDFTools.class.getClassLoader().getResource(fullname) != null)
+            if (resourceClassLoader.getResource(fullname) != null)
             {
                return fullname;
             }
@@ -190,7 +198,7 @@ public class URDFTools
             if (!resourceDirectories.contains(newResource))
             {
                resourceDirectories.add(newResource);
-               return tryToConvertToPath(filename, resourceDirectories);
+               return tryToConvertToPath(filename, resourceDirectories, resourceClassLoader);
             }
          }
       }

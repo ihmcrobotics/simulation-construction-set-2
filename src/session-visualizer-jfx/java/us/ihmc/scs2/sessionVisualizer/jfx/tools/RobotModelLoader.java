@@ -3,6 +3,8 @@ package us.ihmc.scs2.sessionVisualizer.jfx.tools;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,7 +34,6 @@ import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.robot.sdf.SDFTools;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFRoot;
 import us.ihmc.scs2.simulation.robot.Robot;
-import us.ihmc.tools.ClassLoaderTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class RobotModelLoader
@@ -81,11 +82,12 @@ public class RobotModelLoader
       if (robotDefinition != null)
          return robotDefinition;
 
-      upackResources(modelName, resourceZip);
+      ClassLoader resourceClassLoader = unpackResources(modelName, resourceZip);
       try
       {
-         SDFRoot sdfRoot = SDFTools.loadSDFRoot(new ByteArrayInputStream(model), Arrays.asList(resourceDirectories));
+         SDFRoot sdfRoot = SDFTools.loadSDFRoot(new ByteArrayInputStream(model), Arrays.asList(resourceDirectories), resourceClassLoader);
          robotDefinition = SDFTools.toFloatingRobotDefinition(sdfRoot.getModels().get(0));
+         robotDefinition.setResourceClassLoader(resourceClassLoader);
          cachedImportedModels.put(modelHashCode, robotDefinition);
          return robotDefinition;
       }
@@ -96,69 +98,69 @@ public class RobotModelLoader
       }
    }
 
-   private static void upackResources(String modelName, byte[] resourceZip)
+   private static ClassLoader unpackResources(String modelName, byte[] resourceZip)
    {
       // Some of the model importers do not immediately release the files, triggering GC seems to help ensuring that these files are released.
       System.gc();
 
-      if (resourceZip != null)
+      if (resourceZip == null)
+         return null;
+
+      Path resourceDirectory = Paths.get(resourceDirectoryLocation, modelName);
+      try
       {
-         Path resourceDirectory = Paths.get(resourceDirectoryLocation, modelName);
+         Files.createDirectories(resourceDirectory);
+      }
+      catch (IOException e)
+      {
+         throw new RuntimeException(e);
+      }
+
+      ByteArrayInputStream is = new ByteArrayInputStream(resourceZip);
+      ZipInputStream zip = new ZipInputStream(is);
+      ZipEntry ze = null;
+
+      try
+      {
+         while ((ze = zip.getNextEntry()) != null)
+         {
+            Path target = resourceDirectory.resolve(ze.getName());
+            Files.createDirectories(target.getParent());
+            Files.copy(zip, target, StandardCopyOption.REPLACE_EXISTING);
+         }
+      }
+      catch (IOException e)
+      {
+         System.err.println("SDFModelLoader: Cannot load model zip file. Not unpacking robot model.");
+         e.printStackTrace();
+      }
+      finally
+      {
          try
          {
-            Files.createDirectories(resourceDirectory);
+            zip.close();
          }
          catch (IOException e)
          {
-            throw new RuntimeException(e);
-         }
-
-         ByteArrayInputStream is = new ByteArrayInputStream(resourceZip);
-         ZipInputStream zip = new ZipInputStream(is);
-         ZipEntry ze = null;
-
-         try
-         {
-            while ((ze = zip.getNextEntry()) != null)
-            {
-               Path target = resourceDirectory.resolve(ze.getName());
-               Files.createDirectories(target.getParent());
-               Files.copy(zip, target, StandardCopyOption.REPLACE_EXISTING);
-            }
-         }
-         catch (IOException e)
-         {
-            System.err.println("SDFModelLoader: Cannot load model zip file. Not unpacking robot model.");
             e.printStackTrace();
          }
-         finally
-         {
-            try
-            {
-               zip.close();
-            }
-            catch (IOException e)
-            {
-               e.printStackTrace();
-            }
-            try
-            {
-               is.close();
-            }
-            catch (IOException e)
-            {
-               e.printStackTrace();
-            }
-         }
-
          try
          {
-            ClassLoaderTools.addURLToSystemClassLoader(resourceDirectory.toUri().toURL());
+            is.close();
          }
          catch (IOException e)
          {
-            throw new RuntimeException(e);
+            e.printStackTrace();
          }
+      }
+
+      try
+      {
+         return new URLClassLoader(new URL[] {resourceDirectory.toUri().toURL()});
+      }
+      catch (IOException e)
+      {
+         throw new RuntimeException(e);
       }
    }
 

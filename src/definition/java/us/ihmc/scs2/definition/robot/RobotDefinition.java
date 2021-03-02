@@ -17,6 +17,8 @@ public class RobotDefinition
 
    private final List<ControllerDefinition> controllerDefinitions = new ArrayList<>();
 
+   private ClassLoader resourceClassLoader;
+
    public RobotDefinition()
    {
    }
@@ -46,6 +48,11 @@ public class RobotDefinition
       controllerDefinitions.add(controllerDefinition);
    }
 
+   public void setResourceClassLoader(ClassLoader resourceClassLoader)
+   {
+      this.resourceClassLoader = resourceClassLoader;
+   }
+
    public String getName()
    {
       return name;
@@ -64,6 +71,11 @@ public class RobotDefinition
    public List<String> getNameOfJointsToIgnore()
    {
       return nameOfJointsToIgnore;
+   }
+
+   public ClassLoader getResourceClassLoader()
+   {
+      return resourceClassLoader;
    }
 
    public JointDefinition getJointDefinition(String jointName)

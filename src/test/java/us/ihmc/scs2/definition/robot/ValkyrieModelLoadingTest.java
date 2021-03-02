@@ -185,7 +185,7 @@ public class ValkyrieModelLoadingTest
    public void testSDFTools() throws Exception
    {
       InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream("models/valkyrie/valkyrie_sim.sdf");
-      SDFRoot sdfRoot = SDFTools.loadSDFRoot(resourceAsStream, Collections.emptyList());
+      SDFRoot sdfRoot = SDFTools.loadSDFRoot(resourceAsStream, Collections.emptyList(), this.getClass().getClassLoader());
       RobotDefinition robotDefinition = SDFTools.toFloatingRobotDefinition(sdfRoot.getModels().get(0));
       performAssertionsOnRobotDescription(robotDefinition);
    }
@@ -194,7 +194,7 @@ public class ValkyrieModelLoadingTest
    public void testURDFTools() throws Exception
    {
       InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream("models/valkyrie/valkyrie_sim.urdf");
-      URDFModel urdfModel = URDFTools.loadURDFModel(resourceAsStream, Collections.emptyList());
+      URDFModel urdfModel = URDFTools.loadURDFModel(resourceAsStream, Collections.emptyList(), this.getClass().getClassLoader());
       RobotDefinition robotDefinition = URDFTools.toFloatingRobotDefinition(urdfModel);
       performAssertionsOnRobotDescription(robotDefinition);
    }
