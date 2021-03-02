@@ -66,7 +66,7 @@ sessionVisualizerDependencies {
    api("us.ihmc:svgloader:0.0")
    api("us.ihmc:ihmc-javafx-extensions:0.0.1")
 
-   api("org.reflections:reflections:0.9.12")
+   api("org.reflections:reflections:0.9.11")
 
    // JavaFX extensions
    api("org.controlsfx:controlsfx:11.0.1")
