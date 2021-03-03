@@ -20,6 +20,8 @@ public class MainWindowMenuBarController
    private YoGraphicMenuController yoGraphicMenuController;
    @FXML
    private SessionMenuController sessionMenuController;
+   @FXML
+   private SliderboardMenuController sliderboardMenuController;
 
    public void initialize(SessionVisualizerToolkit toolkit, Window owner)
    {
@@ -30,5 +32,6 @@ public class MainWindowMenuBarController
       yoChartMenuController.initialize(toolkit, owner);
       yoGraphicMenuController.initialize(toolkit);
       sessionMenuController.initialize(toolkit);
+      sliderboardMenuController.initialize(toolkit);
    }
 }
