@@ -67,7 +67,7 @@ public class LineChartTools
       yBounds = new ChartDoubleBounds(dataPoint.getY(), dataPoint.getY());
 
       if (sampleLength == 1)
-         return new DataEntry(xBounds, yBounds, newData);
+         return new DataEntry(xBounds, yBounds, newData, bufferSample.getBufferProperties().getCurrentIndex());
 
       boolean nextValue = bufferSample.getSample()[startIndex + 1];
 
@@ -89,7 +89,7 @@ public class LineChartTools
       newData.add(dataPoint);
       yBounds = yBounds.include(dataPoint.getY());
 
-      return new DataEntry(xBounds, yBounds, newData);
+      return new DataEntry(xBounds, yBounds, newData, bufferSample.getBufferProperties().getCurrentIndex());
    }
 
    public static double toDouble(boolean value)
@@ -145,7 +145,7 @@ public class LineChartTools
 //         newData = DouglasPeuckerReduction.reduce(newData, epsilon * (yBounds.getUpper() - yBounds.getLower()));
       }
 
-      return new DataEntry(xBounds, yBounds, newData);
+      return new DataEntry(xBounds, yBounds, newData, bufferSample.getBufferProperties().getCurrentIndex());
    }
 
    public static DataEntry fromIntegerBufferSampleToLineChartData(BufferSample<int[]> bufferSample, int startIndex, int endIndex, double epsilon)
@@ -188,7 +188,7 @@ public class LineChartTools
          //         newData = DouglasPeuckerReduction.reduce(newData, epsilon * (extrema.getMaxY() - extrema.getMinY()));
       }
 
-      return new DataEntry(xBounds, yBounds, newData);
+      return new DataEntry(xBounds, yBounds, newData, bufferSample.getBufferProperties().getCurrentIndex());
    }
 
    // FIXME Casting the longs to double will fail for large values.
@@ -232,7 +232,7 @@ public class LineChartTools
          //         newData = DouglasPeuckerReduction.reduce(newData, epsilon * (extrema.getMaxY() - extrema.getMinY()));
       }
 
-      return new DataEntry(xBounds, yBounds, newData);
+      return new DataEntry(xBounds, yBounds, newData, bufferSample.getBufferProperties().getCurrentIndex());
    }
 
    public static DataEntry fromByteBufferSampleToLineChartData(BufferSample<byte[]> bufferSample, int startIndex, int endIndex, double epsilon)
@@ -274,7 +274,7 @@ public class LineChartTools
          newData = DouglasPeuckerReduction.reduce(newData, epsilon * (yBounds.getUpper() - yBounds.getLower()));
       }
 
-      return new DataEntry(xBounds, yBounds, newData);
+      return new DataEntry(xBounds, yBounds, newData, bufferSample.getBufferProperties().getCurrentIndex());
    }
 
    public static void computePath(List<Point2D> data, Axis<Number> xAxis, Axis<Number> yAxis, Path pathToCompute)

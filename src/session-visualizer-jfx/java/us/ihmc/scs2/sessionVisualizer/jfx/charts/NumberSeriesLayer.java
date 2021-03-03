@@ -6,12 +6,16 @@ import java.awt.RenderingHints;
 import java.awt.RenderingHints.Key;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.DoubleUnaryOperator;
+
+import javax.swing.SwingUtilities;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -161,8 +165,10 @@ public class NumberSeriesLayer extends ImageView
       if (imageWaitingToRender == null)
          return;
 
-      int width = imageWaitingToRender.getWidth();
-      int height = imageWaitingToRender.getHeight();
+      BufferedImage swingImageLocal = imageWaitingToRender;
+
+      int width = swingImageLocal.getWidth();
+      int height = swingImageLocal.getHeight();
 
       if (writableImage == null || (int) Math.round(writableImage.getWidth()) != width || (int) Math.round(writableImage.getHeight()) != height)
       {
@@ -170,7 +176,7 @@ public class NumberSeriesLayer extends ImageView
          setImage(writableImage);
       }
 
-      int[] data = ((DataBufferInt) imageWaitingToRender.getRaster().getDataBuffer()).getData();
+      int[] data = ((DataBufferInt) swingImageLocal.getRaster().getDataBuffer()).getData();
       writableImage.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbPreInstance(), data, 0, width);
       imageWaitingToRender = null;
    }
@@ -220,7 +226,26 @@ public class NumberSeriesLayer extends ImageView
          yTransform = yTransform.compose(negateTransform());
       }
 
-      drawMultiLine(graphics, data, xTransform, yTransform, xData, yData);
+//      try
+//      {
+         DoubleUnaryOperator yTransformFinal = yTransform;
+//         SwingUtilities.invokeAndWait(() ->
+//         {
+            drawMultiLine(graphics, data, xTransform, yTransformFinal, xData, yData);
+
+            graphics.setColor(toAWTColor(Color.GREY));
+            graphics.setStroke(new BasicStroke((float) (0.5 * imageScaleProperty.get() * strokeWidth.get()), BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+            List<Point2D> markerData = Arrays.asList(new Point2D(numberSeries.getDataEntry().getBufferCurrentIndex(), yAxis.getLowerBound()),
+                                                     new Point2D(numberSeries.getDataEntry().getBufferCurrentIndex(), yAxis.getUpperBound()));
+            drawMultiLine(graphics, markerData, xTransform, yTransformFinal, xData, yData);
+            graphics.dispose();
+//         });
+//      }
+//      catch (InvocationTargetException | InterruptedException e)
+//      {
+//         e.printStackTrace();
+//         bufferedImage = null;
+//      }
 
       return bufferedImage;
    }
@@ -233,7 +258,12 @@ public class NumberSeriesLayer extends ImageView
          return in;
    }
 
-   private static void drawMultiLine(Graphics2D graphics, List<Point2D> points, DoubleUnaryOperator xTransform, DoubleUnaryOperator yTransform, int[] xData, int[] yData)
+   private static void drawMultiLine(Graphics2D graphics,
+                                     List<Point2D> points,
+                                     DoubleUnaryOperator xTransform,
+                                     DoubleUnaryOperator yTransform,
+                                     int[] xData,
+                                     int[] yData)
    {
       for (int i = 0; i < points.size(); i++)
       {
