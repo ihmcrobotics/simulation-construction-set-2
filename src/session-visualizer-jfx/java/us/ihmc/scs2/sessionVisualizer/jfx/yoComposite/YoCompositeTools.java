@@ -193,7 +193,15 @@ public class YoCompositeTools
 
    public static List<YoComposite> searchYoComposites(YoCompositePattern pattern, YoRegistry registry)
    {
-      return searchYoCompositesRecursive(pattern, registry).getKey();
+      try
+      {
+         return searchYoCompositesRecursive(pattern, registry).getKey();
+      }
+      catch (Exception e)
+      {
+         e.printStackTrace();
+         return null;
+      }
    }
 
    private static Pair<List<YoComposite>, List<YoVariable>> searchYoCompositesRecursive(YoCompositePattern pattern, YoRegistry registry)
