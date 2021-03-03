@@ -18,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import gnu.trove.list.array.TIntArrayList;
 import javafx.util.Pair;
+import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.scs2.definition.yoComposite.YoCompositePatternDefinition;
 import us.ihmc.scs2.definition.yoComposite.YoCompositePatternListDefinition;
 import us.ihmc.scs2.definition.yoComposite.YoQuaternionDefinition;
@@ -48,8 +49,7 @@ public class YoCompositeTools
    public static final String YO_YAW_PITCH_ROLL = YoYawPitchRollDefinition.YoYawPitchRoll;
 
    @SuppressWarnings("unchecked")
-   private static final Class<? extends YoVariable>[] yoPrimitives = new Class[] {YoDouble.class, YoBoolean.class, YoInteger.class, YoEnum.class,
-         YoLong.class};
+   private static final Class<? extends YoVariable>[] yoPrimitives = new Class[] {YoDouble.class, YoBoolean.class, YoInteger.class, YoEnum.class, YoLong.class};
 
    public static String getYoCompositeName(YoCompositePattern definition, List<YoVariable> yoCompositeComponents)
    {
@@ -66,7 +66,7 @@ public class YoCompositeTools
          return null;
 
       Map<String, YoVariable> yoVariableMap = yoCompositeComponentSet.stream().collect(Collectors.toMap(yoVariable -> yoVariable.getName().toLowerCase(),
-                                                                                                           Function.identity()));
+                                                                                                        Function.identity()));
 
       for (YoCompositeName candidateName : candidateNames)
       {
@@ -240,8 +240,8 @@ public class YoCompositeTools
       return result;
    }
 
-   private static Pair<List<YoComposite>, List<YoVariable>> searchYoComposites(YoCompositePattern pattern, List<YoVariable> variables,
-                                                                                  YoNamespace namespace, boolean useUniqueNames)
+   private static Pair<List<YoComposite>, List<YoVariable>> searchYoComposites(YoCompositePattern pattern, List<YoVariable> variables, YoNamespace namespace,
+                                                                               boolean useUniqueNames)
    {
       variables = variables.stream().filter(variable -> containsAnyIgnoreCase(variable.getName(), pattern.getComponentIdentifiers()))
                            .collect(Collectors.toList());
@@ -318,7 +318,8 @@ public class YoCompositeTools
                }
                else
                {
-                  throw new RuntimeException("Implement this edge case.");
+                  throw new RuntimeException("Implement this edge case. Name collision: "
+                        + EuclidCoreIOTools.getCollectionString("\n\t", "", "\n\t", container, Object::toString));
                }
             }
 
@@ -459,12 +460,12 @@ public class YoCompositeTools
       for (T namedObject : nameObjectCollection)
       {
          String name = nameFunction.apply(namedObject);
-         List<NamedObjectHolder<T>> container = nameToHolderMap.get(name);
+         List<NamedObjectHolder<T>> container = nameToHolderMap.get(name.toLowerCase());
 
          if (container == null)
          {
             container = new ArrayList<>();
-            nameToHolderMap.put(name, container);
+            nameToHolderMap.put(name.toLowerCase(), container);
          }
          NamedObjectHolder<T> namedObjectHolder = new NamedObjectHolder<T>(name, namespaceFunction.apply(namedObject), namedObject);
          container.add(namedObjectHolder);
@@ -477,7 +478,7 @@ public class YoCompositeTools
 
          if (homonyms.size() == 1)
          { // Trivial case: the short name is already unique
-            homonyms.get(0).uniqueName = entry.getKey();
+            homonyms.get(0).uniqueName = homonyms.get(0).name;
          }
          else if (homonyms.size() == 2)
          {
@@ -506,11 +507,11 @@ public class YoCompositeTools
                   namespaceIndex2--;
                }
 
-               if (namespaceIndex1 == 0 && namespaceIndex2 == 0 && h1.uniqueName.equals(h2.uniqueName))
+               if (namespaceIndex1 == 0 && namespaceIndex2 == 0 && h1.uniqueName.toLowerCase().equals(h2.uniqueName.toLowerCase()))
                   throw new IllegalArgumentException("Unsupported data structure, two elements have the same fullname: " + h1.originalObject + " and "
                         + h2.originalObject);
             }
-            while (h1.uniqueName.equals(h2.uniqueName));
+            while (h1.uniqueName.toLowerCase().equals(h2.uniqueName.toLowerCase()));
          }
          else
          {
@@ -556,7 +557,7 @@ public class YoCompositeTools
                   {
                      NamedObjectHolder<T> h2 = homonyms.get(h2Index);
 
-                     if (h1.uniqueName.equals(h2.uniqueName))
+                     if (h1.uniqueName.toLowerCase().equals(h2.uniqueName.toLowerCase()))
                      {
                         isH1Unique = false;
                         homonymsToProcess.add(homonyms.remove(h2Index));
@@ -598,9 +599,7 @@ public class YoCompositeTools
 
       public static NamedObjectHolder<YoVariable> newUniqueNamedYoVariable(String uniqueName, YoVariable yoVariable)
       {
-         NamedObjectHolder<YoVariable> namedObjectHolder = new NamedObjectHolder<>(yoVariable.getName(),
-                                                                                      yoVariable.getNamespace().getSubNames(),
-                                                                                      yoVariable);
+         NamedObjectHolder<YoVariable> namedObjectHolder = new NamedObjectHolder<>(yoVariable.getName(), yoVariable.getNamespace().getSubNames(), yoVariable);
          namedObjectHolder.uniqueName = uniqueName;
          return namedObjectHolder;
       }
@@ -625,7 +624,7 @@ public class YoCompositeTools
       @Override
       public String toString()
       {
-         return name + ", unique name: " + uniqueName;
+         return name + ", unique name: " + uniqueName + ", namespace: " + namespace;
       }
    }
 
