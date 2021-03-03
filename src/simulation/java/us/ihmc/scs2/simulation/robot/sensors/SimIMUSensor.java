@@ -30,9 +30,9 @@ public class SimIMUSensor extends SimSensor
       super(name, parentJoint, transformToParent);
       ReferenceFrame rootFrame = parentJoint.getFrameAfterJoint().getRootFrame();
       YoRegistry registry = parentJoint.getRegistry();
-      orientation = new YoFrameQuaternion(name + "Orientation", rootFrame, registry);
-      angularVelocity = new YoFrameVector3D(name + "AngularVelocity", getFrame(), registry);
-      linearAcceleration = new YoFrameVector3D(name + "LinearAcceleration", getFrame(), registry);
+      orientation = new YoFrameQuaternion(parentJoint.getName() + name + "Orientation", rootFrame, registry);
+      angularVelocity = new YoFrameVector3D(parentJoint.getName() + name + "AngularVelocity", getFrame(), registry);
+      linearAcceleration = new YoFrameVector3D(parentJoint.getName() + name + "LinearAcceleration", getFrame(), registry);
    }
 
    private final FramePoint3D bodyFixedPoint = new FramePoint3D();

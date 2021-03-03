@@ -27,7 +27,7 @@ public abstract class SimSensor
       this.name = name;
       this.parentJoint = parentJoint;
 
-      offset = new YoFramePoseUsingYawPitchRoll(name + "Offset", parentJoint.getFrameAfterJoint(), parentJoint.getRegistry());
+      offset = new YoFramePoseUsingYawPitchRoll(parentJoint.getName() + name + "Offset", parentJoint.getFrameAfterJoint(), parentJoint.getRegistry());
       offset.set(transformToParent);
 
       frame = new MovingReferenceFrame(name + "Frame", parentJoint.getFrameAfterJoint())
