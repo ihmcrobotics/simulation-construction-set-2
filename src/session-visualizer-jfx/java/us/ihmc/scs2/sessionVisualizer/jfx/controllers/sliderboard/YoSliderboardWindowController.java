@@ -17,6 +17,7 @@ import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.MidiSliderBoard;
 
 public class YoSliderboardWindowController
 {
@@ -43,6 +44,7 @@ public class YoSliderboardWindowController
 
    private Stage window;
    private Window owner;
+   private MidiSliderBoard midiSliderBoard;
 
    public void initialize(SessionVisualizerToolkit toolkit, Window owner)
    {
@@ -57,9 +59,11 @@ public class YoSliderboardWindowController
                                           yoSlider6Controller,
                                           yoSlider7Controller);
 
+      midiSliderBoard = new MidiSliderBoard();
+
       for (YoSliderController yoSliderController : yoSliderControllers)
       {
-         yoSliderController.initialize(toolkit);
+         yoSliderController.initialize(toolkit, midiSliderBoard);
       }
 
       window = new Stage(StageStyle.UTILITY);

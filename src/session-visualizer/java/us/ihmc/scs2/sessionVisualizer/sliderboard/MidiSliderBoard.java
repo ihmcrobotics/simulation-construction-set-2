@@ -2,7 +2,6 @@ package us.ihmc.scs2.sessionVisualizer.sliderboard;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
@@ -569,41 +568,15 @@ public class MidiSliderBoard implements ExitActionListener, CloseableAndDisposab
 
    private synchronized void setControl(int channel, MidiControlVariable var, ControlType controlType)
    {
-      if (var != null)
+      MidiControl midiControl = new MidiControl(channel, var);
+      midiControl.controlType = controlType;
+
+      setControl(midiControl);
+      setToInitialPosition(midiControl);
+
+      for (SliderBoardControlAddedListener listener : controlAddedListeners)
       {
-         MidiControl midiControl = new MidiControl(channel, var);
-         midiControl.controlType = controlType;
-
-         if (listener != null)
-         {
-            var.addListener(listener);
-         }
-
-         setControl(midiControl);
-         setToInitialPosition(midiControl);
-
-         for (SliderBoardControlAddedListener listener : controlAddedListeners)
-         {
-            listener.controlAdded(midiControl);
-         }
-      }
-      else
-      {
-         // LogTools.error("Passed in null variable");
-      }
-   }
-
-   public synchronized void addListOfControls(Collection<MidiControl> collection)
-   {
-      for (MidiControl control : collection)
-      {
-         setControl(control);
-         setToInitialPosition(control);
-
-         for (SliderBoardControlAddedListener listener : controlAddedListeners)
-         {
-            listener.controlAdded(control);
-         }
+         listener.controlAdded(midiControl);
       }
    }
 
@@ -626,9 +599,19 @@ public class MidiSliderBoard implements ExitActionListener, CloseableAndDisposab
       control.exponent = exponent;
    }
 
-   private synchronized void setControl(MidiControl midiControl)
+   private synchronized void setControl(MidiControl newMidiControl)
    {
-      controlsHashTable.put(midiControl.mapping, midiControl);
+
+      MidiControl oldMidiControl = controlsHashTable.get(newMidiControl.mapping);
+      if (oldMidiControl != null)
+      {
+         if (listener != null)
+            oldMidiControl.var.removeListener(listener);
+      }
+
+      if (listener != null)
+         newMidiControl.var.addListener(listener);
+      controlsHashTable.put(newMidiControl.mapping, newMidiControl);
    }
 
    public synchronized void clearControls()
