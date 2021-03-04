@@ -42,7 +42,7 @@ public class YoCompositeTools
    public static final String YO_BOOLEAN = YoBoolean.class.getSimpleName();
    public static final String YO_DOUBLE = YoDouble.class.getSimpleName();
    public static final String YO_INTEGER = YoInteger.class.getSimpleName();
-   public static final String YO_LONG = YoInteger.class.getSimpleName();
+   public static final String YO_LONG = YoLong.class.getSimpleName();
    public static final String YO_TUPLE2D = YoTuple2DDefinition.YoTuple2D;
    public static final String YO_TUPLE3D = YoTuple3DDefinition.YoTuple3D;
    public static final String YO_QUATERNION = YoQuaternionDefinition.YoQuaternion;
