@@ -15,14 +15,16 @@
 	-default-large-spacing: 10.0;
 
     /* Chart Color Palette */
-    CHART_COLOR_1: #f3622d;
-    CHART_COLOR_2: #fba71b;
-    CHART_COLOR_3: #57b757;
-    CHART_COLOR_4: #41a9c9;
-    CHART_COLOR_5: #4258c9;
-    CHART_COLOR_6: #9a42c8;
-    CHART_COLOR_7: #c84164;
-    CHART_COLOR_8: #888888;
+    CHART_COLOR_1: rgb(160, 0.0, 0.0);/* #f3622d; */
+    CHART_COLOR_2: rgb(0.0, 0.0, 255);/* #fba71b; */
+    CHART_COLOR_3: rgb(0.0, 128, 0.0);/* #57b757; */
+    CHART_COLOR_4: rgb(0.0, 0.0, 0.0);/* #41a9c9; */
+    CHART_COLOR_5: rgb(128, 128, 128);/* #4258c9; */
+    CHART_COLOR_6: rgb(128, 0.0, 128);/* #9a42c8; */
+    CHART_COLOR_7: rgb(0.0, 128, 128);/* #c84164; */
+    CHART_COLOR_8: rgb(96, 96, 0.0);/* #888888; */
+    CHART_COLOR_9: rgb(255, 80, 80);
+    CHART_COLOR_10: rgb(80, 255, 2255);
 }
 
 /* Buttons */
@@ -246,6 +248,8 @@
 .default-color5.chart-series-line { -fx-stroke: CHART_COLOR_6; }
 .default-color6.chart-series-line { -fx-stroke: CHART_COLOR_7; }
 .default-color7.chart-series-line { -fx-stroke: CHART_COLOR_8; }
+.default-color8.chart-series-line { -fx-stroke: CHART_COLOR_9; }
+.default-color9.chart-series-line { -fx-stroke: CHART_COLOR_10; }
 
 .chart-legend {
 	-fx-hgap: 8.0;
