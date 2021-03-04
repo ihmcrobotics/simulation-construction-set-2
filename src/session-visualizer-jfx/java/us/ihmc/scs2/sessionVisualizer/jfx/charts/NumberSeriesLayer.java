@@ -80,7 +80,7 @@ public class NumberSeriesLayer extends ImageView
       }
    };
 
-   private final StyleableDoubleProperty strokeWidth = new StyleableDoubleProperty(1.5)
+   private final StyleableDoubleProperty strokeWidth = new StyleableDoubleProperty(1.0)
    {
       @Override
       protected void invalidated()
@@ -126,7 +126,7 @@ public class NumberSeriesLayer extends ImageView
       legendNode.seriesNameProperty().bind(numberSeries.seriesNameProperty());
       legendNode.currentValueProperty().bind(numberSeries.currentValueProperty());
 
-      renderingHints.put(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+//      renderingHints.put(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
       renderingHints.put(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
       imageScaleProperty.addListener((o, oldValue, newValue) ->
@@ -135,7 +135,7 @@ public class NumberSeriesLayer extends ImageView
          imageScale.setX(newScale);
          imageScale.setY(newScale);
       });
-      imageScaleProperty.set(1.25);
+      imageScaleProperty.set(1.0);
 
       getTransforms().add(imageScale);
    }

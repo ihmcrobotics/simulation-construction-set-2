@@ -237,7 +237,7 @@
 
 .chart-series-line {
     -fx-stroke: CHART_COLOR_1;
-    -fx-stroke-width: 2.0px;
+    -fx-stroke-width: 1.0px;
 }
 
 .default-color0.chart-series-line { -fx-stroke: CHART_COLOR_1; }
