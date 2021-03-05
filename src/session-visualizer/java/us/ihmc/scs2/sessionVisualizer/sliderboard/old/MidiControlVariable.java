@@ -1,6 +1,6 @@
-package us.ihmc.scs2.sessionVisualizer.sliderboard;
+package us.ihmc.scs2.sessionVisualizer.sliderboard.old;
 
-import us.ihmc.scs2.sessionVisualizer.sliderboard.MidiControl.SliderType;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.old.MidiControl.SliderType;
 
 public interface MidiControlVariable
 {

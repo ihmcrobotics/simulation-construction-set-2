@@ -1,4 +1,4 @@
-package us.ihmc.scs2.sessionVisualizer.sliderboard;
+package us.ihmc.scs2.sessionVisualizer.sliderboard.old;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
@@ -11,8 +11,8 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 
 import us.ihmc.log.LogTools;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.MidiControl.ControlType;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.MidiControlVariable.MidiControlVariableChangedListener;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.old.MidiControl.ControlType;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.old.MidiControlVariable.MidiControlVariableChangedListener;
 import us.ihmc.tools.thread.CloseableAndDisposable;
 
 public class MidiSliderBoard implements ExitActionListener, CloseableAndDisposable

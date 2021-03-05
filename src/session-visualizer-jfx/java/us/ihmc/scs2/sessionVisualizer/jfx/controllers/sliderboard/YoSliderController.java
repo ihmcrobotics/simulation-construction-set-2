@@ -22,9 +22,9 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.MidiControl.SliderType;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.MidiControlVariable;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.MidiSliderBoard;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.old.MidiControlVariable;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.old.MidiSliderBoard;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.old.MidiControl.SliderType;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoSliderController

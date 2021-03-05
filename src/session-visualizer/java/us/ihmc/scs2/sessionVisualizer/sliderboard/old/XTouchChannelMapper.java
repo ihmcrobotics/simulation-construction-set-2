@@ -1,4 +1,4 @@
-package us.ihmc.scs2.sessionVisualizer.sliderboard;
+package us.ihmc.scs2.sessionVisualizer.sliderboard.old;
 
 public class XTouchChannelMapper implements MidiChannelMapper
 {

@@ -17,7 +17,7 @@ import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.MidiSliderBoard;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.old.MidiSliderBoard;
 
 public class YoSliderboardWindowController
 {

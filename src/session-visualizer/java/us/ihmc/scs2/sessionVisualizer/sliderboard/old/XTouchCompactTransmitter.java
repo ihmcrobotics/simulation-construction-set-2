@@ -1,9 +1,9 @@
-package us.ihmc.scs2.sessionVisualizer.sliderboard;
+package us.ihmc.scs2.sessionVisualizer.sliderboard.old;
 
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 
-import us.ihmc.scs2.sessionVisualizer.sliderboard.MidiControl.ControlType;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.old.MidiControl.ControlType;
 
 public class XTouchCompactTransmitter implements SliderBoardTransmitterInterface
 {

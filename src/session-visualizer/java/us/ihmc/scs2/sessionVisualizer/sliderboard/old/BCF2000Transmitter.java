@@ -1,4 +1,4 @@
-package us.ihmc.scs2.sessionVisualizer.sliderboard;
+package us.ihmc.scs2.sessionVisualizer.sliderboard.old;
 
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
