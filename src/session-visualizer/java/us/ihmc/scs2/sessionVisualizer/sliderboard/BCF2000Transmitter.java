@@ -1,6 +1,5 @@
 package us.ihmc.scs2.sessionVisualizer.sliderboard;
 
-import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 
@@ -17,10 +16,6 @@ public class BCF2000Transmitter implements SliderBoardTransmitterInterface
    {
       this.midiOut = midiOut;
       this.sliderBoardMax = sliderBoardMax;
-
-//    Thread lightSHow = new Thread(new LightShow());
-      // lightSHow.start();
-
    }
 
    public MessageSender getOrStartSender(MidiControl midiControl)
@@ -58,14 +53,15 @@ public class BCF2000Transmitter implements SliderBoardTransmitterInterface
 
       }
    }
-   
+
    @Override
    public void closeAndDispose()
    {
       printIfDebug("Closing and Disposing Message Senders!");
       for (MessageSender messageSender : senderPool)
       {
-         if (messageSender != null) messageSender.closeAndDispose();
+         if (messageSender != null)
+            messageSender.closeAndDispose();
       }
    }
 
@@ -98,17 +94,17 @@ public class BCF2000Transmitter implements SliderBoardTransmitterInterface
       }
 
       private boolean isRunning = true;
-      
+
       public void closeAndDispose()
       {
          isRunning = false;
-         
-         synchronized(lock)
+
+         synchronized (lock)
          {
             lock.notifyAll();
          }
       }
-      
+
       @Override
       public void run()
       {
@@ -131,8 +127,9 @@ public class BCF2000Transmitter implements SliderBoardTransmitterInterface
                   }
                }
 
-               if (!isRunning) return;
-               
+               if (!isRunning)
+                  return;
+
                midiControl = this.midiControl;
                sliderValue = this.sliderValue;
                moveBySliderValue = this.moveBySliderValue;
@@ -170,73 +167,15 @@ public class BCF2000Transmitter implements SliderBoardTransmitterInterface
                e1.printStackTrace();
             }
          }
-         
+
          printIfDebug("Gracefully exiting run method in " + getClass().getSimpleName());
 
       }
    }
 
-   
    private void printIfDebug(String string)
    {
-      if (DEBUG) System.out.println(string);
+      if (DEBUG)
+         System.out.println(string);
    }
-
-   public class LightShow implements Runnable
-   {
-      @Override
-      public void run()
-      {
-         int valueToMoveTo = 0;
-         int tick = 0;
-         int direction = 1;
-
-         while (true)
-         {
-            try
-            {
-               Thread.sleep(100);
-            }
-            catch (InterruptedException e1)
-            {
-            }
-
-            for (int i = 1; i < 9; i++)
-            {
-               if (i % 2 == 0)
-               {
-                  valueToMoveTo = tick;
-               }
-               else
-                  valueToMoveTo = 127 - tick;
-
-               ShortMessage shortMesssage = new ShortMessage();
-               try
-               {
-                  shortMesssage.setMessage(176, 0, i, valueToMoveTo);
-               }
-               catch (InvalidMidiDataException e)
-               {
-                  e.printStackTrace();
-               }
-
-               midiOut.send(shortMesssage, -1);
-               tick += direction;
-
-               if (tick == 127)
-               {
-                  tick = 0;
-               }
-
-//             else if (tick == 0)
-//             {
-//               direction = 1;
-//             }
-
-            }
-         }
-      }
-
-   }
-
 }

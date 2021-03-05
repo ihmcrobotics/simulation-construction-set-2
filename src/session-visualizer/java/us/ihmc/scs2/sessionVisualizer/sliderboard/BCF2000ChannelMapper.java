@@ -12,6 +12,8 @@ public class BCF2000ChannelMapper implements MidiChannelMapper
    @Override
    public int getSliderChannel(int channel)
    {
+      if (channel < 1 || channel > 8)
+         throw new IllegalArgumentException("Invalid slider channel: " + channel + ", should be in [1, 8]");
       return channel;
    }
 

@@ -14,7 +14,6 @@ import us.ihmc.log.LogTools;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.MidiControl.ControlType;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.MidiControlVariable.MidiControlVariableChangedListener;
 import us.ihmc.tools.thread.CloseableAndDisposable;
-import us.ihmc.tools.thread.CloseableAndDisposableRegistry;
 
 public class MidiSliderBoard implements ExitActionListener, CloseableAndDisposable
 {
@@ -44,8 +43,6 @@ public class MidiSliderBoard implements ExitActionListener, CloseableAndDisposab
    private MidiControlVariableChangedListener listener;
 
    private MidiChannelMapper channelMapper = new GenericChannelMapper();
-
-   private CloseableAndDisposableRegistry closeableAndDisposableRegistry = new CloseableAndDisposableRegistry();
 
    public MidiSliderBoard()
    {
@@ -180,8 +177,6 @@ public class MidiSliderBoard implements ExitActionListener, CloseableAndDisposab
    @Override
    public void closeAndDispose()
    {
-      closeableAndDisposableRegistry.closeAndDispose();
-
       controlsHashTable.clear();
       controlsHashTable = null;
 

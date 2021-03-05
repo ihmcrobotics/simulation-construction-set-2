@@ -59,7 +59,7 @@ public class YoSliderController
       this.yoVariable = yoVariable;
       yoVariableDropLabel.setText(yoVariable.getName());
 
-      midiSliderBoard.setSlider(0, new MidiControlVariable()
+      midiSliderBoard.setSlider(1, new MidiControlVariable()
       {
          private final List<MidiControlVariableChangedListener> listeners = new ArrayList<>();
 
