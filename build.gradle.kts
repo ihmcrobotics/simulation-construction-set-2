@@ -50,6 +50,9 @@ simulationDependencies {
 sessionVisualizerDependencies {
    api(ihmc.sourceSetProject("simulation"))
    api(ihmc.sourceSetProject("definition"))
+   
+   var javaFXVersion = "15.0.1"
+   api(ihmc.javaFXModule("base", javaFXVersion)) // This is for using the property data structure. Not sure if that's the best thing to do.
 }
 
 sessionVisualizerJfxDependencies {

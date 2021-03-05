@@ -1,8 +1,9 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import com.jfoenix.controls.JFXSlider;
 import com.jfoenix.controls.JFXTextField;
@@ -10,6 +11,7 @@ import com.jfoenix.controls.JFXTextField;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -17,14 +19,17 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.PickResult;
 import javafx.scene.input.TransferMode;
 import javafx.scene.text.Text;
+import javafx.util.converter.DoubleStringConverter;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.IntegerConverter;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.PositiveIntegerValueFilter;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.old.MidiControlVariable;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.old.MidiSliderBoard;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.old.MidiControl.SliderType;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController.Slider;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardControlVariable;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoSliderController
@@ -38,13 +43,17 @@ public class YoSliderController
    @FXML
    private Label yoVariableDropLabel;
 
+   private TextFormatter<Double> minTextFormatter;
+   private TextFormatter<Double> maxTextFormatter;
+   private SliderboardControlVariable controlVariable = new SliderboardControlVariable();
+
    private YoCompositeSearchManager yoCompositeSearchManager;
-   private MidiSliderBoard midiSliderBoard;
+   private BCF2000SliderboardController sliderboard;
    private YoVariable yoVariable;
 
-   public void initialize(SessionVisualizerToolkit toolkit, MidiSliderBoard midiSliderBoard)
+   public void initialize(SessionVisualizerToolkit toolkit, BCF2000SliderboardController sliderboard)
    {
-      this.midiSliderBoard = midiSliderBoard;
+      this.sliderboard = sliderboard;
       yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
 
       yoVariableDropLabel.setOnDragDetected(this::handleDragDetected);
@@ -52,6 +61,18 @@ public class YoSliderController
       yoVariableDropLabel.setOnDragDropped(this::handleDragDropped);
       yoVariableDropLabel.setOnDragEntered(this::handleDragEntered);
       yoVariableDropLabel.setOnDragExited(this::handleDragExited);
+
+      sliderMaxTextField.setText("1.0");
+      sliderMinTextField.setText("0.0");
+
+      minTextFormatter = new TextFormatter<>(new DoubleStringConverter());
+      maxTextFormatter = new TextFormatter<>(new DoubleStringConverter());
+
+      sliderMinTextField.setTextFormatter(minTextFormatter);
+      sliderMaxTextField.setTextFormatter(maxTextFormatter);
+
+      controlVariable.minProperty().bind(minTextFormatter.valueProperty());
+      controlVariable.maxProperty().bind(maxTextFormatter.valueProperty());
    }
 
    private void setSlider(YoVariable yoVariable)
@@ -59,74 +80,28 @@ public class YoSliderController
       this.yoVariable = yoVariable;
       yoVariableDropLabel.setText(yoVariable.getName());
 
-      midiSliderBoard.setSlider(1, new MidiControlVariable()
+
+      MutableBoolean updating = new MutableBoolean(false);
+
+      yoVariable.addListener(v ->
       {
-         private final List<MidiControlVariableChangedListener> listeners = new ArrayList<>();
-
-         {
-            yoVariable.addListener(v -> notifyChange());
-         }
-
-         @Override
-         public void setValueFromDouble(double value)
-         {
-            yoVariable.setValueFromDouble(value);
-         }
-
-         @Override
-         public void addListener(MidiControlVariableChangedListener listener)
-         {
-            listeners.add(listener);
-         }
-
-         @Override
-         public void removeListeners()
-         {
-            listeners.clear();
-         }
-
-         @Override
-         public boolean removeListener(MidiControlVariableChangedListener listener)
-         {
-            return listeners.remove(listener);
-         }
-
-         @Override
-         public void notifyChange()
-         {
-            listeners.forEach(l -> l.changed(this, Double.NaN, getValueAsDouble()));
-         }
-
-         @Override
-         public double getValueAsDouble()
-         {
-            return yoVariable.getValueAsDouble();
-         }
-
-         @Override
-         public SliderType getType()
-         {
-            return SliderType.NUMBER;
-         }
-
-         @Override
-         public String getName()
-         {
-            return yoVariable.getName();
-         }
-
-         @Override
-         public double getMin()
-         {
-            return 0;
-         }
-
-         @Override
-         public double getMax()
-         {
-            return 1;
-         }
+         if (updating.isTrue())
+            return;
+         updating.setTrue();
+         controlVariable.setValue(yoVariable.getValueAsDouble());
+         updating.setFalse();
       });
+
+      controlVariable.valueProperty().addListener((o, oldValue, newValue) ->
+      {
+         if (updating.isTrue())
+            return;
+         updating.setTrue();
+         yoVariable.setValueFromDouble(newValue.doubleValue());
+         updating.setFalse();
+      });
+
+      sliderboard.setSlider(Slider.SLIDER_1, controlVariable);
    }
 
    public void handleDragDetected(MouseEvent event)

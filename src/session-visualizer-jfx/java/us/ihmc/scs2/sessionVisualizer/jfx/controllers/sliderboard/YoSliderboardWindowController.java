@@ -17,6 +17,7 @@ import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.old.MidiSliderBoard;
 
 public class YoSliderboardWindowController
@@ -44,7 +45,7 @@ public class YoSliderboardWindowController
 
    private Stage window;
    private Window owner;
-   private MidiSliderBoard midiSliderBoard;
+   private BCF2000SliderboardController sliderboard;
 
    public void initialize(SessionVisualizerToolkit toolkit, Window owner)
    {
@@ -59,12 +60,14 @@ public class YoSliderboardWindowController
                                           yoSlider6Controller,
                                           yoSlider7Controller);
 
-      midiSliderBoard = new MidiSliderBoard();
-
+      sliderboard = BCF2000SliderboardController.searchAndConnectToDevice();
+      
       for (YoSliderController yoSliderController : yoSliderControllers)
       {
-         yoSliderController.initialize(toolkit, midiSliderBoard);
+         yoSliderController.initialize(toolkit, sliderboard);
       }
+
+      sliderboard.start();
 
       window = new Stage(StageStyle.UTILITY);
       window.addEventHandler(KeyEvent.KEY_PRESSED, e ->

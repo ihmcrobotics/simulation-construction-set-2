@@ -1,88 +1,348 @@
 package us.ihmc.scs2.sessionVisualizer.sliderboard;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
 import javax.sound.midi.MidiDevice;
+import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
+import javax.sound.midi.ShortMessage;
+import javax.sound.midi.Transmitter;
 
+import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
 
 public class BCF2000SliderboardController
 {
-   public static boolean DEBUG = false;
+   private static final String BCF2000 = "BCF2000";
 
-   public BCF2000SliderboardController()
+   public static boolean DEBUG = true;
+
+   public enum Knob
    {
+      KNOB_1, KNOB_2, KNOB_3, KNOB_4, KNOB_5, KNOB_6, KNOB_7, KNOB_8;
+
+      private static final int CHANNEL_OFFSET = 0;
+
+      private final int channel;
+
+      private Knob()
+      {
+         this.channel = ordinal() + CHANNEL_OFFSET;
+      }
+
+      public int getChannel()
+      {
+         return channel;
+      }
+
+      public static Knob fromChannel(int channel)
+      {
+         if (channel < CHANNEL_OFFSET || channel > CHANNEL_OFFSET + 7)
+            return null;
+         return values()[channel];
+      }
+   };
+
+   public enum Slider
+   {
+      SLIDER_1, SLIDER_2, SLIDER_3, SLIDER_4, SLIDER_5, SLIDER_6, SLIDER_7, SLIDER_8;
+
+      private static final int CHANNEL_OFFSET = 80;
+
+      private final int channel;
+
+      private Slider()
+      {
+         this.channel = ordinal() + CHANNEL_OFFSET;
+      }
+
+      public int getChannel()
+      {
+         return channel;
+      }
+
+      public int getMin()
+      {
+         return 0;
+      }
+
+      public int getMax()
+      {
+         return 127;
+      }
+
+      public static Slider fromChannel(int channel)
+      {
+         if (channel < CHANNEL_OFFSET || channel > CHANNEL_OFFSET + 7)
+            return null;
+         return values()[channel - CHANNEL_OFFSET];
+      }
+   };
+
+   public enum Button
+   {
+      // First row
+      BUTTON_1,
+      BUTTON_2,
+      BUTTON_3,
+      BUTTON_4,
+      BUTTON_5,
+      BUTTON_6,
+      BUTTON_7,
+      BUTTON_8,
+      // Second row
+      BUTTON_9,
+      BUTTON_10,
+      BUTTON_11,
+      BUTTON_12,
+      BUTTON_13,
+      BUTTON_14,
+      BUTTON_15,
+      BUTTON_16;
+
+      private static final int CHANNEL_OFFSET = 64;
+
+      private final int channel;
+
+      private Button()
+      {
+         channel = ordinal() + CHANNEL_OFFSET;
+      }
+
+      public int getChannel()
+      {
+         return channel;
+      }
+
+      public static Button fromChannel(int channel)
+      {
+         if (channel < CHANNEL_OFFSET || channel > CHANNEL_OFFSET + 15)
+            return null;
+         return values()[channel - CHANNEL_OFFSET];
+      }
    }
 
-   public boolean isBCF2000Sliderboard(MidiDevice.Info info)
+   public enum KnobButton
+   {
+      BUTTON_1, BUTTON_2, BUTTON_3, BUTTON_4, BUTTON_5, BUTTON_6, BUTTON_7, BUTTON_8;
+
+      private static final int CHANNEL_OFFSET = 32;
+
+      private final int channel;
+
+      private KnobButton()
+      {
+         channel = ordinal() + CHANNEL_OFFSET;
+      }
+
+      public int getChannel()
+      {
+         return channel;
+      }
+
+      public static KnobButton fromChannel(int channel)
+      {
+         if (channel < CHANNEL_OFFSET || channel > CHANNEL_OFFSET + 7)
+            return null;
+         return values()[channel - CHANNEL_OFFSET];
+      }
+   }
+
+   private final Receiver midiOut;
+   private final Transmitter midiIn;
+
+   private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1,
+                                                                                      ThreadTools.createNamedDaemonThreadFactory(getClass().getSimpleName()));
+   private ScheduledFuture<?> currentTask;
+
+   private final BCF2000SliderController[] sliderControllers = new BCF2000SliderController[8];
+   private final Receiver receiver = new Receiver()
+   {
+      @Override
+      public void send(MidiMessage message, long timeStamp)
+      {
+         if (!(message instanceof ShortMessage))
+            return;
+
+         ShortMessage shortMessage = (ShortMessage) message;
+
+         Slider slider = Slider.fromChannel(shortMessage.getData1());
+
+         if (slider != null)
+         {
+            sliderControllers[slider.ordinal()].handleMessage(shortMessage, timeStamp);
+         }
+      }
+
+      @Override
+      public void close()
+      {
+      }
+   };
+
+   private BCF2000SliderboardController(Receiver midiOut, Transmitter midiIn)
+   {
+      this.midiOut = midiOut;
+      this.midiIn = midiIn;
+
+      midiIn.setReceiver(receiver);
+
+      for (Slider slider : Slider.values())
+      {
+         sliderControllers[slider.ordinal()] = new BCF2000SliderController(slider, midiOut);
+      }
+   }
+
+   public void setSlider(Slider slider, SliderboardControlVariable controlVariable)
+   {
+      sliderControllers[slider.ordinal()].setControlVariable(controlVariable);
+   }
+
+   public void update()
+   {
+      for (int i = 0; i < sliderControllers.length; i++)
+      {
+         sliderControllers[i].update();
+      }
+   }
+
+   public void start()
+   {
+      currentTask = executor.scheduleAtFixedRate(this::update, 0, 20, TimeUnit.MILLISECONDS);
+   }
+
+   public void stop()
+   {
+      if (currentTask != null)
+         currentTask.cancel(false);
+   }
+
+   public void close()
+   {
+      stop();
+      executor.shutdown();
+
+      if (midiOut != null)
+         midiOut.close();
+      if (midiIn != null)
+         midiIn.close();
+   }
+
+   public static void main(String[] args)
+   {
+      System.out.println(searchAndConnectToDevice());
+   }
+
+   public static boolean isBCF2000Sliderboard(MidiDevice.Info info)
    {
       String name = info.getName();
       String description = info.getDescription();
-      return name.contains("BCF2000") || description.contains("BCF2000");
+      return name.contains(BCF2000) || description.contains(BCF2000);
    }
 
-   public boolean connectMidiDevice(MidiDevice.Info info)
+   public static BCF2000SliderboardController searchAndConnectToDevice()
    {
-      MidiDevice midiDevice;
-      try
+      MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
+
+      Receiver out = null;
+      Transmitter in = null;
+
+      for (MidiDevice.Info info : infos)
       {
-         midiDevice = MidiSystem.getMidiDevice(info);
-      }
-      catch (MidiUnavailableException e)
-      {
-         if (DEBUG)
+         if (out != null && in != null)
+            break;
+
+         if (out == null)
          {
-            LogTools.info("   - Unable to get a handle to this Midi Device.");
-            e.printStackTrace();
+            out = connectToMidiOutDevice(info);
+            if (out != null)
+               continue;
          }
 
-         return false;
+         if (in == null)
+            in = connectToMidiInDevice(info);
       }
 
-      if (midiDevice.getMaxReceivers() == 0)
-      {
-         if (DEBUG)
-         {
-            LogTools.error("Cannot add receiver to the device: " + midiDevice);
-            return false;
-         }
-      }
+      if (out != null && in != null)
+         return new BCF2000SliderboardController(out, in);
+      else
+         return null;
+   }
+
+   private static Transmitter connectToMidiInDevice(MidiDevice.Info info)
+   {
+      MidiDevice midiDevice = getDevice(info);
+
+      if (midiDevice == null)
+         return null;
 
       if (midiDevice.getMaxTransmitters() == 0)
       {
          if (DEBUG)
          {
             LogTools.error("Cannot add transmitter to the device: " + midiDevice);
-            return false;
+            return null;
          }
       }
 
-      if (!midiDevice.isOpen())
+      if (!openDevice(midiDevice))
+         return null;
+
+      if (DEBUG)
+         LogTools.info("Device is Now open trying to obtain the transmitter.");
+
+      Transmitter midiIn = null;
+
+      try
       {
+         midiIn = midiDevice.getTransmitter();
+      }
+      catch (MidiUnavailableException e)
+      {
+         midiDevice = null;
+         midiIn = null;
+
          if (DEBUG)
-            LogTools.info("   - Opening Output Device");
-
-         try
          {
-            midiDevice.open();
+            LogTools.error("Error getting the device's transmitter.");
+            e.printStackTrace();
          }
-         catch (MidiUnavailableException e)
-         {
-            midiDevice = null;
 
-            if (DEBUG)
-            {
-               LogTools.info("   - Unable to open device.");
-               e.printStackTrace();
-            }
-
-            return false;
-         }
+         return null;
       }
 
       if (DEBUG)
-         System.out.println("   - Device is Now open trying to obtain the receiver.");
+         LogTools.info("Obtained a handle to the devices transmitter.");
+
+      return midiIn;
+   }
+
+   private static Receiver connectToMidiOutDevice(MidiDevice.Info info)
+   {
+      MidiDevice midiDevice = getDevice(info);
+
+      if (midiDevice == null)
+         return null;
+
+      if (midiDevice.getMaxReceivers() == 0)
+      {
+         if (DEBUG)
+         {
+            LogTools.error("Cannot add receiver to the device: " + midiDevice);
+            return null;
+         }
+      }
+
+      if (!openDevice(midiDevice))
+         return null;
+
+      if (DEBUG)
+         LogTools.info("Device is Now open trying to obtain the receiver.");
 
       Receiver midiOut = null;
 
@@ -97,16 +357,62 @@ public class BCF2000SliderboardController
 
          if (DEBUG)
          {
-            LogTools.info("   - Error getting the device's receiver.");
+            LogTools.error("Error getting the device's receiver.");
             e.printStackTrace();
          }
 
-         return false;
+         return null;
       }
 
       if (DEBUG)
-         LogTools.info("   - Obtained a handle to the devices receiver.");
+         LogTools.info("Obtained a handle to the devices receiver.");
 
-      return true;
+      return midiOut;
+   }
+
+   private static boolean openDevice(MidiDevice midiDevice)
+   {
+      if (midiDevice.isOpen())
+         return true;
+
+      if (DEBUG)
+         LogTools.info("Opening Output Device");
+
+      try
+      {
+         midiDevice.open();
+         return true;
+      }
+      catch (MidiUnavailableException e)
+      {
+         midiDevice = null;
+
+         if (DEBUG)
+         {
+            LogTools.error("Unable to open device.");
+            e.printStackTrace();
+         }
+         return false;
+      }
+   }
+
+   private static MidiDevice getDevice(MidiDevice.Info info)
+   {
+      MidiDevice midiDevice;
+      try
+      {
+         midiDevice = MidiSystem.getMidiDevice(info);
+      }
+      catch (MidiUnavailableException e)
+      {
+         if (DEBUG)
+         {
+            LogTools.error("Unable to get a handle to this Midi Device.");
+            e.printStackTrace();
+         }
+
+         return null;
+      }
+      return midiDevice;
    }
 }
