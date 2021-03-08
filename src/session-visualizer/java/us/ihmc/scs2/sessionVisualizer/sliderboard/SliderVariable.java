@@ -40,6 +40,12 @@ public class SliderVariable
       return value;
    }
 
+   @Override
+   public String toString()
+   {
+      return "value: " + getValue() + ", min: " + getMin() + ", max: " + getMax();
+   }
+
    public static int doubleToInt(double valueDouble, double minDouble, double maxDouble, int minInt, int maxInt)
    {
       double percent = (valueDouble - minDouble) / (maxDouble - minDouble);

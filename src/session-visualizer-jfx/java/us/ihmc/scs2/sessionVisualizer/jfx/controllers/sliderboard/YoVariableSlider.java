@@ -12,16 +12,16 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public interface YoVariableSlider
 {
-   public static YoVariableSlider newYoVariableSlider(YoVariable yoVariable)
+   public static YoVariableSlider newYoVariableSlider(YoVariable yoVariable, Runnable pushValueAction)
    {
       if (yoVariable instanceof YoDouble)
-         return new YoDoubleSlider((YoDouble) yoVariable);
+         return new YoDoubleSlider((YoDouble) yoVariable, pushValueAction);
       if (yoVariable instanceof YoBoolean)
-         return new YoBooleanSlider((YoBoolean) yoVariable);
+         return new YoBooleanSlider((YoBoolean) yoVariable, pushValueAction);
       if (yoVariable instanceof YoInteger)
-         return new YoIntegerSlider((YoInteger) yoVariable);
+         return new YoIntegerSlider((YoInteger) yoVariable, pushValueAction);
       if (yoVariable instanceof YoLong)
-         return new YoLongSlider((YoLong) yoVariable);
+         return new YoLongSlider((YoLong) yoVariable, pushValueAction);
       throw new IllegalStateException("Unexpected YoVariable type: " + yoVariable);
    }
 

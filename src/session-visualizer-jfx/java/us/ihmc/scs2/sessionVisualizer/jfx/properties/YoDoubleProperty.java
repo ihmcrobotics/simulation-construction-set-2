@@ -83,6 +83,9 @@ public class YoDoubleProperty extends DoublePropertyBase implements YoVariablePr
          if (updatingControl.isTrue())
             return;
 
+         if (getName().contains("captureKpOrthogonal"))
+         System.out.println("Pushing value from: " + bean);
+
          updatingThis.setTrue();
          set(newValue.doubleValue());
          if (pushValueAction != null)

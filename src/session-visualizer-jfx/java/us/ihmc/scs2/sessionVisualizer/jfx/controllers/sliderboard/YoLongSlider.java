@@ -25,7 +25,7 @@ public class YoLongSlider implements YoVariableSlider
    private final LongProperty maxProperty = new SimpleLongProperty(this, "max", 1);
    private final List<Runnable> cleanupTasks = new ArrayList<>();
 
-   public YoLongSlider(YoLong yoLong)
+   public YoLongSlider(YoLong yoLong, Runnable pushValueAction)
    {
       yoLongProperty = new YoLongProperty(yoLong, this);
    }

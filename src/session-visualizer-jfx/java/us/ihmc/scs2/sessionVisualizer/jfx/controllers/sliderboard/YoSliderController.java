@@ -18,6 +18,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.text.Text;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
@@ -39,10 +40,12 @@ public class YoSliderController
 
    private YoCompositeSearchManager yoCompositeSearchManager;
    private YoVariableSlider yoVariableSlider;
+   private YoManager yoManager;
 
    public void initialize(SessionVisualizerToolkit toolkit, SliderVariable sliderVariable)
    {
       this.sliderVariable = sliderVariable;
+      yoManager = toolkit.getYoManager();
       yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
 
       yoVariableDropLabel.setOnDragDetected(this::handleDragDetected);
@@ -64,7 +67,7 @@ public class YoSliderController
 
       yoVariableDropLabel.setText(yoVariable.getName());
 
-      yoVariableSlider = YoVariableSlider.newYoVariableSlider(yoVariable);
+      yoVariableSlider = YoVariableSlider.newYoVariableSlider(yoVariable, () -> yoManager.getLinkedRootRegistry().push(yoVariable));
       yoVariableSlider.bindSliderVariable(sliderVariable);
       yoVariableSlider.bindVirtualSlider(slider);
       yoVariableSlider.bindMinTextField(sliderMinTextField);

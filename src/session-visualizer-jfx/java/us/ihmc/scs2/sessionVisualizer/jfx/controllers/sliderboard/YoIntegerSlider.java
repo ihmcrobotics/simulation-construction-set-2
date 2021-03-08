@@ -25,7 +25,7 @@ public class YoIntegerSlider implements YoVariableSlider
    private final IntegerProperty maxProperty = new SimpleIntegerProperty(this, "max", 1);
    private final List<Runnable> cleanupTasks = new ArrayList<>();
 
-   public YoIntegerSlider(YoInteger yoInteger)
+   public YoIntegerSlider(YoInteger yoInteger, Runnable pushValueAction)
    {
       yoIntegerProperty = new YoIntegerProperty(yoInteger, this);
    }

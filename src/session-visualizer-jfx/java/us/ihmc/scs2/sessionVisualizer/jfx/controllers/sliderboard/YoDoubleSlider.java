@@ -25,9 +25,11 @@ public class YoDoubleSlider implements YoVariableSlider
    private final DoubleProperty minProperty = new SimpleDoubleProperty(this, "min", 0.0);
    private final DoubleProperty maxProperty = new SimpleDoubleProperty(this, "max", 1.0);
    private final List<Runnable> cleanupTasks = new ArrayList<>();
+   private final Runnable pushValueAction;
 
-   public YoDoubleSlider(YoDouble yoDouble)
+   public YoDoubleSlider(YoDouble yoDouble, Runnable pushValueAction)
    {
+      this.pushValueAction = pushValueAction;
       yoDoubleProperty = new YoDoubleProperty(yoDouble, this);
    }
 
@@ -78,10 +80,21 @@ public class YoDoubleSlider implements YoVariableSlider
       maxProperty.addListener(majorTickUnitUpdater);
 
       MutableBoolean updating = new MutableBoolean(false);
+      MutableBoolean puhingValue = new MutableBoolean(false);
+      DoubleProperty userInputProperty = yoDoubleProperty.userInputProperty();
 
       ChangeListener<Object> sliderUpdater = (o, oldValue, newValue) ->
       {
          if (updating.isTrue())
+            return;
+
+         if (puhingValue.isTrue())
+         {
+            if (yoDoubleProperty.get() == userInputProperty.get())
+               puhingValue.setFalse();
+         }
+
+         if (puhingValue.isTrue())
             return;
 
          updating.setTrue();
@@ -89,25 +102,27 @@ public class YoDoubleSlider implements YoVariableSlider
          updating.setFalse();
       };
 
-      ChangeListener<Number> yoIntegerUpdater = (o, oldValue, newValue) ->
+      ChangeListener<Number> yoDoubleUpdater = (o, oldValue, newValue) ->
       {
          if (updating.isTrue())
             return;
 
          updating.setTrue();
          yoDoubleProperty.set(virtualSlider.valueProperty().get());
+         puhingValue.setTrue();
+         pushValueAction.run();
          updating.setFalse();
       };
 
       yoDoubleProperty.addListener(sliderUpdater);
-      virtualSlider.valueProperty().addListener(yoIntegerUpdater);
+      virtualSlider.valueProperty().addListener(yoDoubleUpdater);
 
       cleanupTasks.add(() ->
       {
          yoDoubleProperty.removeListener(sliderUpdater);
          minProperty.removeListener(majorTickUnitUpdater);
          maxProperty.removeListener(majorTickUnitUpdater);
-         virtualSlider.valueProperty().removeListener(yoIntegerUpdater);
+         virtualSlider.valueProperty().removeListener(yoDoubleUpdater);
          virtualSlider.minProperty().unbind();
          virtualSlider.maxProperty().unbind();
       });
@@ -117,10 +132,21 @@ public class YoDoubleSlider implements YoVariableSlider
    public void bindSliderVariable(SliderVariable sliderVariable)
    {
       MutableBoolean updating = new MutableBoolean(false);
+      MutableBoolean puhingValue = new MutableBoolean(false);
+      DoubleProperty userInputProperty = yoDoubleProperty.userInputProperty();
 
       ChangeListener<Object> sliderUpdater = (o, oldValue, newValue) ->
       {
          if (updating.isTrue())
+            return;
+
+         if (puhingValue.isTrue())
+         {
+            if (yoDoubleProperty.get() == userInputProperty.get())
+               puhingValue.setFalse();
+         }
+
+         if (puhingValue.isTrue())
             return;
 
          int sliderPosition = SliderVariable.doubleToInt(yoDoubleProperty.get(),
@@ -145,6 +171,8 @@ public class YoDoubleSlider implements YoVariableSlider
                                                            maxProperty.get());
          updating.setTrue();
          yoDoubleProperty.set(yoDoubleValue);
+         puhingValue.setTrue();
+         pushValueAction.run();
          updating.setFalse();
       };
 

@@ -19,7 +19,7 @@ public class YoBooleanSlider implements YoVariableSlider
    private final YoBooleanProperty yoBooleanProperty;
    private final List<Runnable> cleanupTasks = new ArrayList<>();
 
-   public YoBooleanSlider(YoBoolean yoBoolean)
+   public YoBooleanSlider(YoBoolean yoBoolean, Runnable pushValueAction)
    {
       yoBooleanProperty = new YoBooleanProperty(yoBoolean, this);
    }
