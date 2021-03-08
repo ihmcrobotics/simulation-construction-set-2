@@ -23,13 +23,12 @@ import javafx.util.converter.DoubleStringConverter;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.tools.IntegerConverter;
-import us.ihmc.scs2.sessionVisualizer.jfx.tools.PositiveIntegerValueFilter;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController.Slider;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardControlVariable;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderVariable;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoSliderController
@@ -43,17 +42,14 @@ public class YoSliderController
    @FXML
    private Label yoVariableDropLabel;
 
-   private TextFormatter<Double> minTextFormatter;
-   private TextFormatter<Double> maxTextFormatter;
-   private SliderboardControlVariable controlVariable = new SliderboardControlVariable();
+   private SliderVariable sliderVariable;
 
    private YoCompositeSearchManager yoCompositeSearchManager;
-   private BCF2000SliderboardController sliderboard;
-   private YoVariable yoVariable;
+   private YoVariableSlider yoVariableSlider;
 
-   public void initialize(SessionVisualizerToolkit toolkit, BCF2000SliderboardController sliderboard)
+   public void initialize(SessionVisualizerToolkit toolkit, SliderVariable sliderVariable)
    {
-      this.sliderboard = sliderboard;
+      this.sliderVariable = sliderVariable;
       yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
 
       yoVariableDropLabel.setOnDragDetected(this::handleDragDetected);
@@ -64,49 +60,38 @@ public class YoSliderController
 
       sliderMaxTextField.setText("1.0");
       sliderMinTextField.setText("0.0");
-
-      minTextFormatter = new TextFormatter<>(new DoubleStringConverter());
-      maxTextFormatter = new TextFormatter<>(new DoubleStringConverter());
-
-      sliderMinTextField.setTextFormatter(minTextFormatter);
-      sliderMaxTextField.setTextFormatter(maxTextFormatter);
-
-      controlVariable.minProperty().bind(minTextFormatter.valueProperty());
-      controlVariable.maxProperty().bind(maxTextFormatter.valueProperty());
    }
 
    private void setSlider(YoVariable yoVariable)
    {
-      this.yoVariable = yoVariable;
+      if (yoVariableSlider != null)
+      {
+         yoVariableSlider.dispose();
+      }
+
       yoVariableDropLabel.setText(yoVariable.getName());
 
+      yoVariableSlider = YoVariableSlider.newYoVariableSlider(yoVariable);
+      yoVariableSlider.bindSliderVariable(sliderVariable);
 
-      MutableBoolean updating = new MutableBoolean(false);
+      //TODO Fix me
+//      TextFormatter<Double> minTextFormatter = new TextFormatter<>(new DoubleStringConverter());
+//      TextFormatter<Double> maxTextFormatter = new TextFormatter<>(new DoubleStringConverter());
+//      
+//      sliderMinTextField.setTextFormatter(minTextFormatter);
+//      sliderMaxTextField.setTextFormatter(maxTextFormatter);
+//      
+//      yoVariableSlider.minProperty().bind(minTextFormatter.valueProperty());
+//      yoVariableSlider.maxProperty().bind(maxTextFormatter.valueProperty());
+   }
 
-      yoVariable.addListener(v ->
-      {
-         if (updating.isTrue())
-            return;
-         updating.setTrue();
-         controlVariable.setValue(yoVariable.getValueAsDouble());
-         updating.setFalse();
-      });
-
-      controlVariable.valueProperty().addListener((o, oldValue, newValue) ->
-      {
-         if (updating.isTrue())
-            return;
-         updating.setTrue();
-         yoVariable.setValueFromDouble(newValue.doubleValue());
-         updating.setFalse();
-      });
-
-      sliderboard.setSlider(Slider.SLIDER_1, controlVariable);
+   public void updateSlider()
+   {
    }
 
    public void handleDragDetected(MouseEvent event)
    {
-      if (event == null || yoVariable == null)
+      if (event == null || yoVariableSlider == null)
          return;
 
       if (!event.isPrimaryButtonDown())
@@ -121,6 +106,8 @@ public class YoSliderController
 
       if (intersectedNode == null)
          return;
+
+      YoVariable yoVariable = yoVariableSlider.getYoVariable();
 
       if (intersectedNode instanceof Text)
       {

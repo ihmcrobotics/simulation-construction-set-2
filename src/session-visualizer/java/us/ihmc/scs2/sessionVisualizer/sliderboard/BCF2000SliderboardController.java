@@ -198,9 +198,9 @@ public class BCF2000SliderboardController
       }
    }
 
-   public void setSlider(Slider slider, SliderboardControlVariable controlVariable)
+   public SliderVariable getSlider(Slider slider)
    {
-      sliderControllers[slider.ordinal()].setControlVariable(controlVariable);
+      return sliderControllers[slider.ordinal()].getControlVariable();
    }
 
    public void update()
@@ -231,11 +231,6 @@ public class BCF2000SliderboardController
          midiOut.close();
       if (midiIn != null)
          midiIn.close();
-   }
-
-   public static void main(String[] args)
-   {
-      System.out.println(searchAndConnectToDevice());
    }
 
    public static boolean isBCF2000Sliderboard(MidiDevice.Info info)

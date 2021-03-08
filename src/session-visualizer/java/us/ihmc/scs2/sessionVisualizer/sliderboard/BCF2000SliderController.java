@@ -4,6 +4,7 @@ import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 
+import us.ihmc.commons.MathTools;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController.Slider;
 
 public class BCF2000SliderController
@@ -11,20 +12,17 @@ public class BCF2000SliderController
    private final Slider slider;
    private final Receiver midiOut;
 
-   private SliderboardControlVariable controlVariable;
+   private final SliderVariable controlVariable;
 
-   private double currentSliderValue = Double.NaN;
-   private double newSliderValue = Double.NaN;
+   private int currentSliderValue = -1;
+   private int newSliderValue = -1;
 
    public BCF2000SliderController(Slider slider, Receiver midiOut)
    {
       this.slider = slider;
       this.midiOut = midiOut;
-   }
 
-   public void setControlVariable(SliderboardControlVariable controlVariable)
-   {
-      this.controlVariable = controlVariable;
+      controlVariable = new SliderVariable(slider.getMin(), slider.getMax());
    }
 
    public void handleMessage(ShortMessage message, long timestamp)
@@ -32,23 +30,18 @@ public class BCF2000SliderController
       if (slider.getChannel() != message.getData1()) // Should it use getChannel instead
          return;
 
-      newSliderValue = SliderboardControlVariable.intToDouble(message.getData2(),
-                                                              slider.getMin(),
-                                                              slider.getMax(),
-                                                              controlVariable.getMin(),
-                                                              controlVariable.getMax());
+      newSliderValue = MathTools.clamp(message.getData2(), slider.getMin(), slider.getMax());
    }
 
-   public void moveSlider(double value)
+   public void moveSlider(int value)
    {
-      if (Double.isNaN(value))
+      if (value == -1)
          return;
 
       try
       {
          ShortMessage message = new ShortMessage();
-         int intValue = SliderboardControlVariable.doubleToInt(value, controlVariable.getMin(), controlVariable.getMax(), slider.getMin(), slider.getMax());
-         message.setMessage(176, 0, slider.getChannel(), intValue);
+         message.setMessage(176, 0, slider.getChannel(), value);
          midiOut.send(message, -1);
       }
       catch (InvalidMidiDataException e)
@@ -62,17 +55,22 @@ public class BCF2000SliderController
       if (controlVariable == null)
          return;
 
-      if (!Double.isNaN(newSliderValue))
+      if (newSliderValue != -1)
          currentSliderValue = newSliderValue;
 
-      if (!Double.isNaN(newSliderValue))
+      if (newSliderValue != -1)
       {
          controlVariable.setValue(newSliderValue);
-         newSliderValue = Double.NaN;
+         newSliderValue = -1;
       }
       else if (controlVariable.getValue() != currentSliderValue)
       {
          moveSlider(controlVariable.getValue());
       }
+   }
+
+   public SliderVariable getControlVariable()
+   {
+      return controlVariable;
    }
 }

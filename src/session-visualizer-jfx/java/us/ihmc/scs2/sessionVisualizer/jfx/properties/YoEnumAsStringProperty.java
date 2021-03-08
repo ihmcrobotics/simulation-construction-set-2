@@ -37,7 +37,7 @@ public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBas
    }
 
    @Override
-   protected void finalize() throws Throwable
+   public void finalize()
    {
       try
       {
@@ -45,7 +45,6 @@ public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBas
       }
       finally
       {
-         super.finalize();
       }
    }
 

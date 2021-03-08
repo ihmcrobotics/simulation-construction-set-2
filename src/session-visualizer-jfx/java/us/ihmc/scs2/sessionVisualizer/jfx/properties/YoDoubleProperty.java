@@ -31,7 +31,7 @@ public class YoDoubleProperty extends DoublePropertyBase implements YoVariablePr
    }
 
    @Override
-   protected void finalize() throws Throwable
+   public void finalize()
    {
       try
       {
@@ -39,7 +39,6 @@ public class YoDoubleProperty extends DoublePropertyBase implements YoVariablePr
       }
       finally
       {
-         super.finalize();
       }
    }
 

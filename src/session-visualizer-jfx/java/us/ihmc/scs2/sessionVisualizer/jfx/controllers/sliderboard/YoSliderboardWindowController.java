@@ -18,6 +18,7 @@ import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController.Slider;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.old.MidiSliderBoard;
 
 public class YoSliderboardWindowController
@@ -62,9 +63,10 @@ public class YoSliderboardWindowController
 
       sliderboard = BCF2000SliderboardController.searchAndConnectToDevice();
       
-      for (YoSliderController yoSliderController : yoSliderControllers)
+      for (int i = 0; i < yoSliderControllers.size(); i++)
       {
-         yoSliderController.initialize(toolkit, sliderboard);
+         YoSliderController yoSliderController = yoSliderControllers.get(i);
+         yoSliderController.initialize(toolkit, sliderboard.getSlider(Slider.values()[i]));
       }
 
       sliderboard.start();
