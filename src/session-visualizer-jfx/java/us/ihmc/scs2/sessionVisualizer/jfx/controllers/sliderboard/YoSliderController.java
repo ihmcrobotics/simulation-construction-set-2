@@ -29,6 +29,8 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoSliderController
 {
+   private static final String DEFAULT_TEXT = "Drop YoVariable here";
+
    @FXML
    private VBox rootPane;
    @FXML
@@ -58,8 +60,8 @@ public class YoSliderController
       rootPane.setOnDragEntered(this::handleDragEntered);
       rootPane.setOnDragExited(this::handleDragExited);
 
-      sliderMaxTextField.setText("1.0");
-      sliderMinTextField.setText("0.0");
+      sliderMaxTextField.setText("");
+      sliderMinTextField.setText("");
    }
 
    private void setSlider(YoVariable yoVariable)
@@ -78,8 +80,17 @@ public class YoSliderController
       yoVariableSlider.bindVirtualSlider(slider);
    }
 
-   public void updateSlider()
+   public void close()
    {
+      if (yoVariableSlider != null)
+      {
+         yoVariableSlider.dispose();
+         yoVariableSlider = null;
+      }
+
+      yoVariableDropLabel.setText(DEFAULT_TEXT);
+      sliderMaxTextField.setText("");
+      sliderMinTextField.setText("");
    }
 
    public void handleDragDetected(MouseEvent event)

@@ -16,6 +16,10 @@ import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
+import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
+import us.ihmc.messager.TopicListener;
+import us.ihmc.scs2.session.SessionState;
+import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController.Slider;
@@ -44,13 +48,15 @@ public class YoSliderboardWindowController
    private List<YoSliderController> yoSliderControllers;
 
    private Stage window;
-   private Window owner;
    private BCF2000SliderboardController sliderboard;
+   private TopicListener<SessionState> stopSessionListener = state ->
+   {
+      if (state == SessionState.INACTIVE)
+         close();
+   };
 
    public void initialize(SessionVisualizerToolkit toolkit, Window owner)
    {
-      this.owner = owner;
-
       yoSliderControllers = Arrays.asList(yoSlider0Controller,
                                           yoSlider1Controller,
                                           yoSlider2Controller,
@@ -61,7 +67,7 @@ public class YoSliderboardWindowController
                                           yoSlider7Controller);
 
       sliderboard = BCF2000SliderboardController.searchAndConnectToDevice();
-      
+
       for (int i = 0; i < yoSliderControllers.size(); i++)
       {
          YoSliderController yoSliderController = yoSliderControllers.get(i);
@@ -81,6 +87,10 @@ public class YoSliderboardWindowController
       window.setTitle("YoSliderboard controller");
       window.setScene(new Scene(mainAnchorPane));
       window.initOwner(owner);
+
+      JavaFXMessager messager = toolkit.getMessager();
+      SessionVisualizerTopics topics = toolkit.getTopics();
+      messager.registerJavaFXSyncedTopicListener(topics.getSessionCurrentState(), stopSessionListener);
    }
 
    public void showWindow()
@@ -92,6 +102,17 @@ public class YoSliderboardWindowController
       KeyFrame key = new KeyFrame(Duration.seconds(0.125), new KeyValue(window.opacityProperty(), 1.0));
       timeline.getKeyFrames().add(key);
       timeline.play();
+   }
+
+   public void close()
+   {
+      for (YoSliderController yoSliderController : yoSliderControllers)
+      {
+         yoSliderController.close();
+      }
+
+      sliderboard.close();
+      window.close();
    }
 
    public Stage getWindow()
