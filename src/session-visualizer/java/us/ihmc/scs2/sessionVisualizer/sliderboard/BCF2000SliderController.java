@@ -52,11 +52,10 @@ public class BCF2000SliderController
 
    public void update()
    {
-      if (controlVariable == null)
-         return;
-
       if (newSliderValue != -1)
+      {
          currentSliderValue = newSliderValue;
+      }
 
       if (newSliderValue != -1)
       {
@@ -65,6 +64,7 @@ public class BCF2000SliderController
       }
       else if (controlVariable.getValue() != currentSliderValue)
       {
+         currentSliderValue = controlVariable.getValue(); // TODO Not sure if that's the best way
          moveSlider(controlVariable.getValue());
       }
    }

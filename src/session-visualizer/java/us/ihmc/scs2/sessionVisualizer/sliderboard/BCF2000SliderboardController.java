@@ -52,7 +52,7 @@ public class BCF2000SliderboardController
    {
       SLIDER_1, SLIDER_2, SLIDER_3, SLIDER_4, SLIDER_5, SLIDER_6, SLIDER_7, SLIDER_8;
 
-      private static final int CHANNEL_OFFSET = 80;
+      private static final int CHANNEL_OFFSET = 81;
 
       private final int channel;
 
@@ -252,6 +252,9 @@ public class BCF2000SliderboardController
          if (out != null && in != null)
             break;
 
+         if (!isBCF2000Sliderboard(info))
+            continue;
+
          if (out == null)
          {
             out = connectToMidiOutDevice(info);
@@ -312,7 +315,8 @@ public class BCF2000SliderboardController
       }
 
       if (DEBUG)
-         LogTools.info("Obtained a handle to the devices transmitter.");
+         LogTools.info("Obtained a handle to the device transmitter: " + info.getName() + ", description: " + info.getDescription() + ", class name: "
+               + midiDevice.getClass().getSimpleName());
 
       return midiIn;
    }
@@ -360,7 +364,7 @@ public class BCF2000SliderboardController
       }
 
       if (DEBUG)
-         LogTools.info("Obtained a handle to the devices receiver.");
+         LogTools.info("Obtained a handle to the devices receiver: " + info.getName() + ", description: " + info.getDescription());
 
       return midiOut;
    }
@@ -371,7 +375,7 @@ public class BCF2000SliderboardController
          return true;
 
       if (DEBUG)
-         LogTools.info("Opening Output Device");
+         LogTools.info("Opening Device: " + midiDevice);
 
       try
       {
@@ -384,7 +388,7 @@ public class BCF2000SliderboardController
 
          if (DEBUG)
          {
-            LogTools.error("Unable to open device.");
+            LogTools.error("Unable to open device: " + midiDevice);
             e.printStackTrace();
          }
          return false;
