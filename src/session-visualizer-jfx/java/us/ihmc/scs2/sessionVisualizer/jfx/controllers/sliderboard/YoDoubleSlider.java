@@ -37,6 +37,7 @@ public class YoDoubleSlider implements YoVariableSlider
    public void bindMinTextField(JFXTextField minTextField)
    {
       TextFormatter<Double> minTextFormatter = new TextFormatter<>(new DoubleStringConverter());
+      minTextFormatter.setValue(Math.floor(yoDoubleProperty.get() - 1.0));
       minTextField.setTextFormatter(minTextFormatter);
       minProperty.bind(minTextFormatter.valueProperty());
 
@@ -47,6 +48,7 @@ public class YoDoubleSlider implements YoVariableSlider
    public void bindMaxTextField(JFXTextField maxTextField)
    {
       TextFormatter<Double> maxTextFormatter = new TextFormatter<>(new DoubleStringConverter());
+      maxTextFormatter.setValue(Math.ceil(yoDoubleProperty.get() + 1.0));
       maxTextField.setTextFormatter(maxTextFormatter);
       maxProperty.bind(maxTextFormatter.valueProperty());
 
@@ -82,6 +84,8 @@ public class YoDoubleSlider implements YoVariableSlider
       MutableBoolean updating = new MutableBoolean(false);
       MutableBoolean puhingValue = new MutableBoolean(false);
       DoubleProperty userInputProperty = yoDoubleProperty.userInputProperty();
+
+      virtualSlider.setValue(yoDoubleProperty.get());
 
       ChangeListener<Object> sliderUpdater = (o, oldValue, newValue) ->
       {
@@ -134,6 +138,17 @@ public class YoDoubleSlider implements YoVariableSlider
       MutableBoolean updating = new MutableBoolean(false);
       MutableBoolean puhingValue = new MutableBoolean(false);
       DoubleProperty userInputProperty = yoDoubleProperty.userInputProperty();
+
+      if (!minProperty.isBound())
+         minProperty.set(Math.floor(yoDoubleProperty.get() - 1.0));
+      if (!maxProperty.isBound())
+         maxProperty.set(Math.ceil(yoDoubleProperty.get() + 1.0));
+
+      sliderVariable.setValue(SliderVariable.doubleToInt(yoDoubleProperty.get(),
+                                                         minProperty.get(),
+                                                         maxProperty.get(),
+                                                         sliderVariable.getMin(),
+                                                         sliderVariable.getMax()));
 
       ChangeListener<Object> sliderUpdater = (o, oldValue, newValue) ->
       {

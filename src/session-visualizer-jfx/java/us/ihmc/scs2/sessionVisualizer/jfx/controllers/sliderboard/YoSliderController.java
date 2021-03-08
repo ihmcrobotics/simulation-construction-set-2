@@ -68,10 +68,10 @@ public class YoSliderController
       yoVariableDropLabel.setText(yoVariable.getName());
 
       yoVariableSlider = YoVariableSlider.newYoVariableSlider(yoVariable, () -> yoManager.getLinkedRootRegistry().push(yoVariable));
-      yoVariableSlider.bindSliderVariable(sliderVariable);
-      yoVariableSlider.bindVirtualSlider(slider);
       yoVariableSlider.bindMinTextField(sliderMinTextField);
       yoVariableSlider.bindMaxTextField(sliderMaxTextField);
+      yoVariableSlider.bindSliderVariable(sliderVariable);
+      yoVariableSlider.bindVirtualSlider(slider);
    }
 
    public void updateSlider()
