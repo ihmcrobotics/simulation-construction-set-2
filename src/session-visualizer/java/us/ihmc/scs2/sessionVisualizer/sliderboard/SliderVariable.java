@@ -7,7 +7,7 @@ import us.ihmc.commons.MathTools;
 public class SliderVariable
 {
    private final int min, max;
-   private final IntegerProperty value = new SimpleIntegerProperty(this, "value", 0);
+   private final IntegerProperty value = new SimpleIntegerProperty(this, "value", -1);
 
    public SliderVariable(int min, int max)
    {
