@@ -6,12 +6,17 @@ import java.util.List;
 import com.jfoenix.controls.JFXSlider;
 import com.jfoenix.controls.JFXTextField;
 
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.PickResult;
 import javafx.scene.input.TransferMode;
@@ -42,6 +47,8 @@ public class YoSliderController
    @FXML
    private Label yoVariableDropLabel;
 
+   private final SimpleObjectProperty<ContextMenu> contextMenuProperty = new SimpleObjectProperty<>(this, "sliderContextMenu", null);
+
    private SliderVariable sliderVariable;
 
    private YoCompositeSearchManager yoCompositeSearchManager;
@@ -59,9 +66,17 @@ public class YoSliderController
       rootPane.setOnDragDropped(this::handleDragDropped);
       rootPane.setOnDragEntered(this::handleDragEntered);
       rootPane.setOnDragExited(this::handleDragExited);
+      rootPane.setOnMousePressed(this::handleMousePressed);
+      rootPane.setOnMouseReleased(this::handleMouseReleased);
 
       sliderMaxTextField.setText("");
       sliderMinTextField.setText("");
+
+      contextMenuProperty.addListener((ChangeListener<ContextMenu>) (observable, oldValue, newValue) ->
+      {
+         if (oldValue != null)
+            oldValue.hide();
+      });
    }
 
    private void setSlider(YoVariable yoVariable)
@@ -71,13 +86,22 @@ public class YoSliderController
          yoVariableSlider.dispose();
       }
 
-      yoVariableDropLabel.setText(yoVariable.getName());
+      if (yoVariable != null)
+      {
+         yoVariableDropLabel.setText(yoVariable.getName());
 
-      yoVariableSlider = YoVariableSlider.newYoVariableSlider(yoVariable, () -> yoManager.getLinkedRootRegistry().push(yoVariable));
-      yoVariableSlider.bindMinTextField(sliderMinTextField);
-      yoVariableSlider.bindMaxTextField(sliderMaxTextField);
-      yoVariableSlider.bindSliderVariable(sliderVariable);
-      yoVariableSlider.bindVirtualSlider(slider);
+         yoVariableSlider = YoVariableSlider.newYoVariableSlider(yoVariable, () -> yoManager.getLinkedRootRegistry().push(yoVariable));
+         yoVariableSlider.bindMinTextField(sliderMinTextField);
+         yoVariableSlider.bindMaxTextField(sliderMaxTextField);
+         yoVariableSlider.bindSliderVariable(sliderVariable);
+         yoVariableSlider.bindVirtualSlider(slider);
+      }
+      else
+      {
+         yoVariableDropLabel.setText(DEFAULT_TEXT);
+         sliderMaxTextField.setText("");
+         sliderMinTextField.setText("");
+      }
    }
 
    public void close()
@@ -87,10 +111,50 @@ public class YoSliderController
          yoVariableSlider.dispose();
          yoVariableSlider = null;
       }
+   }
 
-      yoVariableDropLabel.setText(DEFAULT_TEXT);
-      sliderMaxTextField.setText("");
-      sliderMinTextField.setText("");
+   private void handleMousePressed(MouseEvent event)
+   {
+      if (event.getButton() == MouseButton.PRIMARY)
+      {
+         hideContextMenu();
+      }
+   }
+
+   private void handleMouseReleased(MouseEvent event)
+   {
+      if (event.getButton() == MouseButton.SECONDARY)
+      {
+         if (event.isStillSincePress())
+         {
+            ContextMenu contextMenu = newGraphContextMenu();
+            if (!contextMenu.getItems().isEmpty())
+            {
+               contextMenuProperty.set(contextMenu);
+               contextMenu.show(rootPane, event.getScreenX(), event.getScreenY());
+            }
+            event.consume();
+         }
+      }
+   }
+
+   private void hideContextMenu()
+   {
+      if (contextMenuProperty.get() != null)
+         contextMenuProperty.set(null);
+   }
+
+   private ContextMenu newGraphContextMenu()
+   {
+      if (yoVariableSlider == null)
+         return null;
+
+      ContextMenu contextMenu = new ContextMenu();
+      MenuItem menuItem = new MenuItem("Remove " + yoVariableSlider.getYoVariable().getName());
+      menuItem.setMnemonicParsing(false);
+      menuItem.setOnAction(e -> setSlider(null));
+      contextMenu.getItems().add(menuItem);
+      return contextMenu;
    }
 
    public void handleDragDetected(MouseEvent event)
