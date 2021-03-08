@@ -3,15 +3,12 @@ package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.lang3.mutable.MutableBoolean;
-
 import com.jfoenix.controls.JFXSlider;
 import com.jfoenix.controls.JFXTextField;
 
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextFormatter;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -19,16 +16,12 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.PickResult;
 import javafx.scene.input.TransferMode;
 import javafx.scene.text.Text;
-import javafx.util.converter.DoubleStringConverter;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController.Slider;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderVariable;
-import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoSliderController
@@ -73,16 +66,9 @@ public class YoSliderController
 
       yoVariableSlider = YoVariableSlider.newYoVariableSlider(yoVariable);
       yoVariableSlider.bindSliderVariable(sliderVariable);
-
-      //TODO Fix me
-//      TextFormatter<Double> minTextFormatter = new TextFormatter<>(new DoubleStringConverter());
-//      TextFormatter<Double> maxTextFormatter = new TextFormatter<>(new DoubleStringConverter());
-//      
-//      sliderMinTextField.setTextFormatter(minTextFormatter);
-//      sliderMaxTextField.setTextFormatter(maxTextFormatter);
-//      
-//      yoVariableSlider.minProperty().bind(minTextFormatter.valueProperty());
-//      yoVariableSlider.maxProperty().bind(maxTextFormatter.valueProperty());
+      yoVariableSlider.bindVirtualSlider(slider);
+      yoVariableSlider.bindMinTextField(sliderMinTextField);
+      yoVariableSlider.bindMaxTextField(sliderMaxTextField);
    }
 
    public void updateSlider()

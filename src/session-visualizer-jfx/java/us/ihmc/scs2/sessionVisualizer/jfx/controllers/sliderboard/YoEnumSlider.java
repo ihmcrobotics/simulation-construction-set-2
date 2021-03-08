@@ -1,7 +1,14 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
+import com.jfoenix.controls.JFXSlider;
+import com.jfoenix.controls.JFXTextField;
+
+import javafx.beans.binding.StringBinding;
 import javafx.beans.value.ChangeListener;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoEnumAsStringProperty;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderVariable;
@@ -10,23 +17,81 @@ import us.ihmc.yoVariables.variable.YoEnum;
 public class YoEnumSlider implements YoVariableSlider
 {
    private final YoEnumAsStringProperty<?> yoEnumProperty;
+   private final List<Runnable> cleanupTasks = new ArrayList<>();
 
    public YoEnumSlider(YoEnum<?> yoEnum)
    {
       yoEnumProperty = new YoEnumAsStringProperty<>(yoEnum, this);
    }
 
-   private ChangeListener<Object> sliderUpdater;
-   private ChangeListener<Number> yoEnumUpdater;
-   private SliderVariable sliderVariable;
+   @Override
+   public void bindMaxTextField(JFXTextField maxTextField)
+   {
+      maxTextField.setDisable(true);
+      cleanupTasks.add(() -> maxTextField.setDisable(false));
+   }
+
+   @Override
+   public void bindMinTextField(JFXTextField minTextField)
+   {
+      minTextField.setDisable(true);
+      cleanupTasks.add(() -> minTextField.setDisable(false));
+   }
+
+   @Override
+   public void bindVirtualSlider(JFXSlider virtualSlider)
+   {
+      virtualSlider.setValueFactory(param -> new StringBinding()
+      {
+         @Override
+         protected String computeValue()
+         {
+            return yoEnumProperty.getValue();
+         }
+      });
+
+      virtualSlider.setMin(0.0);
+      virtualSlider.setMax(yoEnumProperty.getYoVariable().getEnumValuesAsString().length);
+      virtualSlider.setMajorTickUnit(1.0);
+
+      MutableBoolean updating = new MutableBoolean(false);
+
+      ChangeListener<Object> sliderUpdater = (o, oldValue, newValue) ->
+      {
+         if (updating.isTrue())
+            return;
+
+         updating.setTrue();
+         virtualSlider.valueProperty().set(yoEnumProperty.toEnumOrdinal(yoEnumProperty.get()));
+         updating.setFalse();
+      };
+
+      ChangeListener<Number> yoEnumUpdater = (o, oldValue, newValue) ->
+      {
+         if (updating.isTrue())
+            return;
+
+         updating.setTrue();
+         yoEnumProperty.set(yoEnumProperty.toEnumString(virtualSlider.valueProperty().getValue().intValue()));
+         updating.setFalse();
+      };
+
+      yoEnumProperty.addListener(sliderUpdater);
+      virtualSlider.valueProperty().addListener(yoEnumUpdater);
+
+      cleanupTasks.add(() ->
+      {
+         yoEnumProperty.removeListener(sliderUpdater);
+         virtualSlider.valueProperty().removeListener(yoEnumUpdater);
+      });
+   }
 
    @Override
    public void bindSliderVariable(SliderVariable sliderVariable)
    {
-      this.sliderVariable = sliderVariable;
       MutableBoolean updating = new MutableBoolean(false);
 
-      sliderUpdater = (o, oldValue, newValue) ->
+      ChangeListener<Object> sliderUpdater = (o, oldValue, newValue) ->
       {
          if (updating.isTrue())
             return;
@@ -41,7 +106,7 @@ public class YoEnumSlider implements YoVariableSlider
          updating.setFalse();
       };
 
-      yoEnumUpdater = (o, oldValue, newValue) ->
+      ChangeListener<Number> yoEnumUpdater = (o, oldValue, newValue) ->
       {
          if (updating.isTrue())
             return;
@@ -58,6 +123,12 @@ public class YoEnumSlider implements YoVariableSlider
 
       yoEnumProperty.addListener(sliderUpdater);
       sliderVariable.valueProperty().addListener(yoEnumUpdater);
+
+      cleanupTasks.add(() ->
+      {
+         sliderVariable.valueProperty().removeListener(yoEnumUpdater);
+         yoEnumProperty.removeListener(sliderUpdater);
+      });
    }
 
    @Override
@@ -70,11 +141,6 @@ public class YoEnumSlider implements YoVariableSlider
    public void dispose()
    {
       yoEnumProperty.finalize();
-      if (sliderVariable != null && yoEnumUpdater != null)
-         sliderVariable.valueProperty().removeListener(yoEnumUpdater);
-      if (sliderUpdater != null)
-      {
-         yoEnumProperty.removeListener(sliderUpdater);
-      }
+      cleanupTasks.forEach(Runnable::run);
    }
 }
