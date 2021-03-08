@@ -6,11 +6,11 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="60.0" spacing="5.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.YoSliderController">
+<VBox fx:id="rootPane" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="60.0" spacing="5.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.YoSliderController">
    <children>
-      <JFXTextField fx:id="sliderMaxTextField" />
+      <JFXTextField fx:id="sliderMaxTextField" disable="true" />
       <JFXSlider fx:id="slider" orientation="VERTICAL" VBox.vgrow="ALWAYS" />
-      <JFXTextField fx:id="sliderMinTextField" />
+      <JFXTextField fx:id="sliderMinTextField" disable="true" />
       <Label fx:id="yoVariableDropLabel" text="Drop YoVariable here" />
    </children>
    <padding>

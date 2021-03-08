@@ -15,6 +15,7 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.PickResult;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
@@ -23,10 +24,13 @@ import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderVariable;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoSliderController
 {
+   @FXML
+   private VBox rootPane;
    @FXML
    private JFXTextField sliderMaxTextField;
    @FXML
@@ -48,11 +52,11 @@ public class YoSliderController
       yoManager = toolkit.getYoManager();
       yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
 
-      yoVariableDropLabel.setOnDragDetected(this::handleDragDetected);
-      yoVariableDropLabel.setOnDragOver(this::handleDragOver);
-      yoVariableDropLabel.setOnDragDropped(this::handleDragDropped);
-      yoVariableDropLabel.setOnDragEntered(this::handleDragEntered);
-      yoVariableDropLabel.setOnDragExited(this::handleDragExited);
+      rootPane.setOnDragDetected(this::handleDragDetected);
+      rootPane.setOnDragOver(this::handleDragOver);
+      rootPane.setOnDragDropped(this::handleDragDropped);
+      rootPane.setOnDragEntered(this::handleDragEntered);
+      rootPane.setOnDragExited(this::handleDragExited);
 
       sliderMaxTextField.setText("1.0");
       sliderMinTextField.setText("0.0");
@@ -160,15 +164,22 @@ public class YoSliderController
          return false;
 
       Dragboard dragboard = event.getDragboard();
-      return DragAndDropTools.retrieveYoCompositesFromDragBoard(dragboard, yoCompositeSearchManager) != null;
+      List<YoComposite> result = DragAndDropTools.retrieveYoCompositesFromDragBoard(dragboard, yoCompositeSearchManager);
+      if (result == null || result.isEmpty())
+         return false;
+      if (result.get(0).getYoComponents().isEmpty())
+         return false;
+      if (!(result.get(0).getYoComponents().get(0) instanceof YoDouble))
+         return false; // TODO Keeping only YoDoubles
+      return true;
    }
 
    public void setSelectionHighlight(boolean isSelected)
    {
       if (isSelected)
-         yoVariableDropLabel.setStyle("-fx-border-color:green; -fx-border-radius:5;");
+         rootPane.setStyle("-fx-border-color:green; -fx-border-radius:5;");
       else
-         yoVariableDropLabel.setStyle("-fx-border-color: null;");
+         rootPane.setStyle("-fx-border-color: null;");
    }
 
 }

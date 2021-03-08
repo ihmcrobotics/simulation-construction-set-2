@@ -1,20 +1,79 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="mainAnchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.YoSliderboardWindowController">
+<AnchorPane fx:id="mainAnchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefWidth="800.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.YoSliderboardWindowController">
    <children>
-      <HBox alignment="CENTER" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+      <GridPane AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+        <columnConstraints>
+          <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" />
+          <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" />
+            <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" />
+            <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" />
+            <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" />
+            <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" />
+            <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" />
+            <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints vgrow="SOMETIMES" />
+          <RowConstraints vgrow="SOMETIMES" />
+        </rowConstraints>
          <children>
-            <fx:include fx:id="yoSlider0" maxWidth="1.7976931348623157E308" source="YoSlider.fxml" HBox.hgrow="SOMETIMES" />
-            <fx:include fx:id="yoSlider1" maxWidth="1.7976931348623157E308" source="YoSlider.fxml" HBox.hgrow="SOMETIMES" />
-            <fx:include fx:id="yoSlider2" maxWidth="1.7976931348623157E308" source="YoSlider.fxml" HBox.hgrow="SOMETIMES" />
-            <fx:include fx:id="yoSlider3" maxWidth="1.7976931348623157E308" source="YoSlider.fxml" HBox.hgrow="SOMETIMES" />
-            <fx:include fx:id="yoSlider4" maxWidth="1.7976931348623157E308" source="YoSlider.fxml" HBox.hgrow="SOMETIMES" />
-            <fx:include fx:id="yoSlider5" maxWidth="1.7976931348623157E308" source="YoSlider.fxml" HBox.hgrow="SOMETIMES" />
-            <fx:include fx:id="yoSlider6" maxWidth="1.7976931348623157E308" source="YoSlider.fxml" HBox.hgrow="SOMETIMES" />
-            <fx:include fx:id="yoSlider7" maxWidth="1.7976931348623157E308" source="YoSlider.fxml" HBox.hgrow="SOMETIMES" />
-         </children></HBox>
+            <fx:include fx:id="yoSlider0" maxWidth="1.7976931348623157E308" source="YoSlider.fxml" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+            <fx:include fx:id="yoSlider1" maxWidth="1.7976931348623157E308" source="YoSlider.fxml" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <fx:include fx:id="yoSlider2" maxWidth="1.7976931348623157E308" source="YoSlider.fxml" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+            <fx:include fx:id="yoSlider3" maxWidth="1.7976931348623157E308" source="YoSlider.fxml" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+            <fx:include fx:id="yoSlider4" maxWidth="1.7976931348623157E308" source="YoSlider.fxml" GridPane.columnIndex="4" GridPane.rowIndex="1" />
+            <fx:include fx:id="yoSlider5" maxWidth="1.7976931348623157E308" source="YoSlider.fxml" GridPane.columnIndex="5" GridPane.rowIndex="1" />
+            <fx:include fx:id="yoSlider6" maxWidth="1.7976931348623157E308" source="YoSlider.fxml" GridPane.columnIndex="6" GridPane.rowIndex="1" />
+            <fx:include fx:id="yoSlider7" maxWidth="1.7976931348623157E308" source="YoSlider.fxml" GridPane.columnIndex="7" GridPane.rowIndex="1" />
+            <Label text="1">
+               <font>
+                  <Font name="Arial Rounded MT Bold" size="30.0" />
+               </font>
+            </Label>
+            <Label text="2" GridPane.columnIndex="1">
+               <font>
+                  <Font name="Arial Rounded MT Bold" size="30.0" />
+               </font>
+            </Label>
+            <Label text="3" GridPane.columnIndex="2">
+               <font>
+                  <Font name="Arial Rounded MT Bold" size="30.0" />
+               </font>
+            </Label>
+            <Label text="4" GridPane.columnIndex="3">
+               <font>
+                  <Font name="Arial Rounded MT Bold" size="30.0" />
+               </font>
+            </Label>
+            <Label text="5" GridPane.columnIndex="4">
+               <font>
+                  <Font name="Arial Rounded MT Bold" size="30.0" />
+               </font>
+            </Label>
+            <Label text="6" GridPane.columnIndex="5">
+               <font>
+                  <Font name="Arial Rounded MT Bold" size="30.0" />
+               </font>
+            </Label>
+            <Label text="7" GridPane.columnIndex="6">
+               <font>
+                  <Font name="Arial Rounded MT Bold" size="30.0" />
+               </font>
+            </Label>
+            <Label text="8" GridPane.columnIndex="7">
+               <font>
+                  <Font name="Arial Rounded MT Bold" size="30.0" />
+               </font>
+            </Label>
+         </children>
+      </GridPane>
    </children>
 </AnchorPane>
