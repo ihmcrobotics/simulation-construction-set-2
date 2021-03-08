@@ -56,9 +56,16 @@ public class YoBooleanSlider implements YoVariableSlider
 
       MutableBoolean updating = new MutableBoolean(false);
 
+      virtualSlider.valueProperty().set(yoBooleanProperty.get() ? 1.0 : 0.0);
+
       ChangeListener<Object> sliderUpdater = (o, oldValue, newValue) ->
       {
          if (updating.isTrue())
+            return;
+
+         boolean currentSliderValue = virtualSlider.valueProperty().get() > 0.5;
+
+         if (currentSliderValue == yoBooleanProperty.get())
             return;
 
          updating.setTrue();
@@ -71,8 +78,13 @@ public class YoBooleanSlider implements YoVariableSlider
          if (updating.isTrue())
             return;
 
+         boolean currentSliderValue = virtualSlider.valueProperty().get() > 0.5;
+
+         if (currentSliderValue == yoBooleanProperty.get())
+            return;
+
          updating.setTrue();
-         yoBooleanProperty.set(virtualSlider.valueProperty().get() > 0.5 ? true : false);
+         yoBooleanProperty.set(currentSliderValue);
          updating.setFalse();
       };
 
@@ -91,9 +103,16 @@ public class YoBooleanSlider implements YoVariableSlider
    {
       MutableBoolean updating = new MutableBoolean(false);
 
+      sliderVariable.setValue(SliderVariable.booleanToInt(yoBooleanProperty.get(), sliderVariable.getMin(), sliderVariable.getMax()));
+
       ChangeListener<Object> sliderUpdater = (o, oldValue, newValue) ->
       {
          if (updating.isTrue())
+            return;
+
+         boolean currentSliderValue = sliderVariable.valueProperty().get() > 0.5;
+
+         if (currentSliderValue == yoBooleanProperty.get())
             return;
 
          int sliderPosition = SliderVariable.booleanToInt(yoBooleanProperty.get(), sliderVariable.getMin(), sliderVariable.getMax());
@@ -105,6 +124,11 @@ public class YoBooleanSlider implements YoVariableSlider
       ChangeListener<Number> yoBooleanUpdater = (o, oldValue, newValue) ->
       {
          if (updating.isTrue())
+            return;
+
+         boolean currentSliderValue = sliderVariable.valueProperty().get() > 0.5;
+
+         if (currentSliderValue == yoBooleanProperty.get())
             return;
 
          boolean yoBooleanValue = SliderVariable.intToBoolean(newValue.intValue(), sliderVariable.getMin(), sliderVariable.getMax());
