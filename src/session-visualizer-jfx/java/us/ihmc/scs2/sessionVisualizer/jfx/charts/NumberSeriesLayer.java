@@ -2,11 +2,9 @@ package us.ihmc.scs2.sessionVisualizer.jfx.charts;
 
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.RenderingHints.Key;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -15,11 +13,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.DoubleUnaryOperator;
 
-import javax.swing.SwingUtilities;
-
-import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.css.CssMetaData;
 import javafx.css.Styleable;
@@ -32,7 +26,6 @@ import javafx.scene.image.PixelFormat;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
-import javafx.scene.transform.Scale;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.DynamicLineChart.ChartStyle;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ChartRenderManager;
@@ -111,9 +104,10 @@ public class NumberSeriesLayer extends ImageView
    private final Map<Key, Object> renderingHints = new HashMap<>();
 
    private final ObjectProperty<ChartStyle> chartStyleProperty = new SimpleObjectProperty<>(this, "chartStyle", ChartStyle.RAW);
-   private final DoubleProperty imageScaleProperty = new SimpleDoubleProperty(this, "imageScale", 0.0);
-   private final Scale imageScale = new Scale();
    private WritableImage writableImage = null;
+   private AtomicBoolean isRenderingImage = new AtomicBoolean(false);
+   private AtomicBoolean isUpdatingImage = new AtomicBoolean(false);
+   private BufferedImage imageToRender = null;
 
    public NumberSeriesLayer(NumberAxis xAxis, NumberAxis yAxis, NumberSeries numberSeries, Executor backgroundExecutor, ChartRenderManager renderManager)
    {
@@ -126,18 +120,8 @@ public class NumberSeriesLayer extends ImageView
       legendNode.seriesNameProperty().bind(numberSeries.seriesNameProperty());
       legendNode.currentValueProperty().bind(numberSeries.currentValueProperty());
 
-//      renderingHints.put(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-      renderingHints.put(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-      imageScaleProperty.addListener((o, oldValue, newValue) ->
-      {
-         double newScale = 1.0 / newValue.doubleValue();
-         imageScale.setX(newScale);
-         imageScale.setY(newScale);
-      });
-      imageScaleProperty.set(1.0);
-
-      getTransforms().add(imageScale);
+      //      renderingHints.put(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+      //      renderingHints.put(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
    }
 
    public void requestUpdate()
@@ -145,16 +129,14 @@ public class NumberSeriesLayer extends ImageView
       updateRequested.set(true);
    }
 
-   private BufferedImage imageWaitingToRender = null;
-
    public void prepareToRender()
    {
       if (updateRequested.get())
       {
          backgroundExecutor.execute(() ->
          {
-            imageWaitingToRender = newImage();
-            renderManager.submitRenderRequest(this::render);
+            if (updateImage())
+               renderManager.submitRenderRequest(this::render);
             updateRequested.set(false);
          });
       }
@@ -162,13 +144,19 @@ public class NumberSeriesLayer extends ImageView
 
    public void render()
    {
-      if (imageWaitingToRender == null)
+      if (imageToRender == null)
          return;
 
-      BufferedImage swingImageLocal = imageWaitingToRender;
+      if (isUpdatingImage.get())
+      {
+         renderManager.submitRenderRequest(this::render);
+         return;
+      }
 
-      int width = swingImageLocal.getWidth();
-      int height = swingImageLocal.getHeight();
+      isRenderingImage.set(true);
+
+      int width = imageToRender.getWidth();
+      int height = imageToRender.getHeight();
 
       if (writableImage == null || (int) Math.round(writableImage.getWidth()) != width || (int) Math.round(writableImage.getHeight()) != height)
       {
@@ -176,37 +164,64 @@ public class NumberSeriesLayer extends ImageView
          setImage(writableImage);
       }
 
-      int[] data = ((DataBufferInt) swingImageLocal.getRaster().getDataBuffer()).getData();
-      writableImage.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbPreInstance(), data, 0, width);
-      imageWaitingToRender = null;
+      int[] data = ((DataBufferInt) imageToRender.getRaster().getDataBuffer()).getData();
+      writableImage.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbInstance(), data, 0, width);
+
+      isRenderingImage.set(false);
    }
 
    private int[] xData, yData;
 
-   private BufferedImage newImage()
+   private boolean updateImage()
    {
+      if (isRenderingImage.get())
+         return false;
+
+      if (isUpdatingImage.get())
+         return false;
+
+      isUpdatingImage.set(true);
+
+      double width = xAxis.getWidth();
+      double height = yAxis.getHeight();
+      int widthInt = (int) Math.round(width);
+      int heightInt = (int) Math.round(height);
+
+      Graphics2D graphics;
+
+      if (imageToRender == null || imageToRender.getWidth() != widthInt || imageToRender.getHeight() != heightInt)
+      {
+         imageToRender = new BufferedImage(widthInt, heightInt, BufferedImage.TYPE_INT_ARGB);
+         graphics = imageToRender.createGraphics();
+      }
+      else
+      {
+         graphics = imageToRender.createGraphics();
+         graphics.setBackground(new java.awt.Color(255,255,255,0));
+         graphics.clearRect(0, 0, widthInt, heightInt);
+      }
+
       if (numberSeries.getDataEntry() == null)
-         return null;
+      {
+         isUpdatingImage.set(false);
+         return false;
+      }
 
       List<Point2D> data = numberSeries.getDataEntry().getData();
 
       if (data == null || data.isEmpty())
-         return null;
-
-      if (data.isEmpty())
-         return null;
+      {
+         isUpdatingImage.set(false);
+         return false;
+      }
 
       xData = resize(xData, data.size());
       yData = resize(yData, data.size());
 
-      double width = imageScaleProperty.get() * xAxis.getWidth();
-      double height = imageScaleProperty.get() * yAxis.getHeight();
-      BufferedImage bufferedImage = new BufferedImage((int) width, (int) height, BufferedImage.TYPE_INT_ARGB);
-      Graphics2D graphics = bufferedImage.createGraphics();
       graphics.addRenderingHints(renderingHints);
 
       graphics.setColor(toAWTColor(stroke.get()));
-      graphics.setStroke(new BasicStroke((float) (imageScaleProperty.get() * strokeWidth.get()), BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+      graphics.setStroke(new BasicStroke((float) (strokeWidth.get()), BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
 
       DoubleUnaryOperator xTransform = xToHorizontalDisplayTransform(width, xAxis.getLowerBound(), xAxis.getUpperBound());
       DoubleUnaryOperator yTransform = yToVerticalDisplayTransform(height, yAxis.getLowerBound(), yAxis.getUpperBound());
@@ -226,28 +241,29 @@ public class NumberSeriesLayer extends ImageView
          yTransform = yTransform.compose(negateTransform());
       }
 
-//      try
-//      {
-         DoubleUnaryOperator yTransformFinal = yTransform;
-//         SwingUtilities.invokeAndWait(() ->
-//         {
-            drawMultiLine(graphics, data, xTransform, yTransformFinal, xData, yData);
+      //      try
+      //      {
+      DoubleUnaryOperator yTransformFinal = yTransform;
+      //         SwingUtilities.invokeAndWait(() ->
+      //         {
+      drawMultiLine(graphics, data, xTransform, yTransformFinal, xData, yData);
 
-            graphics.setColor(toAWTColor(Color.GREY));
-            graphics.setStroke(new BasicStroke((float) (0.5 * imageScaleProperty.get() * strokeWidth.get()), BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
-            List<Point2D> markerData = Arrays.asList(new Point2D(numberSeries.getDataEntry().getBufferCurrentIndex(), yAxis.getLowerBound()),
-                                                     new Point2D(numberSeries.getDataEntry().getBufferCurrentIndex(), yAxis.getUpperBound()));
-            drawMultiLine(graphics, markerData, xTransform, yTransformFinal, xData, yData);
-            graphics.dispose();
-//         });
-//      }
-//      catch (InvocationTargetException | InterruptedException e)
-//      {
-//         e.printStackTrace();
-//         bufferedImage = null;
-//      }
+      graphics.setColor(toAWTColor(Color.GREY));
+      graphics.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+      List<Point2D> markerData = Arrays.asList(new Point2D(numberSeries.getDataEntry().getBufferCurrentIndex(), yAxis.getLowerBound()),
+                                               new Point2D(numberSeries.getDataEntry().getBufferCurrentIndex(), yAxis.getUpperBound()));
+      drawMultiLine(graphics, markerData, xTransform, yTransformFinal, xData, yData);
+      graphics.dispose();
+      //         });
+      //      }
+      //      catch (InvocationTargetException | InterruptedException e)
+      //      {
+      //         e.printStackTrace();
+      //         bufferedImage = null;
+      //      }
 
-      return bufferedImage;
+      isUpdatingImage.set(false);
+      return true;
    }
 
    private static int[] resize(int[] in, int length)
@@ -258,11 +274,7 @@ public class NumberSeriesLayer extends ImageView
          return in;
    }
 
-   private static void drawMultiLine(Graphics2D graphics,
-                                     List<Point2D> points,
-                                     DoubleUnaryOperator xTransform,
-                                     DoubleUnaryOperator yTransform,
-                                     int[] xData,
+   private static void drawMultiLine(Graphics2D graphics, List<Point2D> points, DoubleUnaryOperator xTransform, DoubleUnaryOperator yTransform, int[] xData,
                                      int[] yData)
    {
       for (int i = 0; i < points.size(); i++)
