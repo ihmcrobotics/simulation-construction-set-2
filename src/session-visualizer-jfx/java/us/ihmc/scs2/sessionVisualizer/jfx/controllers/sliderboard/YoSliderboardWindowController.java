@@ -19,7 +19,6 @@ import javafx.util.Duration;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController.Slider;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.old.MidiSliderBoard;
 
 public class YoSliderboardWindowController
 {
