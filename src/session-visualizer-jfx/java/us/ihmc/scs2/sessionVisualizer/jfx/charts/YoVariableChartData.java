@@ -10,7 +10,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
+import us.ihmc.messager.Messager;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sharedMemory.BufferSample;
@@ -43,7 +43,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
    private final Map<Object, DataEntry> newChartData = new ConcurrentHashMap<>();
 
    @SuppressWarnings({"rawtypes", "unchecked"})
-   public static YoVariableChartData<?, ?> newYoVariableChartData(JavaFXMessager messager, SessionVisualizerTopics topics, LinkedYoVariable<?> linkedYoVariable)
+   public static YoVariableChartData<?, ?> newYoVariableChartData(Messager messager, SessionVisualizerTopics topics, LinkedYoVariable<?> linkedYoVariable)
    {
       if (linkedYoVariable instanceof LinkedYoBoolean)
          return new YoBooleanChartData(messager, topics, (LinkedYoBoolean) linkedYoVariable);
@@ -59,7 +59,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       throw new UnsupportedOperationException("Unsupported YoVariable type: " + linkedYoVariable.getLinkedYoVariable().getClass().getSimpleName());
    }
 
-   public YoVariableChartData(JavaFXMessager messager, SessionVisualizerTopics topics, L linkedYoVariable)
+   public YoVariableChartData(Messager messager, SessionVisualizerTopics topics, L linkedYoVariable)
    {
       this.linkedYoVariable = linkedYoVariable;
       currentSessionMode = messager.createInput(topics.getSessionCurrentMode(), SessionMode.PAUSE);
