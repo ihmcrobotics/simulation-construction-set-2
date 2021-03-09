@@ -4,12 +4,11 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.DoubleStream;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.Property;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
+import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.messager.Messager;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
@@ -34,16 +33,17 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
    private final AtomicReference<YoBufferPropertiesReadOnly> currentBufferProperties;
 
    @SuppressWarnings("rawtypes")
-   private final Property<BufferSample> rawDataProperty = new SimpleObjectProperty<BufferSample>(this, "chartRawData", null);
-   private final Property<ChartIntegerBounds> chartBoundsProperty = new SimpleObjectProperty<ChartIntegerBounds>(this, "chartBounds", null);
-   private final BooleanProperty publishChartData = new SimpleBooleanProperty(this, "publishChartData", false);
+   private final AtomicReference<BufferSample> rawDataProperty = new AtomicReference<>(null);
+   private final AtomicBoolean publishChartData = new AtomicBoolean(false);
 
-   private DataEntry lastChartData;
+   private int lastUpdateEndIndex = -1;
+   private DoubleArray lastDataSet;
+   private ChartDataUpdate lastChartDataUpdate;
    private final Queue<Object> callerIDs = new ConcurrentLinkedQueue<>();
-   private final Map<Object, DataEntry> newChartData = new ConcurrentHashMap<>();
+   private final Map<Object, ChartDataUpdate> newChartDataUpdate = new ConcurrentHashMap<>();
 
    @SuppressWarnings({"rawtypes", "unchecked"})
-   public static YoVariableChartData<?, ?> newYoVariableChartData(Messager messager, SessionVisualizerTopics topics, LinkedYoVariable<?> linkedYoVariable)
+   public static YoVariableChartData<?, ?> newYoVariableChartData(Messager messager, SessionVisualizerTopics topics, LinkedYoVariable linkedYoVariable)
    {
       if (linkedYoVariable instanceof LinkedYoBoolean)
          return new YoBooleanChartData(messager, topics, (LinkedYoBoolean) linkedYoVariable);
@@ -64,9 +64,6 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       this.linkedYoVariable = linkedYoVariable;
       currentSessionMode = messager.createInput(topics.getSessionCurrentMode(), SessionMode.PAUSE);
       currentBufferProperties = messager.createInput(topics.getYoBufferCurrentProperties(), new YoBufferProperties());
-
-      rawDataProperty.addListener((o, oldValue, newValue) -> publishChartData.set(true));
-      chartBoundsProperty.addListener((o, oldValue, newValue) -> publishChartData.set(true));
    }
 
    @SuppressWarnings("rawtypes")
@@ -75,17 +72,41 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       // Always prepare new data
       BufferSample newRawData = linkedYoVariable.pollRequestedBufferSample();
       if (newRawData != null)
-         rawDataProperty.setValue(newRawData);
+      {
+         rawDataProperty.set(newRawData);
+         publishChartData.set(true);
+         lastUpdateEndIndex = newRawData.getBufferProperties().getOutPoint();
+      }
+
       // Now check if a new request should be submitted.
-      if (callerIDs.stream().anyMatch(callerID -> !hasNewChartData(callerID)))
+      if (lastSessionModeStatus == SessionMode.RUNNING && currentSessionMode.get() != SessionMode.RUNNING)
+      { // The session just stopped running, need to ensure we have all the data up to the out-point.
+         linkedYoVariable.requestBufferStartingFrom(lastUpdateEndIndex);
+      }
+      else if (callerIDs.stream().anyMatch(callerID -> !hasNewChartData(callerID)))
       {// Only request data if JFX is keeping up with the rendering.
-         if (currentSessionMode.get() == SessionMode.RUNNING || currentSessionMode.get() != lastSessionModeStatus)
-         { // Only request data when the session is running or when the session state changes.
+         if (lastProperties == null)
+         { // First time requesting data.
             linkedYoVariable.requestEntireBuffer();
          }
-         else if (lastProperties == null || currentBufferProperties.get().getOutPoint() != lastProperties.getOutPoint()
-               || currentBufferProperties.get().getSize() != lastProperties.getSize())
-         {
+         else if (lastSessionModeStatus != SessionMode.RUNNING && currentSessionMode.get() == SessionMode.RUNNING)
+         { // The session just start running, need to ensure we have all the data since it started running.
+            linkedYoVariable.requestActiveBufferOnly();
+         }
+         else if (currentSessionMode.get() == SessionMode.RUNNING)
+         { // Request data from the last update point to the most recent out-point.
+            if (lastUpdateEndIndex == -1)
+               linkedYoVariable.requestActiveBufferOnly();
+            else
+               linkedYoVariable.requestBufferStartingFrom(lastUpdateEndIndex);
+         }
+         else if (currentBufferProperties.get().getSize() != lastProperties.getSize())
+         { // Buffer was either resized or cropped, data has been shifted around, need to get a complete update.
+            linkedYoVariable.requestEntireBuffer();
+         }
+         else if (currentBufferProperties.get().getInPoint() != lastProperties.getInPoint()
+               && currentBufferProperties.get().getOutPoint() != lastProperties.getOutPoint())
+         { // When cropping without actually changing the size of the buffer, the data is still being shifted around.
             linkedYoVariable.requestEntireBuffer();
          }
       }
@@ -102,65 +123,50 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       if (!publishChartData.get())
          return;
 
-      DataEntry chartData;
-      BufferSample rawData = rawDataProperty.getValue();
-      if (rawData == null)
+      BufferSample rawData = rawDataProperty.get();
+      if (rawData == null || rawData.getSampleLength() == 0)
          return;
-      ChartIntegerBounds bounds = chartBoundsProperty.getValue();
 
-      if (lastChartData == null || lastProperties == null || bounds == null)
-      {
-         chartData = extractChartData(rawData, 0.001);
-      }
-      else
-      {
-         int lower = bounds.getLower();
-         int upper = bounds.getUpper();
-         // Add a little more than needed so when shifting the chart, some data is already available.
-         int length = upper - lower;
-         int margin = Math.max(length / 20, 1);
-         lower = Math.max(0, lower - margin);
-         upper = Math.min(rawData.getBufferProperties().getSize() - 1, upper + margin);
-         chartData = extractChartData(rawData, lower, upper, 0.001);
-      }
+      BufferSample newBufferSample = toDoubleBuffer(rawData);
+      DoubleArray newDataSet = updateDataSet(lastDataSet, newBufferSample);
+      ChartDataUpdate chartDataUpdate = new ChartDataUpdate(newDataSet, rawData.getBufferProperties());
+      lastChartDataUpdate = chartDataUpdate;
 
-      if (chartData != null)
+      if (newDataSet != null)
       {
-         callerIDs.forEach(callerID -> newChartData.put(callerID, chartData));
-         lastChartData = chartData;
+         callerIDs.forEach(callerID -> newChartDataUpdate.put(callerID, chartDataUpdate));
+         lastDataSet = newDataSet;
       }
 
       publishChartData.set(false);
    }
 
-   protected DataEntry extractChartData(BufferSample<B> yoVariableBuffer, double epsilon)
-   {
-      return extractChartData(yoVariableBuffer, 0, yoVariableBuffer.getBufferProperties().getSize() - 1, epsilon);
-   }
-
-   protected abstract DataEntry extractChartData(BufferSample<B> yoVariableBuffer, int startIndex, int endIndex, double epsilon);
+   protected abstract BufferSample<double[]> toDoubleBuffer(BufferSample<B> yoVariableBuffer);
 
    public void registerCaller(Object callerID)
    {
       callerIDs.add(callerID);
-      if (lastChartData != null)
-         newChartData.put(callerID, lastChartData);
+      if (lastDataSet != null)
+         newChartDataUpdate.put(callerID, lastChartDataUpdate);
    }
 
    public void removeCaller(Object callerID)
    {
       callerIDs.remove(callerID);
-      newChartData.remove(callerID);
+      newChartDataUpdate.remove(callerID);
    }
 
    public boolean hasNewChartData(Object callerID)
    {
-      return newChartData.get(callerID) != null;
+      return newChartDataUpdate.get(callerID) != null;
    }
 
-   public DataEntry pollChartData(Object callerID)
+   public ChartDataUpdate pollChartData(Object callerID)
    {
-      return newChartData.remove(callerID);
+      if (newChartDataUpdate.isEmpty())
+         return null;
+      else
+         return newChartDataUpdate.remove(callerID);
    }
 
    public YoVariable getYoVariable()
@@ -173,8 +179,126 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       return !callerIDs.isEmpty();
    }
 
-   public Property<ChartIntegerBounds> chartBoundsProperty()
+   public static DoubleArray updateDataSet(DoubleArray lastDataSet, BufferSample<double[]> bufferSample)
    {
-      return chartBoundsProperty;
+      int sampleLength = bufferSample.getSampleLength();
+      int bufferSize = bufferSample.getBufferProperties().getSize();
+
+      if (bufferSample == null || sampleLength == 0)
+         return null;
+
+      DoubleArray dataSet = new DoubleArray(bufferSize);
+
+      double yCurrent = getValueAt(0, lastDataSet, bufferSample);
+      dataSet.values[0] = yCurrent;
+      double yMin = yCurrent;
+      double yMax = yCurrent;
+
+      for (int i = 1; i < bufferSize; i++)
+      {
+         yCurrent = getValueAt(i, lastDataSet, bufferSample);
+         dataSet.values[i] = yCurrent;
+         yMin = Math.min(yMin, yCurrent);
+         yMax = Math.max(yMax, yCurrent);
+      }
+
+      dataSet.size = bufferSize;
+      dataSet.valueMin = yMin;
+      dataSet.valueMax = yMax;
+      dataSet.valueMin = DoubleStream.of(dataSet.values).min().orElse(0.0);
+      dataSet.valueMax = DoubleStream.of(dataSet.values).max().orElse(0.0);
+
+      return dataSet;
+   }
+
+   private static double getValueAt(int index, DoubleArray completeDataSet, BufferSample<double[]> partialBufferSample)
+   {
+      double[] sample = partialBufferSample.getSample();
+      int sampleStart = partialBufferSample.getFrom();
+      int sampleEnd = partialBufferSample.getTo();
+      int bufferSize = partialBufferSample.getBufferProperties().getSize();
+
+      double y = 0.0;
+
+      if (sampleStart <= sampleEnd)
+      {
+         if (index >= sampleStart && index <= sampleEnd)
+            y = sample[index - sampleStart];
+         else if (completeDataSet != null)
+            y = completeDataSet.values[index];
+      }
+      else
+      {
+         if (index <= sampleEnd)
+            y = sample[index - sampleStart + bufferSize];
+         else if (index >= sampleStart)
+            y = sample[index - sampleStart];
+         else if (completeDataSet != null)
+            y = completeDataSet.values[index];
+      }
+
+      // TODO Need to check if chart-fx handles NaN.
+      if (!Double.isFinite(y))
+         y = 0.0;
+
+      return y;
+   }
+
+   public static class ChartDataUpdate
+   {
+      private final DoubleArray dataSet;
+      private final YoBufferPropertiesReadOnly bufferProperties;
+
+      public ChartDataUpdate(DoubleArray dataSet, YoBufferPropertiesReadOnly bufferProperties)
+      {
+         this.dataSet = dataSet;
+         this.bufferProperties = bufferProperties;
+      }
+
+      public void readUpdate(DataEntry chartDataSet, int lastUpdateEndIndex)
+      {
+         chartDataSet.getLock().writeLock().lock();
+
+         try
+         {
+            // Resizing the cart data
+            while (chartDataSet.getData().size() < dataSet.size)
+               chartDataSet.getData().add(new Point2D());
+            while (chartDataSet.getData().size() > dataSet.size)
+               chartDataSet.getData().remove(chartDataSet.getData().size() - 1);
+
+            for (int i = 0; i < dataSet.size; i++)
+            {
+               chartDataSet.getData().get(i).set(i, dataSet.values[i]);
+            }
+
+            chartDataSet.bufferCurrentIndexProperty().set(bufferProperties.getCurrentIndex());
+            chartDataSet.xBoundsProperty().setValue(new ChartIntegerBounds(0, dataSet.size));
+            chartDataSet.yBoundsProperty().setValue(new ChartDoubleBounds(dataSet.valueMin, dataSet.valueMax));
+         }
+         finally
+         {
+            chartDataSet.getLock().writeLock().unlock();
+            chartDataSet.markDirty();
+         }
+      }
+
+      public int getUpdateEndIndex()
+      {
+         return bufferProperties.getOutPoint();
+      }
+   }
+
+   private static class DoubleArray
+   {
+      private int size;
+      private final double[] values;
+      private double valueMin, valueMax;
+
+      public DoubleArray(int size)
+      {
+         this.size = size;
+         values = new double[size];
+      }
    }
 }

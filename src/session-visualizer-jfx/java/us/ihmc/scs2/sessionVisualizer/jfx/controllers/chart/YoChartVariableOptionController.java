@@ -109,7 +109,7 @@ public class YoChartVariableOptionController
       setLocalScaling(scalingComboBox.getValue());
       scalingComboBox.valueProperty().addListener(localScalingListener);
 
-      series.dataYBoundsProperty().addListener(actualYBoundsUpdater);
+      series.getDataEntry().yBoundsProperty().addListener(actualYBoundsUpdater);
 
       actualYBoundsProperty.addListener((o, oldValue, newValue) ->
       {
@@ -130,8 +130,8 @@ public class YoChartVariableOptionController
          }
       });
 
-      if (series.getDataYBounds() != null)
-         actualYBoundsProperty.set(new ChartDoubleBounds(series.getDataYBounds()));
+      if (series.getDataEntry().yBoundsProperty().getValue() != null)
+         actualYBoundsProperty.set(new ChartDoubleBounds(series.getDataEntry().yBoundsProperty().getValue()));
       else
          actualYBoundsProperty.set(null);
    }
@@ -173,7 +173,7 @@ public class YoChartVariableOptionController
       masterScalingModeProperty.removeListener(globalScalingListener);
       scalingComboBox.valueProperty().removeListener(localScalingListener);
       manualYBoundsProperty.removeListener(customBoundsUpdater);
-      series.dataYBoundsProperty().removeListener(actualYBoundsUpdater);
+      series.getDataEntry().yBoundsProperty().removeListener(actualYBoundsUpdater);
    }
 
    public YoNumberSeries getSeries()

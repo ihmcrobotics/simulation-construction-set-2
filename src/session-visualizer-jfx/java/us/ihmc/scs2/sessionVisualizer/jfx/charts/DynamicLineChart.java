@@ -67,7 +67,7 @@ public class DynamicLineChart extends DynamicXYChart
 
       series.negatedProperty().addListener(chartUpdaterListener);
       series.customYBoundsProperty().addListener(chartUpdaterListener);
-      series.dataEntryProperty().addListener(chartUpdaterListener);
+      series.getDataEntry().dirtyProperty().addListener(chartUpdaterListener);
       NumberSeriesLayer layer = new NumberSeriesLayer(xAxis, yAxis, series, backgroundExecutor, chartRenderManager);
       layer.chartStyleProperty().bind(chartStyleProperty);
       setSeriesDefaultStyleClass(layer, seriesIndex);
@@ -87,7 +87,7 @@ public class DynamicLineChart extends DynamicXYChart
          seriesLayers.remove(indexOf);
          series.negatedProperty().removeListener(chartUpdaterListener);
          series.customYBoundsProperty().removeListener(chartUpdaterListener);
-         series.dataEntryProperty().removeListener(chartUpdaterListener);
+         series.getDataEntry().dirtyProperty().removeListener(chartUpdaterListener);
          containingLayer.get().chartStyleProperty().unbind();
          plotContent.getChildren().remove(containingLayer.get());
          legend.getItems().remove(containingLayer.get().getLegendNode());
@@ -166,10 +166,10 @@ public class DynamicLineChart extends DynamicXYChart
             NumberSeries series = layer.getNumberSeries();
             DataEntry dataEntry = series.getDataEntry();
 
-            if (dataEntry == null)
-               continue;
+            ChartIntegerBounds dataXBounds = dataEntry.xBoundsProperty().getValue();
 
-            ChartIntegerBounds dataXBounds = dataEntry.getXBounds();
+            if (dataXBounds == null)
+               continue;
 
             if (xBounds == null)
                xBounds = new ChartIntegerBounds(dataXBounds);
@@ -199,10 +199,10 @@ public class DynamicLineChart extends DynamicXYChart
                NumberSeries series = layer.getNumberSeries();
                DataEntry dataEntry = series.getDataEntry();
 
-               if (dataEntry == null)
-                  continue;
+               ChartDoubleBounds dataYBounds = dataEntry.yBoundsProperty().getValue();
 
-               ChartDoubleBounds dataYBounds = dataEntry.getYBounds();
+               if (dataYBounds == null)
+                  continue;
 
                if (series.getCustomYBounds() != null)
                   dataYBounds = series.getCustomYBounds();
@@ -217,7 +217,7 @@ public class DynamicLineChart extends DynamicXYChart
 
             if (yBounds != null)
             {
-               if (MathTools.epsilonEquals(yBounds.getUpper(), yBounds.getLower(), 1.0e-5 * Math.max(1.0, yBounds.getLower())))
+               if (MathTools.epsilonEquals(yBounds.getUpper(), yBounds.getLower(), 1.0e-12 * Math.max(1.0, yBounds.getLower())))
                {
                   yBounds = new ChartDoubleBounds(yBounds.getLower() - 0.5, yBounds.getUpper() + 0.5);
                }

@@ -228,16 +228,16 @@ public class YoChartOptionController
       this.yoNumberSeriesList = yoNumberSeriesList;
       this.chartStyleProperty = chartStyleProperty;
 
-      yoNumberSeriesList.forEach(series -> series.dataYBoundsProperty().addListener(actualBoundsUpdater));
+      yoNumberSeriesList.forEach(series -> series.getDataEntry().yBoundsProperty().addListener(actualBoundsUpdater));
 
       yoNumberSeriesList.addListener((ListChangeListener<YoNumberSeries>) change ->
       {
          while (change.next())
          {
             if (change.wasRemoved())
-               change.getRemoved().forEach(series -> series.dataYBoundsProperty().removeListener(actualBoundsUpdater));
+               change.getRemoved().forEach(series -> series.getDataEntry().yBoundsProperty().removeListener(actualBoundsUpdater));
             if (change.wasAdded())
-               change.getAddedSubList().forEach(series -> series.dataYBoundsProperty().addListener(actualBoundsUpdater));
+               change.getAddedSubList().forEach(series -> series.getDataEntry().yBoundsProperty().addListener(actualBoundsUpdater));
          }
          updateActualBounds();
       });
@@ -295,7 +295,7 @@ public class YoChartOptionController
 
       for (YoNumberSeries series : yoNumberSeriesList)
       {
-         ChartDoubleBounds dataYBounds = series.getDataYBounds();
+         ChartDoubleBounds dataYBounds = series.getDataEntry().yBoundsProperty().getValue();
          if (dataYBounds == null)
             continue;
          if (newBounds == null)

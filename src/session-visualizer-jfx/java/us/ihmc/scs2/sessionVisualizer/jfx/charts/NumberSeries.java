@@ -2,7 +2,6 @@ package us.ihmc.scs2.sessionVisualizer.jfx.charts;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -13,9 +12,7 @@ public class NumberSeries
    /** The user displayable name for this series */
    private final StringProperty seriesNameProperty = new SimpleStringProperty(this, "seriesName", null);
    private final StringProperty currentValueProperty = new SimpleStringProperty(this, "currentValue", null);
-   private final ObjectProperty<DataEntry> dataEntryProperty = new SimpleObjectProperty<>(this, "dataEntry", null);
-   private final ObjectProperty<ChartIntegerBounds> dataXBoundsProperty = new SimpleObjectProperty<>(this, "dataXBounds", null);
-   private final ObjectProperty<ChartDoubleBounds> dataYBoundsProperty = new SimpleObjectProperty<>(this, "dataYBounds", null);
+   private final DataEntry dataEntryProperty = new DataEntry();
 
    // User properties
    private final BooleanProperty negatedProperty = new SimpleBooleanProperty(this, "negated", false);
@@ -24,11 +21,6 @@ public class NumberSeries
    public NumberSeries(String name)
    {
       setSeriesName(name);
-      dataEntryProperty.addListener((o, oldValue, newValue) ->
-      {
-         dataXBoundsProperty.set(newValue != null ? newValue.getXBounds() : null);
-         dataYBoundsProperty.set(newValue != null ? newValue.getYBounds() : null);
-      });
    }
 
    public final String getSeriesName()
@@ -63,37 +55,7 @@ public class NumberSeries
 
    public final DataEntry getDataEntry()
    {
-      return dataEntryProperty.getValue();
-   }
-
-   public final void setDataEntry(DataEntry value)
-   {
-      dataEntryProperty.setValue(value);
-   }
-
-   public final ObjectProperty<DataEntry> dataEntryProperty()
-   {
       return dataEntryProperty;
-   }
-
-   public final ChartIntegerBounds getDataXBounds()
-   {
-      return dataXBoundsProperty.get();
-   }
-
-   public final ReadOnlyObjectProperty<ChartIntegerBounds> dataXBoundsProperty()
-   {
-      return dataXBoundsProperty;
-   }
-
-   public final ChartDoubleBounds getDataYBounds()
-   {
-      return dataYBoundsProperty.get();
-   }
-
-   public final ReadOnlyObjectProperty<ChartDoubleBounds> dataYBoundsProperty()
-   {
-      return dataYBoundsProperty;
    }
 
    public final boolean isNegated()

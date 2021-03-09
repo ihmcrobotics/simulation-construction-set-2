@@ -201,57 +201,63 @@ public class NumberSeriesLayer extends ImageView
          graphics.clearRect(0, 0, widthInt, heightInt);
       }
 
-      if (numberSeries.getDataEntry() == null)
+      DataEntry dataEntry = numberSeries.getDataEntry();
+      List<Point2D> data = dataEntry.getData();
+
+      dataEntry.getLock().readLock().lock();
+
+      try
       {
-         isUpdatingImage.set(false);
-         return false;
-      }
+         if (data.isEmpty() || !dataEntry.pollDirty())
+            return false;
 
-      List<Point2D> data = numberSeries.getDataEntry().getData();
+         xData = resize(xData, data.size());
+         yData = resize(yData, data.size());
 
-      if (data == null || data.isEmpty())
-      {
-         isUpdatingImage.set(false);
-         return false;
-      }
+         graphics.addRenderingHints(renderingHints);
 
-      xData = resize(xData, data.size());
-      yData = resize(yData, data.size());
+         graphics.setColor(toAWTColor(stroke.get()));
+         graphics.setStroke(new BasicStroke((float) (strokeWidth.get()), BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
 
-      graphics.addRenderingHints(renderingHints);
+         DoubleUnaryOperator xTransform = xToHorizontalDisplayTransform(width, xAxis.getLowerBound(), xAxis.getUpperBound());
+         DoubleUnaryOperator yTransform = yToVerticalDisplayTransform(height, yAxis.getLowerBound(), yAxis.getUpperBound());
 
-      graphics.setColor(toAWTColor(stroke.get()));
-      graphics.setStroke(new BasicStroke((float) (strokeWidth.get()), BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+         if (chartStyleProperty.get() == ChartStyle.NORMALIZED)
+         {
+            ChartDoubleBounds yBounds = numberSeries.getCustomYBounds();
+            if (yBounds == null)
+               yBounds = numberSeries.getDataEntry().yBoundsProperty().getValue();
+            if (numberSeries.isNegated())
+               yBounds = yBounds.negate();
 
-      DoubleUnaryOperator xTransform = xToHorizontalDisplayTransform(width, xAxis.getLowerBound(), xAxis.getUpperBound());
-      DoubleUnaryOperator yTransform = yToVerticalDisplayTransform(height, yAxis.getLowerBound(), yAxis.getUpperBound());
-
-      if (chartStyleProperty.get() == ChartStyle.NORMALIZED)
-      {
-         ChartDoubleBounds yBounds = numberSeries.getCustomYBounds();
-         if (yBounds == null)
-            yBounds = numberSeries.getDataYBounds();
+            yTransform = yTransform.compose(normalizeTransform(yBounds));
+         }
          if (numberSeries.isNegated())
-            yBounds = yBounds.negate();
+         {
+            yTransform = yTransform.compose(negateTransform());
+         }
 
-         yTransform = yTransform.compose(normalizeTransform(yBounds));
+         drawMultiLine(graphics, data, xTransform, yTransform, xData, yData);
+
+         graphics.setColor(toAWTColor(Color.GREY.deriveColor(0, 1.0, 1.0, 0.5)));
+         graphics.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+         List<Point2D> markerData = Arrays.asList(new Point2D(dataEntry.bufferCurrentIndexProperty().get(), yAxis.getLowerBound()),
+                                                  new Point2D(dataEntry.bufferCurrentIndexProperty().get(), yAxis.getUpperBound()));
+         drawMultiLine(graphics, markerData, xTransform, yTransform, xData, yData);
+         graphics.dispose();
+
+         return true;
       }
-      if (numberSeries.isNegated())
+      catch (Exception e)
       {
-         yTransform = yTransform.compose(negateTransform());
+         e.printStackTrace();
+         return false;
       }
-
-      drawMultiLine(graphics, data, xTransform, yTransform, xData, yData);
-
-      graphics.setColor(toAWTColor(Color.GREY));
-      graphics.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
-      List<Point2D> markerData = Arrays.asList(new Point2D(numberSeries.getDataEntry().getBufferCurrentIndex(), yAxis.getLowerBound()),
-                                               new Point2D(numberSeries.getDataEntry().getBufferCurrentIndex(), yAxis.getUpperBound()));
-      drawMultiLine(graphics, markerData, xTransform, yTransform, xData, yData);
-      graphics.dispose();
-
-      isUpdatingImage.set(false);
-      return true;
+      finally
+      {
+         isUpdatingImage.set(false);
+         dataEntry.getLock().readLock().unlock();
+      }
    }
 
    private static int[] resize(int[] in, int length)

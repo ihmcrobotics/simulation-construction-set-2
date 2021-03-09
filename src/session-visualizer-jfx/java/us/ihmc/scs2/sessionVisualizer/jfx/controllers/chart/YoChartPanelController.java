@@ -53,12 +53,12 @@ import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartIdentifier;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartIntegerBounds;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartMarker;
-import us.ihmc.scs2.sessionVisualizer.jfx.charts.DataEntry;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.DynamicChartLegend;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.DynamicLineChart;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.DynamicLineChart.ChartStyle;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.YoChartTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.YoVariableChartData;
+import us.ihmc.scs2.sessionVisualizer.jfx.charts.YoVariableChartData.ChartDataUpdate;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.BackgroundExecutorManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ChartDataManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
@@ -665,11 +665,16 @@ public class YoChartPanelController extends AnimationTimer
          series.updateLegend();
       }
 
+      private int lastUpdateEndIndex = -1;
+
       public void updateChart()
       {
-         DataEntry newData = chartData.pollChartData(callerID);
+         ChartDataUpdate newData = chartData.pollChartData(callerID);
          if (newData != null)
-            series.setDataEntry(newData);
+         {
+            newData.readUpdate(series.getDataEntry(), lastUpdateEndIndex);
+            lastUpdateEndIndex = newData.getUpdateEndIndex();
+         }
       }
 
       public YoVariable getYoVariable()
