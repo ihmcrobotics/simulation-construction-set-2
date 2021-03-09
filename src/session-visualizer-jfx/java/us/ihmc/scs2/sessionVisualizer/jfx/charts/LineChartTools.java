@@ -2,16 +2,7 @@ package us.ihmc.scs2.sessionVisualizer.jfx.charts;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.chart.Axis;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.LineTo;
-import javafx.scene.shape.MoveTo;
-import javafx.scene.shape.Path;
-import javafx.scene.shape.PathElement;
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DouglasPeuckerReduction;
@@ -275,79 +266,5 @@ public class LineChartTools
       }
 
       return new DataEntry(xBounds, yBounds, newData, bufferSample.getBufferProperties().getCurrentIndex());
-   }
-
-   public static void computePath(List<Point2D> data, Axis<Number> xAxis, Axis<Number> yAxis, Path pathToCompute)
-   {
-      pathToCompute.getElements().setAll(computePath(data, xAxis, yAxis).getElements());
-   }
-
-   public static Path computePath(List<Point2D> data, Axis<Number> xAxis, Axis<Number> yAxis)
-   {
-      List<PathElement> pathElements = new ArrayList<>(data.size());
-
-      if (!data.isEmpty())
-      {
-         pathElements.add(newMoveTo(data.get(0), xAxis, yAxis));
-
-         for (Point2D dataPoint : data.subList(1, data.size()))
-         {
-            pathElements.add(newLineTo(dataPoint, xAxis, yAxis));
-         }
-      }
-
-      return new Path(pathElements);
-   }
-
-   public static LineTo newLineTo(Point2D dataPoint, Axis<Number> xAxis, Axis<Number> yAxis)
-   {
-      double x = xAxis.getDisplayPosition(dataPoint.getX());
-      double y = yAxis.getDisplayPosition(dataPoint.getY());
-      return new LineTo(x, y);
-   }
-
-   public static MoveTo newMoveTo(Point2D dataPoint, Axis<Number> xAxis, Axis<Number> yAxis)
-   {
-      double x = xAxis.getDisplayPosition(dataPoint.getX());
-      double y = yAxis.getDisplayPosition(dataPoint.getY());
-      return new MoveTo(x, y);
-   }
-
-   public static Canvas newCanvas(DataEntry dataEntry, Axis<Number> xAxis, Axis<Number> yAxis)
-   {
-      return newCanvas(dataEntry == null ? null : dataEntry.getData(), xAxis, yAxis);
-   }
-
-   public static Canvas newCanvas(List<Point2D> data, Axis<Number> xAxis, Axis<Number> yAxis)
-   {
-      Canvas canvas = new Canvas(xAxis.getWidth(), yAxis.getHeight());
-      GraphicsContext gc = canvas.getGraphicsContext2D();
-      gc.setFill(Color.TRANSPARENT);
-
-      if (data == null || data.isEmpty())
-         return canvas;
-
-      double x, y;
-
-      if (!data.isEmpty())
-      {
-         x = xAxis.getDisplayPosition(data.get(0).getX());
-         y = yAxis.getDisplayPosition(data.get(0).getY());
-         gc.moveTo(x, y);
-
-         for (Point2D dataPoint : data.subList(1, data.size()))
-         {
-            x = xAxis.getDisplayPosition(dataPoint.getX());
-            y = yAxis.getDisplayPosition(dataPoint.getY());
-            gc.lineTo(x, y);
-         }
-      }
-
-      gc.stroke();
-
-      java.awt.Color awtColor = new java.awt.Color(new Random().nextInt());
-      gc.setStroke(Color.rgb(awtColor.getRed(), awtColor.getGreen(), awtColor.getBlue()));
-      gc.setLineWidth(1.5);
-      return canvas;
    }
 }
