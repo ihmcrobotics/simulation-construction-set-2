@@ -197,7 +197,7 @@ public class NumberSeriesLayer extends ImageView
       else
       {
          graphics = imageToRender.createGraphics();
-         graphics.setBackground(new java.awt.Color(255,255,255,0));
+         graphics.setBackground(new java.awt.Color(255, 255, 255, 0));
          graphics.clearRect(0, 0, widthInt, heightInt);
       }
 
@@ -241,26 +241,14 @@ public class NumberSeriesLayer extends ImageView
          yTransform = yTransform.compose(negateTransform());
       }
 
-      //      try
-      //      {
-      DoubleUnaryOperator yTransformFinal = yTransform;
-      //         SwingUtilities.invokeAndWait(() ->
-      //         {
-      drawMultiLine(graphics, data, xTransform, yTransformFinal, xData, yData);
+      drawMultiLine(graphics, data, xTransform, yTransform, xData, yData);
 
       graphics.setColor(toAWTColor(Color.GREY));
       graphics.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
       List<Point2D> markerData = Arrays.asList(new Point2D(numberSeries.getDataEntry().getBufferCurrentIndex(), yAxis.getLowerBound()),
                                                new Point2D(numberSeries.getDataEntry().getBufferCurrentIndex(), yAxis.getUpperBound()));
-      drawMultiLine(graphics, markerData, xTransform, yTransformFinal, xData, yData);
+      drawMultiLine(graphics, markerData, xTransform, yTransform, xData, yData);
       graphics.dispose();
-      //         });
-      //      }
-      //      catch (InvocationTargetException | InterruptedException e)
-      //      {
-      //         e.printStackTrace();
-      //         bufferedImage = null;
-      //      }
 
       isUpdatingImage.set(false);
       return true;
