@@ -5,13 +5,12 @@ import java.util.List;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
-import com.jfoenix.controls.JFXSlider;
 import com.jfoenix.controls.JFXTextField;
 
-import javafx.beans.binding.StringBinding;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextFormatter;
 import javafx.util.converter.LongStringConverter;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoLongProperty;
@@ -65,17 +64,8 @@ public class YoLongSlider implements YoVariableSlider
    }
 
    @Override
-   public void bindVirtualSlider(JFXSlider virtualSlider)
+   public void bindVirtualSlider(Slider virtualSlider)
    {
-      virtualSlider.setValueFactory(param -> new StringBinding()
-      {
-         @Override
-         protected String computeValue()
-         {
-            return Long.toString(yoLongProperty.get());
-         }
-      });
-
       virtualSlider.minProperty().bind(minProperty);
       virtualSlider.maxProperty().bind(maxProperty);
       ChangeListener<Object> majorTickUnitUpdater = (o, oldValue, newValue) ->

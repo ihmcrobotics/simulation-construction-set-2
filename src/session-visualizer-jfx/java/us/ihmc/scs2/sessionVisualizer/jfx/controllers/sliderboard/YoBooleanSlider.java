@@ -5,11 +5,10 @@ import java.util.List;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
-import com.jfoenix.controls.JFXSlider;
 import com.jfoenix.controls.JFXTextField;
 
-import javafx.beans.binding.StringBinding;
 import javafx.beans.value.ChangeListener;
+import javafx.scene.control.Slider;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoBooleanProperty;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderVariable;
 import us.ihmc.yoVariables.variable.YoBoolean;
@@ -39,17 +38,8 @@ public class YoBooleanSlider implements YoVariableSlider
    }
 
    @Override
-   public void bindVirtualSlider(JFXSlider virtualSlider)
+   public void bindVirtualSlider(Slider virtualSlider)
    {
-      virtualSlider.setValueFactory(param -> new StringBinding()
-      {
-         @Override
-         protected String computeValue()
-         {
-            return Boolean.toString(yoBooleanProperty.get());
-         }
-      });
-
       virtualSlider.setMin(0.0);
       virtualSlider.setMax(1.0);
       virtualSlider.setMajorTickUnit(1.0);

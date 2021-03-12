@@ -5,17 +5,15 @@ import java.util.List;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
-import com.jfoenix.controls.JFXSlider;
 import com.jfoenix.controls.JFXTextField;
 
-import javafx.beans.binding.StringBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.scene.control.Slider;
 import javafx.scene.control.TextFormatter;
 import javafx.util.converter.DoubleStringConverter;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoDoubleProperty;
-import us.ihmc.scs2.sessionVisualizer.jfx.tools.NumberFormatTools;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderVariable;
 import us.ihmc.yoVariables.variable.YoDouble;
 
@@ -66,17 +64,8 @@ public class YoDoubleSlider implements YoVariableSlider
    }
 
    @Override
-   public void bindVirtualSlider(JFXSlider virtualSlider)
+   public void bindVirtualSlider(Slider virtualSlider)
    {
-      virtualSlider.setValueFactory(param -> new StringBinding()
-      {
-         @Override
-         protected String computeValue()
-         {
-            return NumberFormatTools.doubleToString(yoDoubleProperty.get(), 5);
-         }
-      });
-
       virtualSlider.minProperty().bind(minProperty);
       virtualSlider.maxProperty().bind(maxProperty);
 

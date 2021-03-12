@@ -3,7 +3,6 @@ package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard;
 import java.util.Arrays;
 import java.util.List;
 
-import com.jfoenix.controls.JFXSlider;
 import com.jfoenix.controls.JFXTextField;
 
 import javafx.beans.property.SimpleObjectProperty;
@@ -13,6 +12,7 @@ import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Slider;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -29,7 +29,6 @@ import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderVariable;
-import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoSliderController
@@ -43,7 +42,7 @@ public class YoSliderController
    @FXML
    private JFXTextField sliderMinTextField;
    @FXML
-   private JFXSlider slider;
+   private Slider slider;
    @FXML
    private Label yoVariableDropLabel;
 
@@ -244,8 +243,6 @@ public class YoSliderController
          return false;
       if (result.get(0).getYoComponents().isEmpty())
          return false;
-      if (!(result.get(0).getYoComponents().get(0) instanceof YoDouble))
-         return false; // TODO Keeping only YoDoubles
       return true;
    }
 

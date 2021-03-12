@@ -1,8 +1,8 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard;
 
-import com.jfoenix.controls.JFXSlider;
 import com.jfoenix.controls.JFXTextField;
 
+import javafx.scene.control.Slider;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderVariable;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -25,7 +25,7 @@ public interface YoVariableSlider
       throw new IllegalStateException("Unexpected YoVariable type: " + yoVariable);
    }
 
-   void bindVirtualSlider(JFXSlider virtualSlider);
+   void bindVirtualSlider(Slider virtualSlider);
 
    void bindSliderVariable(SliderVariable sliderVariable);
 
