@@ -35,6 +35,8 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoVariableTools
 {
+   private static final boolean SORT_YO_VARIABLES = false;
+
    public static long hashCode(YoRegistry registry)
    {
       long hashCode = 1L;
@@ -485,9 +487,12 @@ public class YoVariableTools
             return null;
          }
 
-         if (endIndex - startIndex > 1)
-            Collections.sort(scoredItems.subList(startIndex, endIndex + 1),
-                             (o1, o2) -> stringConverter.apply(o1.getObject()).toLowerCase().compareTo(stringConverter.apply(o2.getObject()).toLowerCase()));
+         if (SORT_YO_VARIABLES)
+         {
+            if (endIndex - startIndex > 1)
+               Collections.sort(scoredItems.subList(startIndex, endIndex + 1),
+                                (o1, o2) -> stringConverter.apply(o1.getObject()).toLowerCase().compareTo(stringConverter.apply(o2.getObject()).toLowerCase()));
+         }
 
          startIndex = endIndex + 1;
       }
