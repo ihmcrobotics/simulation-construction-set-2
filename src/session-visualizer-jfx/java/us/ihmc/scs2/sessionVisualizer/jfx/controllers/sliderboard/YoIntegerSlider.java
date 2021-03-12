@@ -24,9 +24,11 @@ public class YoIntegerSlider implements YoVariableSlider
    private final IntegerProperty minProperty = new SimpleIntegerProperty(this, "min", 0);
    private final IntegerProperty maxProperty = new SimpleIntegerProperty(this, "max", 1);
    private final List<Runnable> cleanupTasks = new ArrayList<>();
+   private final Runnable pushValueAction;
 
    public YoIntegerSlider(YoInteger yoInteger, Runnable pushValueAction)
    {
+      this.pushValueAction = pushValueAction;
       yoIntegerProperty = new YoIntegerProperty(yoInteger, this);
    }
 
@@ -34,20 +36,32 @@ public class YoIntegerSlider implements YoVariableSlider
    public void bindMinTextField(JFXTextField minTextField)
    {
       TextFormatter<Integer> minTextFormatter = new TextFormatter<>(new IntegerStringConverter());
+      minTextFormatter.setValue(yoIntegerProperty.get() - 1);
       minTextField.setTextFormatter(minTextFormatter);
       minProperty.bind(minTextFormatter.valueProperty());
+      minTextField.setDisable(false);
 
-      cleanupTasks.add(() -> minProperty.unbind());
+      cleanupTasks.add(() ->
+      {
+         minProperty.unbind();
+         minTextField.setDisable(true);
+      });
    }
 
    @Override
    public void bindMaxTextField(JFXTextField maxTextField)
    {
       TextFormatter<Integer> maxTextFormatter = new TextFormatter<>(new IntegerStringConverter());
+      maxTextFormatter.setValue(yoIntegerProperty.get() + 1);
       maxTextField.setTextFormatter(maxTextFormatter);
       maxProperty.bind(maxTextFormatter.valueProperty());
+      maxTextField.setDisable(false);
 
-      cleanupTasks.add(() -> maxProperty.unbind());
+      cleanupTasks.add(() ->
+      {
+         maxProperty.unbind();
+         maxTextField.setDisable(true);
+      });
    }
 
    @Override
@@ -64,11 +78,20 @@ public class YoIntegerSlider implements YoVariableSlider
 
       virtualSlider.minProperty().bind(minProperty);
       virtualSlider.maxProperty().bind(maxProperty);
-      // TODO Add rounding for the major and minor tick unit
-      virtualSlider.majorTickUnitProperty().bind(maxProperty.subtract(minProperty).divide(25.0));
-      virtualSlider.setMinorTickCount(4);
+      ChangeListener<Object> majorTickUnitUpdater = (o, oldValue, newValue) ->
+      {
+         double range = maxProperty.get() - minProperty.get();
+         if (range <= 0.0)
+            return;
+         virtualSlider.setMajorTickUnit(Math.max(1, Math.round(range / 25.0)));
+      };
+
+      minProperty.addListener(majorTickUnitUpdater);
+      maxProperty.addListener(majorTickUnitUpdater);
 
       MutableBoolean updating = new MutableBoolean(false);
+
+      virtualSlider.setValue(yoIntegerProperty.get());
 
       ChangeListener<Object> sliderUpdater = (o, oldValue, newValue) ->
       {
@@ -87,6 +110,7 @@ public class YoIntegerSlider implements YoVariableSlider
 
          updating.setTrue();
          yoIntegerProperty.set(virtualSlider.valueProperty().getValue().intValue());
+         pushValueAction.run();
          updating.setFalse();
       };
 
@@ -96,16 +120,29 @@ public class YoIntegerSlider implements YoVariableSlider
       cleanupTasks.add(() ->
       {
          yoIntegerProperty.removeListener(sliderUpdater);
+         minProperty.removeListener(majorTickUnitUpdater);
+         maxProperty.removeListener(majorTickUnitUpdater);
          virtualSlider.valueProperty().removeListener(yoIntegerUpdater);
          virtualSlider.minProperty().unbind();
          virtualSlider.maxProperty().unbind();
       });
    }
- 
+
    @Override
    public void bindSliderVariable(SliderVariable sliderVariable)
    {
       MutableBoolean updating = new MutableBoolean(false);
+
+      if (!minProperty.isBound())
+         minProperty.set(yoIntegerProperty.get() - 1);
+      if (!maxProperty.isBound())
+         maxProperty.set(yoIntegerProperty.get() + 1);
+
+      sliderVariable.setValue(SliderVariable.doubleToInt(yoIntegerProperty.get(),
+                                                         minProperty.get(),
+                                                         maxProperty.get(),
+                                                         sliderVariable.getMin(),
+                                                         sliderVariable.getMax()));
 
       ChangeListener<Object> sliderUpdater = (o, oldValue, newValue) ->
       {
@@ -134,6 +171,7 @@ public class YoIntegerSlider implements YoVariableSlider
                                                          maxProperty.get());
          updating.setTrue();
          yoIntegerProperty.set(yoIntegerValue);
+         pushValueAction.run();
          updating.setFalse();
       };
 
