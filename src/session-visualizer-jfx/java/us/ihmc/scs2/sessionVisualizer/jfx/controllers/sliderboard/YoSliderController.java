@@ -22,6 +22,8 @@ import javafx.scene.input.PickResult;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import us.ihmc.log.LogTools;
+import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
@@ -78,7 +80,32 @@ public class YoSliderController
       });
    }
 
+   public void setInput(YoSliderDefinition definition)
+   {
+      if (definition == null)
+      {
+         setSlider(null);
+         return;
+      }
+
+      YoVariable yoVariable = yoManager.getRootRegistryDatabase().searchExact(definition.getVariableName());
+
+      if (yoVariable == null)
+      {
+         LogTools.warn("Could not find variable for slider: " + definition.getVariableName());
+         setSlider(null);
+         return;
+      }
+
+      setSlider(yoVariable, definition.getMinValue(), definition.getMaxValue());
+   }
+
    private void setSlider(YoVariable yoVariable)
+   {
+      setSlider(yoVariable, null, null);
+   }
+
+   private void setSlider(YoVariable yoVariable, String minValue, String maxValue)
    {
       if (yoVariableSlider != null)
       {
@@ -94,6 +121,11 @@ public class YoSliderController
          yoVariableSlider.bindMaxTextField(sliderMaxTextField);
          yoVariableSlider.bindSliderVariable(sliderVariable);
          yoVariableSlider.bindVirtualSlider(slider);
+
+         if (minValue != null && !sliderMinTextField.isDisabled())
+            sliderMinTextField.setText(minValue);
+         if (maxValue != null && !sliderMaxTextField.isDisabled())
+            sliderMaxTextField.setText(maxValue);
       }
       else
       {
@@ -254,4 +286,8 @@ public class YoSliderController
          rootPane.setStyle("-fx-border-color: null;");
    }
 
+   public YoSliderDefinition toYoSliderDefinition()
+   {
+      return yoVariableSlider == null ? null : yoVariableSlider.toYoSliderDefinition();
+   }
 }

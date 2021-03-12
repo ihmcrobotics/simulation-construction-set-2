@@ -13,6 +13,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextFormatter;
 import javafx.util.converter.IntegerStringConverter;
+import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoIntegerProperty;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderVariable;
 import us.ihmc.yoVariables.variable.YoInteger;
@@ -184,6 +185,16 @@ public class YoIntegerSlider implements YoVariableSlider
    public YoInteger getYoVariable()
    {
       return yoIntegerProperty.getYoVariable();
+   }
+
+   @Override
+   public YoSliderDefinition toYoSliderDefinition()
+   {
+      YoSliderDefinition definition = new YoSliderDefinition();
+      definition.setVariableName(getYoVariable().getFullNameString());
+      definition.setMinValue(minProperty.getValue().toString());
+      definition.setMaxValue(maxProperty.getValue().toString());
+      return definition;
    }
 
    @Override

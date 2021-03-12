@@ -9,6 +9,7 @@ import com.jfoenix.controls.JFXTextField;
 
 import javafx.beans.value.ChangeListener;
 import javafx.scene.control.Slider;
+import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoEnumAsStringProperty;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderVariable;
 import us.ihmc.yoVariables.variable.YoEnum;
@@ -125,6 +126,14 @@ public class YoEnumSlider implements YoVariableSlider
    public YoEnum<?> getYoVariable()
    {
       return yoEnumProperty.getYoVariable();
+   }
+
+   @Override
+   public YoSliderDefinition toYoSliderDefinition()
+   {
+      YoSliderDefinition definition = new YoSliderDefinition();
+      definition.setVariableName(getYoVariable().getFullNameString());
+      return definition;
    }
 
    @Override

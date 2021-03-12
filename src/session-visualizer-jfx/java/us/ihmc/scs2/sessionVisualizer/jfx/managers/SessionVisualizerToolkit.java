@@ -20,6 +20,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizer;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerMessagerAPI;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.chart.YoChartGroupPanelController;
+import us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.YoSliderboardWindowController;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.BufferedJavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
 
@@ -44,6 +45,7 @@ public class SessionVisualizerToolkit extends AnimationTimer
    private Stage mainWindow;
    private List<Stage> secondaryWindows = new ArrayList<>();
    private List<YoChartGroupPanelController> yoChartGroupPanelControllers = new ArrayList<>();
+   private YoSliderboardWindowController yoSliderboardWindowController;
 
    private final ObjectProperty<Session> activeSessionProperty = new SimpleObjectProperty<>(this, "activeSession", null);
 
@@ -138,6 +140,12 @@ public class SessionVisualizerToolkit extends AnimationTimer
       secondaryWindows.clear();
       yoChartGroupPanelControllers.clear();
 
+      if (yoSliderboardWindowController != null)
+      {
+         yoSliderboardWindowController.close();
+         yoSliderboardWindowController = null;
+      }
+
       mainWindow.setTitle(SessionVisualizer.NO_ACTIVE_SESSION_TITLE);
 
       messager.submitMessage(topics.getSessionCurrentState(), SessionState.INACTIVE);
@@ -191,6 +199,11 @@ public class SessionVisualizerToolkit extends AnimationTimer
       yoChartGroupPanelControllers.remove(controller);
    }
 
+   public void setYoSliderboardWindowController(YoSliderboardWindowController yoSliderboardWindowController)
+   {
+      this.yoSliderboardWindowController = yoSliderboardWindowController;
+   }
+
    public JavaFXMessager getMessager()
    {
       return messager;
@@ -214,6 +227,11 @@ public class SessionVisualizerToolkit extends AnimationTimer
    public List<YoChartGroupPanelController> getYoChartGroupPanelControllers()
    {
       return yoChartGroupPanelControllers;
+   }
+
+   public YoSliderboardWindowController getYoSliderboardWindowController()
+   {
+      return yoSliderboardWindowController;
    }
 
    public YoManager getYoManager()

@@ -11,6 +11,7 @@ public class SCSGuiConfigurationDefinition
    private String yoGraphicsFilename;
    private String yoCompositePatternListFilename;
    private String yoEntryConfigurationFilename;
+   private String yoSliderboardConfigurationFilename;
    private String mainYoChartGroupConfigurationFilename;
    private List<String> secondaryYoChartGroupConfigurationsFilenames;
 
@@ -38,6 +39,11 @@ public class SCSGuiConfigurationDefinition
    public void setYoEntryConfigurationFilename(String yoEntryConfigurationFilename)
    {
       this.yoEntryConfigurationFilename = yoEntryConfigurationFilename;
+   }
+
+   public void setYoSliderboardConfigurationFilename(String yoSliderboardConfigurationFilename)
+   {
+      this.yoSliderboardConfigurationFilename = yoSliderboardConfigurationFilename;
    }
 
    public void setMainYoChartGroupConfigurationFilename(String mainYoChartGroupConfigurationFilename)
@@ -93,6 +99,11 @@ public class SCSGuiConfigurationDefinition
    public String getYoEntryConfigurationFilename()
    {
       return yoEntryConfigurationFilename;
+   }
+
+   public String getYoSliderboardConfigurationFilename()
+   {
+      return yoSliderboardConfigurationFilename;
    }
 
    public String getMainYoChartGroupConfigurationFilename()
@@ -151,6 +162,9 @@ public class SCSGuiConfigurationDefinition
          if (yoEntryConfigurationFilename == null ? other.yoEntryConfigurationFilename != null
                : !yoEntryConfigurationFilename.equals(other.yoEntryConfigurationFilename))
             return false;
+         if (yoSliderboardConfigurationFilename == null ? other.yoSliderboardConfigurationFilename != null
+               : !yoSliderboardConfigurationFilename.equals(other.yoSliderboardConfigurationFilename))
+            return false;
          if (mainYoChartGroupConfigurationFilename == null ? other.mainYoChartGroupConfigurationFilename != null
                : !mainYoChartGroupConfigurationFilename.equals(other.mainYoChartGroupConfigurationFilename))
             return false;
@@ -180,9 +194,10 @@ public class SCSGuiConfigurationDefinition
    public String toString()
    {
       return "name: " + name + "\nyoGraphics: " + yoGraphicsFilename + "\nyoCompositePatternList: " + yoCompositePatternListFilename
-            + "\nyoEntryConfiguration: " + yoEntryConfigurationFilename + "\nmainYoChartGroupConfiguration: " + mainYoChartGroupConfigurationFilename
-            + "\nsecondaryYoChartGroupConfigurations: " + secondaryYoChartGroupConfigurationsFilenames + "\nbufferSize: " + bufferSize
-            + "\nshowOverheadPlotter: " + showOverheadPlotter + "\nshowAdvancedControls: " + showAdvancedControls + "\nmainWindowConfiguration: "
-            + mainWindowConfiguration + "\nsecondaryWindowConfigurations: " + secondaryWindowConfigurations;
+            + "\nyoEntryConfiguration: " + yoEntryConfigurationFilename + "\nyoSliderboardConfiguration: " + yoSliderboardConfigurationFilename
+            + "\nmainYoChartGroupConfiguration: " + mainYoChartGroupConfigurationFilename + "\nsecondaryYoChartGroupConfigurations: "
+            + secondaryYoChartGroupConfigurationsFilenames + "\nbufferSize: " + bufferSize + "\nshowOverheadPlotter: " + showOverheadPlotter
+            + "\nshowAdvancedControls: " + showAdvancedControls + "\nmainWindowConfiguration: " + mainWindowConfiguration + "\nsecondaryWindowConfigurations: "
+            + secondaryWindowConfigurations;
    }
 }

@@ -1,7 +1,14 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+
+import javax.xml.bind.JAXBException;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -17,10 +24,12 @@ import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
-import us.ihmc.messager.TopicListener;
-import us.ihmc.scs2.session.SessionState;
+import us.ihmc.log.LogTools;
+import us.ihmc.scs2.definition.yoSlider.YoSliderboardDefinition;
+import us.ihmc.scs2.definition.yoSlider.YoSliderboardListDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController.Slider;
 
@@ -49,11 +58,6 @@ public class YoSliderboardWindowController
 
    private Stage window;
    private BCF2000SliderboardController sliderboard;
-   private TopicListener<SessionState> stopSessionListener = state ->
-   {
-      if (state == SessionState.INACTIVE)
-         close();
-   };
 
    public void initialize(SessionVisualizerToolkit toolkit, Window owner)
    {
@@ -90,7 +94,61 @@ public class YoSliderboardWindowController
 
       JavaFXMessager messager = toolkit.getMessager();
       SessionVisualizerTopics topics = toolkit.getTopics();
-      messager.registerJavaFXSyncedTopicListener(topics.getSessionCurrentState(), stopSessionListener);
+
+      File configurationFile = messager.createInput(topics.getYoSliderboardLoadConfiguration()).get();
+      if (configurationFile != null)
+         load(configurationFile);
+
+      messager.registerJavaFXSyncedTopicListener(topics.getYoSliderboardLoadConfiguration(), this::load);
+      messager.registerJavaFXSyncedTopicListener(topics.getYoSliderboardSaveConfiguration(), this::save);
+      toolkit.setYoSliderboardWindowController(this);
+   }
+
+   public void load(File file)
+   {
+      LogTools.info("Loading from file: " + file);
+
+      try
+      {
+         YoSliderboardListDefinition definition = XMLTools.loadYoSliderboardListDefinition(new FileInputStream(file));
+         setInput(definition);
+      }
+      catch (FileNotFoundException | JAXBException e)
+      {
+         e.printStackTrace();
+      }
+   }
+
+   public void save(File file)
+   {
+      LogTools.info("Saving to file: " + file);
+
+      try
+      {
+         XMLTools.saveYoSliderboardListDefinition(new FileOutputStream(file), toYoSliderboardListDefinition());
+      }
+      catch (FileNotFoundException | JAXBException e)
+      {
+         e.printStackTrace();
+      }
+   }
+
+   public void setInput(YoSliderboardListDefinition input)
+   {
+      List<YoSliderboardDefinition> yoSliderboards = input.getYoSliderboards();
+
+      if (yoSliderboards == null || yoSliderboards.isEmpty())
+         return;
+
+      YoSliderboardDefinition yoSliderboard = yoSliderboards.get(0);
+      yoSlider0Controller.setInput(yoSliderboard.getSlider1());
+      yoSlider1Controller.setInput(yoSliderboard.getSlider2());
+      yoSlider2Controller.setInput(yoSliderboard.getSlider3());
+      yoSlider3Controller.setInput(yoSliderboard.getSlider4());
+      yoSlider4Controller.setInput(yoSliderboard.getSlider5());
+      yoSlider5Controller.setInput(yoSliderboard.getSlider6());
+      yoSlider6Controller.setInput(yoSliderboard.getSlider7());
+      yoSlider7Controller.setInput(yoSliderboard.getSlider8());
    }
 
    public void showWindow()
@@ -118,5 +176,19 @@ public class YoSliderboardWindowController
    public Stage getWindow()
    {
       return window;
+   }
+
+   public YoSliderboardListDefinition toYoSliderboardListDefinition()
+   {
+      YoSliderboardDefinition definition = new YoSliderboardDefinition();
+      definition.setSlider1(yoSlider0Controller.toYoSliderDefinition());
+      definition.setSlider2(yoSlider1Controller.toYoSliderDefinition());
+      definition.setSlider3(yoSlider2Controller.toYoSliderDefinition());
+      definition.setSlider4(yoSlider3Controller.toYoSliderDefinition());
+      definition.setSlider5(yoSlider4Controller.toYoSliderDefinition());
+      definition.setSlider6(yoSlider5Controller.toYoSliderDefinition());
+      definition.setSlider7(yoSlider6Controller.toYoSliderDefinition());
+      definition.setSlider8(yoSlider7Controller.toYoSliderDefinition());
+      return new YoSliderboardListDefinition(null, Collections.singletonList(definition));
    }
 }

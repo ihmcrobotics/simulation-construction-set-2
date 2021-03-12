@@ -41,12 +41,15 @@ public class SessionVisualizerIOTools
    public static final String yoGraphicConfigurationFileExtension = ".scs2.yoGraphic";
    public static final String yoCompositeConfigurationFileExtension = ".scs2.yoComposite";
    public static final String yoEntryConfigurationFileExtension = ".scs2.yoEntry";
+   public static final String yoSliderboardConfigurationFileExtension = ".scs2.yoSliderboard";
    private static final ExtensionFilter yoChartGroupConfigurationFilter = new ExtensionFilter("SCS2 YoChartGroup File",
                                                                                               "*" + yoChartGroupConfigurationFileExtension);
    private static final ExtensionFilter yoGraphicConfigurationFilter = new ExtensionFilter("SCS2 YoGraphic File", "*" + yoGraphicConfigurationFileExtension);
    private static final ExtensionFilter yoCompositeConfigurationFilter = new ExtensionFilter("SCS2 YoComposite File",
                                                                                              "*" + yoCompositeConfigurationFileExtension);
    private static final ExtensionFilter yoEntryConfigurationFilter = new ExtensionFilter("SCS2 YoEntry File", "*" + yoEntryConfigurationFileExtension);
+   private static final ExtensionFilter yoSliderboardConfigurationFilter = new ExtensionFilter("SCS2 YoSliderboard File",
+                                                                                               "*" + yoSliderboardConfigurationFileExtension);
 
    private static final String CSS_FOLDER = "css/";
    private static final String FXML_FOLDER = "fxml/";
@@ -221,6 +224,16 @@ public class SessionVisualizerIOTools
    public static File yoEntryConfigurationSaveFileDialog(Window owner)
    {
       return showSaveDialog(owner, "Save YoEntry", yoEntryConfigurationFilter);
+   }
+
+   public static File yoSliderboardConfigurationOpenFileDialog(Window owner)
+   {
+      return showOpenDialog(owner, "Load YoSliderboard", yoSliderboardConfigurationFilter);
+   }
+
+   public static File yoSliderboardConfigurationSaveFileDialog(Window owner)
+   {
+      return showSaveDialog(owner, "Save YoSliderboard", yoSliderboardConfigurationFilter);
    }
 
    private static File showSaveDialog(Window owner, String title, ExtensionFilter extensionFilter)
