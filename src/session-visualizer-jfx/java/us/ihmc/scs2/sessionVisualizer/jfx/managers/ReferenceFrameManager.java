@@ -94,7 +94,7 @@ public class ReferenceFrameManager implements Manager
          newReferenceFrameToUniqueNameMap.put(e.getKey(), e.getValue());
       });
 
-      JavaFXMissingTools.runLaterIfNeeded(() ->
+      JavaFXMissingTools.runLaterIfNeeded(getClass(), () ->
       {
          uniqueNameToReferenceFrameMapProperty.set(newUniqueNameToReferenceFrameMap);
          referenceFrameToUniqueNameMapProperty.set(newReferenceFrameToUniqueNameMap);
@@ -105,7 +105,7 @@ public class ReferenceFrameManager implements Manager
    {
       Map<String, ReferenceFrame> newFullnameToReferenceFrameMap = new LinkedHashMap<>();
       allReferenceFrames.forEach(frame -> newFullnameToReferenceFrameMap.put(getFullname(frame), frame));
-      JavaFXMissingTools.runLaterIfNeeded(() -> fullnameToReferenceFrameMapProperty.set(newFullnameToReferenceFrameMap));
+      JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> fullnameToReferenceFrameMapProperty.set(newFullnameToReferenceFrameMap));
    }
 
    public static String getFullname(ReferenceFrame referenceFrame)

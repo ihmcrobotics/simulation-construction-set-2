@@ -211,7 +211,7 @@ public class YoCompositeSearchManager implements Manager
          List<YoComposite> result = allYoPrimitives.stream().map(yoVariable -> new YoComposite(pattern, yoVariable)).collect(Collectors.toList());
          YoCompositeCollection collection = new YoCompositeCollection(pattern, result);
 
-         JavaFXMissingTools.runLaterIfNeeded(() -> typeToCompositeCollection.get(type).setValue(collection));
+         JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> typeToCompositeCollection.get(type).setValue(collection));
       }
       else
       {
@@ -221,7 +221,7 @@ public class YoCompositeSearchManager implements Manager
          {
             YoCompositeCollection collection = new YoCompositeCollection(pattern, result);
 
-            JavaFXMissingTools.runLaterIfNeeded(() ->
+            JavaFXMissingTools.runLaterIfNeeded(getClass(), () ->
             {
                Property<YoCompositeCollection> property = typeToCompositeCollection.get(type);
 
@@ -312,7 +312,7 @@ public class YoCompositeSearchManager implements Manager
 
          if (result != null)
          {
-            JavaFXMissingTools.runLaterIfNeeded(() ->
+            JavaFXMissingTools.runLaterIfNeeded(getClass(), () ->
             {
                listOfYoCompositeMaps.put(compositeDefintion, result);
                callback.accept(result);

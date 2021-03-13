@@ -36,7 +36,7 @@ public class YoRobotFXManager extends ObservedAnimationTimer implements Manager
       YoRobotFX robot = new YoRobotFX(yoManager, referenceFrameManager, robotDefinition);
       robot.loadRobot(command -> backgroundExecutorManager.queueTaskToExecuteInBackground(this, command));
       robots.add(robot);
-      JavaFXMissingTools.runLaterIfNeeded(() -> rootNode.getChildren().add(robot.getRootNode()));
+      JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> rootNode.getChildren().add(robot.getRootNode()));
    }
 
    public void addRobotDefinitions(Collection<? extends RobotDefinition> robotDefinitions)
@@ -51,7 +51,7 @@ public class YoRobotFXManager extends ObservedAnimationTimer implements Manager
       if (result.isPresent())
       {
          YoRobotFX robotToRemove = result.get();
-         JavaFXMissingTools.runLaterIfNeeded(() -> rootNode.getChildren().remove(robotToRemove.getRootNode()));
+         JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> rootNode.getChildren().remove(robotToRemove.getRootNode()));
          robots.remove(robotToRemove);
       }
    }
@@ -64,7 +64,7 @@ public class YoRobotFXManager extends ObservedAnimationTimer implements Manager
    public void removeAllRobotDefinitions()
    {
       List<Node> nodesToDetach = robots.stream().map(YoRobotFX::getRootNode).collect(Collectors.toList());
-      JavaFXMissingTools.runLaterIfNeeded(() -> rootNode.getChildren().removeAll(nodesToDetach));
+      JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> rootNode.getChildren().removeAll(nodesToDetach));
       robots.clear();
    }
 

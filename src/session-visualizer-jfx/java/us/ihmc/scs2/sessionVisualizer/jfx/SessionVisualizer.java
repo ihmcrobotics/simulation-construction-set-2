@@ -17,6 +17,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.plotter.Plotter2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.CameraTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXApplicationCreator;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
 
 public class SessionVisualizer
@@ -135,7 +136,7 @@ public class SessionVisualizer
    {
       JavaFXApplicationCreator.spawnJavaFXMainApplication();
 
-      Platform.runLater(() ->
+      JavaFXMissingTools.runLater(SessionVisualizer.class, () ->
       {
          try
          {

@@ -13,7 +13,6 @@ import com.jfoenix.controls.JFXTreeTableView;
 import com.jfoenix.controls.RecursiveTreeItem;
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 
-import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -268,9 +267,9 @@ public class RemoteSessionManagerController implements SessionControlsController
    private void updateConnection(HTTPDataServerConnection connection)
    {
       if (connection.getTarget().isPersistant() || connection.isConnected())
-         Platform.runLater(() -> addConnection(connection));
+         JavaFXMissingTools.runLater(getClass(), () -> addConnection(connection));
       else
-         Platform.runLater(() -> removeConnection(connection));
+         JavaFXMissingTools.runLater(getClass(), () -> removeConnection(connection));
    }
 
    private TreeItem<SessionInfo> addDescription(HTTPDataServerDescription description)
@@ -331,7 +330,7 @@ public class RemoteSessionManagerController implements SessionControlsController
          catch (IOException e)
          {
             e.printStackTrace();
-            Platform.runLater(() -> sessionInProgressProperty.set(false));
+            JavaFXMissingTools.runLater(getClass(), () -> sessionInProgressProperty.set(false));
          }
       });
    }
@@ -402,7 +401,7 @@ public class RemoteSessionManagerController implements SessionControlsController
 
    private void setIsLoading(boolean isLoading)
    {
-      JavaFXMissingTools.runLaterIfNeeded(() -> loadingSpinner.setVisible(isLoading));
+      JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> loadingSpinner.setVisible(isLoading));
    }
 
    private JFXTreeTableColumn<SessionInfo, String> createColumn(String name, double prefWidth, Function<SessionInfo, StringProperty> fieldProvider)

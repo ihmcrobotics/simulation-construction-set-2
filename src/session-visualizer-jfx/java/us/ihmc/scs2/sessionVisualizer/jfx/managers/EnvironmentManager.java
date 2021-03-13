@@ -2,7 +2,6 @@ package us.ihmc.scs2.sessionVisualizer.jfx.managers;
 
 import java.util.List;
 
-import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.SubScene;
@@ -31,7 +30,7 @@ public class EnvironmentManager implements Manager
       backgroundExecutorManager.executeInBackground(() ->
       {
          Node node = new JavaFXCoordinateSystem(size);
-         Platform.runLater(() -> rootNode.getChildren().add(node));
+         JavaFXMissingTools.runLater(getClass(), () -> rootNode.getChildren().add(node));
       });
    }
 
@@ -40,7 +39,7 @@ public class EnvironmentManager implements Manager
       backgroundExecutorManager.executeInBackground(() ->
       {
          Node skybox = new SCS2Skybox(subScene).getSkybox();
-         Platform.runLater(() -> rootNode.getChildren().add(skybox));
+         JavaFXMissingTools.runLater(getClass(), () -> rootNode.getChildren().add(skybox));
       });
    }
 
@@ -48,7 +47,7 @@ public class EnvironmentManager implements Manager
    public void startSession(Session session)
    {
       List<TerrainObjectDefinition> terrainObjectDefinitions = session.getTerrainObjectDefinitions();
-      JavaFXMissingTools.runLaterIfNeeded(() ->
+      JavaFXMissingTools.runLaterIfNeeded(getClass(), () ->
       {
          for (TerrainObjectDefinition definition : terrainObjectDefinitions)
             terrainObjectGraphics.getChildren().add(JavaFXVisualTools.collectNodes(definition.getVisualDefinitions()));
@@ -58,7 +57,7 @@ public class EnvironmentManager implements Manager
    @Override
    public void stopSession()
    {
-      JavaFXMissingTools.runLaterIfNeeded(() -> terrainObjectGraphics.getChildren().clear());
+      JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> terrainObjectGraphics.getChildren().clear());
    }
 
    @Override

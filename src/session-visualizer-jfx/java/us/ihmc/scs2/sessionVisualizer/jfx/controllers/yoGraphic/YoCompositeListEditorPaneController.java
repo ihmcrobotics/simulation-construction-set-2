@@ -14,7 +14,6 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import javafx.animation.AnimationTimer;
-import javafx.application.Platform;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.BooleanExpression;
 import javafx.beans.binding.NumberBinding;
@@ -63,6 +62,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ContextMenuTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.CompositeProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
@@ -233,7 +233,7 @@ public class YoCompositeListEditorPaneController
          newCompositeEditor.setReferenceFrame(yoReferenceFrameTextField.getSupplier().getValue());
       listView.getItems().add(newCompositeEditor);
       // FIXME This doesn't seem reliable, also should force the ListView to scroll down the item is guaranteed to be visible.
-      Platform.runLater(() -> newCompositeEditor.getSearchYoCompositeTextField().requestFocus());
+      JavaFXMissingTools.runLater(getClass(), () -> newCompositeEditor.getSearchYoCompositeTextField().requestFocus());
    }
 
    private YoCompositeEditorPaneController newYoCompositeEditor()

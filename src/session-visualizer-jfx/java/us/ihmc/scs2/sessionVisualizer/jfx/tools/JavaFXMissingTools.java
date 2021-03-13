@@ -33,7 +33,12 @@ public class JavaFXMissingTools
       translateToModify.setY(translateToModify.getY() + offset.getY());
    }
 
-   public static void runLaterIfNeeded(Runnable task)
+   public static void runLater(Class<?> caller, Runnable task)
+   {
+      Platform.runLater(task::run);
+   }
+
+   public static void runLaterIfNeeded(Class<?> caller, Runnable task)
    {
       if (Platform.isFxApplicationThread())
       {
@@ -43,7 +48,7 @@ public class JavaFXMissingTools
       {
          try
          {
-            Platform.runLater(task);
+            runLater(caller, task);
          }
          catch (IllegalStateException e)
          {
@@ -70,7 +75,7 @@ public class JavaFXMissingTools
       }.start();
    }
 
-   public static void runAndWait(final Runnable runnable)
+   public static void runAndWait(Class<?> caller, final Runnable runnable)
    {
       if (Platform.isFxApplicationThread())
       {
@@ -88,7 +93,7 @@ public class JavaFXMissingTools
       {
          final CountDownLatch doneLatch = new CountDownLatch(1);
 
-         Platform.runLater(() ->
+         runLater(caller, () ->
          {
             try
             {
@@ -184,7 +189,7 @@ public class JavaFXMissingTools
 
       PlatformImpl.startup(() ->
       {
-         Platform.runLater(runnable);
+         runLater(application.getClass(), runnable);
       });
       PlatformImpl.setImplicitExit(false);
    }

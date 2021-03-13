@@ -13,6 +13,7 @@ import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicListDefinition;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXItem;
@@ -96,13 +97,13 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
          if (Platform.isFxApplicationThread())
             loadYoGraphicFromFileNow(file);
          else
-            Platform.runLater(() -> loadYoGraphicFromFileNow(file));
+            JavaFXMissingTools.runLater(getClass(), () -> loadYoGraphicFromFileNow(file));
       }
       else
       {
          LogTools.info("Loading file scheduled: " + file);
          backgroundExecutorManager.scheduleInBackgroundWithCondition(() -> XMLTools.isYoGraphicContextReady(),
-                                                                     () -> Platform.runLater(() -> loadYoGraphicFromFileNow(file)));
+                                                                     () -> JavaFXMissingTools.runLater(getClass(), () -> loadYoGraphicFromFileNow(file)));
       }
    }
 
@@ -123,7 +124,7 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
                                                                             referenceFrameManager,
                                                                             yoGraphicListDefinition);
             if (items != null && !items.isEmpty())
-               Platform.runLater(() -> items.forEach(root::addYoGraphicFXItem));
+               JavaFXMissingTools.runLater(getClass(), () -> items.forEach(root::addYoGraphicFXItem));
          });
       }
       catch (Exception e)

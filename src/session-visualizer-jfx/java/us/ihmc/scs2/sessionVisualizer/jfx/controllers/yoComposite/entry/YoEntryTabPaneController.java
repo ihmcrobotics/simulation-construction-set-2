@@ -14,7 +14,6 @@ import java.util.function.Function;
 import javax.xml.bind.JAXBException;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
-import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -32,6 +31,7 @@ import us.ihmc.scs2.session.SessionState;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ContextMenuTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.TabPaneTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
 
@@ -77,7 +77,7 @@ public class YoEntryTabPaneController
                {
                   if (removedTab == initialTab)
                   {
-                     Platform.runLater(() -> yoEntryTabPane.getTabs().add(initialTab));
+                     JavaFXMissingTools.runLater(getClass(), () -> yoEntryTabPane.getTabs().add(initialTab));
                      initialTabHeader.setText("Default");
                      initialListViewController.clear();
                   }

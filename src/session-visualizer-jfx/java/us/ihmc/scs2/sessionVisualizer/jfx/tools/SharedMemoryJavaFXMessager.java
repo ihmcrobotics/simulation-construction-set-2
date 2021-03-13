@@ -79,7 +79,7 @@ public class SharedMemoryJavaFXMessager extends SharedMemoryMessager implements 
          {
             try
             { // Postpone the entire registration in case JavaFXSyncedTopicListeners has been created by another caller.
-               Platform.runLater(() -> registerJavaFXSyncedTopicListener(topic, listener));
+               JavaFXMissingTools.runLater(getClass(), () -> registerJavaFXSyncedTopicListener(topic, listener));
             }
             catch (IllegalStateException e)
             { // The JavaFX thread has not started yet, no need to invoke Platform.runLater(...).

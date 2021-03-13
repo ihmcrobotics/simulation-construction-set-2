@@ -11,7 +11,6 @@ import com.jfoenix.controls.JFXTextField;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -37,6 +36,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartDoubleBounds;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.DynamicLineChart.ChartStyle;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.NumberFormatTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ScientificDoubleStringConverter;
 
@@ -286,7 +286,7 @@ public class YoChartOptionController
 
    private void resizeWindow()
    {
-      Platform.runLater(() -> window.sizeToScene());
+      JavaFXMissingTools.runLater(getClass(), () -> window.sizeToScene());
    }
 
    private void updateActualBounds()

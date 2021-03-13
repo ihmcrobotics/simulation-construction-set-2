@@ -73,7 +73,7 @@ public class MultiSessionManager
          if (sessionLoadedCallback != null)
             sessionLoadedCallback.run();
       };
-      JavaFXMissingTools.runLaterIfNeeded(() -> toolkit.startSession(session, callback));
+      JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> toolkit.startSession(session, callback));
    }
 
    public void stopSession()
