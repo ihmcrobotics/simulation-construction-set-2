@@ -4,7 +4,7 @@ import com.jfoenix.controls.JFXTextField;
 
 import javafx.scene.control.Slider;
 import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderVariable;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoInteger;
@@ -28,7 +28,7 @@ public interface YoVariableSlider
 
    void bindVirtualSlider(Slider virtualSlider);
 
-   void bindSliderVariable(SliderVariable sliderVariable);
+   void bindSliderVariable(SliderboardVariable sliderVariable);
 
    void bindMinTextField(JFXTextField minTextField);
 

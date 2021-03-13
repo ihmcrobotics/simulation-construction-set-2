@@ -15,7 +15,7 @@ import javafx.scene.control.TextFormatter;
 import javafx.util.converter.LongStringConverter;
 import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoLongProperty;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderVariable;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
 import us.ihmc.yoVariables.variable.YoLong;
 
 public class YoLongSlider implements YoVariableSlider
@@ -120,7 +120,7 @@ public class YoLongSlider implements YoVariableSlider
    }
 
    @Override
-   public void bindSliderVariable(SliderVariable sliderVariable)
+   public void bindSliderVariable(SliderboardVariable sliderVariable)
    {
       MutableBoolean updating = new MutableBoolean(false);
 
@@ -129,7 +129,7 @@ public class YoLongSlider implements YoVariableSlider
       if (!maxProperty.isBound())
          maxProperty.set(yoLongProperty.get() + 1);
 
-      sliderVariable.setValue(SliderVariable.longToInt(yoLongProperty.get(),
+      sliderVariable.setValue(SliderboardVariable.longToInt(yoLongProperty.get(),
                                                        minProperty.get(),
                                                        maxProperty.get(),
                                                        sliderVariable.getMin(),
@@ -140,7 +140,7 @@ public class YoLongSlider implements YoVariableSlider
          if (updating.isTrue())
             return;
 
-         int sliderPosition = SliderVariable.longToInt(yoLongProperty.get(),
+         int sliderPosition = SliderboardVariable.longToInt(yoLongProperty.get(),
                                                        minProperty.get(),
                                                        maxProperty.get(),
                                                        sliderVariable.getMin(),
@@ -155,7 +155,7 @@ public class YoLongSlider implements YoVariableSlider
          if (updating.isTrue())
             return;
 
-         Long yoLongValue = SliderVariable.intToLong(newValue.intValue(),
+         Long yoLongValue = SliderboardVariable.intToLong(newValue.intValue(),
                                                      sliderVariable.getMin(),
                                                      sliderVariable.getMax(),
                                                      minProperty.get(),

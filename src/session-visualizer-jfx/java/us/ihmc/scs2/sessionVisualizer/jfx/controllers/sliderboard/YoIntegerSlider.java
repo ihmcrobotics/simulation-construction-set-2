@@ -15,7 +15,7 @@ import javafx.scene.control.TextFormatter;
 import javafx.util.converter.IntegerStringConverter;
 import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoIntegerProperty;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderVariable;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
 import us.ihmc.yoVariables.variable.YoInteger;
 
 public class YoIntegerSlider implements YoVariableSlider
@@ -120,7 +120,7 @@ public class YoIntegerSlider implements YoVariableSlider
    }
 
    @Override
-   public void bindSliderVariable(SliderVariable sliderVariable)
+   public void bindSliderVariable(SliderboardVariable sliderVariable)
    {
       MutableBoolean updating = new MutableBoolean(false);
 
@@ -129,7 +129,7 @@ public class YoIntegerSlider implements YoVariableSlider
       if (!maxProperty.isBound())
          maxProperty.set(yoIntegerProperty.get() + 1);
 
-      sliderVariable.setValue(SliderVariable.doubleToInt(yoIntegerProperty.get(),
+      sliderVariable.setValue(SliderboardVariable.doubleToInt(yoIntegerProperty.get(),
                                                          minProperty.get(),
                                                          maxProperty.get(),
                                                          sliderVariable.getMin(),
@@ -140,7 +140,7 @@ public class YoIntegerSlider implements YoVariableSlider
          if (updating.isTrue())
             return;
 
-         int sliderPosition = SliderVariable.doubleToInt(yoIntegerProperty.get(),
+         int sliderPosition = SliderboardVariable.doubleToInt(yoIntegerProperty.get(),
                                                          minProperty.get(),
                                                          maxProperty.get(),
                                                          sliderVariable.getMin(),
@@ -155,7 +155,7 @@ public class YoIntegerSlider implements YoVariableSlider
          if (updating.isTrue())
             return;
 
-         int yoIntegerValue = SliderVariable.doubleToInt(newValue.intValue(),
+         int yoIntegerValue = SliderboardVariable.doubleToInt(newValue.intValue(),
                                                          sliderVariable.getMin(),
                                                          sliderVariable.getMax(),
                                                          minProperty.get(),

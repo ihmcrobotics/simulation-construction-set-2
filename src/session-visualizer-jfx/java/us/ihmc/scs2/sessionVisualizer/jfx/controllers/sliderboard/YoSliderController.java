@@ -30,7 +30,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderVariable;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoSliderController
@@ -50,13 +50,13 @@ public class YoSliderController
 
    private final SimpleObjectProperty<ContextMenu> contextMenuProperty = new SimpleObjectProperty<>(this, "sliderContextMenu", null);
 
-   private SliderVariable sliderVariable;
+   private SliderboardVariable sliderVariable;
 
    private YoCompositeSearchManager yoCompositeSearchManager;
    private YoVariableSlider yoVariableSlider;
    private YoManager yoManager;
 
-   public void initialize(SessionVisualizerToolkit toolkit, SliderVariable sliderVariable)
+   public void initialize(SessionVisualizerToolkit toolkit, SliderboardVariable sliderVariable)
    {
       this.sliderVariable = sliderVariable;
       yoManager = toolkit.getYoManager();

@@ -40,6 +40,16 @@ public class BCF2000SliderboardController
          return channel;
       }
 
+      public int getMin()
+      {
+         return 0;
+      }
+
+      public int getMax()
+      {
+         return 127;
+      }
+
       public static Knob fromChannel(int channel)
       {
          if (channel < CHANNEL_OFFSET || channel > CHANNEL_OFFSET + 7)
@@ -161,6 +171,9 @@ public class BCF2000SliderboardController
    private ScheduledFuture<?> currentTask;
 
    private final BCF2000SliderController[] sliderControllers = new BCF2000SliderController[8];
+   private final BCF2000ButtonController[] buttonControllers = new BCF2000ButtonController[16];
+   private final BCF2000KnobController[] knobControllers = new BCF2000KnobController[8];
+
    private final Receiver receiver = new Receiver()
    {
       @Override
@@ -175,7 +188,24 @@ public class BCF2000SliderboardController
 
          if (slider != null)
          {
-            sliderControllers[slider.ordinal()].handleMessage(shortMessage, timeStamp);
+            if (sliderControllers[slider.ordinal()].handleMessage(shortMessage, timeStamp))
+               return;
+         }
+
+         Button button = Button.fromChannel(shortMessage.getData1());
+
+         if (button != null)
+         {
+            if (buttonControllers[button.ordinal()].handleMessage(shortMessage, timeStamp))
+               return;
+         }
+
+         Knob knob = Knob.fromChannel(shortMessage.getData1());
+
+         if (knob != null)
+         {
+            if (knobControllers[knob.ordinal()].handleMessage(shortMessage, timeStamp))
+               return;
          }
       }
 
@@ -196,11 +226,31 @@ public class BCF2000SliderboardController
       {
          sliderControllers[slider.ordinal()] = new BCF2000SliderController(slider, midiOut);
       }
+
+      for (Button button : Button.values())
+      {
+         buttonControllers[button.ordinal()] = new BCF2000ButtonController(button, midiOut);
+      }
+      
+      for (Knob knob : Knob.values())
+      {
+         knobControllers[knob.ordinal()] = new BCF2000KnobController(knob, midiOut);
+      }
    }
 
-   public SliderVariable getSlider(Slider slider)
+   public SliderboardVariable getSlider(Slider slider)
    {
       return sliderControllers[slider.ordinal()].getControlVariable();
+   }
+
+   public SliderboardVariable getButton(Button button)
+   {
+      return buttonControllers[button.ordinal()].getControlVariable();
+   }
+
+   public SliderboardVariable getKnob(Knob knob)
+   {
+      return knobControllers[knob.ordinal()].getControlVariable();
    }
 
    public void update()
@@ -208,6 +258,16 @@ public class BCF2000SliderboardController
       for (int i = 0; i < sliderControllers.length; i++)
       {
          sliderControllers[i].update();
+      }
+
+      for (int i = 0; i < buttonControllers.length; i++)
+      {
+         buttonControllers[i].update();
+      }
+
+      for (int i = 0; i < knobControllers.length; i++)
+      {
+         knobControllers[i].update();
       }
    }
 

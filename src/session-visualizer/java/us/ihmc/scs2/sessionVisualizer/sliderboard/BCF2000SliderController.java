@@ -12,7 +12,7 @@ public class BCF2000SliderController
    private final Slider slider;
    private final Receiver midiOut;
 
-   private final SliderVariable controlVariable;
+   private final SliderboardVariable controlVariable;
 
    private int currentSliderValue = -1;
    private int newSliderValue = -1;
@@ -22,15 +22,16 @@ public class BCF2000SliderController
       this.slider = slider;
       this.midiOut = midiOut;
 
-      controlVariable = new SliderVariable(slider.getMin(), slider.getMax());
+      controlVariable = new SliderboardVariable(slider.getMin(), slider.getMax());
    }
 
-   public void handleMessage(ShortMessage message, long timestamp)
+   public boolean handleMessage(ShortMessage message, long timestamp)
    {
       if (slider.getChannel() != message.getData1()) // Should it use getChannel instead
-         return;
+         return false;
 
       newSliderValue = MathTools.clamp(message.getData2(), slider.getMin(), slider.getMax());
+      return true;
    }
 
    public void moveSlider(int value)
@@ -69,7 +70,7 @@ public class BCF2000SliderController
       }
    }
 
-   public SliderVariable getControlVariable()
+   public SliderboardVariable getControlVariable()
    {
       return controlVariable;
    }

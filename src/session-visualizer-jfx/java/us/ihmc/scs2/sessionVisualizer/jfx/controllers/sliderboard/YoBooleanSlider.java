@@ -11,7 +11,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.scene.control.Slider;
 import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoBooleanProperty;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderVariable;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
 import us.ihmc.yoVariables.variable.YoBoolean;
 
 public class YoBooleanSlider implements YoVariableSlider
@@ -90,11 +90,11 @@ public class YoBooleanSlider implements YoVariableSlider
    }
 
    @Override
-   public void bindSliderVariable(SliderVariable sliderVariable)
+   public void bindSliderVariable(SliderboardVariable sliderVariable)
    {
       MutableBoolean updating = new MutableBoolean(false);
 
-      sliderVariable.setValue(SliderVariable.booleanToInt(yoBooleanProperty.get(), sliderVariable.getMin(), sliderVariable.getMax()));
+      sliderVariable.setValue(SliderboardVariable.booleanToInt(yoBooleanProperty.get(), sliderVariable.getMin(), sliderVariable.getMax()));
 
       ChangeListener<Object> sliderUpdater = (o, oldValue, newValue) ->
       {
@@ -106,7 +106,7 @@ public class YoBooleanSlider implements YoVariableSlider
          if (currentSliderValue == yoBooleanProperty.get())
             return;
 
-         int sliderPosition = SliderVariable.booleanToInt(yoBooleanProperty.get(), sliderVariable.getMin(), sliderVariable.getMax());
+         int sliderPosition = SliderboardVariable.booleanToInt(yoBooleanProperty.get(), sliderVariable.getMin(), sliderVariable.getMax());
          updating.setTrue();
          sliderVariable.setValue(sliderPosition);
          updating.setFalse();
@@ -122,7 +122,7 @@ public class YoBooleanSlider implements YoVariableSlider
          if (currentSliderValue == yoBooleanProperty.get())
             return;
 
-         boolean yoBooleanValue = SliderVariable.intToBoolean(newValue.intValue(), sliderVariable.getMin(), sliderVariable.getMax());
+         boolean yoBooleanValue = SliderboardVariable.intToBoolean(newValue.intValue(), sliderVariable.getMin(), sliderVariable.getMax());
          updating.setTrue();
          yoBooleanProperty.set(yoBooleanValue);
          updating.setFalse();

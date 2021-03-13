@@ -4,12 +4,12 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import us.ihmc.commons.MathTools;
 
-public class SliderVariable
+public class SliderboardVariable
 {
    private final int min, max;
    private final IntegerProperty value = new SimpleIntegerProperty(this, "value", -1);
 
-   public SliderVariable(int min, int max)
+   public SliderboardVariable(int min, int max)
    {
       this.min = min;
       this.max = max;

@@ -11,7 +11,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.scene.control.Slider;
 import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoEnumAsStringProperty;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderVariable;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
 import us.ihmc.yoVariables.variable.YoEnum;
 
 public class YoEnumSlider implements YoVariableSlider
@@ -78,7 +78,7 @@ public class YoEnumSlider implements YoVariableSlider
    }
 
    @Override
-   public void bindSliderVariable(SliderVariable sliderVariable)
+   public void bindSliderVariable(SliderboardVariable sliderVariable)
    {
       MutableBoolean updating = new MutableBoolean(false);
 
@@ -87,7 +87,7 @@ public class YoEnumSlider implements YoVariableSlider
          if (updating.isTrue())
             return;
 
-         int sliderPosition = SliderVariable.doubleToInt(yoEnumProperty.getYoVariable().getOrdinal(),
+         int sliderPosition = SliderboardVariable.doubleToInt(yoEnumProperty.getYoVariable().getOrdinal(),
                                                          0,
                                                          yoEnumProperty.getYoVariable().getEnumValuesAsString().length - 1,
                                                          sliderVariable.getMin(),
@@ -102,7 +102,7 @@ public class YoEnumSlider implements YoVariableSlider
          if (updating.isTrue())
             return;
 
-         int yoEnumOrdinal = SliderVariable.doubleToInt(newValue.intValue(),
+         int yoEnumOrdinal = SliderboardVariable.doubleToInt(newValue.intValue(),
                                                         sliderVariable.getMin(),
                                                         sliderVariable.getMax(),
                                                         0,
