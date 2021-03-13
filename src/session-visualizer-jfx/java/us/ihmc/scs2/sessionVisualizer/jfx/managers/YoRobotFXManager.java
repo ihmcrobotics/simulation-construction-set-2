@@ -6,15 +6,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javafx.animation.AnimationTimer;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoRobot.YoRobotFX;
 
-public class YoRobotFXManager extends AnimationTimer implements Manager
+public class YoRobotFXManager extends ObservedAnimationTimer implements Manager
 {
    private final Group rootNode = new Group();
    private final List<YoRobotFX> robots = new ArrayList<>();
@@ -69,7 +69,7 @@ public class YoRobotFXManager extends AnimationTimer implements Manager
    }
 
    @Override
-   public void handle(long now)
+   public void handleImpl(long now)
    {
       robots.forEach(YoRobotFX::render);
    }

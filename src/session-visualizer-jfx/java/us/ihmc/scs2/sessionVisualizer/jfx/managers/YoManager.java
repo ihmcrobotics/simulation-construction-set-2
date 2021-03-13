@@ -1,21 +1,21 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.managers;
 
-import javafx.animation.AnimationTimer;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleLongProperty;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.session.Session;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.YoVariableTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.CompositePropertyTools.YoVariableDatabase;
 import us.ihmc.scs2.sharedMemory.LinkedBufferProperties;
-import us.ihmc.scs2.sharedMemory.LinkedYoVariable;
 import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
+import us.ihmc.scs2.sharedMemory.LinkedYoVariable;
 import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
 import us.ihmc.scs2.simulation.SimulationSession;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
-public class YoManager extends AnimationTimer implements Manager
+public class YoManager extends ObservedAnimationTimer implements Manager
 {
    private final LongProperty rootRegistryHashCodeProperty = new SimpleLongProperty(this, "rootRegistryHashCode", 0);
 
@@ -33,7 +33,7 @@ public class YoManager extends AnimationTimer implements Manager
    }
 
    @Override
-   public void handle(long now)
+   public void handleImpl(long now)
    {
       if (linkedRootRegistry != null && !updatingYoVariables)
          linkedRootRegistry.pull();
@@ -79,7 +79,7 @@ public class YoManager extends AnimationTimer implements Manager
       return linkedYoVariableFactory.newLinkedYoRegistry(registry);
    }
 
-   public LinkedYoVariable newLinkedYoVariable(YoVariable yoVariable)
+   public LinkedYoVariable<?> newLinkedYoVariable(YoVariable yoVariable)
    {
       return linkedYoVariableFactory.newLinkedYoVariable(yoVariable);
    }

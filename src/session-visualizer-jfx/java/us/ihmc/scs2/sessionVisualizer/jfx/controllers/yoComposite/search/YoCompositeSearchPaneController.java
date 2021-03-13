@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 
 import com.jfoenix.controls.JFXComboBox;
 
-import javafx.animation.AnimationTimer;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
@@ -42,6 +41,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ContextMenuTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.YoVariableTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeCollection;
@@ -49,7 +49,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
 import us.ihmc.yoVariables.registry.YoNamespace;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
-public class YoCompositeSearchPaneController extends AnimationTimer
+public class YoCompositeSearchPaneController extends ObservedAnimationTimer
 {
    @FXML
    private TextField searchTextField;
@@ -207,7 +207,7 @@ public class YoCompositeSearchPaneController extends AnimationTimer
    }
 
    @Override
-   public void handle(long now)
+   public void handleImpl(long now)
    {
       if (defaultItemList.isEmpty())
       {

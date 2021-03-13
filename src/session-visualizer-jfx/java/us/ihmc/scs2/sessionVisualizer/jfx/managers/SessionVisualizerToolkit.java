@@ -3,7 +3,6 @@ package us.ihmc.scs2.sessionVisualizer.jfx.managers;
 import java.util.ArrayList;
 import java.util.List;
 
-import javafx.animation.AnimationTimer;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.stage.Stage;
@@ -22,9 +21,10 @@ import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.chart.YoChartGroupPanelController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.YoSliderboardWindowController;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.BufferedJavaFXMessager;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
 
-public class SessionVisualizerToolkit extends AnimationTimer
+public class SessionVisualizerToolkit extends ObservedAnimationTimer
 {
    private final JavaFXMessager messager;
    private final SessionVisualizerTopics topics = new SessionVisualizerTopics();
@@ -158,7 +158,7 @@ public class SessionVisualizerToolkit extends AnimationTimer
    }
 
    @Override
-   public void handle(long now)
+   public void handleImpl(long now)
    {
    }
 

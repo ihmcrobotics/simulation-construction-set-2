@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import javafx.animation.AnimationTimer;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
@@ -23,11 +22,12 @@ import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.BackgroundExecutorManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.TreeViewTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.YoVariableTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
-public class YoRegistrySearchPaneController extends AnimationTimer
+public class YoRegistrySearchPaneController extends ObservedAnimationTimer
 {
    @FXML
    private TextField searchTextField;
@@ -111,7 +111,7 @@ public class YoRegistrySearchPaneController extends AnimationTimer
    }
 
    @Override
-   public void handle(long now)
+   public void handleImpl(long now)
    {
       if (backgroundSearch != null && backgroundSearch.isDone() && !backgroundSearch.isCancelled())
       {

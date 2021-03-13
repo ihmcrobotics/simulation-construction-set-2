@@ -7,7 +7,6 @@ import com.jfoenix.controls.JFXHamburger;
 import com.jfoenix.controls.events.JFXDrawerEvent;
 import com.jfoenix.transitions.hamburger.HamburgerSlideCloseTransition;
 
-import javafx.animation.AnimationTimer;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.event.EventHandler;
@@ -20,7 +19,11 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import us.ihmc.commons.Conversions;
@@ -31,8 +34,9 @@ import us.ihmc.scs2.sessionVisualizer.jfx.controllers.chart.YoChartGroupPanelCon
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu.MainWindowMenuBarController;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.plotter.Plotter2D;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 
-public class MainWindowController extends AnimationTimer
+public class MainWindowController extends ObservedAnimationTimer
 {
    @FXML
    private AnchorPane mainPane;
@@ -170,7 +174,7 @@ public class MainWindowController extends AnimationTimer
    private Color poorFPSColor = Color.RED;
 
    @Override
-   public void handle(long timeNow)
+   public void handleImpl(long timeNow)
    {
       if (timeLast == -1)
       {

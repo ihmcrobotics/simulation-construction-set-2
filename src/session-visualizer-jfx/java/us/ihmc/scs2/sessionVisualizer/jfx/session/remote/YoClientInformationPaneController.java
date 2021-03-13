@@ -2,7 +2,6 @@ package us.ihmc.scs2.sessionVisualizer.jfx.session.remote;
 
 import java.util.function.Supplier;
 
-import javafx.animation.AnimationTimer;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
@@ -11,8 +10,9 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import us.ihmc.commons.Conversions;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.SessionInfoController;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 
-public class YoClientInformationPaneController extends AnimationTimer implements SessionInfoController
+public class YoClientInformationPaneController extends ObservedAnimationTimer implements SessionInfoController
 {
    @FXML 
    private AnchorPane mainPane;
@@ -72,7 +72,7 @@ public class YoClientInformationPaneController extends AnimationTimer implements
    }
 
    @Override
-   public void handle(long now)
+   public void handleImpl(long now)
    {
       updateLabel(delayLabel, delayValueSupplier, "N/D");
       updateLabel(logDurationLabel, logDurationValueSupplier, "N/D");

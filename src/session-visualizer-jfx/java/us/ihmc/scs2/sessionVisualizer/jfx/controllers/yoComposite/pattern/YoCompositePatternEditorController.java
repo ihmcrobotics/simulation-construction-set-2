@@ -45,6 +45,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXContr
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ContextMenuTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 
 public class YoCompositePatternEditorController implements SCSDefaultUIController
 {
@@ -303,10 +304,10 @@ public class YoCompositePatternEditorController implements SCSDefaultUIControlle
    {
       if (prefHeightAdjustmentAnimation == null)
       {
-         prefHeightAdjustmentAnimation = new AnimationTimer()
+         prefHeightAdjustmentAnimation = new ObservedAnimationTimer(getClass().getSimpleName())
          {
             @Override
-            public void handle(long now)
+            public void handleImpl(long now)
             {
                if (componentIdentifiersListView.getItems().isEmpty())
                {

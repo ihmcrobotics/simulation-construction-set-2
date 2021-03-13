@@ -34,10 +34,10 @@ public class SharedMemoryJavaFXMessager extends SharedMemoryMessager implements 
    public SharedMemoryJavaFXMessager(MessagerAPI messagerAPI)
    {
       super(messagerAPI);
-      animationTimer = new AnimationTimer()
+      animationTimer = new ObservedAnimationTimer(getClass().getSimpleName())
       {
          @Override
-         public void handle(long now)
+         public void handleImpl(long now)
          {
             try
             {

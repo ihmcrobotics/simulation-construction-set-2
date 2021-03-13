@@ -3,11 +3,11 @@ package us.ihmc.scs2.sessionVisualizer.jfx.session.log;
 import java.util.ArrayList;
 import java.util.List;
 
-import javafx.animation.AnimationTimer;
 import javafx.scene.layout.Pane;
 import javafx.stage.Window;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 
-public class MultiVideoViewer extends AnimationTimer
+public class MultiVideoViewer extends ObservedAnimationTimer
 {
    private final Pane thumbnailsContainer;
    private final List<VideoViewer> videoViewers = new ArrayList<>();
@@ -34,7 +34,7 @@ public class MultiVideoViewer extends AnimationTimer
    }
 
    @Override
-   public void handle(long now)
+   public void handleImpl(long now)
    {
       videoViewers.forEach(VideoViewer::update);
    }

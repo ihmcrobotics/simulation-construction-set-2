@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 
 import com.jfoenix.controls.JFXButton;
 
-import javafx.animation.AnimationTimer;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
@@ -66,13 +65,14 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.CompositePropertyTools.YoVariableDatabase;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.yoVariables.variable.YoVariable;
 
-public class YoChartPanelController extends AnimationTimer
+public class YoChartPanelController extends ObservedAnimationTimer
 {
    private static final String INPOINT_MARKER_STYLECLASS = "chart-inpoint-marker";
    private static final String OUTPOINT_MARKER_STYLECLASS = "chart-outpoint-marker";
@@ -372,7 +372,7 @@ public class YoChartPanelController extends AnimationTimer
    }
 
    @Override
-   public void handle(long now)
+   public void handleImpl(long now)
    {
       ChartIntegerBounds chartsBounds = chartDataManager.chartBoundsProperty().getValue();
       YoBufferPropertiesReadOnly bufferProperties = bufferPropertiesForMarkers.getAndSet(null);
@@ -437,8 +437,7 @@ public class YoChartPanelController extends AnimationTimer
          {
             Node intersectedNode = event.getPickResult().getIntersectedNode();
 
-            if (intersectedNode == null || intersectedNode instanceof DynamicChartLegend || intersectedNode instanceof Text
-                  || intersectedNode instanceof Label)
+            if (intersectedNode == null || intersectedNode instanceof DynamicChartLegend || intersectedNode instanceof Text || intersectedNode instanceof Label)
                return; // Don't perform scroll when clicking on the legend
 
             int index = screenToBufferIndex(event.getScreenX(), event.getScreenY());
@@ -551,8 +550,7 @@ public class YoChartPanelController extends AnimationTimer
             return;
          Dragboard dragBoard = legend.startDragAndDrop(TransferMode.ANY);
          ClipboardContent clipboardContent = new ClipboardContent();
-         clipboardContent.put(DragAndDropTools.YO_COMPOSITE_REFERENCE,
-                              Arrays.asList(YoCompositeTools.YO_VARIABLE, yoVariableSelected.getFullNameString()));
+         clipboardContent.put(DragAndDropTools.YO_COMPOSITE_REFERENCE, Arrays.asList(YoCompositeTools.YO_VARIABLE, yoVariableSelected.getFullNameString()));
          dragBoard.setContent(clipboardContent);
       }
 
