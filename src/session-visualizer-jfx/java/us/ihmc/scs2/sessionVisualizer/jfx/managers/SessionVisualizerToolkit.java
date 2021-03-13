@@ -129,6 +129,7 @@ public class SessionVisualizerToolkit extends AnimationTimer
       yoCompositeSearchManager.stopSession();
       environmentManager.stopSession();
       keyFrameManager.stopSession();
+      backgroundExecutorManager.stopSession();
 
       for (int i = secondaryWindows.size() - 1; i >= 0; i--)
       {
@@ -168,7 +169,7 @@ public class SessionVisualizerToolkit extends AnimationTimer
       yoRobotFXManager.stop();
       chartDataManager.stop();
       yoGraphicFXManager.stop();
-      backgroundExecutorManager.stop();
+      backgroundExecutorManager.shutdown();
       try
       {
          messager.closeMessager();
