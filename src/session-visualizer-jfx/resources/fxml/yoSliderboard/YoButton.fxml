@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXToggleButton?>
+
+
+<JFXToggleButton fx:id="button" styleClass="sliderboard-button" stylesheets="@../../css/GeneralStylesheet.css" text="Drop YoBoolean Here" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.YoButtonController" />

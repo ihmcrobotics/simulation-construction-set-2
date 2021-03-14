@@ -3,16 +3,14 @@ package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard;
 import java.util.Arrays;
 import java.util.List;
 
-import com.jfoenix.controls.JFXTextField;
+import com.jfoenix.controls.JFXToggleButton;
 
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.Slider;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -20,10 +18,9 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.PickResult;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import us.ihmc.log.LogTools;
-import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
+import us.ihmc.scs2.definition.yoSlider.YoButtonDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
@@ -31,29 +28,22 @@ import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
+import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoVariable;
 
-public class YoSliderController
+public class YoButtonController
 {
-   private static final String DEFAULT_TEXT = "Drop YoVariable here";
+   private static final String DEFAULT_TEXT = "Drop YoBoolean here";
 
    @FXML
-   private VBox rootPane;
-   @FXML
-   private JFXTextField sliderMaxTextField;
-   @FXML
-   private JFXTextField sliderMinTextField;
-   @FXML
-   private Slider slider;
-   @FXML
-   private Label yoVariableDropLabel;
+   private JFXToggleButton button;
 
-   private final SimpleObjectProperty<ContextMenu> contextMenuProperty = new SimpleObjectProperty<>(this, "sliderContextMenu", null);
+   private final SimpleObjectProperty<ContextMenu> contextMenuProperty = new SimpleObjectProperty<>(this, "buttonContextMenu", null);
 
    private SliderboardVariable sliderVariable;
 
    private YoCompositeSearchManager yoCompositeSearchManager;
-   private YoVariableSlider yoVariableSlider;
+   private YoBooleanSlider yoBooleanSlider;
    private YoManager yoManager;
 
    public void initialize(SessionVisualizerToolkit toolkit, SliderboardVariable sliderVariable)
@@ -62,18 +52,13 @@ public class YoSliderController
       yoManager = toolkit.getYoManager();
       yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
 
-      rootPane.setOnDragDetected(this::handleDragDetected);
-      rootPane.setOnDragOver(this::handleDragOver);
-      rootPane.setOnDragDropped(this::handleDragDropped);
-      rootPane.setOnDragEntered(this::handleDragEntered);
-      rootPane.setOnDragExited(this::handleDragExited);
-      rootPane.setOnMousePressed(this::handleMousePressed);
-      rootPane.setOnMouseReleased(this::handleMouseReleased);
-
-      sliderMaxTextField.setText("");
-      sliderMinTextField.setText("");
-      sliderMaxTextField.setDisable(true);
-      sliderMinTextField.setDisable(true);
+      button.setOnDragDetected(this::handleDragDetected);
+      button.setOnDragOver(this::handleDragOver);
+      button.setOnDragDropped(this::handleDragDropped);
+      button.setOnDragEntered(this::handleDragEntered);
+      button.setOnDragExited(this::handleDragExited);
+      button.setOnMousePressed(this::handleMousePressed);
+      button.setOnMouseReleased(this::handleMouseReleased);
 
       contextMenuProperty.addListener((ChangeListener<ContextMenu>) (observable, oldValue, newValue) ->
       {
@@ -82,11 +67,11 @@ public class YoSliderController
       });
    }
 
-   public void setInput(YoSliderDefinition definition)
+   public void setInput(YoButtonDefinition definition)
    {
       if (definition == null)
       {
-         setSlider(null);
+         setButton(null);
          return;
       }
 
@@ -102,51 +87,41 @@ public class YoSliderController
          yoVariable = null;
       }
 
-      setSlider(yoVariable, definition.getMinValue(), definition.getMaxValue());
+      setButton(yoVariable);
    }
 
-   private void setSlider(YoVariable yoVariable)
+   private void setButton(YoVariable yoVariable)
    {
-      setSlider(yoVariable, null, null);
-   }
-
-   private void setSlider(YoVariable yoVariable, String minValue, String maxValue)
-   {
-      if (yoVariableSlider != null)
+      if (yoBooleanSlider != null)
       {
-         yoVariableSlider.dispose();
+         yoBooleanSlider.dispose();
+         yoBooleanSlider.getYoBooleanProperty().unbind();
       }
 
-      if (yoVariable != null)
+      if (yoVariable != null && yoVariable instanceof YoBoolean)
       {
-         rootPane.setStyle("-fx-background-color: #c5fcee88");
-         yoVariableDropLabel.setText(yoVariable.getName());
+         button.setStyle("-fx-background-color: #c5fcee88");
+         button.setText(yoVariable.getName());
 
-         yoVariableSlider = YoVariableSlider.newYoVariableSlider(yoVariable, () -> yoManager.getLinkedRootRegistry().push(yoVariable));
-         yoVariableSlider.bindMinTextField(sliderMinTextField);
-         yoVariableSlider.bindMaxTextField(sliderMaxTextField);
+         yoBooleanSlider = (YoBooleanSlider) YoVariableSlider.newYoVariableSlider(yoVariable, () -> yoManager.getLinkedRootRegistry().push(yoVariable));
          if (sliderVariable != null)
-            yoVariableSlider.bindSliderVariable(sliderVariable);
-         yoVariableSlider.bindVirtualSlider(slider);
-
-         if (minValue != null && !sliderMinTextField.isDisabled())
-            sliderMinTextField.setText(minValue);
-         if (maxValue != null && !sliderMaxTextField.isDisabled())
-            sliderMaxTextField.setText(maxValue);
+            yoBooleanSlider.bindSliderVariable(sliderVariable);
+         yoBooleanSlider.getYoBooleanProperty().bindBooleanProperty(button.selectedProperty(), () -> yoManager.getLinkedRootRegistry().push(yoVariable));
       }
       else
       {
-         rootPane.setStyle("-fx-background-color: null");
-         yoVariableSlider = null;
-         yoVariableDropLabel.setText(DEFAULT_TEXT);
-         sliderMaxTextField.setText("");
-         sliderMinTextField.setText("");
+         button.setStyle("-fx-background-color: null");
+         yoBooleanSlider = null;
+         button.setText(DEFAULT_TEXT);
       }
    }
 
    public void close()
    {
-      setSlider(null);
+      if (yoBooleanSlider != null)
+      {
+         setButton(null);
+      }
    }
 
    private void handleMousePressed(MouseEvent event)
@@ -159,7 +134,7 @@ public class YoSliderController
 
    private void handleMouseReleased(MouseEvent event)
    {
-      if (yoVariableSlider == null)
+      if (yoBooleanSlider == null)
          return;
 
       if (event.getButton() == MouseButton.SECONDARY)
@@ -170,7 +145,7 @@ public class YoSliderController
             if (!contextMenu.getItems().isEmpty())
             {
                contextMenuProperty.set(contextMenu);
-               contextMenu.show(rootPane, event.getScreenX(), event.getScreenY());
+               contextMenu.show(button, event.getScreenX(), event.getScreenY());
             }
             event.consume();
          }
@@ -185,20 +160,20 @@ public class YoSliderController
 
    private ContextMenu newGraphContextMenu()
    {
-      if (yoVariableSlider == null)
+      if (yoBooleanSlider == null)
          return null;
 
       ContextMenu contextMenu = new ContextMenu();
-      MenuItem menuItem = new MenuItem("Remove " + yoVariableSlider.getYoVariable().getName());
+      MenuItem menuItem = new MenuItem("Remove " + yoBooleanSlider.getYoVariable().getName());
       menuItem.setMnemonicParsing(false);
-      menuItem.setOnAction(e -> setSlider(null));
+      menuItem.setOnAction(e -> setButton(null));
       contextMenu.getItems().add(menuItem);
       return contextMenu;
    }
 
    public void handleDragDetected(MouseEvent event)
    {
-      if (event == null || yoVariableSlider == null)
+      if (event == null || yoBooleanSlider == null)
          return;
 
       if (!event.isPrimaryButtonDown())
@@ -214,7 +189,7 @@ public class YoSliderController
       if (intersectedNode == null)
          return;
 
-      YoVariable yoVariable = yoVariableSlider.getYoVariable();
+      YoVariable yoVariable = yoBooleanSlider.getYoVariable();
 
       if (intersectedNode instanceof Text)
       {
@@ -265,7 +240,7 @@ public class YoSliderController
       {
          // TODO
          //         for (YoComposite yoComposite : yoComposites)
-         setSlider(yoComposites.get(0).getYoComponents().get(0));
+         setButton(yoComposites.get(0).getYoComponents().get(0));
          success = true;
       }
       event.setDropCompleted(success);
@@ -274,7 +249,7 @@ public class YoSliderController
 
    private boolean acceptDragEventForDrop(DragEvent event)
    {
-      if (event.getGestureSource() == yoVariableDropLabel)
+      if (event.getGestureSource() == button)
          return false;
 
       Dragboard dragboard = event.getDragboard();
@@ -283,19 +258,22 @@ public class YoSliderController
          return false;
       if (result.get(0).getYoComponents().isEmpty())
          return false;
-      return true;
+      return result.get(0).getYoComponents().get(0) instanceof YoBoolean;
    }
 
    public void setSelectionHighlight(boolean isSelected)
    {
       if (isSelected)
-         rootPane.setStyle("-fx-border-color:green; -fx-border-radius:5;");
+         button.setStyle("-fx-border-color:green; -fx-border-radius:5;");
       else
-         rootPane.setStyle("-fx-border-color: null;");
+         button.setStyle("-fx-border-color: null;");
    }
 
-   public YoSliderDefinition toYoSliderDefinition()
+   public YoButtonDefinition toYoButtonDefinition()
    {
-      return yoVariableSlider == null ? new YoSliderDefinition() : yoVariableSlider.toYoSliderDefinition();
+      YoButtonDefinition definition = new YoButtonDefinition();
+      if (yoBooleanSlider != null)
+         definition.setVariableName(yoBooleanSlider.getYoVariable().getFullNameString());
+      return definition;
    }
 }

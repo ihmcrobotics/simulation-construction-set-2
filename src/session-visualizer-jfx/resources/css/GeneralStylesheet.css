@@ -462,3 +462,14 @@
 	-jfx-button-type: RAISED;
 	-fx-background-color: -default-pale-red;
 }
+
+/*******************************************************************************
+ *                                                                             *
+ * Icons                                                                       *
+ *                                                                             *
+ ******************************************************************************/
+.sliderboard-button {
+	-jfx-size: 6;
+	-fx-content-display: TOP;
+	-fx-graphic-text-gap: 0;
+}

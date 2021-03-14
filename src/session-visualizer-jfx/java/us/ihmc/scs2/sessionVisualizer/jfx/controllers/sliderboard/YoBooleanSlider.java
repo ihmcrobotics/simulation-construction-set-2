@@ -5,10 +5,12 @@ import java.util.List;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
+import com.jfoenix.controls.JFXSpinner;
 import com.jfoenix.controls.JFXTextField;
 
 import javafx.beans.value.ChangeListener;
 import javafx.scene.control.Slider;
+import us.ihmc.scs2.definition.yoSlider.YoKnobDefinition;
 import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoBooleanProperty;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
@@ -90,6 +92,22 @@ public class YoBooleanSlider implements YoVariableSlider
    }
 
    @Override
+   public void bindVirtualKnob(JFXSpinner virtualKnob)
+   {
+      ChangeListener<Boolean> knobUpdater = (o, oldValue, newValue) ->
+      {
+         virtualKnob.setProgress(newValue ? 1.0 : 0.0);
+      };
+
+      yoBooleanProperty.addListener(knobUpdater);
+
+      cleanupTasks.add(() ->
+      {
+         yoBooleanProperty.removeListener(knobUpdater);
+      });
+   }
+
+   @Override
    public void bindSliderVariable(SliderboardVariable sliderVariable)
    {
       MutableBoolean updating = new MutableBoolean(false);
@@ -139,6 +157,11 @@ public class YoBooleanSlider implements YoVariableSlider
       });
    }
 
+   public YoBooleanProperty getYoBooleanProperty()
+   {
+      return yoBooleanProperty;
+   }
+
    @Override
    public YoBoolean getYoVariable()
    {
@@ -149,6 +172,14 @@ public class YoBooleanSlider implements YoVariableSlider
    public YoSliderDefinition toYoSliderDefinition()
    {
       YoSliderDefinition definition = new YoSliderDefinition();
+      definition.setVariableName(getYoVariable().getFullNameString());
+      return definition;
+   }
+
+   @Override
+   public YoKnobDefinition toYoKnobDefinition()
+   {
+      YoKnobDefinition definition = new YoKnobDefinition();
       definition.setVariableName(getYoVariable().getFullNameString());
       return definition;
    }

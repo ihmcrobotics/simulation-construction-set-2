@@ -3,6 +3,7 @@ package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard;
 import java.util.Arrays;
 import java.util.List;
 
+import com.jfoenix.controls.JFXSpinner;
 import com.jfoenix.controls.JFXTextField;
 
 import javafx.beans.property.SimpleObjectProperty;
@@ -12,7 +13,6 @@ import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.Slider;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -23,7 +23,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import us.ihmc.log.LogTools;
-import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
+import us.ihmc.scs2.definition.yoSlider.YoKnobDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
@@ -33,22 +33,22 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
 import us.ihmc.yoVariables.variable.YoVariable;
 
-public class YoSliderController
+public class YoKnobController
 {
    private static final String DEFAULT_TEXT = "Drop YoVariable here";
 
    @FXML
    private VBox rootPane;
    @FXML
-   private JFXTextField sliderMaxTextField;
+   private JFXTextField knobMaxTextField;
    @FXML
-   private JFXTextField sliderMinTextField;
+   private JFXTextField knobMinTextField;
    @FXML
-   private Slider slider;
+   private JFXSpinner spinner;
    @FXML
    private Label yoVariableDropLabel;
 
-   private final SimpleObjectProperty<ContextMenu> contextMenuProperty = new SimpleObjectProperty<>(this, "sliderContextMenu", null);
+   private final SimpleObjectProperty<ContextMenu> contextMenuProperty = new SimpleObjectProperty<>(this, "knobContextMenu", null);
 
    private SliderboardVariable sliderVariable;
 
@@ -70,10 +70,10 @@ public class YoSliderController
       rootPane.setOnMousePressed(this::handleMousePressed);
       rootPane.setOnMouseReleased(this::handleMouseReleased);
 
-      sliderMaxTextField.setText("");
-      sliderMinTextField.setText("");
-      sliderMaxTextField.setDisable(true);
-      sliderMinTextField.setDisable(true);
+      knobMaxTextField.setText("");
+      knobMinTextField.setText("");
+      knobMaxTextField.setDisable(true);
+      knobMinTextField.setDisable(true);
 
       contextMenuProperty.addListener((ChangeListener<ContextMenu>) (observable, oldValue, newValue) ->
       {
@@ -82,11 +82,11 @@ public class YoSliderController
       });
    }
 
-   public void setInput(YoSliderDefinition definition)
+   public void setInput(YoKnobDefinition definition)
    {
       if (definition == null)
       {
-         setSlider(null);
+         setKnob(null);
          return;
       }
 
@@ -102,15 +102,15 @@ public class YoSliderController
          yoVariable = null;
       }
 
-      setSlider(yoVariable, definition.getMinValue(), definition.getMaxValue());
+      setKnob(yoVariable, definition.getMinValue(), definition.getMaxValue());
    }
 
-   private void setSlider(YoVariable yoVariable)
+   private void setKnob(YoVariable yoVariable)
    {
-      setSlider(yoVariable, null, null);
+      setKnob(yoVariable, null, null);
    }
 
-   private void setSlider(YoVariable yoVariable, String minValue, String maxValue)
+   private void setKnob(YoVariable yoVariable, String minValue, String maxValue)
    {
       if (yoVariableSlider != null)
       {
@@ -123,30 +123,33 @@ public class YoSliderController
          yoVariableDropLabel.setText(yoVariable.getName());
 
          yoVariableSlider = YoVariableSlider.newYoVariableSlider(yoVariable, () -> yoManager.getLinkedRootRegistry().push(yoVariable));
-         yoVariableSlider.bindMinTextField(sliderMinTextField);
-         yoVariableSlider.bindMaxTextField(sliderMaxTextField);
+         yoVariableSlider.bindMinTextField(knobMinTextField);
+         yoVariableSlider.bindMaxTextField(knobMaxTextField);
          if (sliderVariable != null)
             yoVariableSlider.bindSliderVariable(sliderVariable);
-         yoVariableSlider.bindVirtualSlider(slider);
+         yoVariableSlider.bindVirtualKnob(spinner);
 
-         if (minValue != null && !sliderMinTextField.isDisabled())
-            sliderMinTextField.setText(minValue);
-         if (maxValue != null && !sliderMaxTextField.isDisabled())
-            sliderMaxTextField.setText(maxValue);
+         if (minValue != null && !knobMinTextField.isDisabled())
+            knobMinTextField.setText(minValue);
+         if (maxValue != null && !knobMaxTextField.isDisabled())
+            knobMaxTextField.setText(maxValue);
       }
       else
       {
          rootPane.setStyle("-fx-background-color: null");
          yoVariableSlider = null;
          yoVariableDropLabel.setText(DEFAULT_TEXT);
-         sliderMaxTextField.setText("");
-         sliderMinTextField.setText("");
+         knobMaxTextField.setText("");
+         knobMinTextField.setText("");
       }
    }
 
    public void close()
    {
-      setSlider(null);
+      if (yoVariableSlider != null)
+      {
+         setKnob(null);
+      }
    }
 
    private void handleMousePressed(MouseEvent event)
@@ -191,7 +194,7 @@ public class YoSliderController
       ContextMenu contextMenu = new ContextMenu();
       MenuItem menuItem = new MenuItem("Remove " + yoVariableSlider.getYoVariable().getName());
       menuItem.setMnemonicParsing(false);
-      menuItem.setOnAction(e -> setSlider(null));
+      menuItem.setOnAction(e -> setKnob(null));
       contextMenu.getItems().add(menuItem);
       return contextMenu;
    }
@@ -265,7 +268,7 @@ public class YoSliderController
       {
          // TODO
          //         for (YoComposite yoComposite : yoComposites)
-         setSlider(yoComposites.get(0).getYoComponents().get(0));
+         setKnob(yoComposites.get(0).getYoComponents().get(0));
          success = true;
       }
       event.setDropCompleted(success);
@@ -294,8 +297,8 @@ public class YoSliderController
          rootPane.setStyle("-fx-border-color: null;");
    }
 
-   public YoSliderDefinition toYoSliderDefinition()
+   public YoKnobDefinition toYoKnobDefinition()
    {
-      return yoVariableSlider == null ? new YoSliderDefinition() : yoVariableSlider.toYoSliderDefinition();
+      return yoVariableSlider == null ? new YoKnobDefinition() : yoVariableSlider.toYoKnobDefinition();
    }
 }

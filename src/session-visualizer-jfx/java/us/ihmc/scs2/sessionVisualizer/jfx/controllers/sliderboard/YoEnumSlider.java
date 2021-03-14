@@ -5,10 +5,12 @@ import java.util.List;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
+import com.jfoenix.controls.JFXSpinner;
 import com.jfoenix.controls.JFXTextField;
 
 import javafx.beans.value.ChangeListener;
 import javafx.scene.control.Slider;
+import us.ihmc.scs2.definition.yoSlider.YoKnobDefinition;
 import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoEnumAsStringProperty;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
@@ -78,6 +80,23 @@ public class YoEnumSlider implements YoVariableSlider
    }
 
    @Override
+   public void bindVirtualKnob(JFXSpinner virtualKnob)
+   {
+      ChangeListener<Object> knobUpdater = (o, oldValue, newValue) ->
+      {
+         double value = (double) (yoEnumProperty.toEnumOrdinal(yoEnumProperty.get())) / (double) (yoEnumProperty.getYoVariable().getEnumSize());
+         virtualKnob.setProgress(value);
+      };
+
+      yoEnumProperty.addListener(knobUpdater);
+
+      cleanupTasks.add(() ->
+      {
+         yoEnumProperty.removeListener(knobUpdater);
+      });
+   }
+
+   @Override
    public void bindSliderVariable(SliderboardVariable sliderVariable)
    {
       MutableBoolean updating = new MutableBoolean(false);
@@ -88,10 +107,10 @@ public class YoEnumSlider implements YoVariableSlider
             return;
 
          int sliderPosition = SliderboardVariable.doubleToInt(yoEnumProperty.getYoVariable().getOrdinal(),
-                                                         0,
-                                                         yoEnumProperty.getYoVariable().getEnumValuesAsString().length - 1,
-                                                         sliderVariable.getMin(),
-                                                         sliderVariable.getMax());
+                                                              0,
+                                                              yoEnumProperty.getYoVariable().getEnumValuesAsString().length - 1,
+                                                              sliderVariable.getMin(),
+                                                              sliderVariable.getMax());
          updating.setTrue();
          sliderVariable.setValue(sliderPosition);
          updating.setFalse();
@@ -103,10 +122,10 @@ public class YoEnumSlider implements YoVariableSlider
             return;
 
          int yoEnumOrdinal = SliderboardVariable.doubleToInt(newValue.intValue(),
-                                                        sliderVariable.getMin(),
-                                                        sliderVariable.getMax(),
-                                                        0,
-                                                        yoEnumProperty.getYoVariable().getEnumValuesAsString().length - 1);
+                                                             sliderVariable.getMin(),
+                                                             sliderVariable.getMax(),
+                                                             0,
+                                                             yoEnumProperty.getYoVariable().getEnumValuesAsString().length - 1);
          updating.setTrue();
          yoEnumProperty.set(yoEnumProperty.toEnumString(yoEnumOrdinal));
          updating.setFalse();
@@ -132,6 +151,14 @@ public class YoEnumSlider implements YoVariableSlider
    public YoSliderDefinition toYoSliderDefinition()
    {
       YoSliderDefinition definition = new YoSliderDefinition();
+      definition.setVariableName(getYoVariable().getFullNameString());
+      return definition;
+   }
+
+   @Override
+   public YoKnobDefinition toYoKnobDefinition()
+   {
+      YoKnobDefinition definition = new YoKnobDefinition();
       definition.setVariableName(getYoVariable().getFullNameString());
       return definition;
    }

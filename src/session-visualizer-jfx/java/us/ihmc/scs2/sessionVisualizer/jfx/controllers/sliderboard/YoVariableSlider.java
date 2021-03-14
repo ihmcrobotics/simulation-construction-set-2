@@ -1,8 +1,10 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard;
 
+import com.jfoenix.controls.JFXSpinner;
 import com.jfoenix.controls.JFXTextField;
 
 import javafx.scene.control.Slider;
+import us.ihmc.scs2.definition.yoSlider.YoKnobDefinition;
 import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
 import us.ihmc.yoVariables.variable.YoBoolean;
@@ -28,6 +30,8 @@ public interface YoVariableSlider
 
    void bindVirtualSlider(Slider virtualSlider);
 
+   void bindVirtualKnob(JFXSpinner virtualKnob);
+
    void bindSliderVariable(SliderboardVariable sliderVariable);
 
    void bindMinTextField(JFXTextField minTextField);
@@ -37,6 +41,8 @@ public interface YoVariableSlider
    YoVariable getYoVariable();
 
    YoSliderDefinition toYoSliderDefinition();
+
+   YoKnobDefinition toYoKnobDefinition();
 
    void dispose();
 }
