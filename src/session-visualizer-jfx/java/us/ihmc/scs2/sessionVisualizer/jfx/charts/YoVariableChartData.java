@@ -6,7 +6,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.DoubleStream;
 
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.messager.Messager;
@@ -30,7 +29,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
    private SessionMode lastSessionModeStatus = null;
    private final AtomicReference<SessionMode> currentSessionMode;
    private YoBufferPropertiesReadOnly lastProperties = null;
-   private final AtomicReference<YoBufferPropertiesReadOnly> currentBufferProperties;
+   private final AtomicReference<YoBufferPropertiesReadOnly> currentBufferPropertiesReference;
 
    @SuppressWarnings("rawtypes")
    private final AtomicReference<BufferSample> rawDataProperty = new AtomicReference<>(null);
@@ -63,7 +62,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
    {
       this.linkedYoVariable = linkedYoVariable;
       currentSessionMode = messager.createInput(topics.getSessionCurrentMode(), SessionMode.PAUSE);
-      currentBufferProperties = messager.createInput(topics.getYoBufferCurrentProperties(), new YoBufferProperties());
+      currentBufferPropertiesReference = messager.createInput(topics.getYoBufferCurrentProperties(), new YoBufferProperties());
    }
 
    @SuppressWarnings("rawtypes")
@@ -77,6 +76,8 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
          publishChartData.set(true);
          lastUpdateEndIndex = newRawData.getBufferProperties().getOutPoint();
       }
+
+      YoBufferPropertiesReadOnly currentBufferProperties = currentBufferPropertiesReference.get();
 
       // Now check if a new request should be submitted.
       if (lastSessionModeStatus == SessionMode.RUNNING && currentSessionMode.get() != SessionMode.RUNNING)
@@ -100,19 +101,19 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
             else
                linkedYoVariable.requestBufferStartingFrom(lastUpdateEndIndex);
          }
-         else if (currentBufferProperties.get().getSize() != lastProperties.getSize())
+         else if (currentBufferProperties.getSize() != lastProperties.getSize())
          { // Buffer was either resized or cropped, data has been shifted around, need to get a complete update.
             linkedYoVariable.requestEntireBuffer();
          }
-         else if (currentBufferProperties.get().getInPoint() != lastProperties.getInPoint()
-               && currentBufferProperties.get().getOutPoint() != lastProperties.getOutPoint())
+         else if (currentBufferProperties.getInPoint() != lastProperties.getInPoint()
+               && currentBufferProperties.getOutPoint() != lastProperties.getOutPoint())
          { // When cropping without actually changing the size of the buffer, the data is still being shifted around.
             linkedYoVariable.requestEntireBuffer();
          }
       }
 
       lastSessionModeStatus = currentSessionMode.get();
-      lastProperties = currentBufferProperties.get();
+      lastProperties = currentBufferProperties;
 
       publishForCharts();
    }
@@ -205,8 +206,6 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
       dataSet.size = bufferSize;
       dataSet.valueMin = yMin;
       dataSet.valueMax = yMax;
-      dataSet.valueMin = DoubleStream.of(dataSet.values).min().orElse(0.0);
-      dataSet.valueMax = DoubleStream.of(dataSet.values).max().orElse(0.0);
 
       return dataSet;
    }
