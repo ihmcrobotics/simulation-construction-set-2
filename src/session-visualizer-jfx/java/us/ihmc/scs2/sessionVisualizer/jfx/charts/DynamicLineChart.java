@@ -67,7 +67,7 @@ public class DynamicLineChart extends DynamicXYChart
 
       series.negatedProperty().addListener(chartUpdaterListener);
       series.customYBoundsProperty().addListener(chartUpdaterListener);
-      series.getDataEntry().dirtyProperty().addListener(chartUpdaterListener);
+      series.dirtyProperty().addListener(chartUpdaterListener);
       NumberSeriesLayer layer = new NumberSeriesLayer(xAxis, yAxis, series, backgroundExecutor, chartRenderManager);
       layer.chartStyleProperty().bind(chartStyleProperty);
       setSeriesDefaultStyleClass(layer, seriesIndex);
@@ -87,7 +87,7 @@ public class DynamicLineChart extends DynamicXYChart
          seriesLayers.remove(indexOf);
          series.negatedProperty().removeListener(chartUpdaterListener);
          series.customYBoundsProperty().removeListener(chartUpdaterListener);
-         series.getDataEntry().dirtyProperty().removeListener(chartUpdaterListener);
+         series.dirtyProperty().removeListener(chartUpdaterListener);
          containingLayer.get().chartStyleProperty().unbind();
          plotContent.getChildren().remove(containingLayer.get());
          legend.getItems().remove(containingLayer.get().getLegendNode());
@@ -131,8 +131,7 @@ public class DynamicLineChart extends DynamicXYChart
    {
       for (NumberSeriesLayer seriesLayer : seriesLayers)
       {
-         seriesLayer.requestUpdate();
-         seriesLayer.prepareToRender();
+         seriesLayer.scheduleRender();
       }
    }
 
@@ -164,9 +163,8 @@ public class DynamicLineChart extends DynamicXYChart
          for (NumberSeriesLayer layer : seriesLayers)
          {
             NumberSeries series = layer.getNumberSeries();
-            DataEntry dataEntry = series.getDataEntry();
 
-            ChartIntegerBounds dataXBounds = dataEntry.xBoundsProperty().getValue();
+            ChartIntegerBounds dataXBounds = series.xBoundsProperty().getValue();
 
             if (dataXBounds == null)
                continue;
@@ -197,9 +195,8 @@ public class DynamicLineChart extends DynamicXYChart
             for (NumberSeriesLayer layer : seriesLayers)
             {
                NumberSeries series = layer.getNumberSeries();
-               DataEntry dataEntry = series.getDataEntry();
 
-               ChartDoubleBounds dataYBounds = dataEntry.yBoundsProperty().getValue();
+               ChartDoubleBounds dataYBounds = series.yBoundsProperty().getValue();
 
                if (dataYBounds == null)
                   continue;

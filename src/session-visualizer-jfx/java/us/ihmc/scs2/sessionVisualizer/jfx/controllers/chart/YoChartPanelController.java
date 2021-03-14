@@ -716,7 +716,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
          ChartDataUpdate newData = chartData.pollChartData(callerID);
          if (newData != null)
          {
-            newData.readUpdate(series.getDataEntry(), lastUpdateEndIndex);
+            newData.readUpdate(series, lastUpdateEndIndex);
             lastUpdateEndIndex = newData.getUpdateEndIndex();
          }
       }

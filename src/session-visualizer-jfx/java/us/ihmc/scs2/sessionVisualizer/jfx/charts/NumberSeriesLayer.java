@@ -38,7 +38,6 @@ public class NumberSeriesLayer extends ImageView
 
    private final NumberAxis xAxis, yAxis;
 
-   private final AtomicBoolean updateRequested = new AtomicBoolean(true);
    private final Executor backgroundExecutor;
 
    private final StyleableObjectProperty<Color> stroke = new StyleableObjectProperty<Color>(Color.BLACK)
@@ -47,7 +46,7 @@ public class NumberSeriesLayer extends ImageView
       protected void invalidated()
       {
          Paint color = get();
-         requestUpdate();
+         scheduleRender();
          legendNode.setTextFill(color);
       };
 
@@ -75,7 +74,7 @@ public class NumberSeriesLayer extends ImageView
       @Override
       protected void invalidated()
       {
-         requestUpdate();
+         scheduleRender();
       };
 
       @Override
@@ -117,25 +116,16 @@ public class NumberSeriesLayer extends ImageView
       legendNode.currentValueProperty().bind(numberSeries.currentValueProperty());
    }
 
-   public void requestUpdate()
+   public void scheduleRender()
    {
-      updateRequested.set(true);
-   }
-
-   public void prepareToRender()
-   {
-      if (updateRequested.get())
+      backgroundExecutor.execute(() ->
       {
-         backgroundExecutor.execute(() ->
-         {
-            if (updateImage())
-               renderManager.submitRenderRequest(this::render);
-            updateRequested.set(false);
-         });
-      }
+         if (updateImage())
+            renderManager.submitRenderRequest(this::render);
+      });
    }
 
-   public void render()
+   private void render()
    {
       if (imageToRender == null)
          return;
@@ -194,14 +184,13 @@ public class NumberSeriesLayer extends ImageView
          graphics.clearRect(0, 0, widthInt, heightInt);
       }
 
-      DataEntry dataEntry = numberSeries.getDataEntry();
-      List<Point2D> data = dataEntry.getData();
+      List<Point2D> data = numberSeries.getData();
 
-      dataEntry.getLock().readLock().lock();
+      numberSeries.getLock().readLock().lock();
 
       try
       {
-         if (data.isEmpty() || !dataEntry.pollDirty())
+         if (data.isEmpty() || !numberSeries.pollDirty())
             return false;
 
          xData = resize(xData, data.size());
@@ -217,7 +206,7 @@ public class NumberSeriesLayer extends ImageView
          {
             ChartDoubleBounds yBounds = numberSeries.getCustomYBounds();
             if (yBounds == null)
-               yBounds = numberSeries.getDataEntry().yBoundsProperty().getValue();
+               yBounds = numberSeries.yBoundsProperty().getValue();
             if (numberSeries.isNegated())
                yBounds = yBounds.negate();
 
@@ -232,8 +221,8 @@ public class NumberSeriesLayer extends ImageView
 
          graphics.setColor(toAWTColor(Color.GREY.deriveColor(0, 1.0, 1.0, 0.5)));
          graphics.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
-         List<Point2D> markerData = Arrays.asList(new Point2D(dataEntry.bufferCurrentIndexProperty().get(), yAxis.getLowerBound()),
-                                                  new Point2D(dataEntry.bufferCurrentIndexProperty().get(), yAxis.getUpperBound()));
+         List<Point2D> markerData = Arrays.asList(new Point2D(numberSeries.bufferCurrentIndexProperty().get(), yAxis.getLowerBound()),
+                                                  new Point2D(numberSeries.bufferCurrentIndexProperty().get(), yAxis.getUpperBound()));
          drawMultiLine(graphics, markerData, xTransform, yTransform, xData, yData);
          graphics.dispose();
 
@@ -247,7 +236,7 @@ public class NumberSeriesLayer extends ImageView
       finally
       {
          isUpdatingImage.set(false);
-         dataEntry.getLock().readLock().unlock();
+         numberSeries.getLock().readLock().unlock();
       }
    }
 

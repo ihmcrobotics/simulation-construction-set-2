@@ -1,18 +1,34 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.charts;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import us.ihmc.euclid.tuple2D.Point2D;
 
 public class NumberSeries
 {
    /** The user displayable name for this series */
    private final StringProperty seriesNameProperty = new SimpleStringProperty(this, "seriesName", null);
    private final StringProperty currentValueProperty = new SimpleStringProperty(this, "currentValue", null);
-   private final DataEntry dataEntryProperty = new DataEntry();
+
+   private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+
+   private final Property<ChartIntegerBounds> xBoundsProperty = new SimpleObjectProperty<>(this, "xBounds", null);
+   private final Property<ChartDoubleBounds> yBoundsProperty = new SimpleObjectProperty<>(this, "yBounds", null);
+   private final List<Point2D> data = new ArrayList<>();
+   private final IntegerProperty bufferCurrentIndexProperty = new SimpleIntegerProperty(this, "bufferCurrentIndex", -1);
+
+   private final BooleanProperty dirtyProperty = new SimpleBooleanProperty(this, "dirtyFlag", false);
 
    // User properties
    private final BooleanProperty negatedProperty = new SimpleBooleanProperty(this, "negated", false);
@@ -53,9 +69,51 @@ public class NumberSeries
       return currentValueProperty;
    }
 
-   public final DataEntry getDataEntry()
+   public ReentrantReadWriteLock getLock()
    {
-      return dataEntryProperty;
+      return lock;
+   }
+
+   public Property<ChartIntegerBounds> xBoundsProperty()
+   {
+      return xBoundsProperty;
+   }
+
+   public Property<ChartDoubleBounds> yBoundsProperty()
+   {
+      return yBoundsProperty;
+   }
+
+   public List<Point2D> getData()
+   {
+      return data;
+   }
+
+   public IntegerProperty bufferCurrentIndexProperty()
+   {
+      return bufferCurrentIndexProperty;
+   }
+
+   public void markDirty()
+   {
+      dirtyProperty.set(true);
+   }
+
+   public boolean peekDirty()
+   {
+      return dirtyProperty.get();
+   }
+
+   public boolean pollDirty()
+   {
+      boolean result = dirtyProperty.get();
+      dirtyProperty.set(false);
+      return result;
+   }
+
+   public BooleanProperty dirtyProperty()
+   {
+      return dirtyProperty;
    }
 
    public final boolean isNegated()

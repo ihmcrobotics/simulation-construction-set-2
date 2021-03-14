@@ -254,7 +254,7 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
          this.bufferProperties = bufferProperties;
       }
 
-      public void readUpdate(DataEntry chartDataSet, int lastUpdateEndIndex)
+      public void readUpdate(NumberSeries chartDataSet, int lastUpdateEndIndex)
       {
          chartDataSet.getLock().writeLock().lock();
 
