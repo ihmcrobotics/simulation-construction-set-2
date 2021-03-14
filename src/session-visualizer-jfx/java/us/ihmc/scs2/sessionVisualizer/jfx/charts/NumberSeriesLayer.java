@@ -2,13 +2,10 @@ package us.ihmc.scs2.sessionVisualizer.jfx.charts;
 
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
-import java.awt.RenderingHints.Key;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.DoubleUnaryOperator;
@@ -101,7 +98,6 @@ public class NumberSeriesLayer extends ImageView
    };
 
    private final ChartRenderManager renderManager;
-   private final Map<Key, Object> renderingHints = new HashMap<>();
 
    private final ObjectProperty<ChartStyle> chartStyleProperty = new SimpleObjectProperty<>(this, "chartStyle", ChartStyle.RAW);
    private WritableImage writableImage = null;
@@ -119,9 +115,6 @@ public class NumberSeriesLayer extends ImageView
       this.backgroundExecutor = backgroundExecutor;
       legendNode.seriesNameProperty().bind(numberSeries.seriesNameProperty());
       legendNode.currentValueProperty().bind(numberSeries.currentValueProperty());
-
-      //      renderingHints.put(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-      //      renderingHints.put(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
    }
 
    public void requestUpdate()
@@ -213,8 +206,6 @@ public class NumberSeriesLayer extends ImageView
 
          xData = resize(xData, data.size());
          yData = resize(yData, data.size());
-
-         graphics.addRenderingHints(renderingHints);
 
          graphics.setColor(toAWTColor(stroke.get()));
          graphics.setStroke(new BasicStroke((float) (strokeWidth.get()), BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
