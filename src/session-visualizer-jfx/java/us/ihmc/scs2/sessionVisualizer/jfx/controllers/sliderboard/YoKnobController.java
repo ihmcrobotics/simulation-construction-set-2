@@ -2,6 +2,7 @@ package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.jfoenix.controls.JFXSpinner;
 import com.jfoenix.controls.JFXTextField;
@@ -22,7 +23,9 @@ import javafx.scene.input.PickResult;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.log.LogTools;
+import us.ihmc.messager.MessagerAPIFactory.Topic;
 import us.ihmc.scs2.definition.yoSlider.YoKnobDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
@@ -52,6 +55,10 @@ public class YoKnobController
 
    private SliderboardVariable sliderVariable;
 
+   private JavaFXMessager messager;
+   private Topic<List<String>> yoCompositeSelectedTopic;
+   private AtomicReference<List<String>> yoCompositeSelected;
+
    private YoCompositeSearchManager yoCompositeSearchManager;
    private YoVariableSlider yoVariableSlider;
    private YoManager yoManager;
@@ -74,12 +81,17 @@ public class YoKnobController
       knobMinTextField.setText("");
       knobMaxTextField.setDisable(true);
       knobMinTextField.setDisable(true);
+      spinner.setDisable(true);
 
       contextMenuProperty.addListener((ChangeListener<ContextMenu>) (observable, oldValue, newValue) ->
       {
          if (oldValue != null)
             oldValue.hide();
       });
+
+      messager = toolkit.getMessager();
+      yoCompositeSelectedTopic = toolkit.getTopics().getYoCompositeSelected();
+      yoCompositeSelected = messager.createInput(yoCompositeSelectedTopic);
    }
 
    public void setInput(YoKnobDefinition definition)
@@ -120,6 +132,7 @@ public class YoKnobController
       if (yoVariable != null)
       {
          rootPane.setStyle("-fx-background-color: #c5fcee88");
+         spinner.setDisable(false);
          yoVariableDropLabel.setText(yoVariable.getName());
 
          yoVariableSlider = YoVariableSlider.newYoVariableSlider(yoVariable, () -> yoManager.getLinkedRootRegistry().push(yoVariable));
@@ -137,6 +150,7 @@ public class YoKnobController
       else
       {
          rootPane.setStyle("-fx-background-color: null");
+         spinner.setDisable(true);
          yoVariableSlider = null;
          yoVariableDropLabel.setText(DEFAULT_TEXT);
          knobMaxTextField.setText("");
@@ -162,12 +176,16 @@ public class YoKnobController
 
    private void handleMouseReleased(MouseEvent event)
    {
-      if (yoVariableSlider == null)
-         return;
-
-      if (event.getButton() == MouseButton.SECONDARY)
+      if (event.getButton() == MouseButton.PRIMARY)
       {
-         if (event.isStillSincePress())
+         if (yoVariableSlider != null && event.isStillSincePress())
+         {
+            messager.submitMessage(yoCompositeSelectedTopic, Arrays.asList(YoCompositeTools.YO_VARIABLE, yoVariableSlider.getYoVariable().getFullNameString()));
+         }
+      }
+      else if (event.getButton() == MouseButton.SECONDARY)
+      {
+         if (yoVariableSlider != null && event.isStillSincePress())
          {
             ContextMenu contextMenu = newGraphContextMenu();
             if (!contextMenu.getItems().isEmpty())
@@ -176,6 +194,24 @@ public class YoKnobController
                contextMenu.show(rootPane, event.getScreenX(), event.getScreenY());
             }
             event.consume();
+         }
+      }
+      else if (event.getButton() == MouseButton.MIDDLE)
+      {
+         if (yoCompositeSelected.get() != null)
+         {
+            String type = yoCompositeSelected.get().get(0);
+            if (type.equals(YoCompositeTools.YO_VARIABLE))
+            {
+               String fullname = yoCompositeSelected.get().get(1);
+               YoComposite yoComposite = yoCompositeSearchManager.getYoComposite(type, fullname);
+
+               if (yoComposite != null)
+               {
+                  setKnob(yoComposite.getYoComponents().get(0));
+                  messager.submitMessage(yoCompositeSelectedTopic, null);
+               }
+            }
          }
       }
    }

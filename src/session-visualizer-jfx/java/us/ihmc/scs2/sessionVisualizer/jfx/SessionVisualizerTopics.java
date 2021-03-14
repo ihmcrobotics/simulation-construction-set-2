@@ -1,6 +1,7 @@
 package us.ihmc.scs2.sessionVisualizer.jfx;
 
 import java.io.File;
+import java.util.List;
 
 import javafx.stage.Window;
 import javafx.util.Pair;
@@ -32,6 +33,7 @@ public class SessionVisualizerTopics
    private Topic<Integer> yoSearchMaxListSize;
    private Topic<File> yoCompositePatternLoadRequest;
    private Topic<File> yoCompositePatternSaveRequest;
+   private Topic<List<String>> yoCompositeSelected;
 
    private Topic<Boolean> yoGraphicRootGroupRequest;
    private Topic<YoGroupFX> yoGraphicRootGroupData;
@@ -83,6 +85,7 @@ public class SessionVisualizerTopics
       yoSearchMaxListSize = SessionVisualizerMessagerAPI.YoSearch.YoSearchMaxListSize;
       yoCompositePatternLoadRequest = SessionVisualizerMessagerAPI.YoSearch.YoCompositePatternLoadRequest;
       yoCompositePatternSaveRequest = SessionVisualizerMessagerAPI.YoSearch.YoCompositePatternSaveRequest;
+      yoCompositeSelected = SessionVisualizerMessagerAPI.YoSearch.YoCompositePatternSelected;
 
       yoGraphicRootGroupRequest = SessionVisualizerMessagerAPI.YoGraphic.YoGraphicRootGroupRequest;
       yoGraphicRootGroupData = SessionVisualizerMessagerAPI.YoGraphic.YoGraphicRootGroupData;
@@ -190,6 +193,11 @@ public class SessionVisualizerTopics
    public Topic<File> getYoCompositePatternSaveRequest()
    {
       return yoCompositePatternSaveRequest;
+   }
+
+   public Topic<List<String>> getYoCompositeSelected()
+   {
+      return yoCompositeSelected;
    }
 
    public Topic<Boolean> getYoGraphicRootGroupRequest()

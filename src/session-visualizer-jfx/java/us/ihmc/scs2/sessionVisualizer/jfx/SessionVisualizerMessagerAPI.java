@@ -1,11 +1,17 @@
 package us.ihmc.scs2.sessionVisualizer.jfx;
 
 import java.io.File;
+import java.util.List;
 
 import javafx.stage.Window;
 import javafx.util.Pair;
 import us.ihmc.messager.MessagerAPIFactory;
-import us.ihmc.messager.MessagerAPIFactory.*;
+import us.ihmc.messager.MessagerAPIFactory.Category;
+import us.ihmc.messager.MessagerAPIFactory.CategoryTheme;
+import us.ihmc.messager.MessagerAPIFactory.MessagerAPI;
+import us.ihmc.messager.MessagerAPIFactory.Topic;
+import us.ihmc.messager.MessagerAPIFactory.TopicTheme;
+import us.ihmc.messager.MessagerAPIFactory.TypedTopicTheme;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.search.SearchEngines;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
 
@@ -71,12 +77,14 @@ public class SessionVisualizerMessagerAPI
 
       private static final TypedTopicTheme<SearchEngines> SearchEngine = apiFactory.createTypedTopicTheme("SearchEngine");
       private static final TypedTopicTheme<String> SearchTarget = apiFactory.createTypedTopicTheme("SearchTarget");
+      private static final TopicTheme Selected = apiFactory.createTopicTheme("Selected");
 
       public static final Topic<SearchEngines> YoSearchEngine = APIRoot.child(YoSearch).topic(SearchEngine);
       public static final Topic<String> YoSearchTarget = APIRoot.child(YoSearch).topic(SearchTarget);
       public static final Topic<Integer> YoSearchMaxListSize = APIRoot.child(YoSearch).topic(Size);
       public static final Topic<File> YoCompositePatternLoadRequest = APIRoot.child(YoSearch).child(YoCompositePattern).topic(Load);
       public static final Topic<File> YoCompositePatternSaveRequest = APIRoot.child(YoSearch).child(YoCompositePattern).topic(Save);
+      public static final Topic<List<String>> YoCompositePatternSelected = APIRoot.child(YoSearch).child(YoCompositePattern).topic(Selected);
    }
 
    public static class YoGraphic

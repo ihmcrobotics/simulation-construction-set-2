@@ -44,6 +44,7 @@ import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.interfaces.Tuple2DReadOnly;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.log.LogTools;
+import us.ihmc.messager.MessagerAPIFactory.Topic;
 import us.ihmc.messager.TopicListener;
 import us.ihmc.scs2.definition.yoChart.ChartDoubleBoundsDefinition;
 import us.ihmc.scs2.definition.yoChart.YoChartConfigurationDefinition;
@@ -102,6 +103,8 @@ public class YoChartPanelController extends ObservedAnimationTimer
    private AtomicReference<YoBufferPropertiesReadOnly> bufferPropertiesForMarkers;
    private AtomicReference<YoBufferPropertiesReadOnly> bufferPropertiesForScrolling;
    private final TopicListener<int[]> keyFrameMarkerListener = newKeyFrames -> updateKeyFrameMarkers(newKeyFrames);
+   private AtomicReference<List<String>> yoCompositeSelected;
+   private Topic<List<String>> yoCompositeSelectedTopic;
 
    private final SimpleObjectProperty<ContextMenu> contextMenuProperty = new SimpleObjectProperty<ContextMenu>(this, "graphContextMenu", null);
 
@@ -186,7 +189,11 @@ public class YoChartPanelController extends ObservedAnimationTimer
             Optional<YoVariableChartPackage> chartData = charts.values().stream().filter(dataPackage -> dataPackage.series.getSeriesName().equals(pickedName))
                                                                .findFirst();
             if (chartData.isPresent())
+            {
                removeYoVariableFromPlot(chartData.get().getYoVariable());
+               messager.submitMessage(topics.getYoCompositeSelected(),
+                                      Arrays.asList(YoCompositeTools.YO_VARIABLE, chartData.get().getYoVariable().getFullNameString()));
+            }
          }
       });
       contextMenuProperty.addListener((ChangeListener<ContextMenu>) (observable, oldValue, newValue) ->
@@ -206,6 +213,10 @@ public class YoChartPanelController extends ObservedAnimationTimer
 
       messager.registerJavaFXSyncedTopicListener(topics.getCurrentKeyFrames(), keyFrameMarkerListener);
       messager.submitMessage(topics.getRequestCurrentKeyFrames(), new Object());
+
+      messager = toolkit.getMessager();
+      yoCompositeSelectedTopic = toolkit.getTopics().getYoCompositeSelected();
+      yoCompositeSelected = messager.createInput(yoCompositeSelectedTopic);
    }
 
    public void setChartConfiguration(YoChartConfigurationDefinition definition)
@@ -475,7 +486,24 @@ public class YoChartPanelController extends ObservedAnimationTimer
 
    private void handleMouseReleased(MouseEvent event)
    {
-      if (event.getButton() == MouseButton.SECONDARY)
+      if (event.getButton() == MouseButton.PRIMARY)
+      {
+         if (event.isStillSincePress())
+         {
+            Node intersectedNode = event.getPickResult().getIntersectedNode();
+            if (intersectedNode instanceof Text)
+            {
+               Text legend = (Text) intersectedNode;
+               String yoVariableName = legend.getText().split("\\s+")[0];
+               YoVariable yoVariableSelected = charts.keySet().stream().filter(yoVariable -> yoVariable.getName().equals(yoVariableName)).findFirst()
+                                                     .orElse(null);
+               if (yoVariableSelected == null)
+                  return;
+               messager.submitMessage(yoCompositeSelectedTopic, Arrays.asList(YoCompositeTools.YO_VARIABLE, yoVariableSelected.getFullNameString()));
+            }
+         }
+      }
+      else if (event.getButton() == MouseButton.SECONDARY)
       {
          lastMouseScreenPosition = null;
 
@@ -488,6 +516,24 @@ public class YoChartPanelController extends ObservedAnimationTimer
                contextMenu.show(dynamicLineChart, event.getScreenX(), event.getScreenY());
             }
             event.consume();
+         }
+      }
+      else if (event.getButton() == MouseButton.MIDDLE)
+      {
+         if (yoCompositeSelected.get() != null)
+         {
+            String type = yoCompositeSelected.get().get(0);
+            // TODO For now only handling single YoVariable
+            if (YoCompositeTools.YO_VARIABLE.equals(type))
+            {
+               String fullname = yoCompositeSelected.get().get(1);
+               YoComposite yoComposite = yoCompositeSearchManager.getYoComposite(type, fullname);
+               if (yoComposite != null)
+               {
+                  addYoCompositeToPlot(yoComposite);
+                  messager.submitMessage(yoCompositeSelectedTopic, null);
+               }
+            }
          }
       }
    }

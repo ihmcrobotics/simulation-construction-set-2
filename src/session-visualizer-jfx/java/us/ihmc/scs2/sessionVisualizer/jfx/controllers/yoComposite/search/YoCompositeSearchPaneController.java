@@ -184,6 +184,12 @@ public class YoCompositeSearchPaneController extends ObservedAnimationTimer
          else if (state == SessionState.INACTIVE)
             stop();
       });
+
+      yoCompositeListView.getSelectionModel().selectedItemProperty().addListener((o, oldValue, newValue) ->
+      {
+         if (newValue != null)
+            messager.submitMessage(topics.getYoCompositeSelected(), Arrays.asList(newValue.getPattern().getType(), newValue.getFullname()));
+      });
    }
 
    public void setRegistryViewRequestConsumer(Consumer<YoNamespace> consumer)

@@ -5,6 +5,7 @@ import static us.ihmc.scs2.sessionVisualizer.jfx.tools.ListViewTools.removeMenuI
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -16,9 +17,12 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
+import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.log.LogTools;
+import us.ihmc.messager.MessagerAPIFactory.Topic;
 import us.ihmc.scs2.definition.yoEntry.YoEntryDefinition;
 import us.ihmc.scs2.definition.yoEntry.YoEntryListDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.search.YoCompositeListCell;
@@ -37,6 +41,9 @@ public class YoEntryListViewController
    private final BooleanProperty showUniqueNamesProperty = new SimpleBooleanProperty(this, "showUniqueNames", false);
    private final StringProperty nameProperty = new SimpleStringProperty(this, "name", null);
    private YoCompositeSearchManager yoCompositeSearchManager;
+   private JavaFXMessager messager;
+   private Topic<List<String>> yoCompositeSelectedTopic;
+   private AtomicReference<List<String>> yoCompositeSelected;
 
    public void initialize(SessionVisualizerToolkit toolkit)
    {
@@ -46,10 +53,21 @@ public class YoEntryListViewController
       ContextMenuTools.setupContextMenu(yoEntryListView, removeMenuItemFactory(true));
 
       yoEntryListView.setOnDragDetected(this::handleDragDetected);
-      yoEntryListView.setOnDragEntered(event -> handleDragEntered(event));
-      yoEntryListView.setOnDragExited(event -> handleDragExited(event));
-      yoEntryListView.setOnDragOver(event -> handleDragOver(event));
-      yoEntryListView.setOnDragDropped(event -> handleDragDropped(event));
+      yoEntryListView.setOnDragEntered(this::handleDragEntered);
+      yoEntryListView.setOnDragExited(this::handleDragExited);
+      yoEntryListView.setOnDragOver(this::handleDragOver);
+      yoEntryListView.setOnDragDropped(this::handleDragDropped);
+      yoEntryListView.setOnMouseReleased(this::handleOnMouseReleased);
+
+      messager = toolkit.getMessager();
+      yoCompositeSelectedTopic = toolkit.getTopics().getYoCompositeSelected();
+      yoCompositeSelected = messager.createInput(yoCompositeSelectedTopic);
+
+      yoEntryListView.getSelectionModel().selectedItemProperty().addListener((o, oldValue, newValue) ->
+      {
+         if (newValue != null)
+            messager.submitMessage(yoCompositeSelectedTopic, Arrays.asList(newValue.getPattern().getType(), newValue.getFullname()));
+      });
    }
 
    public void setInput(YoEntryListDefinition input)
@@ -112,6 +130,25 @@ public class YoEntryListViewController
    public boolean isEmpty()
    {
       return yoEntryListView.getItems().isEmpty();
+   }
+
+   public void handleOnMouseReleased(MouseEvent event)
+   {
+      if (event.getButton() != MouseButton.MIDDLE)
+         return;
+
+      if (yoCompositeSelected.get() == null)
+         return;
+
+      String type = yoCompositeSelected.get().get(0);
+      String fullname = yoCompositeSelected.get().get(1);
+      YoComposite yoComposite = yoCompositeSearchManager.getYoComposite(type, fullname);
+
+      if (yoComposite != null)
+      {
+         yoEntryListView.getItems().add(yoComposite);
+         messager.submitMessage(yoCompositeSelectedTopic, null);
+      }
    }
 
    public void handleDragDetected(MouseEvent event)

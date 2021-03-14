@@ -2,6 +2,7 @@ package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.jfoenix.controls.JFXToggleButton;
 
@@ -10,6 +11,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
@@ -18,8 +20,11 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.PickResult;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.log.LogTools;
+import us.ihmc.messager.MessagerAPIFactory.Topic;
 import us.ihmc.scs2.definition.yoSlider.YoButtonDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
@@ -36,11 +41,19 @@ public class YoButtonController
    private static final String DEFAULT_TEXT = "Drop YoBoolean here";
 
    @FXML
+   private VBox rootPane;
+   @FXML
    private JFXToggleButton button;
+   @FXML
+   private Label yoVariableDropLabel;
 
    private final SimpleObjectProperty<ContextMenu> contextMenuProperty = new SimpleObjectProperty<>(this, "buttonContextMenu", null);
 
    private SliderboardVariable sliderVariable;
+
+   private JavaFXMessager messager;
+   private Topic<List<String>> yoCompositeSelectedTopic;
+   private AtomicReference<List<String>> yoCompositeSelected;
 
    private YoCompositeSearchManager yoCompositeSearchManager;
    private YoBooleanSlider yoBooleanSlider;
@@ -52,19 +65,25 @@ public class YoButtonController
       yoManager = toolkit.getYoManager();
       yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
 
-      button.setOnDragDetected(this::handleDragDetected);
-      button.setOnDragOver(this::handleDragOver);
-      button.setOnDragDropped(this::handleDragDropped);
-      button.setOnDragEntered(this::handleDragEntered);
-      button.setOnDragExited(this::handleDragExited);
-      button.setOnMousePressed(this::handleMousePressed);
-      button.setOnMouseReleased(this::handleMouseReleased);
+      rootPane.setOnDragDetected(this::handleDragDetected);
+      rootPane.setOnDragOver(this::handleDragOver);
+      rootPane.setOnDragDropped(this::handleDragDropped);
+      rootPane.setOnDragEntered(this::handleDragEntered);
+      rootPane.setOnDragExited(this::handleDragExited);
+      rootPane.setOnMousePressed(this::handleMousePressed);
+      rootPane.setOnMouseReleased(this::handleMouseReleased);
+
+      button.setDisable(true);
 
       contextMenuProperty.addListener((ChangeListener<ContextMenu>) (observable, oldValue, newValue) ->
       {
          if (oldValue != null)
             oldValue.hide();
       });
+
+      messager = toolkit.getMessager();
+      yoCompositeSelectedTopic = toolkit.getTopics().getYoCompositeSelected();
+      yoCompositeSelected = messager.createInput(yoCompositeSelectedTopic);
    }
 
    public void setInput(YoButtonDefinition definition)
@@ -100,8 +119,9 @@ public class YoButtonController
 
       if (yoVariable != null && yoVariable instanceof YoBoolean)
       {
-         button.setStyle("-fx-background-color: #c5fcee88");
-         button.setText(yoVariable.getName());
+         rootPane.setStyle("-fx-background-color: #c5fcee88");
+         button.setDisable(false);
+         yoVariableDropLabel.setText(yoVariable.getName());
 
          yoBooleanSlider = (YoBooleanSlider) YoVariableSlider.newYoVariableSlider(yoVariable, () -> yoManager.getLinkedRootRegistry().push(yoVariable));
          if (sliderVariable != null)
@@ -110,9 +130,10 @@ public class YoButtonController
       }
       else
       {
-         button.setStyle("-fx-background-color: null");
+         rootPane.setStyle("-fx-background-color: null");
+         button.setDisable(true);
          yoBooleanSlider = null;
-         button.setText(DEFAULT_TEXT);
+         yoVariableDropLabel.setText(DEFAULT_TEXT);
       }
    }
 
@@ -134,20 +155,42 @@ public class YoButtonController
 
    private void handleMouseReleased(MouseEvent event)
    {
-      if (yoBooleanSlider == null)
-         return;
-
-      if (event.getButton() == MouseButton.SECONDARY)
+      if (event.getButton() == MouseButton.PRIMARY)
       {
-         if (event.isStillSincePress())
+         if (yoBooleanSlider != null && event.isStillSincePress())
+         {
+            messager.submitMessage(yoCompositeSelectedTopic, Arrays.asList(YoCompositeTools.YO_VARIABLE, yoBooleanSlider.getYoVariable().getFullNameString()));
+         }
+      }
+      else if (event.getButton() == MouseButton.SECONDARY)
+      {
+         if (yoBooleanSlider != null && event.isStillSincePress())
          {
             ContextMenu contextMenu = newGraphContextMenu();
             if (!contextMenu.getItems().isEmpty())
             {
                contextMenuProperty.set(contextMenu);
-               contextMenu.show(button, event.getScreenX(), event.getScreenY());
+               contextMenu.show(rootPane, event.getScreenX(), event.getScreenY());
             }
             event.consume();
+         }
+      }
+      else if (event.getButton() == MouseButton.MIDDLE)
+      {
+         if (yoCompositeSelected.get() != null)
+         {
+            String type = yoCompositeSelected.get().get(0);
+            if (type.equals(YoCompositeTools.YO_VARIABLE))
+            {
+               String fullname = yoCompositeSelected.get().get(1);
+               YoComposite yoComposite = yoCompositeSearchManager.getYoComposite(type, fullname);
+
+               if (yoComposite != null && yoComposite.getYoComponents().get(0) instanceof YoBoolean)
+               {
+                  setButton(yoComposite.getYoComponents().get(0));
+                  messager.submitMessage(yoCompositeSelectedTopic, null);
+               }
+            }
          }
       }
    }
@@ -249,7 +292,7 @@ public class YoButtonController
 
    private boolean acceptDragEventForDrop(DragEvent event)
    {
-      if (event.getGestureSource() == button)
+      if (event.getGestureSource() == rootPane)
          return false;
 
       Dragboard dragboard = event.getDragboard();
@@ -264,9 +307,9 @@ public class YoButtonController
    public void setSelectionHighlight(boolean isSelected)
    {
       if (isSelected)
-         button.setStyle("-fx-border-color:green; -fx-border-radius:5;");
+         rootPane.setStyle("-fx-border-color:green; -fx-border-radius:5;");
       else
-         button.setStyle("-fx-border-color: null;");
+         rootPane.setStyle("-fx-border-color: null;");
    }
 
    public YoButtonDefinition toYoButtonDefinition()
