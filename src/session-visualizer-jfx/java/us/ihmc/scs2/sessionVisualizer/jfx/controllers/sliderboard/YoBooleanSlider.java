@@ -20,9 +20,11 @@ public class YoBooleanSlider implements YoVariableSlider
 {
    private final YoBooleanProperty yoBooleanProperty;
    private final List<Runnable> cleanupTasks = new ArrayList<>();
+   private final Runnable pushValueAction;
 
    public YoBooleanSlider(YoBoolean yoBoolean, Runnable pushValueAction)
    {
+      this.pushValueAction = pushValueAction;
       yoBooleanProperty = new YoBooleanProperty(yoBoolean, this);
    }
 
@@ -78,6 +80,7 @@ public class YoBooleanSlider implements YoVariableSlider
 
          updating.setTrue();
          yoBooleanProperty.set(currentSliderValue);
+         pushValueAction.run();
          updating.setFalse();
       };
 
@@ -143,6 +146,7 @@ public class YoBooleanSlider implements YoVariableSlider
          boolean yoBooleanValue = SliderboardVariable.intToBoolean(newValue.intValue(), sliderVariable.getMin(), sliderVariable.getMax());
          updating.setTrue();
          yoBooleanProperty.set(yoBooleanValue);
+         pushValueAction.run();
          updating.setFalse();
       };
 

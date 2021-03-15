@@ -26,7 +26,7 @@ public class BCF2000SliderboardController
    {
       KNOB_1, KNOB_2, KNOB_3, KNOB_4, KNOB_5, KNOB_6, KNOB_7, KNOB_8;
 
-      private static final int CHANNEL_OFFSET = 0;
+      private static final int CHANNEL_OFFSET = 1;
 
       private final int channel;
 
@@ -54,7 +54,7 @@ public class BCF2000SliderboardController
       {
          if (channel < CHANNEL_OFFSET || channel > CHANNEL_OFFSET + 7)
             return null;
-         return values()[channel];
+         return values()[channel - CHANNEL_OFFSET];
       }
    };
 
@@ -115,7 +115,7 @@ public class BCF2000SliderboardController
       BUTTON_15,
       BUTTON_16;
 
-      private static final int CHANNEL_OFFSET = 64;
+      private static final int CHANNEL_OFFSET = 65;
 
       private final int channel;
 

@@ -42,7 +42,7 @@ public class BCF2000ButtonController
       try
       {
          ShortMessage message = new ShortMessage();
-         message.setMessage(176, 0, button.getChannel(), value);
+         message.setMessage(176, 0, button.getChannel(), value == 0 ? 0 : 127);
          midiOut.send(message, -1);
       }
       catch (InvalidMidiDataException e)

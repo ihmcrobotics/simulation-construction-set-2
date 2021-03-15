@@ -163,36 +163,37 @@ public class NumberSeriesLayer extends ImageView
       if (isUpdatingImage.get())
          return false;
 
+
+      double width = xAxis.getWidth();
+      double height = yAxis.getHeight();
+      int widthInt = (int) Math.round(width);
+      int heightInt = (int) Math.round(height);
+
+      if (widthInt == 0 || heightInt == 0)
+         return false;
+
       isUpdatingImage.set(true);
+
+      Graphics2D graphics;
+
+      if (imageToRender == null || imageToRender.getWidth() != widthInt || imageToRender.getHeight() != heightInt)
+      {
+         imageToRender = new BufferedImage(widthInt, heightInt, BufferedImage.TYPE_INT_ARGB);
+         graphics = imageToRender.createGraphics();
+      }
+      else
+      {
+         graphics = imageToRender.createGraphics();
+         graphics.setBackground(new java.awt.Color(255, 255, 255, 0));
+         graphics.clearRect(0, 0, widthInt, heightInt);
+      }
+
+      List<Point2D> data = numberSeries.getData();
+
+      numberSeries.getLock().readLock().lock();
 
       try
       {
-         double width = xAxis.getWidth();
-         double height = yAxis.getHeight();
-         int widthInt = (int) Math.round(width);
-         int heightInt = (int) Math.round(height);
-
-         if (widthInt == 0 || heightInt == 0)
-            return false;
-
-         Graphics2D graphics;
-
-         if (imageToRender == null || imageToRender.getWidth() != widthInt || imageToRender.getHeight() != heightInt)
-         {
-            imageToRender = new BufferedImage(widthInt, heightInt, BufferedImage.TYPE_INT_ARGB);
-            graphics = imageToRender.createGraphics();
-         }
-         else
-         {
-            graphics = imageToRender.createGraphics();
-            graphics.setBackground(new java.awt.Color(255, 255, 255, 0));
-            graphics.clearRect(0, 0, widthInt, heightInt);
-         }
-
-         List<Point2D> data = numberSeries.getData();
-
-         numberSeries.getLock().readLock().lock();
-
          if (data.isEmpty() || !numberSeries.pollDirty())
             return false;
 

@@ -14,7 +14,7 @@ public class LineChartTools
    public static String defaultYoVariableValueFormatter(YoVariable yoVariable)
    {
       if (yoVariable instanceof YoDouble)
-         return NumberFormatTools.doubleToString(yoVariable.getValueAsDouble(), 3);
+         return NumberFormatTools.doubleToString(yoVariable.getValueAsDouble(), 5);
       else
          return LineChartTools.getYoVariableValueAsString(yoVariable, EuclidCoreIOTools.getStringFormat(11, 8));
    }
