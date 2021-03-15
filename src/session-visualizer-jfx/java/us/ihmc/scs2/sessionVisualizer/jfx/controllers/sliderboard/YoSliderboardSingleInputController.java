@@ -257,6 +257,9 @@ public abstract class YoSliderboardSingleInputController
       }
       event.setDropCompleted(success);
       event.consume();
+
+      if (success)
+         setSelectionHighlight(false);
    }
 
    private boolean acceptDragEventForDrop(DragEvent event)
