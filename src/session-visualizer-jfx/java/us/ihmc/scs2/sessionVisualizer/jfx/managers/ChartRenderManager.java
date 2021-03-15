@@ -1,7 +1,7 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.managers;
 
-import java.util.Deque;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -11,7 +11,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 public class ChartRenderManager extends ObservedAnimationTimer implements Manager
 {
    private final IntegerProperty numberOfLayersToRenderPerUpdate = new SimpleIntegerProperty(this, "numberOfLayersToRenderPerUpdate", -1);
-   private final Deque<Runnable> chartUpdaterToCall = new ConcurrentLinkedDeque<>();
+   private final Queue<Runnable> chartUpdaterToCall = new ConcurrentLinkedQueue<>();
 
    public void submitRenderRequest(Runnable chartUpdater)
    {
