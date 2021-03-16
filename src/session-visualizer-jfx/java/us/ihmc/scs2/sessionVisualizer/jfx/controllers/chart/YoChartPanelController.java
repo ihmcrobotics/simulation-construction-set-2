@@ -694,7 +694,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
    private class YoVariableChartPackage
    {
       private final YoNumberSeries series;
-      private final YoVariableChartData<?, ?> chartData;
+      private final YoVariableChartData chartData;
       private final Object callerID = YoChartPanelController.this;
 
       public YoVariableChartPackage(YoVariable yoVariable)
