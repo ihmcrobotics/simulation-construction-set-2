@@ -1,4 +1,4 @@
-package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard;
+package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.bcf2000;
 
 import com.jfoenix.controls.JFXToggleButton;
 
@@ -7,13 +7,15 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.yoSlider.YoButtonDefinition;
+import us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.YoBooleanSlider;
+import us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.YoVariableSlider;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoVariable;
 
-public class YoButtonController extends YoSliderboardSingleInputController
+public class YoBCF2000ButtonController extends YoBCF2000InputController
 {
    @FXML
    private VBox rootPane;

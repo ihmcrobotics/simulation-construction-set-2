@@ -1,4 +1,4 @@
-package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard;
+package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.bcf2000;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +24,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.messager.MessagerAPIFactory.Topic;
+import us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.YoVariableSlider;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
@@ -31,14 +32,13 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
 import us.ihmc.yoVariables.variable.YoVariable;
 
-public abstract class YoSliderboardSingleInputController
+public abstract class YoBCF2000InputController
 {
    private static final String HIGHLIGHTED_BORDER = "-fx-border-color:green; -fx-border-radius:5;";
    private static final String HIGHLIGHTED_BACKGROUND = "-fx-background-color: #c5fcee88;";
    private static final String DEFAULT_BORDER = "-fx-border-color: null;";
    private static final String DEFAULT_BACKGROUND = "-fx-background-color: null;";
 
-   private static final String DEFAULT_TEXT = "Drop YoVariable here";
 
    private YoCompositeSearchManager yoCompositeSearchManager;
 
@@ -55,8 +55,9 @@ public abstract class YoSliderboardSingleInputController
    private Topic<List<String>> yoCompositeSelectedTopic;
    private AtomicReference<List<String>> yoCompositeSelected;
    private Predicate<YoVariable> filter;
+   private String defaultText = "Drop YoVariable here";
 
-   public YoSliderboardSingleInputController()
+   public YoBCF2000InputController()
    {
    }
 
@@ -71,6 +72,9 @@ public abstract class YoSliderboardSingleInputController
       this.yoVariableDropLabel = yoVariableDropLabel;
       this.filter = filter;
       this.yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
+
+      if (yoVariableDropLabel.getText() != null && !yoVariableDropLabel.getText().isBlank())
+         defaultText = yoVariableDropLabel.getText();
 
       ChangeListener<Object> styleChangeListener = (o, oldValue, newValue) ->
       { // TODO Consider switching to CSS
@@ -111,7 +115,7 @@ public abstract class YoSliderboardSingleInputController
    protected void clear()
    {
       backgroundStyle.set(DEFAULT_BACKGROUND);
-      yoVariableDropLabel.setText(DEFAULT_TEXT);
+      yoVariableDropLabel.setText(defaultText);
    }
 
    private void handleMousePressed(MouseEvent event)

@@ -8,12 +8,12 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.YoSliderboardWindowController;
+import us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.bcf2000.YoBCF2000SliderboardWindowController;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 
 public class YoSliderboardMenuController
 {
-   private final ObjectProperty<YoSliderboardWindowController> activeControllerProperty = new SimpleObjectProperty<>(this, "activeController", null);
+   private final ObjectProperty<YoBCF2000SliderboardWindowController> activeControllerProperty = new SimpleObjectProperty<>(this, "activeController", null);
 
    private SessionVisualizerToolkit toolkit;
    private Stage mainWindow;
@@ -25,7 +25,7 @@ public class YoSliderboardMenuController
    }
 
    @FXML
-   public void openSliderboardWindow()
+   public void openBCF2000SliderboardWindow()
    {
       if (activeControllerProperty.get() != null)
       {
@@ -35,9 +35,9 @@ public class YoSliderboardMenuController
 
       try
       {
-         FXMLLoader fxmlLoader = new FXMLLoader(SessionVisualizerIOTools.YO_SLIDERBOARD_WINDOW_URL);
+         FXMLLoader fxmlLoader = new FXMLLoader(SessionVisualizerIOTools.YO_SLIDERBOARD_BCF2000_WINDOW_URL);
          fxmlLoader.load();
-         YoSliderboardWindowController controller = fxmlLoader.getController();
+         YoBCF2000SliderboardWindowController controller = fxmlLoader.getController();
          controller.initialize(toolkit, mainWindow);
          activeControllerProperty.set(controller);
          controller.showWindow();

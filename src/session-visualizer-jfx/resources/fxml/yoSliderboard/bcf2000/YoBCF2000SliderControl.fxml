@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox fx:id="rootPane" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="60.0" spacing="5.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.YoSliderController">
+<VBox fx:id="rootPane" alignment="CENTER" maxHeight="1.7976931348623157E308" prefHeight="400.0" prefWidth="40.0" spacing="5.0" styleClass="sliderboard-grid-cell" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.bcf2000.YoBCF2000SliderController">
    <children>
       <JFXTextField fx:id="sliderMaxTextField" disable="true" />
       <HBox alignment="CENTER" spacing="5.0" VBox.vgrow="ALWAYS">
@@ -22,7 +22,7 @@
                   </Label>
                </children>
             </Group>
-            <Slider fx:id="slider" orientation="VERTICAL" />
+            <Slider fx:id="slider" maxHeight="1.7976931348623157E308" orientation="VERTICAL" />
          </children>
       </HBox>
       <JFXTextField fx:id="sliderMinTextField" disable="true" />

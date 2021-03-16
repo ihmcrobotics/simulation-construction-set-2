@@ -1,4 +1,4 @@
-package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard;
+package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.bcf2000;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,6 +16,8 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
@@ -28,6 +30,7 @@ import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.yoSlider.YoSliderboardDefinition;
 import us.ihmc.scs2.definition.yoSlider.YoSliderboardListDefinition;
+import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
@@ -37,89 +40,105 @@ import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController.K
 import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController.Slider;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
 
-public class YoSliderboardWindowController
+public class YoBCF2000SliderboardWindowController
 {
    private static final String BCF2000 = BCF2000SliderboardController.BCF2000;
+   private static final String CONNECTED_STRING = "Connected to BCF2000 sliderboard";
+   private static final String NOT_CONNECTED_STRING = "Not connected to BCF2000 sliderboard";
 
    @FXML
    private AnchorPane mainAnchorPane;
    @FXML
-   private YoKnobController yoKnob0Controller, yoKnob1Controller, yoKnob2Controller, yoKnob3Controller, yoKnob4Controller, yoKnob5Controller, yoKnob6Controller,
-         yoKnob7Controller;
+   private YoBCF2000KnobController knob0Controller, knob1Controller, knob2Controller, knob3Controller, knob4Controller, knob5Controller, knob6Controller,
+         knob7Controller;
    @FXML
-   private YoButtonController yoButton0Controller, yoButton1Controller, yoButton2Controller, yoButton3Controller, yoButton4Controller, yoButton5Controller,
-         yoButton6Controller, yoButton7Controller;
+   private YoBCF2000ButtonController button0Controller, button1Controller, button2Controller, button3Controller, button4Controller, button5Controller,
+         button6Controller, button7Controller;
    @FXML
-   private YoButtonController yoButton8Controller, yoButton9Controller, yoButton10Controller, yoButton11Controller, yoButton12Controller, yoButton13Controller,
-         yoButton14Controller, yoButton15Controller;
+   private YoBCF2000ButtonController button8Controller, button9Controller, button10Controller, button11Controller, button12Controller, button13Controller,
+         button14Controller, button15Controller;
    @FXML
-   private YoSliderController yoSlider0Controller, yoSlider1Controller, yoSlider2Controller, yoSlider3Controller, yoSlider4Controller, yoSlider5Controller,
-         yoSlider6Controller, yoSlider7Controller;
+   private YoBCF2000SliderController slider0Controller, slider1Controller, slider2Controller, slider3Controller, slider4Controller, slider5Controller,
+         slider6Controller, slider7Controller;
 
-   private List<YoKnobController> yoKnobControllers;
-   private List<YoButtonController> yoButtonControllers;
-   private List<YoSliderController> yoSliderControllers;
+   @FXML
+   private Label connectionStateLabel;
+   @FXML
+   private ImageView connectionStateImageView;
+
+   private List<YoBCF2000KnobController> knobControllers;
+   private List<YoBCF2000ButtonController> buttonControllers;
+   private List<YoBCF2000SliderController> sliderControllers;
 
    private Stage window;
    private BCF2000SliderboardController sliderboard;
 
    public void initialize(SessionVisualizerToolkit toolkit, Window owner)
    {
-      yoKnobControllers = Arrays.asList(yoKnob0Controller,
-                                        yoKnob1Controller,
-                                        yoKnob2Controller,
-                                        yoKnob3Controller,
-                                        yoKnob4Controller,
-                                        yoKnob5Controller,
-                                        yoKnob6Controller,
-                                        yoKnob7Controller);
-      yoButtonControllers = Arrays.asList(yoButton0Controller,
-                                          yoButton1Controller,
-                                          yoButton2Controller,
-                                          yoButton3Controller,
-                                          yoButton4Controller,
-                                          yoButton5Controller,
-                                          yoButton6Controller,
-                                          yoButton7Controller,
-                                          yoButton8Controller,
-                                          yoButton9Controller,
-                                          yoButton10Controller,
-                                          yoButton11Controller,
-                                          yoButton12Controller,
-                                          yoButton13Controller,
-                                          yoButton14Controller,
-                                          yoButton15Controller);
-      yoSliderControllers = Arrays.asList(yoSlider0Controller,
-                                          yoSlider1Controller,
-                                          yoSlider2Controller,
-                                          yoSlider3Controller,
-                                          yoSlider4Controller,
-                                          yoSlider5Controller,
-                                          yoSlider6Controller,
-                                          yoSlider7Controller);
+      knobControllers = Arrays.asList(knob0Controller,
+                                      knob1Controller,
+                                      knob2Controller,
+                                      knob3Controller,
+                                      knob4Controller,
+                                      knob5Controller,
+                                      knob6Controller,
+                                      knob7Controller);
+      buttonControllers = Arrays.asList(button0Controller,
+                                        button1Controller,
+                                        button2Controller,
+                                        button3Controller,
+                                        button4Controller,
+                                        button5Controller,
+                                        button6Controller,
+                                        button7Controller,
+                                        button8Controller,
+                                        button9Controller,
+                                        button10Controller,
+                                        button11Controller,
+                                        button12Controller,
+                                        button13Controller,
+                                        button14Controller,
+                                        button15Controller);
+      sliderControllers = Arrays.asList(slider0Controller,
+                                        slider1Controller,
+                                        slider2Controller,
+                                        slider3Controller,
+                                        slider4Controller,
+                                        slider5Controller,
+                                        slider6Controller,
+                                        slider7Controller);
 
       sliderboard = BCF2000SliderboardController.searchAndConnectToDevice();
 
       if (sliderboard == null)
-         LogTools.error("Could not connect to BCF2000 sliderboard");
-
-      for (int i = 0; i < yoKnobControllers.size(); i++)
       {
-         YoKnobController yoKnobController = yoKnobControllers.get(i);
+         LogTools.error("Could not connect to BCF2000 sliderboard");
+         connectionStateLabel.setText(NOT_CONNECTED_STRING);
+         connectionStateImageView.setImage(SessionVisualizerIOTools.INVALID_ICON_IMAGE);
+      }
+      else
+      {
+         connectionStateLabel.setText(CONNECTED_STRING);
+         connectionStateImageView.setImage(SessionVisualizerIOTools.VALID_ICON_IMAGE);
+      }
+
+      for (int i = 0; i < knobControllers.size(); i++)
+      {
+         YoBCF2000KnobController yoKnobController = knobControllers.get(i);
          SliderboardVariable knob = sliderboard == null ? null : sliderboard.getKnob(Knob.values()[i]);
          yoKnobController.initialize(toolkit, knob);
       }
 
-      for (int i = 0; i < yoButtonControllers.size(); i++)
+      for (int i = 0; i < buttonControllers.size(); i++)
       {
-         YoButtonController yoButtonController = yoButtonControllers.get(i);
+         YoBCF2000ButtonController yoButtonController = buttonControllers.get(i);
          SliderboardVariable button = sliderboard == null ? null : sliderboard.getButton(Button.values()[i]);
          yoButtonController.initialize(toolkit, button);
       }
 
-      for (int i = 0; i < yoSliderControllers.size(); i++)
+      for (int i = 0; i < sliderControllers.size(); i++)
       {
-         YoSliderController yoSliderController = yoSliderControllers.get(i);
+         YoBCF2000SliderController yoSliderController = sliderControllers.get(i);
          SliderboardVariable slider = sliderboard == null ? null : sliderboard.getSlider(Slider.values()[i]);
          yoSliderController.initialize(toolkit, slider);
       }
@@ -191,23 +210,23 @@ public class YoSliderboardWindowController
       YoSliderboardDefinition yoSliderboard = yoSliderboards.get(0);
       if (yoSliderboard.getKnobs() != null)
       {
-         for (int i = 0; i < Math.min(yoKnobControllers.size(), yoSliderboard.getKnobs().size()); i++)
+         for (int i = 0; i < Math.min(knobControllers.size(), yoSliderboard.getKnobs().size()); i++)
          {
-            yoKnobControllers.get(i).setInput(yoSliderboard.getKnobs().get(i));
+            knobControllers.get(i).setInput(yoSliderboard.getKnobs().get(i));
          }
       }
       if (yoSliderboard.getButtons() != null)
       {
-         for (int i = 0; i < Math.min(yoButtonControllers.size(), yoSliderboard.getButtons().size()); i++)
+         for (int i = 0; i < Math.min(buttonControllers.size(), yoSliderboard.getButtons().size()); i++)
          {
-            yoButtonControllers.get(i).setInput(yoSliderboard.getButtons().get(i));
+            buttonControllers.get(i).setInput(yoSliderboard.getButtons().get(i));
          }
       }
       if (yoSliderboard.getSliders() != null)
       {
-         for (int i = 0; i < Math.min(yoSliderControllers.size(), yoSliderboard.getSliders().size()); i++)
+         for (int i = 0; i < Math.min(sliderControllers.size(), yoSliderboard.getSliders().size()); i++)
          {
-            yoSliderControllers.get(i).setInput(yoSliderboard.getSliders().get(i));
+            sliderControllers.get(i).setInput(yoSliderboard.getSliders().get(i));
          }
       }
    }
@@ -225,11 +244,11 @@ public class YoSliderboardWindowController
 
    public void close()
    {
-      for (YoButtonController yoButtonController : yoButtonControllers)
+      for (YoBCF2000ButtonController yoButtonController : buttonControllers)
          yoButtonController.close();
-      for (YoKnobController yoKnobController : yoKnobControllers)
+      for (YoBCF2000KnobController yoKnobController : knobControllers)
          yoKnobController.close();
-      for (YoSliderController yoSliderController : yoSliderControllers)
+      for (YoBCF2000SliderController yoSliderController : sliderControllers)
          yoSliderController.close();
 
       if (sliderboard != null)
@@ -246,9 +265,9 @@ public class YoSliderboardWindowController
    {
       YoSliderboardDefinition definition = new YoSliderboardDefinition();
       definition.setType(BCF2000);
-      definition.setKnobs(yoKnobControllers.stream().map(YoKnobController::toYoKnobDefinition).collect(Collectors.toList()));
-      definition.setButtons(yoButtonControllers.stream().map(YoButtonController::toYoButtonDefinition).collect(Collectors.toList()));
-      definition.setSliders(yoSliderControllers.stream().map(YoSliderController::toYoSliderDefinition).collect(Collectors.toList()));
+      definition.setKnobs(knobControllers.stream().map(YoBCF2000KnobController::toYoKnobDefinition).collect(Collectors.toList()));
+      definition.setButtons(buttonControllers.stream().map(YoBCF2000ButtonController::toYoButtonDefinition).collect(Collectors.toList()));
+      definition.setSliders(sliderControllers.stream().map(YoBCF2000SliderController::toYoSliderDefinition).collect(Collectors.toList()));
       return new YoSliderboardListDefinition(null, Collections.singletonList(definition));
    }
 }

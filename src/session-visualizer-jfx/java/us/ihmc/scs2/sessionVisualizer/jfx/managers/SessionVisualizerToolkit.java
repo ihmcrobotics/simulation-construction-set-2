@@ -19,7 +19,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizer;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerMessagerAPI;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.chart.YoChartGroupPanelController;
-import us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.YoSliderboardWindowController;
+import us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.bcf2000.YoBCF2000SliderboardWindowController;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.BufferedJavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
@@ -45,7 +45,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    private Stage mainWindow;
    private List<Stage> secondaryWindows = new ArrayList<>();
    private List<YoChartGroupPanelController> yoChartGroupPanelControllers = new ArrayList<>();
-   private YoSliderboardWindowController yoSliderboardWindowController;
+   private YoBCF2000SliderboardWindowController yoSliderboardWindowController;
 
    private final ObjectProperty<Session> activeSessionProperty = new SimpleObjectProperty<>(this, "activeSession", null);
 
@@ -200,7 +200,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       yoChartGroupPanelControllers.remove(controller);
    }
 
-   public void setYoSliderboardWindowController(YoSliderboardWindowController yoSliderboardWindowController)
+   public void setYoSliderboardWindowController(YoBCF2000SliderboardWindowController yoSliderboardWindowController)
    {
       this.yoSliderboardWindowController = yoSliderboardWindowController;
    }
@@ -230,7 +230,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       return yoChartGroupPanelControllers;
    }
 
-   public YoSliderboardWindowController getYoSliderboardWindowController()
+   public YoBCF2000SliderboardWindowController getYoSliderboardWindowController()
    {
       return yoSliderboardWindowController;
    }

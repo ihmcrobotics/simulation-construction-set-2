@@ -465,9 +465,22 @@
 
 /*******************************************************************************
  *                                                                             *
- * Icons                                                                       *
+ * Sliderboard                                                                 *
  *                                                                             *
  ******************************************************************************/
+ 
+.sliderboard-grid-pane {
+	-fx-hgap: 2.0;
+	-fx-vgap: 2.0;
+}
+
+.sliderboard-grid-cell {
+	-fx-padding: 5.0;
+    -fx-border-color: darkgrey;
+    -fx-background-color: -fx-background;
+    -fx-effect: dropshadow( three-pass-box , derive(-fx-background, -15.0%) , 2.5, 0.0 , 1.5 , 1.5 );
+}
+
 .sliderboard-button {
 	-jfx-size: 6;
 	-fx-content-display: TOP;

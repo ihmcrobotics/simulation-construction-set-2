@@ -1,28 +1,29 @@
-package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard;
+package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.bcf2000;
 
+import com.jfoenix.controls.JFXSpinner;
 import com.jfoenix.controls.JFXTextField;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
 import javafx.scene.layout.VBox;
 import us.ihmc.log.LogTools;
-import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
+import us.ihmc.scs2.definition.yoSlider.YoKnobDefinition;
+import us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.YoVariableSlider;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
 import us.ihmc.yoVariables.variable.YoVariable;
 
-public class YoSliderController extends YoSliderboardSingleInputController
+public class YoBCF2000KnobController extends YoBCF2000InputController
 {
    @FXML
    private VBox rootPane;
    @FXML
-   private JFXTextField sliderMaxTextField;
+   private JFXTextField knobMaxTextField;
    @FXML
-   private JFXTextField sliderMinTextField;
+   private JFXTextField knobMinTextField;
    @FXML
-   private Slider slider;
+   private JFXSpinner spinner;
    @FXML
    private Label yoVariableDropLabel;
 
@@ -37,14 +38,14 @@ public class YoSliderController extends YoSliderboardSingleInputController
       yoManager = toolkit.getYoManager();
       super.initialize(toolkit, rootPane, yoVariableDropLabel);
 
-      sliderMaxTextField.setText("");
-      sliderMinTextField.setText("");
-      sliderMaxTextField.setDisable(true);
-      sliderMinTextField.setDisable(true);
-      slider.setDisable(true);
+      knobMaxTextField.setText("");
+      knobMinTextField.setText("");
+      knobMaxTextField.setDisable(true);
+      knobMinTextField.setDisable(true);
+      spinner.setDisable(true);
    }
 
-   public void setInput(YoSliderDefinition definition)
+   public void setInput(YoKnobDefinition definition)
    {
       if (definition == null)
       {
@@ -82,39 +83,41 @@ public class YoSliderController extends YoSliderboardSingleInputController
 
       if (yoVariable != null)
       {
-         slider.setDisable(false);
+         spinner.setDisable(false);
 
          yoVariableSlider = YoVariableSlider.newYoVariableSlider(yoVariable, () -> yoManager.getLinkedRootRegistry().push(yoVariable));
-         yoVariableSlider.bindMinTextField(sliderMinTextField);
-         yoVariableSlider.bindMaxTextField(sliderMaxTextField);
+         yoVariableSlider.bindMinTextField(knobMinTextField);
+         yoVariableSlider.bindMaxTextField(knobMaxTextField);
          if (sliderVariable != null)
             yoVariableSlider.bindSliderVariable(sliderVariable);
-         yoVariableSlider.bindVirtualSlider(slider);
+         yoVariableSlider.bindVirtualKnob(spinner);
 
-         if (minValue != null && !sliderMinTextField.isDisabled())
-            sliderMinTextField.setText(minValue);
-         if (maxValue != null && !sliderMaxTextField.isDisabled())
-            sliderMaxTextField.setText(maxValue);
-
+         if (minValue != null && !knobMinTextField.isDisabled())
+            knobMinTextField.setText(minValue);
+         if (maxValue != null && !knobMaxTextField.isDisabled())
+            knobMaxTextField.setText(maxValue);
          setupYoVariableSlider(yoVariableSlider);
       }
       else
       {
          clear();
-         slider.setDisable(true);
+         spinner.setDisable(true);
          yoVariableSlider = null;
-         sliderMaxTextField.setText("");
-         sliderMinTextField.setText("");
+         knobMaxTextField.setText("");
+         knobMinTextField.setText("");
       }
    }
 
    public void close()
    {
-      setYoVariableInput(null);
+      if (yoVariableSlider != null)
+      {
+         setYoVariableInput(null);
+      }
    }
 
-   public YoSliderDefinition toYoSliderDefinition()
+   public YoKnobDefinition toYoKnobDefinition()
    {
-      return yoVariableSlider == null ? new YoSliderDefinition() : yoVariableSlider.toYoSliderDefinition();
+      return yoVariableSlider == null ? new YoKnobDefinition() : yoVariableSlider.toYoKnobDefinition();
    }
 }

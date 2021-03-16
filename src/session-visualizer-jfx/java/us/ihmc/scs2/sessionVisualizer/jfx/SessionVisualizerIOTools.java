@@ -78,6 +78,7 @@ public class SessionVisualizerIOTools
    private static final String YO_COMPOSITE_ENTRY = YO_COMPOSITE + "entry/";
    private static final String YO_GRAPHIC = "yoGraphic/";
    private static final String YO_SLIDERBOARD = "yoSliderboard/";
+   private static final String YO_SLIDERBOARD_BCF2000 = YO_SLIDERBOARD + "bcf2000/";
 
    // YoComposite resources:
    public static final String DEFAULT_YO_COMPOSITE_PATTERNS_FILE = "DefaultYoCompositePatterns" + yoCompositeConfigurationFileExtension;
@@ -100,7 +101,7 @@ public class SessionVisualizerIOTools
    public static final URL GRAPHIC_3D_ICOSAHEDRON_URL = getYoGraphicResource("icosahedron.stl");
    public static final Path GRAPHIC_3D_CUSTOM_GRAPHICS = Paths.get(System.getProperty("user.home"), "scs2", "yoGraphic");
    // YoSliderboard resources:
-   public static final URL YO_SLIDERBOARD_WINDOW_URL = getFXMLResource(YO_SLIDERBOARD, "YoSliderboardWindow");
+   public static final URL YO_SLIDERBOARD_BCF2000_WINDOW_URL = getFXMLResource(YO_SLIDERBOARD_BCF2000, "YoBCF2000SliderboardWindow");
 
    public static final URL MAIN_WINDOW_URL = getFXMLResource("MainWindow");
    public static final URL SECONDARY_WINDOW_URL = getFXMLResource("SecondaryWindow");
