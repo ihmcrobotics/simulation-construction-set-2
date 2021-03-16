@@ -239,7 +239,9 @@ public class YoChartOptionController
             if (change.wasAdded())
                change.getAddedSubList().forEach(series -> series.yBoundsProperty().addListener(actualBoundsUpdater));
          }
-         updateActualBounds();
+
+         if (!change.getList().isEmpty())
+            updateActualBounds();
       });
 
       if (chartStyleProperty.get() == ChartStyle.RAW)
