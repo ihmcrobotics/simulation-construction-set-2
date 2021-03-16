@@ -130,6 +130,8 @@ public class YoLongSlider implements YoVariableSlider
          virtualKnob.setProgress(value);
       };
 
+      knobUpdater.changed(null, null, null);
+
       yoLongProperty.addListener(knobUpdater);
       minProperty.addListener(knobUpdater);
       maxProperty.addListener(knobUpdater);

@@ -131,6 +131,8 @@ public class YoDoubleSlider implements YoVariableSlider
          virtualKnob.setProgress(value);
       };
 
+      knobUpdater.changed(null, null, null);
+
       yoDoubleProperty.addListener(knobUpdater);
       minProperty.addListener(knobUpdater);
       maxProperty.addListener(knobUpdater);

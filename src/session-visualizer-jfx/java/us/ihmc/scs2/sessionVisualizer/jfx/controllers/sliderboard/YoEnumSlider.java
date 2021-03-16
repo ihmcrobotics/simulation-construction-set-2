@@ -88,6 +88,8 @@ public class YoEnumSlider implements YoVariableSlider
          virtualKnob.setProgress(value);
       };
 
+      knobUpdater.changed(null, null, null);
+
       yoEnumProperty.addListener(knobUpdater);
 
       cleanupTasks.add(() ->

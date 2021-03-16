@@ -102,6 +102,8 @@ public class YoBooleanSlider implements YoVariableSlider
          virtualKnob.setProgress(newValue ? 1.0 : 0.0);
       };
 
+      knobUpdater.changed(null, null, null);
+
       yoBooleanProperty.addListener(knobUpdater);
 
       cleanupTasks.add(() ->
