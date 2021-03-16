@@ -18,7 +18,7 @@ import us.ihmc.log.LogTools;
 
 public class BCF2000SliderboardController
 {
-   private static final String BCF2000 = "BCF2000";
+   public static final String BCF2000 = "BCF2000";
 
    public static boolean DEBUG = true;
 

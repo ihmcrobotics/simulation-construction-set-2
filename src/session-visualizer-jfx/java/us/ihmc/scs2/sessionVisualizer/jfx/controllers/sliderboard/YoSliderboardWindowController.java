@@ -39,6 +39,8 @@ import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
 
 public class YoSliderboardWindowController
 {
+   private static final String BCF2000 = BCF2000SliderboardController.BCF2000;
+
    @FXML
    private AnchorPane mainAnchorPane;
    @FXML
@@ -180,7 +182,8 @@ public class YoSliderboardWindowController
 
    public void setInput(YoSliderboardListDefinition input)
    {
-      List<YoSliderboardDefinition> yoSliderboards = input.getYoSliderboards();
+      List<YoSliderboardDefinition> yoSliderboards = input.getYoSliderboards().stream().filter(yoSliderboard -> BCF2000.equals(yoSliderboard.getType()))
+                                                          .collect(Collectors.toList());
 
       if (yoSliderboards == null || yoSliderboards.isEmpty())
          return;
@@ -242,6 +245,7 @@ public class YoSliderboardWindowController
    public YoSliderboardListDefinition toYoSliderboardListDefinition()
    {
       YoSliderboardDefinition definition = new YoSliderboardDefinition();
+      definition.setType(BCF2000);
       definition.setKnobs(yoKnobControllers.stream().map(YoKnobController::toYoKnobDefinition).collect(Collectors.toList()));
       definition.setButtons(yoButtonControllers.stream().map(YoButtonController::toYoButtonDefinition).collect(Collectors.toList()));
       definition.setSliders(yoSliderControllers.stream().map(YoSliderController::toYoSliderDefinition).collect(Collectors.toList()));

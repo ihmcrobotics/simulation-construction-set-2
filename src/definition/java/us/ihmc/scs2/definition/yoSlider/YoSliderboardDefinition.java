@@ -19,6 +19,12 @@ public class YoSliderboardDefinition
       this.name = name;
    }
 
+   @XmlAttribute
+   public void setType(String type)
+   {
+      this.type = type;
+   }
+
    @XmlElement
    public void setKnobs(List<YoKnobDefinition> knobs)
    {
@@ -40,6 +46,11 @@ public class YoSliderboardDefinition
    public String getName()
    {
       return name;
+   }
+
+   public String getType()
+   {
+      return type;
    }
 
    public List<YoKnobDefinition> getKnobs()
