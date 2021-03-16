@@ -37,6 +37,8 @@ public class NumberSeries
    public NumberSeries(String name)
    {
       setSeriesName(name);
+      negatedProperty.addListener((InvalidationListener) -> markDirty());
+      customYBoundsProperty.addListener((InvalidationListener) -> markDirty());
    }
 
    public final String getSeriesName()

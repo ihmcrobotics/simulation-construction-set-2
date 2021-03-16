@@ -10,7 +10,9 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.DoubleUnaryOperator;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.css.CssMetaData;
 import javafx.css.Styleable;
@@ -37,6 +39,7 @@ public class NumberSeriesLayer extends ImageView
    private final DynamicChartLegendItem legendNode = new DynamicChartLegendItem();
 
    private final NumberAxis xAxis, yAxis;
+   private final BooleanProperty layoutChangedProperty = new SimpleBooleanProperty(this, "layoutChanged", true);
 
    private final Executor backgroundExecutor;
 
@@ -114,6 +117,11 @@ public class NumberSeriesLayer extends ImageView
       this.backgroundExecutor = backgroundExecutor;
       legendNode.seriesNameProperty().bind(numberSeries.seriesNameProperty());
       legendNode.currentValueProperty().bind(numberSeries.currentValueProperty());
+
+      xAxis.lowerBoundProperty().addListener((InvalidationListener) -> layoutChangedProperty.set(true));
+      xAxis.upperBoundProperty().addListener((InvalidationListener) -> layoutChangedProperty.set(true));
+      yAxis.lowerBoundProperty().addListener((InvalidationListener) -> layoutChangedProperty.set(true));
+      yAxis.upperBoundProperty().addListener((InvalidationListener) -> layoutChangedProperty.set(true));
    }
 
    public void scheduleRender()
@@ -163,7 +171,6 @@ public class NumberSeriesLayer extends ImageView
       if (isUpdatingImage.get())
          return false;
 
-
       double width = xAxis.getWidth();
       double height = yAxis.getHeight();
       int widthInt = (int) Math.round(width);
@@ -178,6 +185,7 @@ public class NumberSeriesLayer extends ImageView
 
       if (imageToRender == null || imageToRender.getWidth() != widthInt || imageToRender.getHeight() != heightInt)
       {
+         layoutChangedProperty.set(true);
          imageToRender = new BufferedImage(widthInt, heightInt, BufferedImage.TYPE_INT_ARGB);
          graphics = imageToRender.createGraphics();
       }
@@ -188,13 +196,15 @@ public class NumberSeriesLayer extends ImageView
          graphics.clearRect(0, 0, widthInt, heightInt);
       }
 
+      boolean layoutChanged = layoutChangedProperty.get();
+      layoutChangedProperty.set(false);
       List<Point2D> data = numberSeries.getData();
 
       numberSeries.getLock().readLock().lock();
 
       try
       {
-         if (data.isEmpty() || !numberSeries.pollDirty())
+         if (data.isEmpty() || (!numberSeries.pollDirty() && !layoutChanged))
             return false;
 
          xData = resize(xData, data.size());
