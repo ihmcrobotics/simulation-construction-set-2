@@ -10,6 +10,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.DoubleUnaryOperator;
 
+import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -118,10 +119,13 @@ public class NumberSeriesLayer extends ImageView
       legendNode.seriesNameProperty().bind(numberSeries.seriesNameProperty());
       legendNode.currentValueProperty().bind(numberSeries.currentValueProperty());
 
-      xAxis.lowerBoundProperty().addListener((InvalidationListener) -> layoutChangedProperty.set(true));
-      xAxis.upperBoundProperty().addListener((InvalidationListener) -> layoutChangedProperty.set(true));
-      yAxis.lowerBoundProperty().addListener((InvalidationListener) -> layoutChangedProperty.set(true));
-      yAxis.upperBoundProperty().addListener((InvalidationListener) -> layoutChangedProperty.set(true));
+      InvalidationListener dirtyListener = (InvalidationListener) -> layoutChangedProperty.set(true);
+      xAxis.lowerBoundProperty().addListener(dirtyListener);
+      xAxis.upperBoundProperty().addListener(dirtyListener);
+      yAxis.lowerBoundProperty().addListener(dirtyListener);
+      yAxis.upperBoundProperty().addListener(dirtyListener);
+      stroke.addListener(dirtyListener);
+      strokeWidth.addListener(dirtyListener);
    }
 
    public void scheduleRender()
