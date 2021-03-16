@@ -1,4 +1,4 @@
-package us.ihmc.scs2.sessionVisualizer.jfx.charts;
+package us.ihmc.scs2.sessionVisualizer.jfx.tools;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartGroupLayout;
+import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartGroupModel;
+import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartIdentifier;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.yoVariables.variable.YoVariable;
 

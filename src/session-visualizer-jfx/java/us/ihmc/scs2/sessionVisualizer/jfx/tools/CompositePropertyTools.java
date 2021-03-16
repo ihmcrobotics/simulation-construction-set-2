@@ -1,4 +1,4 @@
-package us.ihmc.scs2.sessionVisualizer.jfx.yoComposite;
+package us.ihmc.scs2.sessionVisualizer.jfx.tools;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,7 +29,12 @@ import us.ihmc.scs2.definition.yoComposite.YoYawPitchRollDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoDoubleProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoIntegerProperty;
-import us.ihmc.scs2.sessionVisualizer.jfx.tools.YoVariableTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.CompositeProperty;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Orientation3DProperty;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.QuaternionProperty;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple2DProperty;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple3DProperty;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YawPitchRollProperty;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.tools.YoGeometryNameTools;
 import us.ihmc.yoVariables.variable.YoDouble;

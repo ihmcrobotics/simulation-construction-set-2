@@ -6,7 +6,7 @@ import us.ihmc.log.LogTools;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.YoVariableTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.CompositePropertyTools.YoVariableDatabase;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.CompositePropertyTools.YoVariableDatabase;
 import us.ihmc.scs2.sharedMemory.LinkedBufferProperties;
 import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 import us.ihmc.scs2.sharedMemory.LinkedYoVariable;
