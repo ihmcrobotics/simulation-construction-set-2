@@ -1,13 +1,23 @@
-package us.ihmc.scs2.sessionVisualizer.jfx.charts;
+package us.ihmc.scs2.sessionVisualizer.jfx.tools;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.scs2.definition.yoChart.ChartDoubleBoundsDefinition;
 import us.ihmc.scs2.definition.yoChart.YoChartGroupModelDefinition;
 import us.ihmc.scs2.definition.yoChart.YoChartIdentifierDefinition;
+import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartDoubleBounds;
+import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartGroupModel;
+import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartIdentifier;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoEnum;
+import us.ihmc.yoVariables.variable.YoInteger;
+import us.ihmc.yoVariables.variable.YoLong;
+import us.ihmc.yoVariables.variable.YoVariable;
 
-public class YoChartTools
+public class ChartTools
 {
    public static ChartIdentifier toChartIdentifier(YoChartIdentifierDefinition xmlChartIdentifier)
    {
@@ -17,7 +27,7 @@ public class YoChartTools
    public static ChartGroupModel toChartIdentifierList(YoChartGroupModelDefinition definition)
    {
       return new ChartGroupModel(definition.getName(),
-                                     definition.getChartIdentifiers().stream().map(YoChartTools::toChartIdentifier).collect(Collectors.toList()));
+                                     definition.getChartIdentifiers().stream().map(ChartTools::toChartIdentifier).collect(Collectors.toList()));
    }
 
    public static ChartDoubleBounds toChartDoubleBounds(ChartDoubleBoundsDefinition definition)
@@ -30,7 +40,7 @@ public class YoChartTools
 
    public static List<YoChartGroupModelDefinition> toYoChartGroupModelDefinitions(List<ChartGroupModel> chartGroupModels)
    {
-      return chartGroupModels.stream().map(YoChartTools::toYoChartGroupModelDefinition).collect(Collectors.toList());
+      return chartGroupModels.stream().map(ChartTools::toYoChartGroupModelDefinition).collect(Collectors.toList());
    }
 
    public static YoChartGroupModelDefinition toYoChartGroupModelDefinition(ChartGroupModel chartGroupModel)
@@ -43,7 +53,7 @@ public class YoChartTools
 
    public static List<YoChartIdentifierDefinition> toYoChartIdentifierDefinitions(List<ChartIdentifier> chartIdentifiers)
    {
-      return chartIdentifiers.stream().map(YoChartTools::toYoChartIdentifierDefinition).collect(Collectors.toList());
+      return chartIdentifiers.stream().map(ChartTools::toYoChartIdentifierDefinition).collect(Collectors.toList());
    }
 
    public static YoChartIdentifierDefinition toYoChartIdentifierDefinition(ChartIdentifier chartIdentifier)
@@ -59,5 +69,29 @@ public class YoChartTools
          return new ChartDoubleBoundsDefinition(Double.NaN, Double.NaN);
       else
          return new ChartDoubleBoundsDefinition(bounds.getLower(), bounds.getUpper());
+   }
+
+   public static String defaultYoVariableValueFormatter(YoVariable yoVariable)
+   {
+      if (yoVariable instanceof YoDouble)
+         return NumberFormatTools.doubleToString(yoVariable.getValueAsDouble(), 5);
+      else
+         return ChartTools.getYoVariableValueAsString(yoVariable, EuclidCoreIOTools.getStringFormat(11, 8));
+   }
+
+   public static String getYoVariableValueAsString(YoVariable yoVariable, String format)
+   {
+      if (yoVariable instanceof YoDouble)
+         return String.format(format, ((YoDouble) yoVariable).getValue());
+      if (yoVariable instanceof YoBoolean)
+         return Boolean.toString(((YoBoolean) yoVariable).getValue());
+      if (yoVariable instanceof YoInteger)
+         return Integer.toString(((YoInteger) yoVariable).getValue());
+      if (yoVariable instanceof YoLong)
+         return Long.toString(((YoLong) yoVariable).getValue());
+      if (yoVariable instanceof YoEnum<?>)
+         return ((YoEnum<?>) yoVariable).getStringValue();
+   
+      throw new UnsupportedOperationException("Unsupported YoVariable type: " + yoVariable.getClass().getSimpleName());
    }
 }

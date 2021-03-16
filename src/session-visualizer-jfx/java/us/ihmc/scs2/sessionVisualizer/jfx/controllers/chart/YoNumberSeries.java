@@ -1,7 +1,7 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers.chart;
 
-import us.ihmc.scs2.sessionVisualizer.jfx.charts.LineChartTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.NumberSeries;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.ChartTools;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoNumberSeries extends NumberSeries
@@ -17,7 +17,7 @@ public class YoNumberSeries extends NumberSeries
 
    public void updateLegend()
    {
-      setCurrentValue(LineChartTools.defaultYoVariableValueFormatter(yoVariable));
+      setCurrentValue(ChartTools.defaultYoVariableValueFormatter(yoVariable));
    }
 
    public YoVariable getYoVariable()

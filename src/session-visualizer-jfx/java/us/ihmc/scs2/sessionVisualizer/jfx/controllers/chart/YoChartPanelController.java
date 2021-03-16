@@ -56,7 +56,6 @@ import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartMarker;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.DynamicChartLegend;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.DynamicLineChart;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.DynamicLineChart.ChartStyle;
-import us.ihmc.scs2.sessionVisualizer.jfx.charts.YoChartTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.YoVariableChartData;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.YoVariableChartData.ChartDataUpdate;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.BackgroundExecutorManager;
@@ -64,6 +63,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.ChartDataManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.ChartTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
@@ -257,7 +257,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
          if (definition.getYBounds() != null && definition.getYBounds().size() > definitionIndex)
          {
             ChartDoubleBoundsDefinition yBounds = definition.getYBounds().get(definitionIndex);
-            pack.series.setCustomYBounds(YoChartTools.toChartDoubleBounds(yBounds));
+            pack.series.setCustomYBounds(ChartTools.toChartDoubleBounds(yBounds));
          }
 
          if (definition.getNegates() != null && definition.getNegates().size() > definitionIndex)
@@ -682,10 +682,10 @@ public class YoChartPanelController extends ObservedAnimationTimer
    public YoChartConfigurationDefinition toYoChartConfigurationDefinition(ChartIdentifier chartIdentifier)
    {
       YoChartConfigurationDefinition definition = new YoChartConfigurationDefinition();
-      definition.setIdentifier(YoChartTools.toYoChartIdentifierDefinition(chartIdentifier));
+      definition.setIdentifier(ChartTools.toYoChartIdentifierDefinition(chartIdentifier));
       definition.setChartStyle(dynamicLineChart.getChartStyle().name());
       definition.setYoVariables(charts.keySet().stream().map(YoVariable::getFullNameString).collect(Collectors.toList()));
-      definition.setYBounds(charts.values().stream().map(pack -> YoChartTools.toChartDoubleBoundsDefinition(pack.getSeries().getCustomYBounds()))
+      definition.setYBounds(charts.values().stream().map(pack -> ChartTools.toChartDoubleBoundsDefinition(pack.getSeries().getCustomYBounds()))
                                   .collect(Collectors.toList()));
       definition.setNegates(charts.values().stream().map(pack -> pack.getSeries().isNegated()).collect(Collectors.toList()));
       return definition;

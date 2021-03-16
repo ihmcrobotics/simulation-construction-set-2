@@ -26,7 +26,7 @@ import us.ihmc.scs2.definition.yoComposite.YoTuple2DDefinition;
 import us.ihmc.scs2.definition.yoComposite.YoTuple3DDefinition;
 import us.ihmc.scs2.definition.yoComposite.YoYawPitchRollDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartGroupModel;
-import us.ihmc.scs2.sessionVisualizer.jfx.charts.YoChartTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.ChartTools;
 import us.ihmc.yoVariables.registry.YoNamespace;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
@@ -641,7 +641,7 @@ public class YoCompositeTools
       String type = definition.getName();
       boolean crossRegistry = definition.isCrossRegistry();
       String[] componentIdentifiers = definition.getIdentifiers().stream().toArray(String[]::new);
-      List<ChartGroupModel> preferredChartConfigurations = definition.getPreferredConfigurations().stream().map(YoChartTools::toChartIdentifierList)
+      List<ChartGroupModel> preferredChartConfigurations = definition.getPreferredConfigurations().stream().map(ChartTools::toChartIdentifierList)
                                                                      .collect(Collectors.toList());
       return new YoCompositePattern(type, crossRegistry, componentIdentifiers, preferredChartConfigurations);
    }
@@ -665,7 +665,7 @@ public class YoCompositeTools
       definition.setCrossRegistry(yoCompositePattern.isCrossRegistry());
       if (yoCompositePattern.getComponentIdentifiers() != null)
          definition.setIdentifiers(new ArrayList<>(Arrays.asList(yoCompositePattern.getComponentIdentifiers())));
-      definition.setPreferredConfigurations(YoChartTools.toYoChartGroupModelDefinitions(yoCompositePattern.getPreferredChartConfigurations()));
+      definition.setPreferredConfigurations(ChartTools.toYoChartGroupModelDefinitions(yoCompositePattern.getPreferredChartConfigurations()));
       return definition;
    }
 }
