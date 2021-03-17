@@ -26,7 +26,7 @@ public class Plotter2D extends Region
    private final Translate rootTranslation = new Translate();
    private final ObjectProperty<MouseButton> mouseButtonForTranslation = new SimpleObjectProperty<>(this, "mouseButtonForTranslation", MouseButton.PRIMARY);
    private final Scale rootScale = new Scale(1.0, -1.0);
-   private final DoubleProperty scaleModifier = new SimpleDoubleProperty(this, "scaleModifier", 0.0025);
+   private final DoubleProperty scaleModifier = new SimpleDoubleProperty(this, "scaleModifier", -0.0025);
    private final DoubleProperty minScale = new SimpleDoubleProperty(this, "minScale", 0.01);
 
    private final Point2D center = new Point2D();
