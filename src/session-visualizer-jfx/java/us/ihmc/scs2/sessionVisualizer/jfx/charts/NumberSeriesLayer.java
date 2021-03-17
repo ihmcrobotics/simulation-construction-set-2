@@ -3,7 +3,7 @@ package us.ihmc.scs2.sessionVisualizer.jfx.charts;
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
+import java.nio.IntBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -20,8 +20,10 @@ import javafx.css.Styleable;
 import javafx.css.StyleableDoubleProperty;
 import javafx.css.StyleableObjectProperty;
 import javafx.css.StyleablePropertyFactory;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.PixelBuffer;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
@@ -103,7 +105,9 @@ public class NumberSeriesLayer extends ImageView
    private final ChartRenderManager renderManager;
 
    private final ObjectProperty<ChartStyle> chartStyleProperty = new SimpleObjectProperty<>(this, "chartStyle", ChartStyle.RAW);
+   private IntBuffer imageIntBuffer = null;
    private WritableImage writableImage = null;
+   private PixelBuffer<IntBuffer> pixelBuffer = null;
    private AtomicBoolean isRenderingImage = new AtomicBoolean(false);
    private AtomicBoolean isUpdatingImage = new AtomicBoolean(false);
    private BufferedImage imageToRender = null;
@@ -155,12 +159,13 @@ public class NumberSeriesLayer extends ImageView
 
       if (writableImage == null || (int) Math.round(writableImage.getWidth()) != width || (int) Math.round(writableImage.getHeight()) != height)
       {
-         writableImage = new WritableImage(width, height);
+         pixelBuffer = new PixelBuffer<>(width, height, imageIntBuffer, PixelFormat.getIntArgbPreInstance());
+         writableImage = new WritableImage(pixelBuffer);
          setImage(writableImage);
       }
 
-      int[] data = ((DataBufferInt) imageToRender.getRaster().getDataBuffer()).getData();
-      writableImage.getPixelWriter().setPixels(0, 0, width, height, PixelFormat.getIntArgbInstance(), data, 0, width);
+      Rectangle2D dirtyRegion = new Rectangle2D(0, 0, width, height);
+      pixelBuffer.updateBuffer(b -> dirtyRegion);
 
       isRenderingImage.set(false);
    }
@@ -190,7 +195,8 @@ public class NumberSeriesLayer extends ImageView
       if (imageToRender == null || imageToRender.getWidth() != widthInt || imageToRender.getHeight() != heightInt)
       {
          layoutChangedProperty.set(true);
-         imageToRender = new BufferedImage(widthInt, heightInt, BufferedImage.TYPE_INT_ARGB);
+         imageIntBuffer = IntBuffer.allocate(widthInt * heightInt);
+         imageToRender = new BufferedImage(widthInt, heightInt, BufferedImage.TYPE_INT_ARGB_PRE);
          graphics = imageToRender.createGraphics();
       }
       else
@@ -237,12 +243,13 @@ public class NumberSeriesLayer extends ImageView
 
          drawMultiLine(graphics, data, xTransform, yTransform, xData, yData);
 
-         graphics.setColor(toAWTColor(Color.GREY.deriveColor(0, 1.0, 1.0, 0.5)));
+         graphics.setColor(toAWTColor(Color.GREY.deriveColor(0, 1.0, 0.85, 0.5)));
          graphics.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
          List<Point2D> markerData = Arrays.asList(new Point2D(numberSeries.bufferCurrentIndexProperty().get(), yAxis.getLowerBound()),
                                                   new Point2D(numberSeries.bufferCurrentIndexProperty().get(), yAxis.getUpperBound()));
          drawMultiLine(graphics, markerData, xTransform, yTransform, xData, yData);
          graphics.dispose();
+         imageToRender.getRGB(0, 0, widthInt, heightInt, imageIntBuffer.array(), 0, widthInt);
 
          return true;
       }
