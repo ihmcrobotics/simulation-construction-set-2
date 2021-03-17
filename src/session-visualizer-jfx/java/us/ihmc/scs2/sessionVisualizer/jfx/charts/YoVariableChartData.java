@@ -130,6 +130,8 @@ public class YoVariableChartData
 
       @SuppressWarnings("unchecked")
       BufferSample<double[]> newBufferSample = bufferConverterFunction.apply(rawData);
+      if (lastDataSet != null && newBufferSample.getBufferProperties().getSize() != lastDataSet.size)
+         lastDataSet = null;
       DoubleArray newDataSet = updateDataSet(lastDataSet, newBufferSample);
       ChartDataUpdate chartDataUpdate = new ChartDataUpdate(newDataSet, rawData.getBufferProperties());
       lastChartDataUpdate = chartDataUpdate;
