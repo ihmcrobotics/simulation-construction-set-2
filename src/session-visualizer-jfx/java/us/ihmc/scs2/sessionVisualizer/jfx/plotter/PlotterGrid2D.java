@@ -23,6 +23,8 @@ import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXToEuclidConversions;
 
 public class PlotterGrid2D
 {
+   private static final int SIGNIFICANT_FIGURES = 4;
+
    private final Canvas canvas = new Canvas(300, 500);
    private final ReadOnlyObjectProperty<Transform> localToSceneTransformProperty;
 
@@ -110,14 +112,14 @@ public class PlotterGrid2D
       {
          double gridX = gridStartScene.getX() + i * gridSizeScene.getX();
          double localX = gridStartLocal.getX() + i * gridSizeLocal.getX();
-         gc.fillText(FormattingTools.getFormattedToSignificantFigures(localX, 2), gridX, top + fontSize);
+         gc.fillText(FormattingTools.getFormattedToSignificantFigures(localX, SIGNIFICANT_FIGURES), gridX, top + fontSize);
       }
 
       for (int i = 0; i < gridCountY; i++)
       {
          double gridY = gridStartScene.getY() + i * gridSizeScene.getY();
          double localY = gridStartLocal.getY() + i * gridSizeLocal.getY();
-         gc.fillText(FormattingTools.getFormattedToSignificantFigures(localY, 2), left, gridY - 2.0);
+         gc.fillText(FormattingTools.getFormattedToSignificantFigures(localY, SIGNIFICANT_FIGURES), left, gridY - 2.0);
       }
    }
 
