@@ -11,9 +11,9 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Window;
 import us.ihmc.scs2.definition.yoChart.YoChartIdentifierDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartIdentifier;
-import us.ihmc.scs2.sessionVisualizer.jfx.charts.YoChartTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.SCSDefaultUIController;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.ChartTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.IntegerConverter;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.PositiveIntegerValueFilter;
 
@@ -54,12 +54,12 @@ public class YoChartIdentifierEditorController implements SCSDefaultUIController
 
    public void setInput(YoChartIdentifierDefinition chartIdentifier)
    {
-      setInput(YoChartTools.toChartIdentifier(chartIdentifier));
+      setInput(ChartTools.toChartIdentifier(chartIdentifier));
    }
 
    public void setInput(ChartIdentifier chartIdentifier)
    {
-      chartIdentifierProperty.set(YoChartTools.toYoChartIdentifierDefinition(chartIdentifier));
+      chartIdentifierProperty.set(ChartTools.toYoChartIdentifierDefinition(chartIdentifier));
    }
 
    public ObjectProperty<YoChartIdentifierDefinition> chartIdentifierProperty()

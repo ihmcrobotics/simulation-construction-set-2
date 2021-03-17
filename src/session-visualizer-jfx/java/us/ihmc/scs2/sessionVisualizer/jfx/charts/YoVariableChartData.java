@@ -6,9 +6,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
-import de.gsi.dataset.AxisDescription;
-import de.gsi.dataset.spi.DoubleDataSet;
+import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.messager.Messager;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
@@ -21,16 +21,17 @@ import us.ihmc.scs2.sharedMemory.LinkedYoLong;
 import us.ihmc.scs2.sharedMemory.LinkedYoVariable;
 import us.ihmc.scs2.sharedMemory.YoBufferProperties;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
+import us.ihmc.scs2.sharedMemory.tools.BufferTools;
 import us.ihmc.yoVariables.variable.YoVariable;
 
-public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
+public class YoVariableChartData
 {
-   private final L linkedYoVariable;
+   private final LinkedYoVariable<?> linkedYoVariable;
 
    private SessionMode lastSessionModeStatus = null;
    private final AtomicReference<SessionMode> currentSessionMode;
    private YoBufferPropertiesReadOnly lastProperties = null;
-   private final AtomicReference<YoBufferPropertiesReadOnly> currentBufferProperties;
+   private final AtomicReference<YoBufferPropertiesReadOnly> currentBufferPropertiesReference;
 
    @SuppressWarnings("rawtypes")
    private final AtomicReference<BufferSample> rawDataProperty = new AtomicReference<>(null);
@@ -42,28 +43,27 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
    private final Queue<Object> callerIDs = new ConcurrentLinkedQueue<>();
    private final Map<Object, ChartDataUpdate> newChartDataUpdate = new ConcurrentHashMap<>();
 
-   @SuppressWarnings({"rawtypes", "unchecked"})
-   public static YoVariableChartData<?, ?> newYoVariableChartData(Messager messager, SessionVisualizerTopics topics, LinkedYoVariable linkedYoVariable)
-   {
-      if (linkedYoVariable instanceof LinkedYoBoolean)
-         return new YoBooleanChartData(messager, topics, (LinkedYoBoolean) linkedYoVariable);
-      if (linkedYoVariable instanceof LinkedYoDouble)
-         return new YoDoubleChartData(messager, topics, (LinkedYoDouble) linkedYoVariable);
-      if (linkedYoVariable instanceof LinkedYoInteger)
-         return new YoIntegerChartData(messager, topics, (LinkedYoInteger) linkedYoVariable);
-      if (linkedYoVariable instanceof LinkedYoLong)
-         return new YoLongChartData(messager, topics, (LinkedYoLong) linkedYoVariable);
-      if (linkedYoVariable instanceof LinkedYoEnum)
-         return new YoEnumChartData<>(messager, topics, (LinkedYoEnum) linkedYoVariable);
+   @SuppressWarnings("rawtypes")
+   private final Function<BufferSample<double[]>, BufferSample> bufferConverterFunction;
 
-      throw new UnsupportedOperationException("Unsupported YoVariable type: " + linkedYoVariable.getLinkedYoVariable().getClass().getSimpleName());
-   }
-
-   public YoVariableChartData(Messager messager, SessionVisualizerTopics topics, L linkedYoVariable)
+   public YoVariableChartData(Messager messager, SessionVisualizerTopics topics, LinkedYoVariable<?> linkedYoVariable)
    {
       this.linkedYoVariable = linkedYoVariable;
       currentSessionMode = messager.createInput(topics.getSessionCurrentMode(), SessionMode.PAUSE);
-      currentBufferProperties = messager.createInput(topics.getYoBufferCurrentProperties(), new YoBufferProperties());
+      currentBufferPropertiesReference = messager.createInput(topics.getYoBufferCurrentProperties(), new YoBufferProperties());
+
+      if (linkedYoVariable instanceof LinkedYoBoolean)
+         bufferConverterFunction = in -> booleanToDoubleBuffer(in);
+      else if (linkedYoVariable instanceof LinkedYoDouble)
+         bufferConverterFunction = in -> in;
+      else if (linkedYoVariable instanceof LinkedYoEnum<?>)
+         bufferConverterFunction = in -> byteToDoubleBuffer(in);
+      else if (linkedYoVariable instanceof LinkedYoInteger)
+         bufferConverterFunction = in -> integerToDoubleBuffer(in);
+      else if (linkedYoVariable instanceof LinkedYoLong)
+         bufferConverterFunction = in -> longToDoubleBuffer(in);
+      else
+         throw new UnsupportedOperationException("Unsupported YoVariable type: " + linkedYoVariable.getLinkedYoVariable().getClass().getSimpleName());
    }
 
    @SuppressWarnings("rawtypes")
@@ -77,6 +77,8 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
          publishChartData.set(true);
          lastUpdateEndIndex = newRawData.getBufferProperties().getOutPoint();
       }
+
+      YoBufferPropertiesReadOnly currentBufferProperties = currentBufferPropertiesReference.get();
 
       // Now check if a new request should be submitted.
       if (lastSessionModeStatus == SessionMode.RUNNING && currentSessionMode.get() != SessionMode.RUNNING)
@@ -100,34 +102,34 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
             else
                linkedYoVariable.requestBufferStartingFrom(lastUpdateEndIndex);
          }
-         else if (currentBufferProperties.get().getSize() != lastProperties.getSize())
+         else if (currentBufferProperties.getSize() != lastProperties.getSize())
          { // Buffer was either resized or cropped, data has been shifted around, need to get a complete update.
             linkedYoVariable.requestEntireBuffer();
          }
-         else if (currentBufferProperties.get().getInPoint() != lastProperties.getInPoint()
-               && currentBufferProperties.get().getOutPoint() != lastProperties.getOutPoint())
+         else if (currentBufferProperties.getInPoint() != lastProperties.getInPoint() && currentBufferProperties.getOutPoint() != lastProperties.getOutPoint())
          { // When cropping without actually changing the size of the buffer, the data is still being shifted around.
             linkedYoVariable.requestEntireBuffer();
          }
       }
 
       lastSessionModeStatus = currentSessionMode.get();
-      lastProperties = currentBufferProperties.get();
+      lastProperties = currentBufferProperties;
 
       publishForCharts();
    }
 
-   @SuppressWarnings({"unchecked", "rawtypes"})
    private void publishForCharts()
    {
       if (!publishChartData.get())
          return;
 
+      @SuppressWarnings("rawtypes")
       BufferSample rawData = rawDataProperty.get();
       if (rawData == null || rawData.getSampleLength() == 0)
          return;
 
-      BufferSample newBufferSample = toDoubleBuffer(rawData);
+      @SuppressWarnings("unchecked")
+      BufferSample<double[]> newBufferSample = bufferConverterFunction.apply(rawData);
       DoubleArray newDataSet = updateDataSet(lastDataSet, newBufferSample);
       ChartDataUpdate chartDataUpdate = new ChartDataUpdate(newDataSet, rawData.getBufferProperties());
       lastChartDataUpdate = chartDataUpdate;
@@ -140,8 +142,6 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
 
       publishChartData.set(false);
    }
-
-   protected abstract BufferSample<double[]> toDoubleBuffer(BufferSample<B> yoVariableBuffer);
 
    public void registerCaller(Object callerID)
    {
@@ -253,24 +253,32 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
          this.bufferProperties = bufferProperties;
       }
 
-      public void readUpdate(YoDoubleDataSet chartDataSet, int lastUpdateEndIndex)
+      public void readUpdate(NumberSeries chartDataSet, int lastUpdateEndIndex)
       {
-         readUpdate(chartDataSet.getRawDataSet(), lastUpdateEndIndex);
-         chartDataSet.setRange(0, dataSet.size - 1, dataSet.valueMin, dataSet.valueMax);
-      }
+         chartDataSet.getLock().writeLock().lock();
 
-      public void readUpdate(DoubleDataSet chartDataSet, int lastUpdateEndIndex)
-      {
-         if (chartDataSet.getDataCount() != dataSet.size)
-            chartDataSet.resize(dataSet.size);
+         try
+         {
+            // Resizing the cart data
+            while (chartDataSet.getData().size() < dataSet.size)
+               chartDataSet.getData().add(new Point2D());
+            while (chartDataSet.getData().size() > dataSet.size)
+               chartDataSet.getData().remove(chartDataSet.getData().size() - 1);
 
-         double[] xValues = chartDataSet.getXValues();
-         double[] yValues = chartDataSet.getYValues();
+            for (int i = 0; i < dataSet.size; i++)
+            {
+               chartDataSet.getData().get(i).set(i, dataSet.values[i]);
+            }
 
-         for (int i = 0; i < dataSet.size; i++)
-            xValues[i] = i;
-         System.arraycopy(dataSet.values, 0, yValues, 0, dataSet.size);
-         chartDataSet.getAxisDescriptions().forEach(AxisDescription::clear);
+            chartDataSet.bufferCurrentIndexProperty().set(bufferProperties.getCurrentIndex());
+            chartDataSet.xBoundsProperty().setValue(new ChartIntegerBounds(0, dataSet.size));
+            chartDataSet.yBoundsProperty().setValue(new ChartDoubleBounds(dataSet.valueMin, dataSet.valueMax));
+         }
+         finally
+         {
+            chartDataSet.getLock().writeLock().unlock();
+            chartDataSet.markDirty();
+         }
       }
 
       public int getUpdateEndIndex()
@@ -290,5 +298,41 @@ public abstract class YoVariableChartData<L extends LinkedYoVariable<?>, B>
          this.size = size;
          values = new double[size];
       }
+   }
+
+   private static BufferSample<double[]> booleanToDoubleBuffer(BufferSample<?> yoVariableBuffer)
+   {
+      int from = yoVariableBuffer.getFrom();
+      YoBufferPropertiesReadOnly bufferProperties = yoVariableBuffer.getBufferProperties();
+      double[] sample = BufferTools.toDoubleArray((boolean[]) yoVariableBuffer.getSample());
+      int sampleLength = yoVariableBuffer.getSampleLength();
+      return new BufferSample<>(from, sample, sampleLength, bufferProperties);
+   }
+
+   private static BufferSample<double[]> byteToDoubleBuffer(BufferSample<?> yoVariableBuffer)
+   {
+      int from = yoVariableBuffer.getFrom();
+      YoBufferPropertiesReadOnly bufferProperties = yoVariableBuffer.getBufferProperties();
+      double[] sample = BufferTools.toDoubleArray((byte[]) yoVariableBuffer.getSample());
+      int sampleLength = yoVariableBuffer.getSampleLength();
+      return new BufferSample<>(from, sample, sampleLength, bufferProperties);
+   }
+
+   private static BufferSample<double[]> integerToDoubleBuffer(BufferSample<?> yoVariableBuffer)
+   {
+      int from = yoVariableBuffer.getFrom();
+      YoBufferPropertiesReadOnly bufferProperties = yoVariableBuffer.getBufferProperties();
+      double[] sample = BufferTools.toDoubleArray((int[]) yoVariableBuffer.getSample());
+      int sampleLength = yoVariableBuffer.getSampleLength();
+      return new BufferSample<>(from, sample, sampleLength, bufferProperties);
+   }
+
+   private static BufferSample<double[]> longToDoubleBuffer(BufferSample<?> yoVariableBuffer)
+   {
+      int from = yoVariableBuffer.getFrom();
+      YoBufferPropertiesReadOnly bufferProperties = yoVariableBuffer.getBufferProperties();
+      double[] sample = BufferTools.toDoubleArray((long[]) yoVariableBuffer.getSample());
+      int sampleLength = yoVariableBuffer.getSampleLength();
+      return new BufferSample<>(from, sample, sampleLength, bufferProperties);
    }
 }

@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.scene.Node;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
@@ -14,13 +13,15 @@ import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicListDefinition;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXItem;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXResourceManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
 
-public class YoGraphicFXManager extends AnimationTimer implements Manager
+public class YoGraphicFXManager extends ObservedAnimationTimer implements Manager
 {
    private final YoGroupFX root = YoGroupFX.createRoot();
    private final JavaFXMessager messager;
@@ -61,7 +62,7 @@ public class YoGraphicFXManager extends AnimationTimer implements Manager
    }
 
    @Override
-   public void handle(long now)
+   public void handleImpl(long now)
    {
       root.render();
    }
@@ -96,13 +97,13 @@ public class YoGraphicFXManager extends AnimationTimer implements Manager
          if (Platform.isFxApplicationThread())
             loadYoGraphicFromFileNow(file);
          else
-            Platform.runLater(() -> loadYoGraphicFromFileNow(file));
+            JavaFXMissingTools.runLater(getClass(), () -> loadYoGraphicFromFileNow(file));
       }
       else
       {
          LogTools.info("Loading file scheduled: " + file);
          backgroundExecutorManager.scheduleInBackgroundWithCondition(() -> XMLTools.isYoGraphicContextReady(),
-                                                                     () -> Platform.runLater(() -> loadYoGraphicFromFileNow(file)));
+                                                                     () -> JavaFXMissingTools.runLater(getClass(), () -> loadYoGraphicFromFileNow(file)));
       }
    }
 
@@ -123,7 +124,7 @@ public class YoGraphicFXManager extends AnimationTimer implements Manager
                                                                             referenceFrameManager,
                                                                             yoGraphicListDefinition);
             if (items != null && !items.isEmpty())
-               Platform.runLater(() -> items.forEach(root::addYoGraphicFXItem));
+               JavaFXMissingTools.runLater(getClass(), () -> items.forEach(root::addYoGraphicFXItem));
          });
       }
       catch (Exception e)

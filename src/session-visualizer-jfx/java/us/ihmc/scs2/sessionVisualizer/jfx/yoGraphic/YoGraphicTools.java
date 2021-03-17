@@ -18,8 +18,8 @@ import us.ihmc.scs2.definition.yoGraphic.*;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.definition.JavaFXVisualTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameManager;
-import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.CompositePropertyTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.CompositePropertyTools.YoVariableDatabase;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.CompositePropertyTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.CompositePropertyTools.YoVariableDatabase;
 
 public class YoGraphicTools
 {

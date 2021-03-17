@@ -73,7 +73,7 @@ public class MultiSessionManager
          if (sessionLoadedCallback != null)
             sessionLoadedCallback.run();
       };
-      JavaFXMissingTools.runLaterIfNeeded(() -> toolkit.startSession(session, callback));
+      JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> toolkit.startSession(session, callback));
    }
 
    public void stopSession()
@@ -223,6 +223,8 @@ public class MultiSessionManager
          messager.submitMessage(topics.getYoBufferCurrentSizeRequest(), configuration.getBufferSize());
       messager.submitMessage(topics.getShowOverheadPlotter(), configuration.getShowOverheadPlotter());
       messager.submitMessage(topics.getShowAdvancedControls(), configuration.getShowAdvancedControls());
+      if (configuration.hasYoSliderboardConfiguration())
+         messager.submitMessage(topics.getYoSliderboardLoadConfiguration(), configuration.getYoSliderboardConfigurationFile());
    }
 
    public void saveSessionConfiguration()
@@ -236,6 +238,8 @@ public class MultiSessionManager
       sidePaneController.getYoEntryTabPaneController().exportAllTabs(configuration.getYoEntryConfigurationFile());
       mainWindowController.getYoChartGroupPanelController().saveChartGroupConfiguration(toolkit.getMainWindow(),
                                                                                         configuration.getMainYoChartGroupConfigurationFile());
+      if (toolkit.getYoSliderboardWindowController() != null)
+         toolkit.getYoSliderboardWindowController().save(configuration.getYoSliderboardConfigurationFile());
       configuration.setMainStage(toolkit.getMainWindow());
 
       List<Stage> secondaryWindows = toolkit.getSecondaryWindows();

@@ -17,7 +17,6 @@ import com.jfoenix.controls.JFXButton;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.SetChangeListener;
@@ -267,7 +266,7 @@ public class YoCompositePatternPropertyWindowController
          {
             if (itemToSelectOnCancel != null)
             {
-               Platform.runLater(() ->
+               JavaFXMissingTools.runLater(getClass(), () ->
                {
                   ignoreTreeSelectionUpdate = true;
                   yoCompositePatternListView.getSelectionModel().clearSelection();

@@ -1,6 +1,7 @@
 package us.ihmc.scs2.sessionVisualizer.jfx;
 
 import java.io.File;
+import java.util.List;
 
 import javafx.stage.Window;
 import javafx.util.Pair;
@@ -32,6 +33,7 @@ public class SessionVisualizerTopics
    private Topic<Integer> yoSearchMaxListSize;
    private Topic<File> yoCompositePatternLoadRequest;
    private Topic<File> yoCompositePatternSaveRequest;
+   private Topic<List<String>> yoCompositeSelected;
 
    private Topic<Boolean> yoGraphicRootGroupRequest;
    private Topic<YoGroupFX> yoGraphicRootGroupData;
@@ -44,6 +46,9 @@ public class SessionVisualizerTopics
 
    private Topic<Pair<Window, File>> yoChartGroupSaveConfiguration;
    private Topic<Pair<Window, File>> yoChartGroupLoadConfiguration;
+
+   private Topic<File> yoSliderboardSaveConfiguration;
+   private Topic<File> yoSliderboardLoadConfiguration;
 
    // Session topics
    private Topic<SessionState> sessionCurrentState;
@@ -80,6 +85,7 @@ public class SessionVisualizerTopics
       yoSearchMaxListSize = SessionVisualizerMessagerAPI.YoSearch.YoSearchMaxListSize;
       yoCompositePatternLoadRequest = SessionVisualizerMessagerAPI.YoSearch.YoCompositePatternLoadRequest;
       yoCompositePatternSaveRequest = SessionVisualizerMessagerAPI.YoSearch.YoCompositePatternSaveRequest;
+      yoCompositeSelected = SessionVisualizerMessagerAPI.YoSearch.YoCompositePatternSelected;
 
       yoGraphicRootGroupRequest = SessionVisualizerMessagerAPI.YoGraphic.YoGraphicRootGroupRequest;
       yoGraphicRootGroupData = SessionVisualizerMessagerAPI.YoGraphic.YoGraphicRootGroupData;
@@ -92,6 +98,9 @@ public class SessionVisualizerTopics
       yoChartRequestShift = SessionVisualizerMessagerAPI.YoChart.YoChartRequestShift;
       yoChartGroupSaveConfiguration = SessionVisualizerMessagerAPI.YoChart.YoChartGroupSaveConfiguration;
       yoChartGroupLoadConfiguration = SessionVisualizerMessagerAPI.YoChart.YoChartGroupLoadConfiguration;
+
+      yoSliderboardSaveConfiguration = SessionVisualizerMessagerAPI.YoSliderboard.YoSliderboardSaveConfiguration;
+      yoSliderboardLoadConfiguration = SessionVisualizerMessagerAPI.YoSliderboard.YoSliderboardLoadConfiguration;
 
       sessionCurrentState = SessionMessagerAPI.SessionCurrentState;
       sessionCurrentMode = SessionMessagerAPI.SessionCurrentMode;
@@ -186,6 +195,11 @@ public class SessionVisualizerTopics
       return yoCompositePatternSaveRequest;
    }
 
+   public Topic<List<String>> getYoCompositeSelected()
+   {
+      return yoCompositeSelected;
+   }
+
    public Topic<Boolean> getYoGraphicRootGroupRequest()
    {
       return yoGraphicRootGroupRequest;
@@ -234,6 +248,16 @@ public class SessionVisualizerTopics
    public Topic<Pair<Window, File>> getYoChartGroupSaveConfiguration()
    {
       return yoChartGroupSaveConfiguration;
+   }
+
+   public Topic<File> getYoSliderboardLoadConfiguration()
+   {
+      return yoSliderboardLoadConfiguration;
+   }
+
+   public Topic<File> getYoSliderboardSaveConfiguration()
+   {
+      return yoSliderboardSaveConfiguration;
    }
 
    public Topic<SessionState> getSessionCurrentState()

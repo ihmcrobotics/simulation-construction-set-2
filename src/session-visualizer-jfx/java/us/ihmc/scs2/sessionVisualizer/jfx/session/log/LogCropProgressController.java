@@ -47,7 +47,7 @@ public class LogCropProgressController implements ProgressConsumer
    {
       taskInProgressLabel.setText(task);
 
-      JavaFXMissingTools.runLaterIfNeeded(() ->
+      JavaFXMissingTools.runLaterIfNeeded(getClass(), () ->
       {
          if (!parent.getChildren().contains(mainPane))
          {
@@ -61,25 +61,25 @@ public class LogCropProgressController implements ProgressConsumer
    @Override
    public void info(String info)
    {
-      JavaFXMissingTools.runLaterIfNeeded(() -> progressInfoLabel.setText(info));
+      JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> progressInfoLabel.setText(info));
    }
 
    @Override
    public void error(String error)
    {
-      JavaFXMissingTools.runLaterIfNeeded(() -> progressErrorLabel.setText(error));
+      JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> progressErrorLabel.setText(error));
    }
 
    @Override
    public void progress(double progressPercentage)
    {
-      JavaFXMissingTools.runLaterIfNeeded(() -> progressBar.setProgress(progressPercentage));
+      JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> progressBar.setProgress(progressPercentage));
    }
 
    @Override
    public void done()
    {
       info("Done!");
-      JavaFXMissingTools.runLaterIfNeeded(() -> closeTimeline.playFromStart());
+      JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> closeTimeline.playFromStart());
    }
 }

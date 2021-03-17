@@ -25,6 +25,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.ControllerListCell;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.SCSDefaultUIController;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 
 public class YoChartGroupModelEditorController implements SCSDefaultUIController
 {
@@ -116,10 +117,10 @@ public class YoChartGroupModelEditorController implements SCSDefaultUIController
    {
       if (prefHeightAdjustmentAnimation == null)
       {
-         prefHeightAdjustmentAnimation = new AnimationTimer()
+         prefHeightAdjustmentAnimation = new ObservedAnimationTimer(getClass().getSimpleName())
          {
             @Override
-            public void handle(long now)
+            public void handleImpl(long now)
             {
                if (listView.getItems().isEmpty())
                {

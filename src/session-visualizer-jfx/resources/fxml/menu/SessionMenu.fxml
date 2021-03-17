@@ -5,9 +5,9 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuItem?>
 
-<Menu text="_Session" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu.SessionMenuController">
+<Menu text="Session" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu.SessionMenuController">
    <items>
-      <MenuItem onAction="#startRemoteSession" text="Start _remote session...">
+      <MenuItem onAction="#startRemoteSession" text="Start remote session...">
          <graphic>
             <FontAwesomeIconView>
                <styleClass>
@@ -17,7 +17,7 @@
             </FontAwesomeIconView>
          </graphic>
       </MenuItem>
-      <MenuItem onAction="#startLogSession" text="Start _log session...">
+      <MenuItem onAction="#startLogSession" text="Start log session...">
          <graphic>
             <FontAwesomeIconView>
                <styleClass>

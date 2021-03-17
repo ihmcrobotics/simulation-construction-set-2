@@ -84,7 +84,7 @@ public class YoRobotFX
                                                                 new KeyValue(node.scaleZProperty(), 1.0)));
                   timeline.setCycleCount(1);
 
-                  JavaFXMissingTools.runLaterIfNeeded(() ->
+                  JavaFXMissingTools.runLaterIfNeeded(getClass(), () ->
                   {
                      newValue.updatePose();
                      timeline.playFromStart();
@@ -93,13 +93,13 @@ public class YoRobotFX
                }
                else
                {
-                  JavaFXMissingTools.runLaterIfNeeded(() -> rootNode.getChildren().remove(oldValue.getNode()));
-                  JavaFXMissingTools.runLaterIfNeeded(() -> rootNode.getChildren().add(newValue.getNode()));
+                  JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> rootNode.getChildren().remove(oldValue.getNode()));
+                  JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> rootNode.getChildren().add(newValue.getNode()));
                }
             }
             else if (oldValue != null)
             {
-               JavaFXMissingTools.runLaterIfNeeded(() -> rootNode.getChildren().remove(oldValue.getNode()));
+               JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> rootNode.getChildren().remove(oldValue.getNode()));
             }
          };
          rigidBody.graphicsProperty().addListener(listener);

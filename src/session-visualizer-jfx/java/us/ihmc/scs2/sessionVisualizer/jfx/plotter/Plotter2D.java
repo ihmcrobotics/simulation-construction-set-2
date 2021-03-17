@@ -8,6 +8,7 @@ import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
@@ -25,8 +26,7 @@ public class Plotter2D extends Region
    private final Translate rootTranslation = new Translate();
    private final ObjectProperty<MouseButton> mouseButtonForTranslation = new SimpleObjectProperty<>(this, "mouseButtonForTranslation", MouseButton.PRIMARY);
    private final Scale rootScale = new Scale(1.0, -1.0);
-   private final ObjectProperty<MouseButton> mouseButtonForScale = new SimpleObjectProperty<>(this, "mouseButtonForScale", MouseButton.SECONDARY);
-   private final DoubleProperty scaleModifier = new SimpleDoubleProperty(this, "scaleModifier", 0.025);
+   private final DoubleProperty scaleModifier = new SimpleDoubleProperty(this, "scaleModifier", 0.0025);
    private final DoubleProperty minScale = new SimpleDoubleProperty(this, "minScale", 0.01);
 
    private final Point2D center = new Point2D();
@@ -38,7 +38,7 @@ public class Plotter2D extends Region
       root.getTransforms().addAll(rootTranslation, rootScale);
 
       addEventHandler(MouseEvent.ANY, createTranslationEventHandler());
-      addEventHandler(MouseEvent.ANY, createScaleEventHandler());
+      addEventHandler(ScrollEvent.ANY, createScaleEventHandler());
       requestParentLayout();
       setManaged(false);
    }
@@ -119,56 +119,29 @@ public class Plotter2D extends Region
       };
    }
 
-   public EventHandler<MouseEvent> createScaleEventHandler()
+   public EventHandler<ScrollEvent> createScaleEventHandler()
    {
-      return new EventHandler<MouseEvent>()
+      return new EventHandler<ScrollEvent>()
       {
-         Point2D initialMouseLocationLocal;
-         Point2D initialMouseLocationScene;
-         double oldMouseLocation = 0.0;
-
          @Override
-         public void handle(MouseEvent event)
+         public void handle(ScrollEvent event)
          {
-            if (event.getButton() != mouseButtonForScale.get())
-               return;
 
-            if (event.isStillSincePress())
-               return;
-
-            if (event.getEventType() == MouseEvent.MOUSE_PRESSED)
-            {
-               oldMouseLocation = event.getY();
-               initialMouseLocationScene = new Point2D(event.getX(), event.getY());
-               initialMouseLocationLocal = JavaFXToEuclidConversions.convertPoint2D(root.sceneToLocal(event.getX(), event.getY()));
-               return;
-            }
-
-            if (event.getEventType() != MouseEvent.MOUSE_DRAGGED)
-               return;
-
-            if (initialMouseLocationLocal == null)
-               return;
-
-            double newMouseLocation = event.getY();
-            double verticalDrag = newMouseLocation - oldMouseLocation;
+            double verticalDrag = event.getDeltaY();
             double oldScale = rootScale.getX();
             double newScale = oldScale * (1.0 - scaleModifier.get() * verticalDrag);
             newScale = Math.max(minScale.get(), newScale);
 
+            javafx.geometry.Point2D preScaleLocation = root.sceneToLocal(event.getX(), event.getY());
             rootScale.setX(newScale);
             rootScale.setY(-newScale);
+            javafx.geometry.Point2D postScaleLocation = root.sceneToLocal(event.getX(), event.getY());
 
-            Point2D mouseLocationLocal = JavaFXToEuclidConversions.convertPoint2D(root.sceneToLocal(initialMouseLocationScene.getX(),
-                                                                                                    initialMouseLocationScene.getY()));
-            Vector2D translation = new Vector2D();
-            translation.sub(mouseLocationLocal, initialMouseLocationLocal);
-            translation.scale(rootScale.getX(), rootScale.getY());
-            JavaFXMissingTools.addEquals(rootTranslation, translation);
+            rootTranslation.setX(rootTranslation.getX() + rootScale.getX() * (postScaleLocation.getX() - preScaleLocation.getX()));
+            rootTranslation.setY(rootTranslation.getY() + rootScale.getY() * (postScaleLocation.getY() - preScaleLocation.getY()));
 
             center.set(computeCenterLocal());
             updateGrid();
-            oldMouseLocation = newMouseLocation;
          }
       };
    }

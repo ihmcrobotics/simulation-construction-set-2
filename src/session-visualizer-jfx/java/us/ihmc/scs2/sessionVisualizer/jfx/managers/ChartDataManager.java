@@ -6,7 +6,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import javafx.animation.AnimationTimer;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
@@ -14,6 +13,7 @@ import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartIntegerBounds;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.YoVariableChartData;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sharedMemory.LinkedYoVariable;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -22,10 +22,10 @@ import us.ihmc.yoVariables.variable.YoVariable;
  * FIXME The user should be able to pan the charts without modifying the buffer index. This would
  * involve allowing the buffer index to be outside the view when "desired".
  */
-public class ChartDataManager extends AnimationTimer implements Manager
+public class ChartDataManager extends ObservedAnimationTimer implements Manager
 {
-   private final Map<YoVariable, LinkedYoVariable> linkedVariableMap = new HashMap<>();
-   private final Map<YoVariable, YoVariableChartData<?, ?>> chartDataMap = new ConcurrentHashMap<>();
+   private final Map<YoVariable, LinkedYoVariable<?>> linkedVariableMap = new HashMap<>();
+   private final Map<YoVariable, YoVariableChartData> chartDataMap = new ConcurrentHashMap<>();
    private final SessionVisualizerTopics topics;
    private final JavaFXMessager messager;
    private final YoManager yoManager;
@@ -43,6 +43,8 @@ public class ChartDataManager extends AnimationTimer implements Manager
 
    public ChartDataManager(JavaFXMessager messager, SessionVisualizerTopics topics, YoManager yoManager, BackgroundExecutorManager backgroundExecutorManager)
    {
+      super(ChartDataManager.class.getSimpleName());
+
       this.topics = topics;
       this.messager = messager;
       this.yoManager = yoManager;
@@ -106,7 +108,7 @@ public class ChartDataManager extends AnimationTimer implements Manager
    }
 
    @Override
-   public void handle(long now)
+   public void handleImpl(long now)
    {
       YoBufferPropertiesReadOnly currentBufferProperties = currentBufferPropertiesProperty.getValue();
 
@@ -229,12 +231,12 @@ public class ChartDataManager extends AnimationTimer implements Manager
       return currentBoundsProperty;
    }
 
-   public YoVariableChartData<?, ?> getYoVariableChartData(Object callerID, YoVariable yoVariable)
+   public YoVariableChartData getYoVariableChartData(Object callerID, YoVariable yoVariable)
    {
-      YoVariableChartData<?, ?> yoVariableChartData = chartDataMap.get(yoVariable);
+      YoVariableChartData yoVariableChartData = chartDataMap.get(yoVariable);
       if (yoVariableChartData == null)
       {
-         yoVariableChartData = YoVariableChartData.newYoVariableChartData(messager, topics, getLinkedYoVariable(yoVariable));
+         yoVariableChartData = new YoVariableChartData(messager, topics, getLinkedYoVariable(yoVariable));
          yoVariableChartData.registerCaller(callerID);
          chartDataMap.put(yoVariable, yoVariableChartData);
       }
@@ -245,9 +247,9 @@ public class ChartDataManager extends AnimationTimer implements Manager
       return yoVariableChartData;
    }
 
-   private LinkedYoVariable getLinkedYoVariable(YoVariable yoVariable)
+   private LinkedYoVariable<?> getLinkedYoVariable(YoVariable yoVariable)
    {
-      LinkedYoVariable linkedYoVariable = linkedVariableMap.get(yoVariable);
+      LinkedYoVariable<?> linkedYoVariable = linkedVariableMap.get(yoVariable);
       if (linkedYoVariable == null)
       {
          linkedYoVariable = yoManager.newLinkedYoVariable(yoVariable);

@@ -16,7 +16,6 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
@@ -54,6 +53,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXItem;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
@@ -206,7 +206,7 @@ public class YoGraphicPropertyWindowController
             change.getElementRemoved().getItemChildren().removeListener(treeViewAutoRefreshListener);
          }
 
-         Platform.runLater(() ->
+         JavaFXMissingTools.runLater(getClass(), () ->
          {
             ignoreTreeSelectionUpdate = true;
             refreshTreeView();
@@ -439,7 +439,7 @@ public class YoGraphicPropertyWindowController
          {
             YoGraphicFXItem newItem = YoGraphicFXControllerTools.createYoGraphicFXItemAndRegister(group, itemNameResult.get(), itemTypeResult.get());
 
-            Platform.runLater(() ->
+            JavaFXMissingTools.runLater(getClass(), () ->
             {
                selectItem(rootItem, newItem);
                yoGraphicTreeView.requestFocus();
@@ -515,7 +515,7 @@ public class YoGraphicPropertyWindowController
 
       cachedEditors.remove(selectedItem.getValue());
 
-      Platform.runLater(() ->
+      JavaFXMissingTools.runLater(getClass(), () ->
       {
          ignoreTreeSelectionUpdate = true;
          yoGraphicTreeView.getSelectionModel().clearSelection();
@@ -540,7 +540,7 @@ public class YoGraphicPropertyWindowController
 
       YoGraphicFXItem newItem = YoGraphicFXControllerTools.duplicateYoGraphicFXItemAndRegister(selectedItem.getValue());
 
-      Platform.runLater(() ->
+      JavaFXMissingTools.runLater(getClass(), () ->
       {
          selectItem(rootItem, newItem);
          yoGraphicTreeView.requestFocus();
@@ -599,7 +599,7 @@ public class YoGraphicPropertyWindowController
          {
             if (itemToSelectOnCancel != null)
             {
-               Platform.runLater(() ->
+               JavaFXMissingTools.runLater(getClass(), () ->
                {
                   ignoreTreeSelectionUpdate = true;
                   yoGraphicTreeView.getSelectionModel().clearSelection();

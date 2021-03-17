@@ -1,6 +1,8 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.managers;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -8,6 +10,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 
@@ -18,6 +21,8 @@ public class BackgroundExecutorManager
    private final ScheduledExecutorService backgroundExecutor;
    private final Map<Object, ConcurrentLinkedQueue<Runnable>> taskQueues = new HashMap<>();
    private final Map<Object, Future<?>> activeFutureMap = new ConcurrentHashMap<>();
+
+   private final List<Future<?>> futures = new ArrayList<>();
 
    public BackgroundExecutorManager(int numberOfThreads)
    {
@@ -126,10 +131,22 @@ public class BackgroundExecutorManager
 
    public Future<?> scheduleTaskInBackground(Runnable periodicTask, long initialDelay, long period, TimeUnit unit)
    {
-      return backgroundExecutor.scheduleAtFixedRate(periodicTask, initialDelay, period, unit);
+      ScheduledFuture<?> newFuture = backgroundExecutor.scheduleAtFixedRate(periodicTask, initialDelay, period, unit);
+      futures.add(newFuture);
+      return newFuture;
    }
 
-   public void stop()
+   public void stopSession()
+   {
+      futures.forEach(future ->
+      {
+         if (!future.isDone())
+            future.cancel(false);
+      });
+      futures.clear();
+   }
+
+   public void shutdown()
    {
       backgroundExecutor.shutdown();
    }

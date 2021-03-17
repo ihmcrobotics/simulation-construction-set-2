@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.jfoenix.controls.JFXToggleButton?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox fx:id="rootPane" alignment="CENTER" styleClass="sliderboard-grid-cell" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.bcf2000.YoBCF2000ButtonController">
+   <children>
+      <JFXToggleButton fx:id="button" contentDisplay="GRAPHIC_ONLY" styleClass="sliderboard-button" stylesheets="@../../../css/GeneralStylesheet.css" />
+      <Label fx:id="yoVariableDropLabel" text="Drop YoBoolean Here" />
+   </children>
+</VBox>

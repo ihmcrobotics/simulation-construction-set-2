@@ -31,7 +31,7 @@ public class YoLongProperty extends LongPropertyBase implements YoVariableProper
    }
 
    @Override
-   protected void finalize() throws Throwable
+   public void finalize()
    {
       try
       {
@@ -39,7 +39,6 @@ public class YoLongProperty extends LongPropertyBase implements YoVariableProper
       }
       finally
       {
-         super.finalize();
       }
    }
 

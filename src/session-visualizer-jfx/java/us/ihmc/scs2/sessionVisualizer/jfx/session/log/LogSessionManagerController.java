@@ -11,7 +11,6 @@ import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXSpinner;
 import com.jfoenix.controls.JFXToggleButton;
 
-import javafx.application.Platform;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.ObjectProperty;
@@ -146,7 +145,7 @@ public class LogSessionManagerController implements SessionControlsController
             thumbnailsTitledPane.setText(logHasVideos ? "Logged videos" : "No video");
             thumbnailsTitledPane.setExpanded(logHasVideos);
             thumbnailsTitledPane.setDisable(!logHasVideos);
-            Platform.runLater(() -> stage.sizeToScene());
+            JavaFXMissingTools.runLater(getClass(), () -> stage.sizeToScene());
          }
       };
 
@@ -173,7 +172,7 @@ public class LogSessionManagerController implements SessionControlsController
 
          if (sliderFeedbackEnabled.get())
          {
-            Platform.runLater(() ->
+            JavaFXMissingTools.runLater(getClass(), () ->
             {
                if (logSession == null || logSession.getLogDataReader() == null)
                   return;
@@ -204,7 +203,7 @@ public class LogSessionManagerController implements SessionControlsController
       activeSessionProperty.addListener(activeSessionListener);
       activeSessionListener.changed(null, null, null);
 
-      thumbnailsTitledPane.expandedProperty().addListener((o, oldValue, newValue) -> Platform.runLater(stage::sizeToScene));
+      thumbnailsTitledPane.expandedProperty().addListener((o, oldValue, newValue) -> JavaFXMissingTools.runLater(getClass(), stage::sizeToScene));
 
       logPositionSlider.showTrimProperty().bind(showTrimsButton.selectedProperty());
       logPositionSlider.showTrimProperty().addListener((o, oldValue, newValue) ->
@@ -242,7 +241,7 @@ public class LogSessionManagerController implements SessionControlsController
                LogTools.info("Creating log session.");
                newSession = new LogSession(result.getParentFile(), null); // TODO Need a progress window
                LogTools.info("Created log session.");
-               Platform.runLater(() -> activeSessionProperty.set(newSession));
+               JavaFXMissingTools.runLater(getClass(), () -> activeSessionProperty.set(newSession));
                SessionVisualizerIOTools.setDefaultFilePath(LOG_FILE_KEY, result);
             }
             catch (IOException ex)

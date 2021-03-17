@@ -28,7 +28,7 @@ public class YoEnumProperty<E extends Enum<E>> extends ObjectPropertyBase<E> imp
    }
 
    @Override
-   protected void finalize() throws Throwable
+   public void finalize()
    {
       try
       {
@@ -36,7 +36,6 @@ public class YoEnumProperty<E extends Enum<E>> extends ObjectPropertyBase<E> imp
       }
       finally
       {
-         super.finalize();
       }
    }
 

@@ -16,7 +16,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TitledPane;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartDoubleBounds;
-import us.ihmc.scs2.sessionVisualizer.jfx.charts.YoDoubleDataSet;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.chart.YoChartOptionController.ChartScalingMode;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.NumberFormatTools;
@@ -45,12 +44,12 @@ public class YoChartVariableOptionController
    private final TextFormatter<Double> minFormatter = new TextFormatter<>(new ScientificDoubleStringConverter(PRECISION), 0.0);
    private final TextFormatter<Double> maxFormatter = new TextFormatter<>(new ScientificDoubleStringConverter(PRECISION), 0.0);
 
-   private YoDoubleDataSet yoDataSet;
+   private YoNumberSeries series;
    private Property<ChartScalingMode> masterScalingModeProperty;
 
-   private final ChangeListener<Boolean> negateUpdater = (o, oldValue, newValue) -> yoDataSet.setNegated(newValue);
+   private final ChangeListener<Boolean> negateUpdater = (o, oldValue, newValue) -> series.setNegated(newValue);
    private final ChangeListener<ChartScalingMode> globalScalingListener = (o, oldValue, newValue) -> setGlobalScaling(newValue);
-   private final ChangeListener<ChartDoubleBounds> customBoundsUpdater = (o, oldValue, newValue) -> yoDataSet.setCustomYBounds(newValue);
+   private final ChangeListener<ChartDoubleBounds> customBoundsUpdater = (o, oldValue, newValue) -> series.setCustomYBounds(newValue);
    private final ChangeListener<ChartVariableScalingMode> localScalingListener = (o, oldValue, newValue) -> setLocalScaling(newValue);
    private final ChangeListener<ChartDoubleBounds> actualYBoundsUpdater = (o, oldValue, newValue) -> actualYBoundsProperty.set(newValue);
 
@@ -88,20 +87,20 @@ public class YoChartVariableOptionController
       });
    }
 
-   public void setInput(YoDoubleDataSet yoDataSet, Property<ChartScalingMode> masterScalingModeProperty)
+   public void setInput(YoNumberSeries series, Property<ChartScalingMode> masterScalingModeProperty)
    {
-      this.yoDataSet = yoDataSet;
+      this.series = series;
       this.masterScalingModeProperty = masterScalingModeProperty;
-      mainPane.setText(yoDataSet.getYoVariable().getName());
+      mainPane.setText(series.getYoVariable().getName());
 
-      manualYBoundsProperty.set(yoDataSet.getCustomYBounds());
+      manualYBoundsProperty.set(series.getCustomYBounds());
 
       if (masterScalingModeProperty.getValue() == ChartScalingMode.INDIVIDUAL && manualYBoundsProperty.get() != null)
          scalingComboBox.setValue(ChartVariableScalingMode.MANUAL);
       else
          scalingComboBox.setValue(ChartVariableScalingMode.AUTO);
 
-      negateCheckBox.setSelected(yoDataSet.isNegated());
+      negateCheckBox.setSelected(series.isNegated());
       negateCheckBox.selectedProperty().addListener(negateUpdater);
 
       setGlobalScaling(masterScalingModeProperty.getValue());
@@ -110,7 +109,7 @@ public class YoChartVariableOptionController
       setLocalScaling(scalingComboBox.getValue());
       scalingComboBox.valueProperty().addListener(localScalingListener);
 
-      yoDataSet.dataYBoundsProperty().addListener(actualYBoundsUpdater);
+      series.yBoundsProperty().addListener(actualYBoundsUpdater);
 
       actualYBoundsProperty.addListener((o, oldValue, newValue) ->
       {
@@ -131,8 +130,8 @@ public class YoChartVariableOptionController
          }
       });
 
-      if (yoDataSet.getDataYBounds() != null)
-         actualYBoundsProperty.set(new ChartDoubleBounds(yoDataSet.getDataYBounds()));
+      if (series.yBoundsProperty().getValue() != null)
+         actualYBoundsProperty.set(new ChartDoubleBounds(series.yBoundsProperty().getValue()));
       else
          actualYBoundsProperty.set(null);
    }
@@ -160,12 +159,12 @@ public class YoChartVariableOptionController
          minFormatter.setValue(manualYBoundsProperty.get().getLower());
          maxFormatter.setValue(manualYBoundsProperty.get().getUpper());
          manualYBoundsProperty.addListener(customBoundsUpdater);
-         yoDataSet.setCustomYBounds(manualYBoundsProperty.get());
+         series.setCustomYBounds(manualYBoundsProperty.get());
       }
       else
       {
          manualYBoundsProperty.removeListener(customBoundsUpdater);
-         yoDataSet.setCustomYBounds(null);
+         series.setCustomYBounds(null);
       }
    }
 
@@ -174,12 +173,12 @@ public class YoChartVariableOptionController
       masterScalingModeProperty.removeListener(globalScalingListener);
       scalingComboBox.valueProperty().removeListener(localScalingListener);
       manualYBoundsProperty.removeListener(customBoundsUpdater);
-      yoDataSet.dataYBoundsProperty().removeListener(actualYBoundsUpdater);
+      series.yBoundsProperty().removeListener(actualYBoundsUpdater);
    }
 
-   public YoDoubleDataSet getYoDataSet()
+   public YoNumberSeries getSeries()
    {
-      return yoDataSet;
+      return series;
    }
 
    public TitledPane getMainPane()

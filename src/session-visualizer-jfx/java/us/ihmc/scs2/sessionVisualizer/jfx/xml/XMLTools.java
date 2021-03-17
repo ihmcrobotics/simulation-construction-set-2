@@ -6,6 +6,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBContext;
@@ -14,6 +15,9 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
 
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.configuration.SCSGuiConfigurationDefinition;
@@ -22,39 +26,18 @@ import us.ihmc.scs2.definition.yoComposite.YoCompositePatternListDefinition;
 import us.ihmc.scs2.definition.yoEntry.YoEntryConfigurationDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicListDefinition;
+import us.ihmc.scs2.definition.yoSlider.YoSliderboardListDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositePattern;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
 
 public class XMLTools
 {
+   private static boolean loadingYoGraphicContext = false;
    private static JAXBContext yoGraphicContext;
 
    static
    {
-      Thread loader = new Thread(() ->
-      {
-         try
-         {
-            Reflections reflections = new Reflections();
-            Set<Class<? extends YoGraphicDefinition>> graphicDefinitions = reflections.getSubTypesOf(YoGraphicDefinition.class).stream()
-                                                                                      .filter(type -> !Modifier.isAbstract(type.getModifiers())
-                                                                                            && !type.isInterface())
-                                                                                      .collect(Collectors.toSet());
-            Set<Class<? extends YoCompositeDefinition>> compositeDefinitions = reflections.getSubTypesOf(YoCompositeDefinition.class).stream()
-                                                                                          .filter(type -> !Modifier.isAbstract(type.getModifiers())
-                                                                                                && !type.isInterface())
-                                                                                          .collect(Collectors.toSet());
-            List<Class<?>> classesToBeBound = new ArrayList<>();
-            classesToBeBound.add(YoGraphicListDefinition.class);
-            classesToBeBound.addAll(graphicDefinitions);
-            classesToBeBound.addAll(compositeDefinitions);
-            yoGraphicContext = JAXBContext.newInstance(classesToBeBound.toArray(new Class[classesToBeBound.size()]));
-         }
-         catch (JAXBException e)
-         {
-            throw new RuntimeException("Failed at creating JAXBContext, won't be able to load YoGraphics. Cause: ", e);
-         }
-      }, "JAXBContext Loader");
+      Thread loader = new Thread(XMLTools::loadResourcesNow, "JAXBContext Loader");
       loader.setPriority(Thread.MIN_PRIORITY);
       loader.setDaemon(true);
       loader.start();
@@ -63,6 +46,40 @@ public class XMLTools
    public static void loadResources()
    {
       // Only need to load this class to get the resources loaded.
+   }
+
+   public static void loadResourcesNow()
+   {
+      if (loadingYoGraphicContext || isYoGraphicContextReady())
+         return;
+
+      loadingYoGraphicContext = true;
+
+      try
+      {
+         Predicate<? super Class<?>> classFilter = type -> !Modifier.isAbstract(type.getModifiers()) && !type.isInterface();
+
+         Reflections reflections = new Reflections(new ConfigurationBuilder().setUrls(ClasspathHelper.forPackage(YoGraphicDefinition.class.getPackageName()))
+                                                                             .setScanners(new SubTypesScanner()));
+
+         Set<Class<? extends YoGraphicDefinition>> graphicDefinitions = reflections.getSubTypesOf(YoGraphicDefinition.class).stream().filter(classFilter)
+                                                                                   .collect(Collectors.toSet());
+
+         reflections = new Reflections(new ConfigurationBuilder().setUrls(ClasspathHelper.forPackage(YoCompositeDefinition.class.getPackageName()))
+                                                                 .setScanners(new SubTypesScanner()));
+         Set<Class<? extends YoCompositeDefinition>> compositeDefinitions = reflections.getSubTypesOf(YoCompositeDefinition.class).stream().filter(classFilter)
+                                                                                       .collect(Collectors.toSet());
+
+         List<Class<?>> classesToBeBound = new ArrayList<>();
+         classesToBeBound.add(YoGraphicListDefinition.class);
+         classesToBeBound.addAll(graphicDefinitions);
+         classesToBeBound.addAll(compositeDefinitions);
+         yoGraphicContext = JAXBContext.newInstance(classesToBeBound.toArray(new Class[classesToBeBound.size()]));
+      }
+      catch (JAXBException e)
+      {
+         throw new RuntimeException("Failed at creating JAXBContext, won't be able to load YoGraphics. Cause: ", e);
+      }
    }
 
    public static boolean isYoGraphicContextReady()
@@ -107,6 +124,13 @@ public class XMLTools
       return (YoEntryConfigurationDefinition) unmarshaller.unmarshal(inputStream);
    }
 
+   public static YoSliderboardListDefinition loadYoSliderboardListDefinition(InputStream inputStream) throws JAXBException
+   {
+      JAXBContext context = JAXBContext.newInstance(YoSliderboardListDefinition.class);
+      Unmarshaller unmarshaller = context.createUnmarshaller();
+      return (YoSliderboardListDefinition) unmarshaller.unmarshal(inputStream);
+   }
+
    public static void saveSCSGuiConfigurationDefinition(OutputStream outputStream, SCSGuiConfigurationDefinition definition) throws JAXBException
    {
       JAXBContext context = JAXBContext.newInstance(SCSGuiConfigurationDefinition.class);
@@ -143,6 +167,14 @@ public class XMLTools
    public static void saveYoEntryConfigurationDefinition(OutputStream outputStream, YoEntryConfigurationDefinition definition) throws JAXBException
    {
       JAXBContext context = JAXBContext.newInstance(YoEntryConfigurationDefinition.class);
+      Marshaller marshaller = context.createMarshaller();
+      marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+      marshaller.marshal(definition, outputStream);
+   }
+
+   public static void saveYoSliderboardListDefinition(OutputStream outputStream, YoSliderboardListDefinition definition) throws JAXBException
+   {
+      JAXBContext context = JAXBContext.newInstance(YoSliderboardListDefinition.class);
       Marshaller marshaller = context.createMarshaller();
       marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
       marshaller.marshal(definition, outputStream);

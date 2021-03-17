@@ -9,6 +9,9 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.reflections.Reflections;
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
@@ -22,7 +25,7 @@ import javafx.beans.value.ObservableBooleanValue;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.CompositePropertyTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.CompositePropertyTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple2DProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple3DProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX;
@@ -42,7 +45,9 @@ public class YoGraphicFXControllerTools
    {
       Thread loader = new Thread(() ->
       {
-         Reflections reflections = new Reflections();
+         Reflections reflections = new Reflections(new ConfigurationBuilder()
+                                                   .setUrls(ClasspathHelper.forPackage(YoGraphicFXItem.class.getPackageName()))
+                                                   .setScanners(new SubTypesScanner()));
          Set<Class<? extends YoGraphicFXItem>> yoGraphicFXSubTypes = reflections.getSubTypesOf(YoGraphicFXItem.class);
          yoGraphicFXTypes = yoGraphicFXSubTypes.stream().filter(type -> !Modifier.isAbstract(type.getModifiers()) && !type.isInterface())
                                                .sorted((c1, c2) -> c1.getSimpleName().compareTo(c2.getSimpleName())).collect(Collectors.toList());

@@ -50,12 +50,22 @@ simulationDependencies {
 sessionVisualizerDependencies {
    api(ihmc.sourceSetProject("simulation"))
    api(ihmc.sourceSetProject("definition"))
+   
+   var javaFXVersion = "15.0.1"
+   api(ihmc.javaFXModule("base", javaFXVersion)) // This is for using the property data structure. Not sure if that's the best thing to do.
 }
 
 sessionVisualizerJfxDependencies {
    api(ihmc.sourceSetProject("simulation"))
    api(ihmc.sourceSetProject("session"))
    api(ihmc.sourceSetProject("session-visualizer"))
+
+   var javaFXVersion = "15.0.1"
+   api(ihmc.javaFXModule("base", javaFXVersion))
+   api(ihmc.javaFXModule("controls", javaFXVersion))
+   api(ihmc.javaFXModule("graphics", javaFXVersion))
+   api(ihmc.javaFXModule("fxml", javaFXVersion))
+   api(ihmc.javaFXModule("swing", javaFXVersion))
 
    compile("us.ihmc:ihmc-javafx-toolkit:0.19.3") {
       exclude(group="us.ihmc", module="jassimp")
@@ -66,14 +76,17 @@ sessionVisualizerJfxDependencies {
    api("us.ihmc:svgloader:0.0")
    api("us.ihmc:ihmc-javafx-extensions:0.0.1")
 
-   api("org.reflections:reflections:0.9.12")
+   api("org.reflections:reflections:0.9.11")
 
    // JavaFX extensions
-   api("org.controlsfx:controlsfx:8.40.18")
-   api("de.jensd:fontawesomefx:8.9")
-   api("com.jfoenix:jfoenix:8.0.10")
+   api("org.controlsfx:controlsfx:11.0.1")
+   api("de.jensd:fontawesomefx-commons:9.1.2")
+   api("de.jensd:fontawesomefx-octicons:4.3.0-9.1.2")
+   api("de.jensd:fontawesomefx-materialicons:2.2.0-9.1.2")
+   api("de.jensd:fontawesomefx-materialdesignfont:2.0.26-9.1.2")
+   api("de.jensd:fontawesomefx-fontawesome:4.7.0-9.1.2")
+   api("com.jfoenix:jfoenix:9.0.10")
    api("org.apache.commons:commons-text:1.9")
-   api("de.gsi.chart:chartfx-chart:8.1.4") // FIXME Seems to be having an issue with 8.1.5 where the GUI freezes when adding a chart.
 
    api(fileTree(mapOf("dir" to "src/session-visualizer-jfx/libs/JavaFXModelImporters", "include" to "*.jar")))
 }

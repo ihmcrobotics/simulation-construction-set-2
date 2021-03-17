@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javafx.beans.property.Property;
-import us.ihmc.javaFXToolkit.messager.SharedMemoryJavaFXMessager;
 import us.ihmc.messager.MessagerAPIFactory.MessagerAPI;
 import us.ihmc.messager.MessagerAPIFactory.Topic;
 

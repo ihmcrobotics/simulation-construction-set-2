@@ -1,11 +1,17 @@
 package us.ihmc.scs2.sessionVisualizer.jfx;
 
 import java.io.File;
+import java.util.List;
 
 import javafx.stage.Window;
 import javafx.util.Pair;
 import us.ihmc.messager.MessagerAPIFactory;
-import us.ihmc.messager.MessagerAPIFactory.*;
+import us.ihmc.messager.MessagerAPIFactory.Category;
+import us.ihmc.messager.MessagerAPIFactory.CategoryTheme;
+import us.ihmc.messager.MessagerAPIFactory.MessagerAPI;
+import us.ihmc.messager.MessagerAPIFactory.Topic;
+import us.ihmc.messager.MessagerAPIFactory.TopicTheme;
+import us.ihmc.messager.MessagerAPIFactory.TypedTopicTheme;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.search.SearchEngines;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
 
@@ -20,6 +26,7 @@ public class SessionVisualizerMessagerAPI
    private static final CategoryTheme Advanced = apiFactory.createCategoryTheme("Advanced");
    private static final CategoryTheme OverheadPlotter = apiFactory.createCategoryTheme("OverheadPlotter");
    private static final CategoryTheme Group = apiFactory.createCategoryTheme("Group");
+   private static final CategoryTheme Configuration = apiFactory.createCategoryTheme("Configuration");
 
    private static final TopicTheme Toggle = apiFactory.createTopicTheme("Toggle");
    private static final TopicTheme Next = apiFactory.createTopicTheme("Next");
@@ -45,6 +52,7 @@ public class SessionVisualizerMessagerAPI
       new YoSearch();
       new YoGraphic();
       new YoChart();
+      new YoSliderboard();
       new Session();
    }
 
@@ -69,12 +77,14 @@ public class SessionVisualizerMessagerAPI
 
       private static final TypedTopicTheme<SearchEngines> SearchEngine = apiFactory.createTypedTopicTheme("SearchEngine");
       private static final TypedTopicTheme<String> SearchTarget = apiFactory.createTypedTopicTheme("SearchTarget");
+      private static final TopicTheme Selected = apiFactory.createTopicTheme("Selected");
 
       public static final Topic<SearchEngines> YoSearchEngine = APIRoot.child(YoSearch).topic(SearchEngine);
       public static final Topic<String> YoSearchTarget = APIRoot.child(YoSearch).topic(SearchTarget);
       public static final Topic<Integer> YoSearchMaxListSize = APIRoot.child(YoSearch).topic(Size);
       public static final Topic<File> YoCompositePatternLoadRequest = APIRoot.child(YoSearch).child(YoCompositePattern).topic(Load);
       public static final Topic<File> YoCompositePatternSaveRequest = APIRoot.child(YoSearch).child(YoCompositePattern).topic(Save);
+      public static final Topic<List<String>> YoCompositePatternSelected = APIRoot.child(YoSearch).child(YoCompositePattern).topic(Selected);
    }
 
    public static class YoGraphic
@@ -95,7 +105,6 @@ public class SessionVisualizerMessagerAPI
       private static final CategoryTheme In = apiFactory.createCategoryTheme("In");
       private static final CategoryTheme Out = apiFactory.createCategoryTheme("Out");
       private static final CategoryTheme Shift = apiFactory.createCategoryTheme("Shift");
-      private static final CategoryTheme Configuration = apiFactory.createCategoryTheme("Configuration");
 
       private static final TypedTopicTheme<Double> Factor = apiFactory.createTypedTopicTheme("Factor");
 
@@ -105,6 +114,14 @@ public class SessionVisualizerMessagerAPI
       public static final Topic<Integer> YoChartRequestShift = APIRoot.child(YoChart).child(Shift).topic(Request);
       public static final Topic<Pair<Window, File>> YoChartGroupSaveConfiguration = APIRoot.child(YoChart).child(Group).child(Configuration).topic(Save);
       public static final Topic<Pair<Window, File>> YoChartGroupLoadConfiguration = APIRoot.child(YoChart).child(Group).child(Configuration).topic(Load);
+   }
+
+   public static class YoSliderboard
+   {
+      private static final CategoryTheme YoSliderboard = apiFactory.createCategoryTheme("YoSliderboard");
+
+      public static final Topic<File> YoSliderboardSaveConfiguration = APIRoot.child(YoSliderboard).child(Configuration).topic(Save);
+      public static final Topic<File> YoSliderboardLoadConfiguration = APIRoot.child(YoSliderboard).child(Configuration).topic(Load);
    }
 
    public static class Session
