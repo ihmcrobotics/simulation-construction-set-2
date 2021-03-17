@@ -32,7 +32,7 @@ public class YoSearchTabPaneController
    public void initialize(SessionVisualizerToolkit toolkit)
    {
       this.toolkit = toolkit;
-      yoSearchTabPane.setTabClosingPolicy(TabClosingPolicy.SELECTED_TAB);
+      yoSearchTabPane.setTabClosingPolicy(TabClosingPolicy.ALL_TABS);
       yoSearchTabPane.getSelectionModel().select(1);
       yoRegistrySearchPaneController.initialize(toolkit);
       yoRegistrySearchPaneController.setRegistryViewRequestConsumer(newRequest ->
