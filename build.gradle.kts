@@ -73,11 +73,7 @@ sessionVisualizerJfxDependencies {
 
    // JavaFX extensions
    api("org.controlsfx:controlsfx:8.40.18")
-   api("de.jensd:fontawesomefx-commons:9.1.2")
-   api("de.jensd:fontawesomefx-octicons:4.3.0-9.1.2")
-   api("de.jensd:fontawesomefx-materialicons:2.2.0-9.1.2")
-   api("de.jensd:fontawesomefx-materialdesignfont:2.0.26-9.1.2")
-   api("de.jensd:fontawesomefx-fontawesome:4.7.0-9.1.2")
+   api("de.jensd:fontawesomefx:8.9")
    api("com.jfoenix:jfoenix:8.0.10")
    api("org.apache.commons:commons-text:1.9")
 
