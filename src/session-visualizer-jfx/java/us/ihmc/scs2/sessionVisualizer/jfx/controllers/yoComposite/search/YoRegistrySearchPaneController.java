@@ -14,6 +14,9 @@ import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
+import javafx.scene.input.InputEvent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
@@ -175,19 +178,33 @@ public class YoRegistrySearchPaneController extends ObservedAnimationTimer
    }
 
    @FXML
-   void openRegistryTab(MouseEvent event)
+   void openRegistryTab(InputEvent inputEvent)
    {
       if (registryViewRequestConsumer == null)
          return;
 
-      if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2)
+      boolean performOpenAction = false;
+
+      if (inputEvent instanceof MouseEvent)
+      {
+         MouseEvent mouseEvent = (MouseEvent) inputEvent;
+         performOpenAction = (mouseEvent.getButton() == MouseButton.PRIMARY && mouseEvent.getClickCount() == 2);
+      }
+      else if (inputEvent instanceof KeyEvent)
+      {
+         KeyEvent keyEvent = (KeyEvent) inputEvent;
+         performOpenAction = keyEvent.getCode() == KeyCode.ENTER;
+      }
+
+      if (performOpenAction)
       {
          TreeItem<YoRegistry> selectedItem = registryTreeView.getSelectionModel().getSelectedItem();
 
          if (selectedItem != null)
+         {
             registryViewRequestConsumer.accept(selectedItem.getValue());
-
-         event.consume();
+            inputEvent.consume();
+         }
       }
    }
 
