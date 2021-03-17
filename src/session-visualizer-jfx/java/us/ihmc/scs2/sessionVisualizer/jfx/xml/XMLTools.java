@@ -59,13 +59,13 @@ public class XMLTools
       {
          Predicate<? super Class<?>> classFilter = type -> !Modifier.isAbstract(type.getModifiers()) && !type.isInterface();
 
-         Reflections reflections = new Reflections(new ConfigurationBuilder().setUrls(ClasspathHelper.forPackage(YoGraphicDefinition.class.getPackageName()))
+         Reflections reflections = new Reflections(new ConfigurationBuilder().setUrls(ClasspathHelper.forPackage(YoGraphicDefinition.class.getPackage().getName()))
                                                                              .setScanners(new SubTypesScanner()));
 
          Set<Class<? extends YoGraphicDefinition>> graphicDefinitions = reflections.getSubTypesOf(YoGraphicDefinition.class).stream().filter(classFilter)
                                                                                    .collect(Collectors.toSet());
 
-         reflections = new Reflections(new ConfigurationBuilder().setUrls(ClasspathHelper.forPackage(YoCompositeDefinition.class.getPackageName()))
+         reflections = new Reflections(new ConfigurationBuilder().setUrls(ClasspathHelper.forPackage(YoCompositeDefinition.class.getPackage().getName()))
                                                                  .setScanners(new SubTypesScanner()));
          Set<Class<? extends YoCompositeDefinition>> compositeDefinitions = reflections.getSubTypesOf(YoCompositeDefinition.class).stream().filter(classFilter)
                                                                                        .collect(Collectors.toSet());

@@ -46,7 +46,7 @@ public class YoGraphicFXControllerTools
       Thread loader = new Thread(() ->
       {
          Reflections reflections = new Reflections(new ConfigurationBuilder()
-                                                   .setUrls(ClasspathHelper.forPackage(YoGraphicFXItem.class.getPackageName()))
+                                                   .setUrls(ClasspathHelper.forPackage(YoGraphicFXItem.class.getPackage().getName()))
                                                    .setScanners(new SubTypesScanner()));
          Set<Class<? extends YoGraphicFXItem>> yoGraphicFXSubTypes = reflections.getSubTypesOf(YoGraphicFXItem.class);
          yoGraphicFXTypes = yoGraphicFXSubTypes.stream().filter(type -> !Modifier.isAbstract(type.getModifiers()) && !type.isInterface())
