@@ -18,6 +18,8 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -83,7 +85,7 @@ public class YoCompositeListCell extends ListCell<YoComposite>
       {
          YoVariable yoVariable = YoVariable.class.cast(yoComposite.getYoComponents().get(0));
 
-         Control yoVariableControl = createYoVariableControl(yoVariable, yoManager.getLinkedRootRegistry());
+         Region yoVariableControl = createYoVariableControl(yoVariable, yoManager.getLinkedRootRegistry());
          setGraphic(yoVariableControl);
          setContentDisplay(ContentDisplay.LEFT);
          setAlignment(Pos.CENTER_LEFT);
@@ -92,7 +94,7 @@ public class YoCompositeListCell extends ListCell<YoComposite>
       }
       else
       {
-         List<Control> yoVariableControls = createYoVariableControls(yoComposite.getYoComponents(), yoManager.getLinkedRootRegistry());
+         List<Region> yoVariableControls = createYoVariableControls(yoComposite.getYoComponents(), yoManager.getLinkedRootRegistry());
 
          GridPane cellGraphic = new GridPane();
          cellGraphic.setHgap(5.0);
@@ -104,7 +106,7 @@ public class YoCompositeListCell extends ListCell<YoComposite>
             String componentIdentifier = yoComposite.getPattern().getComponentIdentifiers()[i];
             Label idLabel = new Label(componentIdentifier);
             idLabel.setTooltip(new Tooltip(component.getName() + "\n" + component.getNamespace()));
-            Control componentControl = yoVariableControls.get(i);
+            Region componentControl = yoVariableControls.get(i);
             cellGraphic.getChildren().addAll(idLabel, componentControl);
             GridPane.setConstraints(idLabel, 0, i);
             GridPane.setConstraints(componentControl, 1, i);
@@ -131,12 +133,12 @@ public class YoCompositeListCell extends ListCell<YoComposite>
          yoCompositeNameDisplay.setText(showUniqueName ? yoComposite.getUniqueName() : yoComposite.getName());
    }
 
-   public static List<Control> createYoVariableControls(Collection<YoVariable> yoVariables, LinkedYoRegistry linkedRegistry)
+   public static List<Region> createYoVariableControls(Collection<YoVariable> yoVariables, LinkedYoRegistry linkedRegistry)
    {
       return yoVariables.stream().map(v -> createYoVariableControl(v, linkedRegistry)).collect(Collectors.toList());
    }
 
-   public static Control createYoVariableControl(YoVariable yoVariable, LinkedYoRegistry linkedRegistry)
+   public static Region createYoVariableControl(YoVariable yoVariable, LinkedYoRegistry linkedRegistry)
    {
       if (yoVariable instanceof YoDouble)
          return createYoDoubleControl(new YoDoubleProperty((YoDouble) yoVariable), linkedRegistry);
@@ -170,14 +172,16 @@ public class YoCompositeListCell extends ListCell<YoComposite>
       return spinner;
    }
 
-   public static Control createYoBooleanControl(YoBooleanProperty yoBooleanProperty, LinkedYoRegistry linkedRegistry)
+   public static Region createYoBooleanControl(YoBooleanProperty yoBooleanProperty, LinkedYoRegistry linkedRegistry)
    {
       CheckBox checkBox = new CheckBox();
-      checkBox.setPrefWidth(GRAPHIC_PREF_WIDTH);
+      HBox root = new HBox(checkBox);
+      root.setPrefWidth(GRAPHIC_PREF_WIDTH);
+      root.alignmentProperty().set(Pos.CENTER_LEFT);
       checkBox.setSelected(yoBooleanProperty.getValue());
       yoBooleanProperty.bindBooleanProperty(checkBox.selectedProperty(), () -> linkedRegistry.push(yoBooleanProperty.getYoVariable()));
 
-      return checkBox;
+      return root;
    }
 
    public static Control createYoLongControl(YoLongProperty yoLongProperty, LinkedYoRegistry linkedRegistry)
