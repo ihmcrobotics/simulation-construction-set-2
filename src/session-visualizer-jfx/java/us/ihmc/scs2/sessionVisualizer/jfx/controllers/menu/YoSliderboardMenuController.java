@@ -7,6 +7,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.stage.Stage;
+import us.ihmc.scs2.session.SessionState;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.bcf2000.YoBCF2000SliderboardWindowController;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
@@ -22,6 +23,11 @@ public class YoSliderboardMenuController
    {
       this.toolkit = toolkit;
       mainWindow = toolkit.getMainWindow();
+      toolkit.getMessager().registerTopicListener(toolkit.getTopics().getSessionCurrentState(), m ->
+      {
+         if (m == SessionState.INACTIVE)
+            activeControllerProperty.set(null);
+      });
    }
 
    @FXML
