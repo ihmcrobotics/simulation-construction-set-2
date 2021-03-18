@@ -223,7 +223,7 @@ public class SCSGuiConfiguration
    {
       return yoEntryConfigurationPath != null && yoEntryConfigurationPath.toFile().exists();
    }
-   
+
    public boolean hasYoSliderboardConfiguration()
    {
       return yoSliderboardConfigurationPath != null && yoSliderboardConfigurationPath.toFile().exists();
@@ -274,7 +274,7 @@ public class SCSGuiConfiguration
    {
       return yoEntryConfigurationPath.toFile();
    }
-   
+
    public File getYoSliderboardConfigurationFile()
    {
       return yoSliderboardConfigurationPath.toFile();
@@ -349,8 +349,8 @@ public class SCSGuiConfiguration
          definition.setMaximized(true);
          definition.setPositionX(stage.getX());
          definition.setPositionY(stage.getY());
-         definition.setWidth(-1.0);
-         definition.setHeight(-1.0);
+         definition.setWidth(stage.getWidth());
+         definition.setHeight(stage.getHeight());
       }
       else
       {
