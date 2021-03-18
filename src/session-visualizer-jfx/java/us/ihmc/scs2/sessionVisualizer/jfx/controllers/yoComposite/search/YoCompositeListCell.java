@@ -23,6 +23,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.util.converter.DoubleStringConverter;
 import us.ihmc.javaFXExtensions.control.LongSpinnerValueFactory;
 import us.ihmc.javaFXExtensions.control.UnboundedDoubleSpinnerValueFactory;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
@@ -159,10 +160,16 @@ public class YoCompositeListCell extends ListCell<YoComposite>
                                                                                                Double.POSITIVE_INFINITY,
                                                                                                yoDoubleProperty.getValue(),
                                                                                                DOUBLE_SPINNER_STEP_SIZE);
-      valueFactory.setConverter(new ScientificDoubleStringConverter(3));
+      DoubleStringConverter rawDoubleStringConverter = new DoubleStringConverter();
+      ScientificDoubleStringConverter scientificDoubleStringConverter = new ScientificDoubleStringConverter(3);
+      valueFactory.setConverter(scientificDoubleStringConverter);
       Spinner<Double> spinner = new Spinner<>(valueFactory);
       spinner.setPrefWidth(GRAPHIC_PREF_WIDTH);
       spinner.setEditable(true);
+      spinner.focusedProperty().addListener((o, oldValue, newValue) ->
+      {
+         valueFactory.setConverter(newValue ? rawDoubleStringConverter : scientificDoubleStringConverter);
+      });
       yoDoubleProperty.bindDoubleProperty(spinner.getValueFactory().valueProperty(), () -> linkedRegistry.push(yoDoubleProperty.getYoVariable()));
 
       Tooltip tooltip = new Tooltip();
