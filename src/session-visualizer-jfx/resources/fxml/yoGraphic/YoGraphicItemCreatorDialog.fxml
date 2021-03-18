@@ -13,7 +13,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="mainPane" stylesheets="@../../css/GeneralStylesheet.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicItemCreatorDialogController">
+<VBox fx:id="mainPane" stylesheets="@../../css/GeneralStylesheet.css" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicItemCreatorDialogController">
    <children>
       <GridPane styleClass="graphic-editor-gridpane">
          <columnConstraints>
@@ -28,7 +28,7 @@
          </rowConstraints>
          <children>
             <Label text="Item type:" />
-            <JFXComboBox fx:id="itemTypeComboBox" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" />
+            <JFXComboBox fx:id="itemTypeComboBox" maxWidth="1.7976931348623157E308" styleClass="graphic-item-type-combo-box" visibleRowCount="15" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" />
             <Label text="Item name:" GridPane.rowIndex="1" />
             <JFXTextField fx:id="itemNameTextField" maxWidth="1.7976931348623157E308" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" />
             <Label text="Item namespace:" GridPane.rowIndex="2" />
