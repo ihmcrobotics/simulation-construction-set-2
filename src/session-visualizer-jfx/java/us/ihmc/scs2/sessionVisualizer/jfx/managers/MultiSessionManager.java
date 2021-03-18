@@ -39,7 +39,7 @@ public class MultiSessionManager
 {
    private final SessionVisualizerToolkit toolkit;
    private final MainWindowController mainWindowController;
-   private final SidePaneController sidePaneController;
+   private final SidePaneController sidePaneController; // TODO Only here to trigger events when start/close a session, should be done via the messager.
 
    private final Map<Class<? extends SessionControlsController>, SessionControlsController> inactiveControllerMap = new HashMap<>();
    private final ObjectProperty<SessionControlsController> activeController = new SimpleObjectProperty<>(this, "activeSessionControls", null);

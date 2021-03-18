@@ -43,9 +43,9 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    private final YoRobotFXManager yoRobotFXManager = new YoRobotFXManager(yoManager, referenceFrameManager, backgroundExecutorManager);
 
    private Stage mainWindow;
-   private List<Stage> secondaryWindows = new ArrayList<>();
-   private List<YoChartGroupPanelController> yoChartGroupPanelControllers = new ArrayList<>();
-   private YoBCF2000SliderboardWindowController yoSliderboardWindowController;
+   private List<Stage> secondaryWindows = new ArrayList<>(); // TODO Only here to trigger events when start/close a session, should be done via the messager.
+   private List<YoChartGroupPanelController> yoChartGroupPanelControllers = new ArrayList<>(); // TODO Only here to trigger events when start/close a session, should be done via the messager.
+   private YoBCF2000SliderboardWindowController yoSliderboardWindowController; // TODO Only here to trigger events when start/close a session, should be done via the messager.
 
    private final ObjectProperty<Session> activeSessionProperty = new SimpleObjectProperty<>(this, "activeSession", null);
 
