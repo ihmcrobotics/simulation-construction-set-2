@@ -306,7 +306,10 @@ public class NumberSeriesLayer extends ImageView
 
    private static DoubleUnaryOperator normalizeTransform(double min, double max)
    {
-      return affineTransform(1.0 / (max - min), -min / (max - min));
+      if (min == max)
+         return coordinate -> 0.5;
+      else
+         return affineTransform(1.0 / (max - min), -min / (max - min));
    }
 
    private static DoubleUnaryOperator xToHorizontalDisplayTransform(double displayWidth, double xMin, double xMax)
