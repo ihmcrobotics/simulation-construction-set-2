@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -64,10 +65,10 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ChartTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.CompositePropertyTools.YoVariableDatabase;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
-import us.ihmc.scs2.sessionVisualizer.jfx.tools.CompositePropertyTools.YoVariableDatabase;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
@@ -75,6 +76,8 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoChartPanelController extends ObservedAnimationTimer
 {
+   private static final long LEGEND_UPDATE_PERIOD = TimeUnit.MILLISECONDS.toNanos(100);
+
    private static final String INPOINT_MARKER_STYLECLASS = "chart-inpoint-marker";
    private static final String OUTPOINT_MARKER_STYLECLASS = "chart-outpoint-marker";
    private static final String CURRENT_INDEX_MARKER_STYLECLASS = "chart-current-index-marker";
@@ -382,6 +385,8 @@ public class YoChartPanelController extends ObservedAnimationTimer
       }
    }
 
+   private long legendUpdateLastTime = -1L;
+
    @Override
    public void handleImpl(long now)
    {
@@ -404,7 +409,12 @@ public class YoChartPanelController extends ObservedAnimationTimer
             xAxis.setMinorTickLength(0);
          }
 
-         charts.values().forEach(YoVariableChartPackage::updateLegend);
+         boolean updateLegends = legendUpdateLastTime == -1L || now - legendUpdateLastTime >= LEGEND_UPDATE_PERIOD;
+         if (updateLegends)
+         {
+            legendUpdateLastTime = now;
+            charts.values().forEach(YoVariableChartPackage::updateLegend);
+         }
 
          bufferProperties = null;
       }
