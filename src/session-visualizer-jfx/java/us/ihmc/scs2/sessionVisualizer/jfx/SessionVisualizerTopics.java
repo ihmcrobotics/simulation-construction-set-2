@@ -29,7 +29,6 @@ public class SessionVisualizerTopics
    private Topic<int[]> currentKeyFrames;
 
    private Topic<SearchEngines> yoSearchEngine;
-   private Topic<String> yoSearchTarget;
    private Topic<Integer> yoSearchMaxListSize;
    private Topic<File> yoCompositePatternLoadRequest;
    private Topic<File> yoCompositePatternSaveRequest;
@@ -81,7 +80,6 @@ public class SessionVisualizerTopics
       currentKeyFrames = SessionVisualizerMessagerAPI.KeyFrame.CurrentKeyFrames;
 
       yoSearchEngine = SessionVisualizerMessagerAPI.YoSearch.YoSearchEngine;
-      yoSearchTarget = SessionVisualizerMessagerAPI.YoSearch.YoSearchTarget;
       yoSearchMaxListSize = SessionVisualizerMessagerAPI.YoSearch.YoSearchMaxListSize;
       yoCompositePatternLoadRequest = SessionVisualizerMessagerAPI.YoSearch.YoCompositePatternLoadRequest;
       yoCompositePatternSaveRequest = SessionVisualizerMessagerAPI.YoSearch.YoCompositePatternSaveRequest;
@@ -173,11 +171,6 @@ public class SessionVisualizerTopics
    public Topic<SearchEngines> getYoSearchEngine()
    {
       return yoSearchEngine;
-   }
-
-   public Topic<String> getYoSearchTarget()
-   {
-      return yoSearchTarget;
    }
 
    public Topic<Integer> getYoSearchMaxListSize()

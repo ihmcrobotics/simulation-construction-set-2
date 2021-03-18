@@ -76,11 +76,9 @@ public class SessionVisualizerMessagerAPI
       private static final CategoryTheme YoCompositePattern = apiFactory.createCategoryTheme("YoCompositePattern");
 
       private static final TypedTopicTheme<SearchEngines> SearchEngine = apiFactory.createTypedTopicTheme("SearchEngine");
-      private static final TypedTopicTheme<String> SearchTarget = apiFactory.createTypedTopicTheme("SearchTarget");
       private static final TopicTheme Selected = apiFactory.createTopicTheme("Selected");
 
       public static final Topic<SearchEngines> YoSearchEngine = APIRoot.child(YoSearch).topic(SearchEngine);
-      public static final Topic<String> YoSearchTarget = APIRoot.child(YoSearch).topic(SearchTarget);
       public static final Topic<Integer> YoSearchMaxListSize = APIRoot.child(YoSearch).topic(Size);
       public static final Topic<File> YoCompositePatternLoadRequest = APIRoot.child(YoSearch).child(YoCompositePattern).topic(Load);
       public static final Topic<File> YoCompositePatternSaveRequest = APIRoot.child(YoSearch).child(YoCompositePattern).topic(Save);

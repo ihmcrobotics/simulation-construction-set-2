@@ -159,6 +159,7 @@ public class YoCompositeSearchPaneController extends ObservedAnimationTimer
       });
 
       searchTargetProperty = searchTargetComboBox.valueProperty();
+      searchTargetProperty.set(YoCompositeTools.YO_VARIABLE);
 
       searchTargetProperty.addListener((o, oldValue, newValue) ->
       {
@@ -176,7 +177,6 @@ public class YoCompositeSearchPaneController extends ObservedAnimationTimer
          search(searchTextField.getText());
       });
 
-      messager.bindBidirectional(topics.getYoSearchTarget(), searchTargetProperty, false);
       messager.registerJavaFXSyncedTopicListener(topics.getSessionCurrentState(), state ->
       {
          if (state == SessionState.ACTIVE)

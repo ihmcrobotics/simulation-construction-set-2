@@ -14,7 +14,6 @@ import javafx.scene.layout.Pane;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
-import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class YoSearchTabPaneController
@@ -42,7 +41,6 @@ public class YoSearchTabPaneController
       });
 
       mainYoCompositeSearchPaneController.initialize(toolkit);
-      mainYoCompositeSearchPaneController.setSearchTarget(YoCompositeTools.YO_VARIABLE);
       mainYoCompositeSearchPaneController.setRegistryViewRequestConsumer(newRequest ->
       {
          if (newRequest == null)
@@ -86,7 +84,6 @@ public class YoSearchTabPaneController
             Pane rootPane = loader.load();
             YoCompositeSearchPaneController controller = loader.getController();
             controller.initialize(toolkit, registry);
-            controller.setSearchTarget(mainYoCompositeSearchPaneController.getSearchTarget());
             controller.start();
             registryTabs.put(registry, newTab);
             newTab.setContent(rootPane);
