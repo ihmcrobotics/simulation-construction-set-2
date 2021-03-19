@@ -13,8 +13,10 @@ import java.util.function.DoubleUnaryOperator;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.css.CssMetaData;
 import javafx.css.Styleable;
@@ -111,6 +113,7 @@ public class NumberSeriesLayer extends ImageView
    private AtomicBoolean isRenderingImage = new AtomicBoolean(false);
    private AtomicBoolean isUpdatingImage = new AtomicBoolean(false);
    private BufferedImage imageToRender = null;
+   private IntegerProperty dataSizeProperty = new SimpleIntegerProperty(this, "dataSize", 0);
 
    public NumberSeriesLayer(InvisibleNumberAxis xAxis, InvisibleNumberAxis yAxis, NumberSeries numberSeries, Executor backgroundExecutor,
                             ChartRenderManager renderManager)
@@ -131,6 +134,7 @@ public class NumberSeriesLayer extends ImageView
       yAxis.upperBoundProperty().addListener(dirtyListener);
       stroke.addListener(dirtyListener);
       strokeWidth.addListener(dirtyListener);
+      dataSizeProperty.addListener(dirtyListener);
    }
 
    public void scheduleRender()
@@ -209,6 +213,7 @@ public class NumberSeriesLayer extends ImageView
       boolean layoutChanged = layoutChangedProperty.get();
       layoutChangedProperty.set(false);
       List<Point2D> data = numberSeries.getData();
+      dataSizeProperty.set(data.size());
 
       numberSeries.getLock().readLock().lock();
 
@@ -246,7 +251,7 @@ public class NumberSeriesLayer extends ImageView
 
          drawMultiLine(graphics, data, xTransform, yTransform, xData, yData);
 
-         graphics.setColor(toAWTColor(Color.GREY.deriveColor(0, 1.0, 0.85, 0.5)));
+         graphics.setColor(toAWTColor(Color.GREY.deriveColor(0, 1.0, 0.92, 0.5)));
          graphics.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
          List<Point2D> markerData = Arrays.asList(new Point2D(numberSeries.bufferCurrentIndexProperty().get(), yAxis.getLowerBound()),
                                                   new Point2D(numberSeries.bufferCurrentIndexProperty().get(), yAxis.getUpperBound()));
