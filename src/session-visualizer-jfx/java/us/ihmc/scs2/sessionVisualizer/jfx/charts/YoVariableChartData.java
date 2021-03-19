@@ -27,7 +27,7 @@ import us.ihmc.yoVariables.variable.YoVariable;
 public class YoVariableChartData
 {
    // TODO Figure out a better place for this: it used to pull extrema from the top and bottom of the charts so all the data is visible.
-   private static final double BOUNDS_INFLATE_PERCENT = 0.05;
+   private static final double BOUNDS_INFLATE_PERCENT = 0.0;
 
    private final LinkedYoVariable<?> linkedYoVariable;
 

@@ -23,7 +23,7 @@ import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.InvisibleNumberAxis;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
@@ -89,8 +89,8 @@ public class YoChartPanelController extends ObservedAnimationTimer
    @FXML
    private JFXButton closeButton;
 
-   private final NumberAxis xAxis = new NumberAxis(0.0, 0.0, 1000.0);
-   private final NumberAxis yAxis = new NumberAxis();
+   private final InvisibleNumberAxis xAxis = new InvisibleNumberAxis(0.0, 0.0, 1000.0);
+   private final InvisibleNumberAxis yAxis = new InvisibleNumberAxis();
    private DynamicLineChart dynamicLineChart;
 
    private final Data<Number, Number> inPointMarker = new Data<>(0, 0.0);
@@ -138,17 +138,9 @@ public class YoChartPanelController extends ObservedAnimationTimer
       AnchorPane.setLeftAnchor(dynamicLineChart, 0.0);
       AnchorPane.setRightAnchor(dynamicLineChart, 0.0);
 
-      xAxis.setMinorTickVisible(false);
-      xAxis.setTickLabelsVisible(false);
-      xAxis.setTickMarkVisible(false);
       xAxis.setLowerBound(-1);
-      xAxis.setAnimated(false);
       xAxis.setAutoRanging(false);
 
-      yAxis.setMinorTickVisible(false);
-      yAxis.setTickLabelsVisible(false);
-      yAxis.setTickMarkVisible(false);
-      yAxis.setAnimated(false);
       yAxis.setAutoRanging(true);
       yAxis.setForceZeroInRange(false);
 
@@ -406,7 +398,6 @@ public class YoChartPanelController extends ObservedAnimationTimer
             double scale = 0.001;
             xAxis.setLowerBound(-scale * bufferProperties.getSize());
             xAxis.setUpperBound((1.0 + scale) * bufferProperties.getSize());
-            xAxis.setMinorTickLength(0);
          }
 
          boolean updateLegends = legendUpdateLastTime == -1L || now - legendUpdateLastTime >= LEGEND_UPDATE_PERIOD;
@@ -558,7 +549,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
       if (bufferPropertiesForScrolling.get() == null)
          return -1;
       double xLocal = xAxis.screenToLocal(screenX, screenY).getX();
-      int index = Math.round(xAxis.getValueForDisplay(xLocal).floatValue());
+      int index = (int) Math.round(xAxis.getValueForDisplay(xLocal));
       return MathTools.clamp(index, 0, bufferPropertiesForScrolling.get().getSize());
    }
 

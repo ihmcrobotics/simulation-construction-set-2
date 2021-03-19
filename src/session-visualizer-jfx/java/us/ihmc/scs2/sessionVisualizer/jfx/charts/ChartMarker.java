@@ -10,7 +10,7 @@ import javafx.css.Styleable;
 import javafx.css.StyleableObjectProperty;
 import javafx.css.StyleablePropertyFactory;
 import javafx.scene.Node;
-import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.InvisibleNumberAxis;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.shape.Line;
 
@@ -75,13 +75,13 @@ public final class ChartMarker extends Line
       return coordinates.getNode();
    }
 
-   public void updateMarker(NumberAxis xAxis, NumberAxis yAxis)
+   public void updateMarker(InvisibleNumberAxis xAxis, InvisibleNumberAxis yAxis)
    {
       if (typeProperty.get() == ChartMarkerType.HORIZONTAL)
       {
          setStartX(0);
          setEndX(xAxis.getWidth());
-         setStartY(Math.ceil(yAxis.getDisplayPosition(coordinates.getYValue())));
+         setStartY(Math.ceil(yAxis.getDisplayPosition(coordinates.getYValue().doubleValue())));
          setEndY(getStartY());
          toFront();
       }
@@ -89,7 +89,7 @@ public final class ChartMarker extends Line
       {
          setStartY(0d);
          setEndY(yAxis.getHeight());
-         setStartX(Math.ceil(xAxis.getDisplayPosition(coordinates.getXValue())));
+         setStartX(Math.ceil(xAxis.getDisplayPosition(coordinates.getXValue().doubleValue())));
          setEndX(getStartX());
          toFront();
       }

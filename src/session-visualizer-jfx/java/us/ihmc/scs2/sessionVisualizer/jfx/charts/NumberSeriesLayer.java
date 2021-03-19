@@ -21,7 +21,7 @@ import javafx.css.StyleableDoubleProperty;
 import javafx.css.StyleableObjectProperty;
 import javafx.css.StyleablePropertyFactory;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.InvisibleNumberAxis;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelBuffer;
 import javafx.scene.image.PixelFormat;
@@ -41,7 +41,7 @@ public class NumberSeriesLayer extends ImageView
    private final NumberSeries numberSeries;
    private final DynamicChartLegendItem legendNode = new DynamicChartLegendItem();
 
-   private final NumberAxis xAxis, yAxis;
+   private final InvisibleNumberAxis xAxis, yAxis;
    private final BooleanProperty layoutChangedProperty = new SimpleBooleanProperty(this, "layoutChanged", true);
 
    private final Executor backgroundExecutor;
@@ -112,7 +112,7 @@ public class NumberSeriesLayer extends ImageView
    private AtomicBoolean isUpdatingImage = new AtomicBoolean(false);
    private BufferedImage imageToRender = null;
 
-   public NumberSeriesLayer(NumberAxis xAxis, NumberAxis yAxis, NumberSeries numberSeries, Executor backgroundExecutor, ChartRenderManager renderManager)
+   public NumberSeriesLayer(InvisibleNumberAxis xAxis, InvisibleNumberAxis yAxis, NumberSeries numberSeries, Executor backgroundExecutor, ChartRenderManager renderManager)
    {
       this.renderManager = renderManager;
       getStyleClass().add("dynamic-chart-series-line");
