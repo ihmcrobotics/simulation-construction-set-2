@@ -112,6 +112,12 @@ public abstract class LinkedYoVariable<T extends YoVariable> extends LinkedBuffe
 
       YoBufferPropertiesReadOnly properties = buffer.getProperties();
 
+      if (length > properties.getSize())
+         return;
+
+      if (from >= properties.getSize())
+         return;
+
       if (length == -1)
       {
          if (from == -1)
