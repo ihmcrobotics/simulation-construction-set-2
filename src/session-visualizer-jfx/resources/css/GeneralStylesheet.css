@@ -253,15 +253,16 @@
 
 .chart-legend {
 	-fx-hgap: 8.0;
-	-fx-vgap: 8.0;
+	-fx-vgap: 3.0;
 	-fx-alignment:CENTER_LEFT;
-	-fx-padding: 2.0 2.0 2.0 2.0;
+	-fx-padding: 2.0 -2.0 4.0 2.0;
 	-fx-opaque-insets: 0.0 0.0 0.0 0.0;
 	-fx-background-color:transparent;
 }
 
 .chart-legend-item {
 	-fx-spacing: 3.0;
+	-fx-padding: -3.0 0.0 -3.0 0.0;
 }
 
 .chart-legend-item-name {
