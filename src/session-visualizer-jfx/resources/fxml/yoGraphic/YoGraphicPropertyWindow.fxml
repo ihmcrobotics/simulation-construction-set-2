@@ -22,7 +22,7 @@
                      <children>
                         <HBox styleClass="graphic-editor-hbox" VBox.vgrow="NEVER">
                            <children>
-                              <JFXButton fx:id="addItemButton" minWidth="-Infinity" onAction="#addItem" styleClass="graphic-editor-button" text="_Add...">
+                              <JFXButton fx:id="addItemButton" minWidth="-Infinity" onAction="#addItem" styleClass="graphic-editor-button" text="Add...">
                                  <graphic>
                                     <FontAwesomeIconView>
                                        <styleClass>
@@ -32,7 +32,7 @@
                                     </FontAwesomeIconView>
                                  </graphic>
                               </JFXButton>
-                              <JFXButton fx:id="removeItemButton" buttonType="RAISED" minWidth="-Infinity" onAction="#removeItem" styleClass="graphic-editor-button" text="_Remove">
+                              <JFXButton fx:id="removeItemButton" buttonType="RAISED" minWidth="-Infinity" onAction="#removeItem" styleClass="graphic-editor-button" text="Remove">
                                  <graphic>
                                     <FontAwesomeIconView>
                                        <styleClass>
@@ -47,7 +47,7 @@
                         <CheckTreeView fx:id="yoGraphicTreeView" prefWidth="100.0" VBox.vgrow="ALWAYS" />
                         <HBox styleClass="graphic-editor-hbox">
                            <children>
-                              <JFXButton fx:id="exportButton" minWidth="-Infinity" onAction="#exportYoGraphicFXItems" styleClass="graphic-editor-button" text="_Export...">
+                              <JFXButton fx:id="exportButton" minWidth="-Infinity" onAction="#exportYoGraphicFXItems" styleClass="graphic-editor-button" text="Export...">
                                  <graphic>
                                     <FontAwesomeIconView>
                                        <styleClass>
@@ -57,7 +57,7 @@
                                     </FontAwesomeIconView>
                                  </graphic>
                               </JFXButton>
-                              <JFXButton fx:id="importButton" minWidth="-Infinity" onAction="#importYoGraphicFXItems" styleClass="graphic-editor-button" text="_Import...">
+                              <JFXButton fx:id="importButton" minWidth="-Infinity" onAction="#importYoGraphicFXItems" styleClass="graphic-editor-button" text="Import...">
                                  <graphic>
                                     <FontAwesomeIconView>
                                        <styleClass>
