@@ -15,7 +15,6 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Side;
 import javafx.scene.chart.InvisibleNumberAxis;
 import javafx.scene.chart.XYChart.Data;
-import us.ihmc.commons.MathTools;
 import us.ihmc.javaFXExtensions.chart.DynamicXYChart;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ChartRenderManager;
 
@@ -207,18 +206,13 @@ public class DynamicLineChart extends DynamicXYChart
                   dataYBounds = dataYBounds.negate();
 
                if (yBounds == null)
-                  yBounds = new ChartDoubleBounds(dataYBounds);
+                  yBounds = dataYBounds;
                else
                   yBounds = yBounds.union(dataYBounds);
             }
 
             if (yBounds != null)
             {
-               if (MathTools.epsilonEquals(yBounds.getUpper(), yBounds.getLower(), 1.0e-12 * Math.max(1.0, yBounds.getLower())))
-               {
-                  yBounds = new ChartDoubleBounds(yBounds.getLower() - 0.5, yBounds.getUpper() + 0.5);
-               }
-
                yAxis.invalidateRange(yBounds.getLower(), yBounds.getUpper());
             }
          }

@@ -26,9 +26,6 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoVariableChartData
 {
-   // TODO Figure out a better place for this: it used to pull extrema from the top and bottom of the charts so all the data is visible.
-   private static final double BOUNDS_INFLATE_PERCENT = 0.0;
-
    private final LinkedYoVariable<?> linkedYoVariable;
 
    private SessionMode lastSessionModeStatus = null;
@@ -208,10 +205,8 @@ public class YoVariableChartData
       }
 
       dataSet.size = bufferSize;
-      double range = yMax - yMin;
-      double inflate = 0.5 * BOUNDS_INFLATE_PERCENT * range;
-      dataSet.valueMin = yMin - inflate;
-      dataSet.valueMax = yMax + inflate;
+      dataSet.valueMin = yMin;
+      dataSet.valueMax = yMax;
 
       return dataSet;
    }
