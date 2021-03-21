@@ -8,7 +8,7 @@ import javafx.scene.paint.Paint;
 public class DynamicChartLegendItem extends HBox
 {
    private final Label seriesNameLabel = new Label();
-   private final Label currentValueLabel = new Label();
+   private final CurrentValueLabel currentValueLabel = new CurrentValueLabel();
 
    public DynamicChartLegendItem()
    {
@@ -32,5 +32,23 @@ public class DynamicChartLegendItem extends HBox
    public StringProperty currentValueProperty()
    {
       return currentValueLabel.textProperty();
+   }
+
+   private static class CurrentValueLabel extends Label
+   {
+      private double maxPrefWidth = -1.0;
+
+      public CurrentValueLabel()
+      {
+      }
+
+      @Override
+      protected double computePrefWidth(double height)
+      {
+         // Value displayed may change in size, i.e. switching positive/negative or exponent changes. Retaining the max pref width to avoid flickering of the layout. 
+         double prefWidth = super.computePrefWidth(height);
+         maxPrefWidth = Math.max(prefWidth, maxPrefWidth);
+         return maxPrefWidth;
+      }
    }
 }
