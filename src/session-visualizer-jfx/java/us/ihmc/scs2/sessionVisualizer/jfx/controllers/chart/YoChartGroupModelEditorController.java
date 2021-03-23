@@ -23,7 +23,7 @@ import us.ihmc.scs2.definition.yoChart.YoChartGroupModelDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.ControllerListCell;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.SCSDefaultUIController;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 
 public class YoChartGroupModelEditorController implements SCSDefaultUIController
@@ -41,10 +41,9 @@ public class YoChartGroupModelEditorController implements SCSDefaultUIController
 
    private final ObjectProperty<YoChartGroupModelDefinition> chartGroupModelProperty = new SimpleObjectProperty<>(this, "chartGroupModel", null);
 
-   private SessionVisualizerWindowToolkit toolkit;
+   private SessionVisualizerToolkit toolkit;
 
-   @Override
-   public void initialize(SessionVisualizerWindowToolkit toolkit)
+   public void initialize(SessionVisualizerToolkit toolkit)
    {
       this.toolkit = toolkit;
 

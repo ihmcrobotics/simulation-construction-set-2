@@ -41,6 +41,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    private final EnvironmentManager environmentManager = new EnvironmentManager(backgroundExecutorManager);
    private final ReferenceFrameManager referenceFrameManager = new ReferenceFrameManager(backgroundExecutorManager);
    private final YoRobotFXManager yoRobotFXManager = new YoRobotFXManager(yoManager, referenceFrameManager, backgroundExecutorManager);
+   private final WindowManager windowManager;
 
    private Stage mainWindow;
    private List<Stage> secondaryWindows = new ArrayList<>(); // TODO Only here to trigger events when start/close a session, should be done via the messager.
@@ -66,6 +67,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       yoGraphicFXManager = new YoGraphicFXManager(messager, topics, yoManager, backgroundExecutorManager, referenceFrameManager);
       yoCompositeSearchManager = new YoCompositeSearchManager(messager, topics, yoManager, backgroundExecutorManager);
       keyFrameManager = new KeyFrameManager(messager, topics);
+      windowManager = new WindowManager(this);
    }
 
    public void startSession(Session session, Runnable sessionLoadedCallback)
@@ -91,6 +93,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
          yoGraphicFXManager.startSession(session);
          yoCompositeSearchManager.startSession(session);
          keyFrameManager.startSession(session);
+         windowManager.startSession(session);
 
          while (!yoRobotFXManager.isSessionLoaded())
          {
@@ -130,6 +133,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       environmentManager.stopSession();
       keyFrameManager.stopSession();
       backgroundExecutorManager.stopSession();
+      windowManager.stopSession();
 
       for (int i = secondaryWindows.size() - 1; i >= 0; i--)
       {

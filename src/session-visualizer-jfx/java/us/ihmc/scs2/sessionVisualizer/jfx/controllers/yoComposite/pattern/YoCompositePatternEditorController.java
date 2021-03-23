@@ -41,7 +41,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.controllers.ControllerListCell;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.SCSDefaultUIController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.chart.YoChartGroupModelEditorController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ContextMenuTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
@@ -78,10 +78,9 @@ public class YoCompositePatternEditorController implements SCSDefaultUIControlle
 
    private List<String> nameOfOtherPatterns = new ArrayList<>();
 
-   private SessionVisualizerWindowToolkit toolkit;
+   private SessionVisualizerToolkit toolkit;
 
-   @Override
-   public void initialize(SessionVisualizerWindowToolkit toolkit)
+   public void initialize(SessionVisualizerToolkit toolkit)
    {
       this.toolkit = toolkit;
 

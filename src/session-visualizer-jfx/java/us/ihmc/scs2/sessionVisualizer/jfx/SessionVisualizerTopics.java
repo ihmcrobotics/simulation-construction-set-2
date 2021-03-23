@@ -23,6 +23,8 @@ public class SessionVisualizerTopics
    private Topic<Object> forgetRecordable;
    private Topic<Boolean> showAdvancedControls;
    private Topic<Boolean> showOverheadPlotter;
+   private Topic<String> openWindowRequest;
+   private Topic<Boolean> sessionVisualizerCloseRequest;
 
    private Topic<Object> toggleKeyFrame, requestCurrentKeyFrames;
    private Topic<Object> goToNextKeyFrame, goToPreviousKeyFrame;
@@ -33,6 +35,7 @@ public class SessionVisualizerTopics
    private Topic<File> yoCompositePatternLoadRequest;
    private Topic<File> yoCompositePatternSaveRequest;
    private Topic<List<String>> yoCompositeSelected;
+   private Topic<Boolean> yoCompositeRefreshAll;
 
    private Topic<Boolean> yoGraphicRootGroupRequest;
    private Topic<YoGroupFX> yoGraphicRootGroupData;
@@ -72,6 +75,8 @@ public class SessionVisualizerTopics
       forgetRecordable = SessionVisualizerMessagerAPI.ForgetRecordable;
       showAdvancedControls = SessionVisualizerMessagerAPI.ShowAdvancedControls;
       showOverheadPlotter = SessionVisualizerMessagerAPI.ShowOverheadPlotter;
+      openWindowRequest = SessionVisualizerMessagerAPI.OpenWindowRequest;
+      sessionVisualizerCloseRequest = SessionVisualizerMessagerAPI.SessionVisualizerCloseRequest;
 
       toggleKeyFrame = SessionVisualizerMessagerAPI.KeyFrame.ToggleKeyFrame;
       requestCurrentKeyFrames = SessionVisualizerMessagerAPI.KeyFrame.RequestCurrentKeyFrames;
@@ -84,6 +89,7 @@ public class SessionVisualizerTopics
       yoCompositePatternLoadRequest = SessionVisualizerMessagerAPI.YoSearch.YoCompositePatternLoadRequest;
       yoCompositePatternSaveRequest = SessionVisualizerMessagerAPI.YoSearch.YoCompositePatternSaveRequest;
       yoCompositeSelected = SessionVisualizerMessagerAPI.YoSearch.YoCompositePatternSelected;
+      yoCompositeRefreshAll = SessionVisualizerMessagerAPI.YoSearch.YoCompositeRefreshAll;
 
       yoGraphicRootGroupRequest = SessionVisualizerMessagerAPI.YoGraphic.YoGraphicRootGroupRequest;
       yoGraphicRootGroupData = SessionVisualizerMessagerAPI.YoGraphic.YoGraphicRootGroupData;
@@ -143,6 +149,16 @@ public class SessionVisualizerTopics
       return showOverheadPlotter;
    }
 
+   public Topic<String> getOpenWindowRequest()
+   {
+      return openWindowRequest;
+   }
+
+   public Topic<Boolean> getSessionVisualizerCloseRequest()
+   {
+      return sessionVisualizerCloseRequest;
+   }
+
    public Topic<Object> getToggleKeyFrame()
    {
       return toggleKeyFrame;
@@ -191,6 +207,11 @@ public class SessionVisualizerTopics
    public Topic<List<String>> getYoCompositeSelected()
    {
       return yoCompositeSelected;
+   }
+
+   public Topic<Boolean> getYoCompositeRefreshAll()
+   {
+      return yoCompositeRefreshAll;
    }
 
    public Topic<Boolean> getYoGraphicRootGroupRequest()

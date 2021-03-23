@@ -39,12 +39,16 @@ public class SessionVisualizerMessagerAPI
    private static final TypedTopicTheme<Boolean> Show = apiFactory.createTypedTopicTheme("Show");
    private static final TopicTheme Load = apiFactory.createTopicTheme("load");
    private static final TopicTheme Save = apiFactory.createTopicTheme("save");
+   private static final TopicTheme Close = apiFactory.createTopicTheme("close");
+   private static final TopicTheme Open = apiFactory.createTopicTheme("open");
 
    public static final Topic<Object> TakeSnapshot = APIRoot.topic(Snapshot);
    public static final Topic<Object> RegisterRecordable = APIRoot.child(Register).topic(Recordable);
    public static final Topic<Object> ForgetRecordable = APIRoot.child(Forget).topic(Recordable);
    public static final Topic<Boolean> ShowAdvancedControls = APIRoot.child(Controls).child(Advanced).topic(Show);
    public static final Topic<Boolean> ShowOverheadPlotter = APIRoot.child(OverheadPlotter).topic(Show);
+   public static final Topic<String> OpenWindowRequest = APIRoot.topic(Open);
+   public static final Topic<Boolean> SessionVisualizerCloseRequest = APIRoot.topic(Close);
 
    static
    { // Ensure that the KeyFrame is loaded before closing the API.
@@ -77,12 +81,14 @@ public class SessionVisualizerMessagerAPI
 
       private static final TypedTopicTheme<SearchEngines> SearchEngine = apiFactory.createTypedTopicTheme("SearchEngine");
       private static final TopicTheme Selected = apiFactory.createTopicTheme("Selected");
+      private static final TopicTheme Refresh = apiFactory.createTopicTheme("refresh");
 
       public static final Topic<SearchEngines> YoSearchEngine = APIRoot.child(YoSearch).topic(SearchEngine);
       public static final Topic<Integer> YoSearchMaxListSize = APIRoot.child(YoSearch).topic(Size);
       public static final Topic<File> YoCompositePatternLoadRequest = APIRoot.child(YoSearch).child(YoCompositePattern).topic(Load);
       public static final Topic<File> YoCompositePatternSaveRequest = APIRoot.child(YoSearch).child(YoCompositePattern).topic(Save);
       public static final Topic<List<String>> YoCompositePatternSelected = APIRoot.child(YoSearch).child(YoCompositePattern).topic(Selected);
+      public static final Topic<Boolean> YoCompositeRefreshAll = APIRoot.child(YoSearch).child(YoCompositePattern).topic(Refresh);
    }
 
    public static class YoGraphic

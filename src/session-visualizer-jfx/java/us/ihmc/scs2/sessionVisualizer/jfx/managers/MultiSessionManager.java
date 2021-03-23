@@ -27,7 +27,6 @@ import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.SidePaneController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.chart.YoChartGroupPanelController;
-import us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu.YoChartMenuController;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.SessionControlsController;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.SessionInfoController;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.log.LogSessionManagerController;
@@ -208,7 +207,7 @@ public class MultiSessionManager
 
          for (int i = 0; i < configuration.getNumberOfSecondaryYoChartGroupConfigurations(); i++)
          {
-            Window secondaryWindow = YoChartMenuController.newSecondaryChartWindow(toolkit);
+            Window secondaryWindow = WindowManager.newSecondaryChartWindow(toolkit);
             File secondaryFile = configuration.getSecondaryYoChartGroupConfigurationFile(i);
             messager.submitMessage(topics.getYoChartGroupLoadConfiguration(), new Pair<>(secondaryWindow, secondaryFile));
          }
