@@ -167,7 +167,6 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    {
       super.stop();
       yoRobotFXManager.stop();
-      chartDataManager.stop();
       yoGraphicFXManager.stop();
       backgroundExecutorManager.shutdown();
       try
