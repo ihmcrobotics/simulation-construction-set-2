@@ -2,7 +2,11 @@ package us.ihmc.scs2.sessionVisualizer.jfx.controllers.chart;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
@@ -35,7 +39,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.stage.Popup;
-import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Pair;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
@@ -51,7 +54,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartGroupModel;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartIdentifier;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.DynamicLineChart;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.TableSizeQuickAccess;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ChartGroupTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
@@ -60,7 +63,7 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoChartGroupPanelController
 {
-   private SessionVisualizerToolkit toolkit;
+   private SessionVisualizerWindowToolkit toolkit;
    private YoCompositeSearchManager yoCompositeSearchManager;
 
    private final IntegerProperty numberOfRows = new SimpleIntegerProperty(this, "numberOfRows", 0);
@@ -85,14 +88,12 @@ public class YoChartGroupPanelController
          clear();
    };
 
-   private Window owner;
    private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
 
-   public void initialize(SessionVisualizerToolkit toolkit, Stage owner)
+   public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
       this.toolkit = toolkit;
-      this.owner = owner;
       yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
 
       mainPane.getChildren().add(0, gridPane);
@@ -110,7 +111,7 @@ public class YoChartGroupPanelController
       messager.registerJavaFXSyncedTopicListener(topics.getYoChartGroupSaveConfiguration(), saveChartGroupConfigurationListener);
       messager.registerJavaFXSyncedTopicListener(topics.getSessionCurrentState(), stopSessionListener);
 
-      owner.iconifiedProperty().addListener((o, oldValue, newValue) ->
+      toolkit.getWindow().iconifiedProperty().addListener((o, oldValue, newValue) ->
       {
          if (newValue != isRunning.get())
             return;
@@ -315,7 +316,7 @@ public class YoChartGroupPanelController
          FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.CHART_PANEL_FXML_URL);
          AnchorPane graphNode = loader.load();
          YoChartPanelController controller = loader.getController();
-         controller.initialize(toolkit, owner);
+         controller.initialize(toolkit);
          DynamicLineChart chartNode = controller.getLineChart();
          chartNode.setOnDragOver(e -> handleDragOver(e, controller));
          chartNode.setOnDragDropped(e -> handleDragDropped(e, controller));
@@ -540,7 +541,7 @@ public class YoChartGroupPanelController
 
    public void loadChartGroupConfiguration(Window source, File file)
    {
-      if (source != owner)
+      if (source != toolkit.getWindow())
          return;
 
       LogTools.info("Loading file: " + file);
@@ -559,7 +560,7 @@ public class YoChartGroupPanelController
 
    public void saveChartGroupConfiguration(Window source, File file)
    {
-      if (source != owner)
+      if (source != toolkit.getWindow())
          return;
 
       if (!Platform.isFxApplicationThread())

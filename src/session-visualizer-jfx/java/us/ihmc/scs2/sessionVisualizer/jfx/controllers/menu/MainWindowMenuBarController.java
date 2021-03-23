@@ -1,8 +1,7 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu;
 
 import javafx.fxml.FXML;
-import javafx.stage.Window;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 
 public class MainWindowMenuBarController
 {
@@ -23,13 +22,13 @@ public class MainWindowMenuBarController
    @FXML
    private YoSliderboardMenuController yoSliderboardMenuController;
 
-   public void initialize(SessionVisualizerToolkit toolkit, Window owner)
+   public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
       fileMenuController.initialize(toolkit);
       runMenuController.initialize(toolkit);
       dataBufferMenuController.initialize(toolkit);
       yoCompositeMenuController.initialize(toolkit);
-      yoChartMenuController.initialize(toolkit, owner);
+      yoChartMenuController.initialize(toolkit);
       yoGraphicMenuController.initialize(toolkit);
       sessionMenuController.initialize(toolkit);
       yoSliderboardMenuController.initialize(toolkit);

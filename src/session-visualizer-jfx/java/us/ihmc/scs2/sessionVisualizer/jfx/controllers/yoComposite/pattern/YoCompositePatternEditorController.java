@@ -31,7 +31,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.cell.TextFieldListCell;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
-import javafx.stage.Window;
 import javafx.util.converter.DefaultStringConverter;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.yoChart.YoChartGroupModelDefinition;
@@ -42,7 +41,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.controllers.ControllerListCell;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.SCSDefaultUIController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.chart.YoChartGroupModelEditorController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ContextMenuTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
@@ -79,14 +78,12 @@ public class YoCompositePatternEditorController implements SCSDefaultUIControlle
 
    private List<String> nameOfOtherPatterns = new ArrayList<>();
 
-   private SessionVisualizerToolkit toolkit;
-   private Window owner;
+   private SessionVisualizerWindowToolkit toolkit;
 
    @Override
-   public void initialize(SessionVisualizerToolkit toolkit, Window owner)
+   public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
       this.toolkit = toolkit;
-      this.owner = owner;
 
       compositeNameTextField.textProperty().addListener((o, oldValue, newValue) ->
       {
@@ -404,7 +401,7 @@ public class YoCompositePatternEditorController implements SCSDefaultUIControlle
       {
          loader.load();
          YoChartGroupModelEditorController editor = loader.getController();
-         editor.initialize(toolkit, owner);
+         editor.initialize(toolkit);
          if (initialModel != null)
             editor.setInput(initialModel, patternDefinitionProperty.get().getIdentifiers());
          JavaFXMissingTools.runNFramesLater(1, () -> editor.startEditingChartGroupModelName());

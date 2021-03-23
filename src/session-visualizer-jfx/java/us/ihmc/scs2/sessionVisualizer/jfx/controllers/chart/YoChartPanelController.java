@@ -39,7 +39,6 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
-import javafx.stage.Window;
 import us.ihmc.commons.MathTools;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.interfaces.Tuple2DReadOnly;
@@ -61,7 +60,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.charts.YoVariableChartData;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.YoVariableChartData.ChartDataUpdate;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.BackgroundExecutorManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ChartDataManager;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ChartTools;
@@ -114,13 +113,11 @@ public class YoChartPanelController extends ObservedAnimationTimer
    private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
    private YoManager yoManager;
-   private SessionVisualizerToolkit toolkit;
-   private Window parentWindow;
+   private SessionVisualizerWindowToolkit toolkit;
 
-   public void initialize(SessionVisualizerToolkit toolkit, Window parentWindow)
+   public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
       this.toolkit = toolkit;
-      this.parentWindow = parentWindow;
       this.messager = toolkit.getMessager();
       this.chartDataManager = toolkit.getChartDataManager();
       this.yoManager = toolkit.getYoManager();
@@ -282,7 +279,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
          FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.CHART_OPTION_DIALOG_URL);
          loader.load();
          YoChartOptionController controller = loader.getController();
-         controller.initialize(toolkit, parentWindow);
+         controller.initialize(toolkit);
          controller.setInput(yoNumberSeriesList, dynamicLineChart.chartStyleProperty());
          activeChartOptionControllerProperty.set(controller);
          controller.showWindow();

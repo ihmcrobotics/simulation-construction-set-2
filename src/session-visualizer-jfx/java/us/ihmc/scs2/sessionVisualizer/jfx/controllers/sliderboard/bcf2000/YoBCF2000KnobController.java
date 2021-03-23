@@ -9,7 +9,7 @@ import javafx.scene.layout.VBox;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.yoSlider.YoKnobDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.YoVariableSlider;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -32,7 +32,7 @@ public class YoBCF2000KnobController extends YoBCF2000InputController
    private YoVariableSlider yoVariableSlider;
    private YoManager yoManager;
 
-   public void initialize(SessionVisualizerToolkit toolkit, SliderboardVariable sliderVariable)
+   public void initialize(SessionVisualizerWindowToolkit toolkit, SliderboardVariable sliderVariable)
    {
       this.sliderVariable = sliderVariable;
       yoManager = toolkit.getYoManager();

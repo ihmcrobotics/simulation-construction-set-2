@@ -8,7 +8,7 @@ import javafx.scene.layout.HBox;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 
 public class SessionSimpleControlsController
 {
@@ -24,7 +24,7 @@ public class SessionSimpleControlsController
    {
    }
 
-   public void initialize(SessionVisualizerToolkit toolkit)
+   public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
       this.messager = toolkit.getMessager();
       topics = toolkit.getTopics();

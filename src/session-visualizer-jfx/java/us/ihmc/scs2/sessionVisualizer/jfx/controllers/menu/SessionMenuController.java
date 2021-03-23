@@ -3,14 +3,14 @@ package us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu;
 import javafx.fxml.FXML;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 
 public class SessionMenuController
 {
    private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
 
-   public void initialize(SessionVisualizerToolkit toolkit)
+   public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
       topics = toolkit.getTopics();
       messager = toolkit.getMessager();

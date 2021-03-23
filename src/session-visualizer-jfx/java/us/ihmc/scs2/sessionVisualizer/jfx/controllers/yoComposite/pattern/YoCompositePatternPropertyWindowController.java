@@ -34,14 +34,13 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.definition.yoComposite.YoCompositePatternDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ContextMenuTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
@@ -74,13 +73,11 @@ public class YoCompositePatternPropertyWindowController
    private Stage window;
    private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
-   private SessionVisualizerToolkit toolkit;
-   private Window owner;
+   private SessionVisualizerWindowToolkit toolkit;
 
-   public void initialize(SessionVisualizerToolkit toolkit, Window owner)
+   public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
       this.toolkit = toolkit;
-      this.owner = owner;
       topics = toolkit.getTopics();
       messager = toolkit.getMessager();
       yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
@@ -124,10 +121,10 @@ public class YoCompositePatternPropertyWindowController
             window.close();
       });
 
-      owner.addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> window.close());
+      toolkit.getWindow().addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> window.close());
       window.setTitle("YoCompositePattern properties");
       window.setScene(new Scene(mainAnchorPane));
-      window.initOwner(owner);
+      window.initOwner(toolkit.getWindow());
 
       List<YoCompositePatternDefinition> customYoCompositePatterns = YoCompositeTools.toYoCompositePatternDefinitions(yoCompositeSearchManager.customYoCompositePatterns());
 
@@ -221,7 +218,7 @@ public class YoCompositePatternPropertyWindowController
             FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.YO_COMPOSITE_PATTERN_EDITOR_PANE_URL);
             loader.load();
             controller = loader.getController();
-            controller.initialize(toolkit, owner);
+            controller.initialize(toolkit);
             controller.setInput(newSelectedValue.get());
             cachedEditors.put(newSelectedValue, controller);
             // We're dealing with a new pattern, let's editing its name

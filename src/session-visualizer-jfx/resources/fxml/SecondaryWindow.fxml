@@ -3,7 +3,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox stylesheets="@../css/GeneralStylesheet.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.SecondaryWindowController">
+<VBox fx:id="mainNode" stylesheets="@../css/GeneralStylesheet.css" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.SecondaryWindowController">
    <children>
       <fx:include fx:id="menu" source="menu/MainWindowMenuBar.fxml" />
       <AnchorPane prefHeight="200.0" VBox.vgrow="ALWAYS" />

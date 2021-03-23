@@ -1,6 +1,8 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic;
 
-import static us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools.*;
+import static us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools.createAvailableYoGraphicFXItemName;
+import static us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools.yoGraphicFX2DTypes;
+import static us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools.yoGraphicFX3DTypes;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -20,9 +22,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.stage.Window;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXItem;
@@ -55,7 +56,7 @@ public class YoGraphicItemCreatorDialogController
 
    private final Map<String, Class<? extends YoGraphicFXItem>> nameToTypeMap = new LinkedHashMap<>();
 
-   public void initialize(SessionVisualizerToolkit toolkit, YoGroupFX parent, Window parentWindow)
+   public void initialize(SessionVisualizerWindowToolkit toolkit, YoGroupFX parent)
    {
       this.parent = parent;
 
@@ -78,7 +79,7 @@ public class YoGraphicItemCreatorDialogController
       itemTypeComboBox.getSelectionModel().selectFirst();
       createItemButton.disableProperty().bind(itemNameValidityProperty.not());
 
-      stage.initOwner(parentWindow);
+      stage.initOwner(toolkit.getWindow());
       Scene scene = new Scene(mainPane);
 
       stage.setTitle("YoGraphicFXItem creation");

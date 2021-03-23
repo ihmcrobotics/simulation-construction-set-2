@@ -19,12 +19,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.stage.Window;
 import us.ihmc.scs2.definition.yoChart.YoChartGroupModelDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.ControllerListCell;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.SCSDefaultUIController;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 
 public class YoChartGroupModelEditorController implements SCSDefaultUIController
@@ -42,14 +41,12 @@ public class YoChartGroupModelEditorController implements SCSDefaultUIController
 
    private final ObjectProperty<YoChartGroupModelDefinition> chartGroupModelProperty = new SimpleObjectProperty<>(this, "chartGroupModel", null);
 
-   private SessionVisualizerToolkit toolkit;
-   private Window owner;
+   private SessionVisualizerWindowToolkit toolkit;
 
    @Override
-   public void initialize(SessionVisualizerToolkit toolkit, Window owner)
+   public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
       this.toolkit = toolkit;
-      this.owner = owner;
 
       listView.setCellFactory(param -> new ControllerListCell<>());
 
@@ -150,7 +147,7 @@ public class YoChartGroupModelEditorController implements SCSDefaultUIController
       {
          loader.load();
          YoChartIdentifierEditorController editor = loader.getController();
-         editor.initialize(toolkit, owner);
+         editor.initialize(toolkit);
          return editor;
       }
       catch (IOException e)

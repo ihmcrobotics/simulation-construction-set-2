@@ -45,13 +45,12 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX;
@@ -76,7 +75,7 @@ public class YoGraphicPropertyWindowController
    private CheckBoxTreeItem<YoGraphicFXItem> rootItem;
    private CheckBoxTreeItem<YoGraphicFXItem> oldRootItem;
 
-   private SessionVisualizerToolkit toolkit;
+   private SessionVisualizerWindowToolkit toolkit;
    private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
    private final ObjectProperty<YoGraphicFXCreatorController<YoGraphicFX>> activeEditor = new SimpleObjectProperty<>(this, "activeEditor", null);
@@ -85,7 +84,7 @@ public class YoGraphicPropertyWindowController
    private YoGroupFX rootGroup;
    private Stage window;
 
-   public void initialize(SessionVisualizerToolkit toolkit, Window parentWindow)
+   public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
       this.toolkit = toolkit;
       topics = toolkit.getTopics();
@@ -175,10 +174,10 @@ public class YoGraphicPropertyWindowController
          if (e.getCode() == KeyCode.ESCAPE)
             window.close();
       });
-      parentWindow.addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> window.close());
+      toolkit.getWindow().addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> window.close());
       window.setTitle("YoGraphic properties");
       window.setScene(new Scene(mainAnchorPane));
-      window.initOwner(parentWindow);
+      window.initOwner(toolkit.getWindow());
    }
 
    public void showWindow()
@@ -371,7 +370,7 @@ public class YoGraphicPropertyWindowController
             FXMLLoader loader = SessionVisualizerIOTools.getYoGraphicFXEditorFXMLLoader(itemType);
             loader.load();
             controller = loader.getController();
-            controller.initialize(toolkit, (YoGraphicFX) item, window);
+            controller.initialize(toolkit, (YoGraphicFX) item);
             cachedEditors.put(item, controller);
          }
          catch (IOException e)
@@ -429,7 +428,7 @@ public class YoGraphicPropertyWindowController
          FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.YO_GRAPHIC_ITEM_CREATOR_URL);
          loader.load();
          YoGraphicItemCreatorDialogController controller = loader.getController();
-         controller.initialize(toolkit, group, window);
+         controller.initialize(toolkit, group);
          controller.showAndWait();
 
          Optional<String> itemNameResult = controller.getItemNameResult();

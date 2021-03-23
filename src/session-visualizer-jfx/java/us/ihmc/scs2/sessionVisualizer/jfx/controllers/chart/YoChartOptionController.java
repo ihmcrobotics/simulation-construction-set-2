@@ -29,13 +29,12 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartDoubleBounds;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.DynamicLineChart.ChartStyle;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.NumberFormatTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ScientificDoubleStringConverter;
@@ -61,7 +60,7 @@ public class YoChartOptionController
       AUTO, INDIVIDUAL, MANUAL
    };
 
-   private SessionVisualizerToolkit toolkit;
+   private SessionVisualizerWindowToolkit toolkit;
    private Stage window;
    private ObservableList<YoChartVariableOptionController> subControllers = FXCollections.observableArrayList();
    private ObservableList<YoNumberSeries> yoNumberSeriesList = null;
@@ -150,7 +149,7 @@ public class YoChartOptionController
    private final InvalidationListener actualBoundsUpdater = o -> updateActualBounds();
    private final ChangeListener<Object> resizeWindowListener = (o, oldValue, newValue) -> resizeWindow();
 
-   public void initialize(SessionVisualizerToolkit toolkit, Window parentWindow)
+   public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
       this.toolkit = toolkit;
       manualRangeMinTextField.setTextFormatter(minFormatter);
@@ -198,13 +197,13 @@ public class YoChartOptionController
          if (e.getCode() == KeyCode.ESCAPE)
             window.close();
       });
-      parentWindow.addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> window.close());
+      toolkit.getWindow().addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> window.close());
       window.setTitle("YoChart properties");
       Scene scene = new Scene(mainPane);
       masterSettingsPane.expandedProperty().addListener((o, oldValue, newValue) -> resizeWindow());
       window.setResizable(false);
       window.setScene(scene);
-      window.initOwner(parentWindow);
+      window.initOwner(toolkit.getWindow());
    }
 
    public void showWindow()

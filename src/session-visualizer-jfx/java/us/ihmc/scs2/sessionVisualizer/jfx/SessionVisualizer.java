@@ -45,7 +45,7 @@ public class SessionVisualizer
       FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.MAIN_WINDOW_URL);
       Parent mainPane = loader.load();
       mainWindowController = loader.getController();
-      mainWindowController.initialize(toolkit);
+      mainWindowController.initialize(primaryStage, toolkit);
 
       loader = new FXMLLoader(SessionVisualizerIOTools.SIDE_PANE_URL);
       mainWindowController.setupDrawer((Pane) loader.load());

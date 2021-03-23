@@ -29,7 +29,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.yoTextFields.YoC
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.yoTextFields.YoDoubleTextField;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.yoTextFields.YoReferenceFrameTextField;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameManager;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.CompositePropertyTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.CompositeProperty;
@@ -70,7 +70,7 @@ public class YoCompositeEditorPaneController
 
    private YoReferenceFrameTextField yoReferenceFrameTextField;
 
-   public void initialize(SessionVisualizerToolkit toolkit, YoCompositeCollection yoCompositeCollection, boolean setupReferenceFrameFields)
+   public void initialize(SessionVisualizerWindowToolkit toolkit, YoCompositeCollection yoCompositeCollection, boolean setupReferenceFrameFields)
    {
       YoCompositeSearchManager searchManager = toolkit.getYoCompositeSearchManager();
       yoCompositePattern = yoCompositeCollection.getPattern();
