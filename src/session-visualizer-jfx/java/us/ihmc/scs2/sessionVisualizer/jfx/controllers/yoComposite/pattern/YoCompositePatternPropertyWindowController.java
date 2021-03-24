@@ -193,6 +193,11 @@ public class YoCompositePatternPropertyWindowController
       timeline.play();
    }
 
+   public void close()
+   {
+      window.close();
+   }
+
    private boolean ignoreTreeSelectionUpdate = false;
 
    private void processListSelectionUpdate(ObjectProperty<YoCompositePatternDefinition> oldSelectedValue,

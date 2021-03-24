@@ -50,7 +50,7 @@ import javafx.util.Duration;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX;
@@ -75,7 +75,7 @@ public class YoGraphicPropertyWindowController
    private CheckBoxTreeItem<YoGraphicFXItem> rootItem;
    private CheckBoxTreeItem<YoGraphicFXItem> oldRootItem;
 
-   private SessionVisualizerWindowToolkit toolkit;
+   private SessionVisualizerToolkit toolkit;
    private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
    private final ObjectProperty<YoGraphicFXCreatorController<YoGraphicFX>> activeEditor = new SimpleObjectProperty<>(this, "activeEditor", null);
@@ -84,7 +84,7 @@ public class YoGraphicPropertyWindowController
    private YoGroupFX rootGroup;
    private Stage window;
 
-   public void initialize(SessionVisualizerWindowToolkit toolkit)
+   public void initialize(SessionVisualizerToolkit toolkit)
    {
       this.toolkit = toolkit;
       topics = toolkit.getTopics();
@@ -174,10 +174,10 @@ public class YoGraphicPropertyWindowController
          if (e.getCode() == KeyCode.ESCAPE)
             window.close();
       });
-      toolkit.getWindow().addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> window.close());
+      toolkit.getMainWindow().addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> window.close());
       window.setTitle("YoGraphic properties");
       window.setScene(new Scene(mainAnchorPane));
-      window.initOwner(toolkit.getWindow());
+      window.initOwner(toolkit.getMainWindow());
    }
 
    public void showWindow()
@@ -189,6 +189,11 @@ public class YoGraphicPropertyWindowController
       KeyFrame key = new KeyFrame(Duration.seconds(0.125), new KeyValue(window.opacityProperty(), 1.0));
       timeline.getKeyFrames().add(key);
       timeline.play();
+   }
+
+   public void close()
+   {
+      window.close();
    }
 
    private final SetChangeListener<YoGraphicFXItem> treeViewAutoRefreshListener = new SetChangeListener<YoGraphicFXItem>()

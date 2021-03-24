@@ -12,19 +12,22 @@ import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.SecondaryWindowController;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
+import us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.bcf2000.YoBCF2000SliderboardWindowController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.pattern.YoCompositePatternPropertyWindowController;
+import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicPropertyWindowController;
 
 public class WindowManager implements Manager
 {
    public static final String SECONDARY_CHART_WINDOW_TYPE = "SecondaryChartWindow";
    public static final String COMPOSITE_PATTERN_EDITOR_WINDOW_TYPE = "YoCompositeEditorWindow";
-   public static final String GRAPHIC_EDITOR_WINDOW_TYPE = "YoCompositeEditorWindow";
+   public static final String GRAPHIC_EDITOR_WINDOW_TYPE = "YoGraphicEditorWindow";
+   public static final String BCF2000_SLIDERBOARD_WINDOW_TYPE = "YoGraphicEditorWindow";
 
    private final SessionVisualizerToolkit toolkit;
 
-   private final Property<YoCompositePatternPropertyWindowController> activeYoCompositeEditController = new SimpleObjectProperty<>(this,
-                                                                                                                                   "activeYoCompositeEditController",
-                                                                                                                                   null);
+   private final Property<YoCompositePatternPropertyWindowController> yoCompositeEditor = new SimpleObjectProperty<>(this, "yoCompositeEditor", null);
+   private final Property<YoGraphicPropertyWindowController> yoGraphicEditor = new SimpleObjectProperty<>(this, "yoGraphicEditor", null);
+   private final Property<YoBCF2000SliderboardWindowController> bcf2000Sliderboard = new SimpleObjectProperty<>(this, "bcf2000Sliderboard", null);
 
    public WindowManager(SessionVisualizerToolkit toolkit)
    {
@@ -44,13 +47,26 @@ public class WindowManager implements Manager
    @Override
    public void startSession(Session session)
    {
-
    }
 
    @Override
    public void stopSession()
    {
-
+      if (yoCompositeEditor.getValue() != null)
+      {
+         yoCompositeEditor.getValue().close();
+         yoCompositeEditor.setValue(null);
+      }
+      if (yoGraphicEditor.getValue() != null)
+      {
+         yoGraphicEditor.getValue().close();
+         yoGraphicEditor.setValue(null);
+      }
+      if (bcf2000Sliderboard.getValue() != null)
+      {
+         bcf2000Sliderboard.getValue().close();
+         bcf2000Sliderboard.setValue(null);
+      }
    }
 
    public void openWindow(String windowType)
@@ -65,6 +81,10 @@ public class WindowManager implements Manager
             break;
          case SECONDARY_CHART_WINDOW_TYPE:
             newChartWindow();
+            break;
+         case GRAPHIC_EDITOR_WINDOW_TYPE:
+            openYoGraphicEditor();
+            break;
          default:
             LogTools.error("Unexpected value: " + windowType);
       }
@@ -72,9 +92,9 @@ public class WindowManager implements Manager
 
    public void openYoCompositePatternEditor()
    {
-      if (activeYoCompositeEditController.getValue() != null)
+      if (yoCompositeEditor.getValue() != null)
       {
-         activeYoCompositeEditController.getValue().showWindow();
+         yoCompositeEditor.getValue().showWindow();
          return;
       }
 
@@ -84,7 +104,7 @@ public class WindowManager implements Manager
          fxmlLoader.load();
          YoCompositePatternPropertyWindowController controller = fxmlLoader.getController();
          controller.initialize(toolkit);
-         activeYoCompositeEditController.setValue(controller);
+         yoCompositeEditor.setValue(controller);
          controller.showWindow();
       }
       catch (IOException e)
@@ -119,6 +139,52 @@ public class WindowManager implements Manager
          e.printStackTrace();
          stage.close();
          return null;
+      }
+   }
+
+   private void openYoGraphicEditor()
+   {
+      if (yoGraphicEditor.getValue() != null)
+      {
+         yoGraphicEditor.getValue().showWindow();
+         return;
+      }
+
+      try
+      {
+         FXMLLoader fxmlLoader = new FXMLLoader(SessionVisualizerIOTools.YO_GRAPHIC_PROPERTY_URL);
+         fxmlLoader.load();
+         YoGraphicPropertyWindowController controller = fxmlLoader.getController();
+         controller.initialize(toolkit);
+         yoGraphicEditor.setValue(controller);
+         controller.showWindow();
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+      }
+   }
+
+   public void openBCF2000SliderboardWindow()
+   {
+      if (bcf2000Sliderboard.getValue() != null)
+      {
+         bcf2000Sliderboard.getValue().showWindow();
+         return;
+      }
+
+      try
+      {
+         FXMLLoader fxmlLoader = new FXMLLoader(SessionVisualizerIOTools.YO_SLIDERBOARD_BCF2000_WINDOW_URL);
+         fxmlLoader.load();
+         YoBCF2000SliderboardWindowController controller = fxmlLoader.getController();
+         controller.initialize(toolkit);
+         bcf2000Sliderboard.setValue(controller);
+         controller.showWindow();
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
       }
    }
 }

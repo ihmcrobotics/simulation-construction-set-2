@@ -59,7 +59,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.yoTextFields.YoC
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.yoTextFields.YoIntegerTextField;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.yoTextFields.YoReferenceFrameTextField;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameManager;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ContextMenuTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
@@ -101,13 +101,13 @@ public class YoCompositeListEditorPaneController
    private final ObjectProperty<IntegerProperty> numberOfCompositesProperty = new SimpleObjectProperty<>(this, "numberOfComposites", null);
    private final ObjectProperty<List<DoubleProperty[]>> compositeListProperty = new SimpleObjectProperty<>(this, "compositeList", null);
 
-   private SessionVisualizerWindowToolkit toolkit;
+   private SessionVisualizerToolkit toolkit;
 
    private URL yoCompositeEditorPaneFXML = SessionVisualizerIOTools.YO_COMPOSITE_EDITOR_URL;
    private YoCompositeCollection yoCompositeCollection;
    private boolean setupReferenceFrameFields;
 
-   public void initialize(SessionVisualizerWindowToolkit toolkit, YoCompositeCollection yoCompositeCollection, boolean setupReferenceFrameFields)
+   public void initialize(SessionVisualizerToolkit toolkit, YoCompositeCollection yoCompositeCollection, boolean setupReferenceFrameFields)
    {
       this.toolkit = toolkit;
       this.yoCompositeCollection = yoCompositeCollection;

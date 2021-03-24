@@ -18,7 +18,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphic3DDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.definition.JavaFXVisualTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.PositiveIntegerValueFilter;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.RoundedDoubleConverter;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX3D;
@@ -46,7 +46,7 @@ public class YoGraphic3DStyleEditorPaneController
    private final ObjectProperty<Color> colorProperty = new SimpleObjectProperty<>(this, "color", null);
    private final ObservableBooleanValue inputsValidityProperty = new SimpleBooleanProperty(this, "inputsValidity", true);
 
-   public void initialize(SessionVisualizerWindowToolkit toolkit)
+   public void initialize(SessionVisualizerToolkit toolkit)
    {
       colorPicker.valueProperty().bindBidirectional(colorProperty);
 

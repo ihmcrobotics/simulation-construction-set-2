@@ -25,7 +25,7 @@ import javafx.scene.text.Text;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.messager.MessagerAPIFactory.Topic;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.YoVariableSlider;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
@@ -61,12 +61,12 @@ public abstract class YoBCF2000InputController
    {
    }
 
-   protected void initialize(SessionVisualizerWindowToolkit toolkit, Region rootPane, Label yoVariableDropLabel)
+   protected void initialize(SessionVisualizerToolkit toolkit, Region rootPane, Label yoVariableDropLabel)
    {
       initialize(toolkit, rootPane, yoVariableDropLabel, var -> true);
    }
 
-   protected void initialize(SessionVisualizerWindowToolkit toolkit, Region rootPane, Label yoVariableDropLabel, Predicate<YoVariable> filter)
+   protected void initialize(SessionVisualizerToolkit toolkit, Region rootPane, Label yoVariableDropLabel, Predicate<YoVariable> filter)
    {
       this.rootPane = rootPane;
       this.yoVariableDropLabel = yoVariableDropLabel;

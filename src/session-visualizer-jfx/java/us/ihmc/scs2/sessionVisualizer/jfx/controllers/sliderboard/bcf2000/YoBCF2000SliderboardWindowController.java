@@ -31,7 +31,7 @@ import us.ihmc.scs2.definition.yoSlider.YoSliderboardDefinition;
 import us.ihmc.scs2.definition.yoSlider.YoSliderboardListDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController.Button;
@@ -72,7 +72,7 @@ public class YoBCF2000SliderboardWindowController
    private Stage window;
    private BCF2000SliderboardController sliderboard;
 
-   public void initialize(SessionVisualizerWindowToolkit toolkit)
+   public void initialize(SessionVisualizerToolkit toolkit)
    {
       knobControllers = Arrays.asList(knob0Controller,
                                       knob1Controller,
@@ -152,10 +152,10 @@ public class YoBCF2000SliderboardWindowController
             window.close();
       });
 
-      toolkit.getWindow().addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> window.close());
+      toolkit.getMainWindow().addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> window.close());
       window.setTitle("YoSliderboard controller");
       window.setScene(new Scene(mainAnchorPane));
-      window.initOwner(toolkit.getWindow());
+      window.initOwner(toolkit.getMainWindow());
 
       JavaFXMessager messager = toolkit.getMessager();
       SessionVisualizerTopics topics = toolkit.getTopics();
@@ -166,7 +166,7 @@ public class YoBCF2000SliderboardWindowController
 
       messager.registerJavaFXSyncedTopicListener(topics.getYoSliderboardLoadConfiguration(), this::load);
       messager.registerJavaFXSyncedTopicListener(topics.getYoSliderboardSaveConfiguration(), this::save);
-      toolkit.getGlobalToolkit().setYoSliderboardWindowController(this);
+      toolkit.setYoSliderboardWindowController(this);
    }
 
    public void load(File file)

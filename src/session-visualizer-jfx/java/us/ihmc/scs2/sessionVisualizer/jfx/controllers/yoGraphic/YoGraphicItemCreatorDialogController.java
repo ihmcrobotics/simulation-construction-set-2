@@ -23,7 +23,7 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXItem;
@@ -56,7 +56,7 @@ public class YoGraphicItemCreatorDialogController
 
    private final Map<String, Class<? extends YoGraphicFXItem>> nameToTypeMap = new LinkedHashMap<>();
 
-   public void initialize(SessionVisualizerWindowToolkit toolkit, YoGroupFX parent)
+   public void initialize(SessionVisualizerToolkit toolkit, YoGroupFX parent)
    {
       this.parent = parent;
 
@@ -79,7 +79,7 @@ public class YoGraphicItemCreatorDialogController
       itemTypeComboBox.getSelectionModel().selectFirst();
       createItemButton.disableProperty().bind(itemNameValidityProperty.not());
 
-      stage.initOwner(toolkit.getWindow());
+      stage.initOwner(toolkit.getMainWindow());
       Scene scene = new Scene(mainPane);
 
       stage.setTitle("YoGraphicFXItem creation");

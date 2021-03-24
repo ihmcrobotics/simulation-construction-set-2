@@ -12,7 +12,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicCapsule3DDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.yoTextFields.YoDoubleTextField;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoCapsuleFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
@@ -44,7 +44,7 @@ public class YoCapsuleFX3DEditorController implements YoGraphicFXCreatorControll
    private BooleanProperty hasChangesPendingProperty = new SimpleBooleanProperty(this, "hasChangesPending", false);
 
    @Override
-   public void initialize(SessionVisualizerWindowToolkit toolkit, YoCapsuleFX3D yoGraphicToEdit)
+   public void initialize(SessionVisualizerToolkit toolkit, YoCapsuleFX3D yoGraphicToEdit)
    {
       this.yoGraphicToEdit = yoGraphicToEdit;
       definitionBeforeEdits = YoGraphicTools.toYoGraphicCapsule3DDefinition(yoGraphicToEdit);
