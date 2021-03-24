@@ -7,8 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.javafx.application.PlatformImpl;
-
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXMLLoader;
@@ -52,7 +50,7 @@ public class MultiSessionManager
 
       activeSession.addListener((o, oldValue, newValue) ->
       {
-         PlatformImpl.runAndWait(() -> stopSession());
+         JavaFXMissingTools.runAndWait(getClass(), () -> stopSession());
 
          if (newValue != null)
             startSession(newValue, () -> activeController.get().notifySessionLoaded());
@@ -189,17 +187,18 @@ public class MultiSessionManager
       if (configuration.hasYoCompositeConfiguration())
          messager.submitMessage(topics.getYoCompositePatternLoadRequest(), configuration.getYoCompositeConfigurationFile());
 
-      PlatformImpl.runAndWait(() ->
+      if (configuration.hasYoEntryConfiguration())
       {
-         if (configuration.hasYoEntryConfiguration())
-            sidePaneController.getYoEntryTabPaneController().load(configuration.getYoEntryConfigurationFile());
-      });
+         JavaFXMissingTools.runLaterWhen(getClass(),
+                                         () -> toolkit.getYoCompositeSearchManager().isSessionLoaded(),
+                                         () -> sidePaneController.getYoEntryTabPaneController().load(configuration.getYoEntryConfigurationFile()));
+      }
 
       if (configuration.hasMainYoChartGroupConfiguration())
          messager.submitMessage(topics.getYoChartGroupLoadConfiguration(),
                                 new Pair<>(toolkit.getMainWindow(), configuration.getMainYoChartGroupConfigurationFile()));
 
-      PlatformImpl.runAndWait(() ->
+      JavaFXMissingTools.runAndWait(getClass(), () ->
       {
          // TODO When the main window is already up, changing its configuration is quite unpleasant.
          //         if (configuration.hasMainWindowConfiguration())

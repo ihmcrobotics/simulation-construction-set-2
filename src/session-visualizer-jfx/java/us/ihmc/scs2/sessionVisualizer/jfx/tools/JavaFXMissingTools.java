@@ -1,6 +1,7 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.tools;
 
 import java.util.concurrent.CountDownLatch;
+import java.util.function.BooleanSupplier;
 
 import com.sun.javafx.application.PlatformImpl;
 
@@ -26,7 +27,6 @@ import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 
 public class JavaFXMissingTools
 {
-
    public static void addEquals(Translate translateToModify, Tuple2DReadOnly offset)
    {
       translateToModify.setX(translateToModify.getX() + offset.getX());
@@ -114,6 +114,32 @@ public class JavaFXMissingTools
             ex.printStackTrace();
          }
       }
+   }
+
+   public static void runLaterWhen(Class<?> caller, BooleanSupplier condition, Runnable runnable)
+   {
+      new ObservedAnimationTimer(caller.getSimpleName())
+      {
+         @Override
+         public void handleImpl(long now)
+         {
+            if (condition.getAsBoolean())
+            {
+               try
+               {
+                  runnable.run();
+               }
+               catch (Exception e)
+               {
+                  e.printStackTrace();
+               }
+               finally
+               {
+                  stop();
+               }
+            }
+         }
+      }.start();
    }
 
    public static void setAnchorConstraints(Node child, double allSides)
