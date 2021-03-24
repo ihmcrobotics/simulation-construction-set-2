@@ -10,12 +10,12 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import us.ihmc.scs2.session.SessionState;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.SecondaryWindowControlsController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.chart.YoChartGroupPanelController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu.MainWindowMenuBarController;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.WindowManager;
 
 public class SecondaryWindowController
 {
@@ -38,20 +38,11 @@ public class SecondaryWindowController
       {
          stop();
          owner.close();
-         globalToolkit.removeSecondaryWindow(owner);
       });
-      toolkit.getMessager().registerJavaFXSyncedTopicListener(toolkit.getTopics().getSessionCurrentState(), state ->
-      {
-         if (state == SessionState.INACTIVE)
-         {
-            stop();
-            owner.close();
-            globalToolkit.removeSecondaryWindow(owner);
-         }
-      });
-      globalToolkit.addSecondaryWindow(owner);
    }
 
+   private YoChartGroupPanelController chartGroupController = null;
+  
    public void setupChartGroup() throws IOException
    {
       Stage stage = toolkit.getWindow();
@@ -59,7 +50,7 @@ public class SecondaryWindowController
       // Loading the chart pane & controller
       FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.CHART_GROUP_PANEL_URL);
       AnchorPane chartGroupPane = loader.load();
-      YoChartGroupPanelController chartGroupController = loader.getController();
+      chartGroupController = loader.getController();
 
       chartGroupController.initialize(toolkit);
       chartGroupController.start();
@@ -76,18 +67,14 @@ public class SecondaryWindowController
       stage.addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e ->
       {
          stage.close();
-         toolkit.getGlobalToolkit().removeYoChartGroupController(chartGroupController);
          chartGroupController.close();
       });
-      toolkit.getMessager().registerJavaFXSyncedTopicListener(toolkit.getTopics().getSessionCurrentState(), state ->
-      {
-         if (state == SessionState.INACTIVE)
-         {
-            toolkit.getGlobalToolkit().removeYoChartGroupController(chartGroupController);
-            chartGroupController.close();
-         }
-      });
-      toolkit.getGlobalToolkit().addYoChartGroupController(chartGroupController);
+   }
+
+   public void saveSessionConfiguration(SCSGuiConfiguration configuration)
+   {
+      configuration.addSecondaryWindowConfiguration(WindowManager.toWindowConfigurationDefinition(toolkit.getWindow()));
+      chartGroupController.saveChartGroupConfiguration(toolkit.getWindow(), configuration.addSecondaryYoChartGroupConfigurationFile());
    }
 
    public void start()
@@ -96,5 +83,7 @@ public class SecondaryWindowController
 
    public void stop()
    {
+      chartGroupController.close();
+      toolkit.getWindow().close();
    }
 }

@@ -166,7 +166,6 @@ public class YoBCF2000SliderboardWindowController
 
       messager.registerJavaFXSyncedTopicListener(topics.getYoSliderboardLoadConfiguration(), this::load);
       messager.registerJavaFXSyncedTopicListener(topics.getYoSliderboardSaveConfiguration(), this::save);
-      toolkit.setYoSliderboardWindowController(this);
    }
 
    public void load(File file)

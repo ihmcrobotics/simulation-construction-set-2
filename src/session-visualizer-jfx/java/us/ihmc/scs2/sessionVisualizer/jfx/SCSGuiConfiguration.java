@@ -28,6 +28,7 @@ import javafx.stage.Stage;
 import us.ihmc.commons.nio.FileTools;
 import us.ihmc.scs2.definition.configuration.SCSGuiConfigurationDefinition;
 import us.ihmc.scs2.definition.configuration.WindowConfigurationDefinition;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.WindowManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
 
 public class SCSGuiConfiguration
@@ -59,7 +60,7 @@ public class SCSGuiConfiguration
    {
       try
       {
-         return new SCSGuiConfiguration(robotName, simulationName, -1, true);
+         return new SCSGuiConfiguration(robotName, simulationName, true);
       }
       catch (Exception e)
       {
@@ -68,11 +69,11 @@ public class SCSGuiConfiguration
       }
    }
 
-   public static SCSGuiConfiguration defaultSaver(String robotName, String simulationName, int numberOfSecondaryChartWindows)
+   public static SCSGuiConfiguration defaultSaver(String robotName, String simulationName)
    {
       try
       {
-         return new SCSGuiConfiguration(robotName, simulationName, numberOfSecondaryChartWindows, false);
+         return new SCSGuiConfiguration(robotName, simulationName, false);
       }
       catch (Exception e)
       {
@@ -81,7 +82,7 @@ public class SCSGuiConfiguration
       }
    }
 
-   private SCSGuiConfiguration(String robotName, String simulationName, int numberOfSecondaryChartWindows, boolean isLoading) throws IOException, JAXBException
+   private SCSGuiConfiguration(String robotName, String simulationName, boolean isLoading) throws IOException, JAXBException
    {
       this.robotName = robotName;
       this.simulationName = simulationName;
@@ -148,13 +149,6 @@ public class SCSGuiConfiguration
          yoSliderboardConfigurationPath = toPath(yoSliderboardConfigurationFilename);
          mainYoChartGroupPath = toPath(mainYoChartGroupFilename);
 
-         for (int i = 0; i < numberOfSecondaryChartWindows; i++)
-         {
-            String filename = toFilename("SecondaryYoChartGroup" + i, yoChartGroupConfigurationFileExtension);
-            secondaryYoChartGroupFilenames.add(filename);
-            secondaryYoChartGroupPaths.add(toPath(filename));
-         }
-
          definition = new SCSGuiConfigurationDefinition();
          definition.setName(configurationName);
          definition.setYoGraphicsFilename(yoGraphicsFilename);
@@ -186,10 +180,22 @@ public class SCSGuiConfiguration
       definition.setMainWindowConfiguration(toWindowConfigurationDefinition(stage));
    }
 
+   public void addSecondaryWindowConfiguration(WindowConfigurationDefinition definitionConfigurationDefinition)
+   {
+      if (definition.getSecondaryWindowConfigurations() == null)
+         definition.setSecondaryWindowConfigurations(new ArrayList<>());
+      definition.getSecondaryWindowConfigurations().add(definitionConfigurationDefinition);
+   }
+
+   public void setSecondaryWindowConfigurations(List<WindowConfigurationDefinition> secondaryWindowConfigurations)
+   {
+      definition.setSecondaryWindowConfigurations(secondaryWindowConfigurations);
+   }
+
    public void setSecondaryWindows(List<Stage> stages)
    {
       List<WindowConfigurationDefinition> definitions = stages.stream().map(SCSGuiConfiguration::toWindowConfigurationDefinition).collect(Collectors.toList());
-      definition.setSecondaryWindowConfigurations(definitions);
+      setSecondaryWindowConfigurations(definitions);
    }
 
    public boolean exists()
@@ -285,6 +291,15 @@ public class SCSGuiConfiguration
       return mainYoChartGroupPath.toFile();
    }
 
+   public File addSecondaryYoChartGroupConfigurationFile()
+   {
+      String filename = toFilename("SecondaryYoChartGroup" + secondaryYoChartGroupFilenames.size(), yoChartGroupConfigurationFileExtension);
+      secondaryYoChartGroupFilenames.add(filename);
+      Path newPath = toPath(filename);
+      secondaryYoChartGroupPaths.add(newPath);
+      return newPath.toFile();
+   }
+
    public File getSecondaryYoChartGroupConfigurationFile(int index)
    {
       return secondaryYoChartGroupPaths.get(index).toFile();
@@ -308,6 +323,11 @@ public class SCSGuiConfiguration
    public void getMainWindowConfiguration(Stage stage)
    {
       loadWindowConfigurationDefinition(definition.getMainWindowConfiguration(), stage);
+   }
+
+   public List<WindowConfigurationDefinition> getSecondaryWindowConfigurations()
+   {
+      return definition.getSecondaryWindowConfigurations();
    }
 
    public void getSecondaryWindowConfigurations(List<Stage> stages)
@@ -343,24 +363,7 @@ public class SCSGuiConfiguration
 
    public static WindowConfigurationDefinition toWindowConfigurationDefinition(Stage stage)
    {
-      WindowConfigurationDefinition definition = new WindowConfigurationDefinition();
-      if (stage.isMaximized())
-      {
-         definition.setMaximized(true);
-         definition.setPositionX(stage.getX());
-         definition.setPositionY(stage.getY());
-         definition.setWidth(stage.getWidth());
-         definition.setHeight(stage.getHeight());
-      }
-      else
-      {
-         definition.setMaximized(false);
-         definition.setPositionX(stage.getX());
-         definition.setPositionY(stage.getY());
-         definition.setWidth(stage.getWidth());
-         definition.setHeight(stage.getHeight());
-      }
-      return definition;
+      return WindowManager.toWindowConfigurationDefinition(stage);
    }
 
    public static void loadWindowConfigurationDefinition(WindowConfigurationDefinition definition, Stage stage)
