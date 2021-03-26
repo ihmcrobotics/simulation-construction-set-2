@@ -10,7 +10,7 @@ import javafx.scene.control.TextFormatter;
 import javafx.util.converter.IntegerStringConverter;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sharedMemory.CropBufferRequest;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 
@@ -27,7 +27,7 @@ public class DataBufferMenuController
    private boolean initializeBufferSizeTextField = true;
    private Property<YoBufferPropertiesReadOnly> bufferProperties;
 
-   public void initialize(SessionVisualizerToolkit toolkit)
+   public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
       this.messager = toolkit.getMessager();
       topics = toolkit.getTopics();

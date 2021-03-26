@@ -118,6 +118,7 @@ public class PhysicsEngine
 
    public void addRobot(Robot robot)
    {
+      robot.setupPhysicsAndControllers();
       robotMap.put(robot.getRootBody(), robot);
       rootRegistry.addChild(robot.getRegistry());
       robotList.add(robot);

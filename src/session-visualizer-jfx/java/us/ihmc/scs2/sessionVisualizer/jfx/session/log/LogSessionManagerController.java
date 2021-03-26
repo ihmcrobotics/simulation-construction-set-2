@@ -287,7 +287,7 @@ public class LogSessionManagerController implements SessionControlsController
          return;
 
       DirectoryChooser directoryChooser = new DirectoryChooser();
-      directoryChooser.setInitialDirectory(SessionVisualizerIOTools.getDefaultFilePath());
+      directoryChooser.setInitialDirectory(SessionVisualizerIOTools.getDefaultFilePath(LOG_FILE_KEY));
       File destination = directoryChooser.showDialog(stage);
       if (destination == null)
          return;

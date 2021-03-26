@@ -12,15 +12,17 @@ import java.util.function.DoubleUnaryOperator;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.css.CssMetaData;
 import javafx.css.Styleable;
 import javafx.css.StyleableDoubleProperty;
 import javafx.css.StyleableObjectProperty;
 import javafx.css.StyleablePropertyFactory;
-import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.InvisibleNumberAxis;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.WritableImage;
@@ -39,7 +41,7 @@ public class NumberSeriesLayer extends ImageView
    private final NumberSeries numberSeries;
    private final DynamicChartLegendItem legendNode = new DynamicChartLegendItem();
 
-   private final NumberAxis xAxis, yAxis;
+   private final InvisibleNumberAxis xAxis, yAxis;
    private final BooleanProperty layoutChangedProperty = new SimpleBooleanProperty(this, "layoutChanged", true);
 
    private final Executor backgroundExecutor;
@@ -104,11 +106,14 @@ public class NumberSeriesLayer extends ImageView
 
    private final ObjectProperty<ChartStyle> chartStyleProperty = new SimpleObjectProperty<>(this, "chartStyle", ChartStyle.RAW);
    private WritableImage writableImage = null;
+   private AtomicBoolean renderNewImage = new AtomicBoolean(true);
    private AtomicBoolean isRenderingImage = new AtomicBoolean(false);
    private AtomicBoolean isUpdatingImage = new AtomicBoolean(false);
    private BufferedImage imageToRender = null;
+   private IntegerProperty dataSizeProperty = new SimpleIntegerProperty(this, "dataSize", 0);
 
-   public NumberSeriesLayer(NumberAxis xAxis, NumberAxis yAxis, NumberSeries numberSeries, Executor backgroundExecutor, ChartRenderManager renderManager)
+   public NumberSeriesLayer(InvisibleNumberAxis xAxis, InvisibleNumberAxis yAxis, NumberSeries numberSeries, Executor backgroundExecutor,
+                            ChartRenderManager renderManager)
    {
       this.renderManager = renderManager;
       getStyleClass().add("dynamic-chart-series-line");
@@ -126,6 +131,7 @@ public class NumberSeriesLayer extends ImageView
       yAxis.upperBoundProperty().addListener(dirtyListener);
       stroke.addListener(dirtyListener);
       strokeWidth.addListener(dirtyListener);
+      dataSizeProperty.addListener(dirtyListener);
    }
 
    public void scheduleRender()
@@ -153,7 +159,7 @@ public class NumberSeriesLayer extends ImageView
       int width = imageToRender.getWidth();
       int height = imageToRender.getHeight();
 
-      if (writableImage == null || (int) Math.round(writableImage.getWidth()) != width || (int) Math.round(writableImage.getHeight()) != height)
+      if (renderNewImage.getAndSet(false))
       {
          writableImage = new WritableImage(width, height);
          setImage(writableImage);
@@ -166,6 +172,7 @@ public class NumberSeriesLayer extends ImageView
    }
 
    private int[] xData, yData;
+   private Graphics2D graphics;
 
    private boolean updateImage()
    {
@@ -185,34 +192,35 @@ public class NumberSeriesLayer extends ImageView
 
       isUpdatingImage.set(true);
 
-      Graphics2D graphics;
+      boolean clearImage = true;
 
       if (imageToRender == null || imageToRender.getWidth() != widthInt || imageToRender.getHeight() != heightInt)
       {
          layoutChangedProperty.set(true);
-         imageToRender = new BufferedImage(widthInt, heightInt, BufferedImage.TYPE_INT_ARGB);
-         graphics = imageToRender.createGraphics();
-      }
-      else
-      {
+         imageToRender = new BufferedImage(widthInt, heightInt, BufferedImage.TYPE_INT_ARGB_PRE);
          graphics = imageToRender.createGraphics();
          graphics.setBackground(new java.awt.Color(255, 255, 255, 0));
-         graphics.clearRect(0, 0, widthInt, heightInt);
+         renderNewImage.set(true);
+         clearImage = false;
       }
 
-      boolean layoutChanged = layoutChangedProperty.get();
-      layoutChangedProperty.set(false);
       List<Point2D> data = numberSeries.getData();
+      dataSizeProperty.set(data.size());
 
       numberSeries.getLock().readLock().lock();
 
       try
       {
-         if (data.isEmpty() || (!numberSeries.pollDirty() && !layoutChanged))
+         if (data.isEmpty())
+            return false;
+         else if (!numberSeries.pollDirty() && !pollLayoutChanged())
             return false;
 
          xData = resize(xData, data.size());
          yData = resize(yData, data.size());
+
+         if (clearImage)
+            graphics.clearRect(0, 0, widthInt, heightInt);
 
          graphics.setColor(toAWTColor(stroke.get()));
          graphics.setStroke(new BasicStroke((float) (strokeWidth.get()), BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
@@ -237,12 +245,11 @@ public class NumberSeriesLayer extends ImageView
 
          drawMultiLine(graphics, data, xTransform, yTransform, xData, yData);
 
-         graphics.setColor(toAWTColor(Color.GREY.deriveColor(0, 1.0, 1.0, 0.5)));
+         graphics.setColor(toAWTColor(Color.GREY.deriveColor(0, 1.0, 0.92, 0.5)));
          graphics.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
          List<Point2D> markerData = Arrays.asList(new Point2D(numberSeries.bufferCurrentIndexProperty().get(), yAxis.getLowerBound()),
                                                   new Point2D(numberSeries.bufferCurrentIndexProperty().get(), yAxis.getUpperBound()));
          drawMultiLine(graphics, markerData, xTransform, yTransform, xData, yData);
-         graphics.dispose();
 
          return true;
       }
@@ -256,6 +263,13 @@ public class NumberSeriesLayer extends ImageView
          isUpdatingImage.set(false);
          numberSeries.getLock().readLock().unlock();
       }
+   }
+
+   private boolean pollLayoutChanged()
+   {
+      boolean ret = layoutChangedProperty.get();
+      layoutChangedProperty.set(false);
+      return ret;
    }
 
    private static int[] resize(int[] in, int length)
@@ -299,7 +313,10 @@ public class NumberSeriesLayer extends ImageView
 
    private static DoubleUnaryOperator normalizeTransform(double min, double max)
    {
-      return affineTransform(1.0 / (max - min), -min / (max - min));
+      if (min == max)
+         return coordinate -> 0.5;
+      else
+         return affineTransform(1.0 / (max - min), -min / (max - min));
    }
 
    private static DoubleUnaryOperator xToHorizontalDisplayTransform(double displayWidth, double xMin, double xMax)

@@ -11,7 +11,7 @@ import javafx.util.converter.DoubleStringConverter;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 
 public class RunMenuController
@@ -26,7 +26,7 @@ public class RunMenuController
 
    private AtomicReference<YoBufferPropertiesReadOnly> bufferProperties;
 
-   public void initialize(SessionVisualizerToolkit toolkit)
+   public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
       this.messager = toolkit.getMessager();
       topics = toolkit.getTopics();
@@ -37,7 +37,7 @@ public class RunMenuController
       TextFormatter<Double> formatter = new TextFormatter<>(new DoubleStringConverter());
       formatter.setValue(1.0);
       playbackRealTimeRateTextField.setTextFormatter(formatter);
-      toolkit.getMessager().bindBidirectional(toolkit.getTopics().getPlaybackRealTimeRate(), formatter.valueProperty(), false);
+      messager.bindBidirectional(topics.getPlaybackRealTimeRate(), formatter.valueProperty(), false);
 
       /*
        * TODO: Workaround for a bug in JFX that's causing the previous MenuItem to be triggered and

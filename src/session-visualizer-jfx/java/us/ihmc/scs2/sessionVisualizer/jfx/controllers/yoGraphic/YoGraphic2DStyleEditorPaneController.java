@@ -1,6 +1,6 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic;
 
-import static us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools.*;
+import static us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools.bindValidityImageView;
 
 import com.jfoenix.controls.JFXColorPicker;
 import com.jfoenix.controls.JFXRadioButton;

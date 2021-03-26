@@ -46,6 +46,7 @@ public class YoManager extends ObservedAnimationTimer implements Manager
       rootRegistry = new YoRegistry(SimulationSession.ROOT_REGISTRY_NAME);
       linkedYoVariableFactory = session.getLinkedYoVariableFactory();
       linkedRootRegistry = linkedYoVariableFactory.newLinkedYoRegistry(rootRegistry);
+      linkedBufferProperties = linkedYoVariableFactory.newLinkedBufferProperties();
 
       updatingYoVariables = true;
       linkedRootRegistry.linkConsumerVariables();

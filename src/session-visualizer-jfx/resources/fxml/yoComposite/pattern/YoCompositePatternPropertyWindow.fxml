@@ -19,12 +19,12 @@
                      <children>
                         <HBox VBox.vgrow="NEVER">
                            <children>
-                              <JFXButton fx:id="addPatternButton" onAction="#addPattern" text="_Add...">
+                              <JFXButton fx:id="addPatternButton" onAction="#addPattern" text="Add...">
                                  <graphic>
                                     <FontAwesomeIconView styleClass="add-icon-view" />
                                  </graphic>
                               </JFXButton>
-                              <JFXButton fx:id="removePatternButton" onAction="#removePattern" text="_Remove">
+                              <JFXButton fx:id="removePatternButton" onAction="#removePattern" text="Remove">
                                  <graphic>
                                     <FontAwesomeIconView>
                                        <styleClass>
@@ -39,7 +39,7 @@
                         <ListView fx:id="yoCompositePatternListView" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS" />
                         <HBox>
                            <children>
-                              <JFXButton fx:id="exportButton" onAction="#exportYoCompositePatterns" text="_Export...">
+                              <JFXButton fx:id="exportButton" onAction="#exportYoCompositePatterns" text="Export...">
                                  <graphic>
                                     <FontAwesomeIconView>
                                        <styleClass>
@@ -49,7 +49,7 @@
                                     </FontAwesomeIconView>
                                  </graphic>
                               </JFXButton>
-                              <JFXButton fx:id="importButton" onAction="#importYoCompositePatterns" text="_Import...">
+                              <JFXButton fx:id="importButton" onAction="#importYoCompositePatterns" text="Import...">
                                  <graphic>
                                     <FontAwesomeIconView>
                                        <styleClass>

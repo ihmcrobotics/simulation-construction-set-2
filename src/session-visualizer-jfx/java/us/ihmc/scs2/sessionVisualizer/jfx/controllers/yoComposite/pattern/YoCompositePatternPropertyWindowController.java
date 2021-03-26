@@ -34,7 +34,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
@@ -75,12 +74,10 @@ public class YoCompositePatternPropertyWindowController
    private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
    private SessionVisualizerToolkit toolkit;
-   private Window owner;
 
-   public void initialize(SessionVisualizerToolkit toolkit, Window owner)
+   public void initialize(SessionVisualizerToolkit toolkit)
    {
       this.toolkit = toolkit;
-      this.owner = owner;
       topics = toolkit.getTopics();
       messager = toolkit.getMessager();
       yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
@@ -124,10 +121,10 @@ public class YoCompositePatternPropertyWindowController
             window.close();
       });
 
-      owner.addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> window.close());
+      toolkit.getMainWindow().addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> window.close());
       window.setTitle("YoCompositePattern properties");
       window.setScene(new Scene(mainAnchorPane));
-      window.initOwner(owner);
+      window.initOwner(toolkit.getMainWindow());
 
       List<YoCompositePatternDefinition> customYoCompositePatterns = YoCompositeTools.toYoCompositePatternDefinitions(yoCompositeSearchManager.customYoCompositePatterns());
 
@@ -196,6 +193,11 @@ public class YoCompositePatternPropertyWindowController
       timeline.play();
    }
 
+   public void close()
+   {
+      window.close();
+   }
+
    private boolean ignoreTreeSelectionUpdate = false;
 
    private void processListSelectionUpdate(ObjectProperty<YoCompositePatternDefinition> oldSelectedValue,
@@ -221,7 +223,7 @@ public class YoCompositePatternPropertyWindowController
             FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.YO_COMPOSITE_PATTERN_EDITOR_PANE_URL);
             loader.load();
             controller = loader.getController();
-            controller.initialize(toolkit, owner);
+            controller.initialize(toolkit);
             controller.setInput(newSelectedValue.get());
             cachedEditors.put(newSelectedValue, controller);
             // We're dealing with a new pattern, let's editing its name

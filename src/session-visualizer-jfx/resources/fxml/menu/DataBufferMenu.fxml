@@ -9,14 +9,14 @@
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.layout.HBox?>
 
-<Menu text="Data Buffer" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu.DataBufferMenuController">
+<Menu text="Data Buffer" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu.DataBufferMenuController">
    <items>
       <MenuItem onAction="#requestCropDataBuffer" text="Crop buffer to In/Out">
          <graphic>
             <FontAwesomeIconView>
                <styleClass>
-                  <String fx:value="crop-data-buffer-icon-view"/>
-                  <String fx:value="menu-item-icon-view"/>
+                  <String fx:value="crop-data-buffer-icon-view" />
+                  <String fx:value="menu-item-icon-view" />
                </styleClass>
             </FontAwesomeIconView>
          </graphic>
@@ -27,15 +27,18 @@
                <children>
                   <FontAwesomeIconView>
                      <styleClass>
-                        <String fx:value="resize-data-buffer-icon-view"/>
-                        <String fx:value="menu-item-icon-view"/>
+                        <String fx:value="resize-data-buffer-icon-view" />
+                        <String fx:value="menu-item-icon-view" />
                      </styleClass>
                   </FontAwesomeIconView>
-                  <Label text="Buffer size:" textFill="#000000fc"/>
-                  <JFXTextField fx:id="bufferSizeTextField" prefWidth="55.0"/>
+                  <Label text="Buffer size:" textFill="#000000fc" />
+                  <JFXTextField fx:id="bufferSizeTextField" prefWidth="55.0" />
                </children>
             </HBox>
          </content>
       </CustomMenuItem>
    </items>
+   <graphic>
+      <FontAwesomeIconView glyphName="DATABASE" />
+   </graphic>
 </Menu>

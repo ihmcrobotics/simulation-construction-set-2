@@ -1,6 +1,7 @@
 package us.ihmc.scs2.session;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -18,6 +19,7 @@ import us.ihmc.messager.Messager;
 import us.ihmc.messager.TopicListener;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
 import us.ihmc.scs2.sharedMemory.CropBufferRequest;
 import us.ihmc.scs2.sharedMemory.YoSharedBuffer;
 import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
@@ -150,7 +152,7 @@ public abstract class Session
       if (playbackRealTimeRate.get().doubleValue() == realTimeRate)
          return;
 
-      playbackRealTimeRate.set(new Double(realTimeRate));
+      playbackRealTimeRate.set(Double.valueOf(realTimeRate));
       restartSessionTask();
    }
 
@@ -582,6 +584,11 @@ public abstract class Session
    public abstract List<RobotDefinition> getRobotDefinitions();
 
    public abstract List<TerrainObjectDefinition> getTerrainObjectDefinitions();
+
+   public List<YoGraphicDefinition> getYoGraphicDefinitions()
+   {
+      return Collections.emptyList();
+   }
 
    public LinkedYoVariableFactory getLinkedYoVariableFactory()
    {

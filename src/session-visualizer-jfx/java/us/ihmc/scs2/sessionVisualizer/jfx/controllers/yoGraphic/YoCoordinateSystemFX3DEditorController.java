@@ -10,11 +10,11 @@ import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
-import javafx.stage.Window;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicCoordinateSystem3DDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.yoTextFields.YoDoubleTextField;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YawPitchRollProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoCoordinateSystemFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
 
@@ -51,7 +51,7 @@ public class YoCoordinateSystemFX3DEditorController implements YoGraphicFXCreato
    private BooleanProperty hasChangesPendingProperty = new SimpleBooleanProperty(this, "hasChangesPending", false);
 
    @Override
-   public void initialize(SessionVisualizerToolkit toolkit, YoCoordinateSystemFX3D yoGraphicToEdit, Window owner)
+   public void initialize(SessionVisualizerToolkit toolkit, YoCoordinateSystemFX3D yoGraphicToEdit)
    {
       this.yoGraphicToEdit = yoGraphicToEdit;
       definitionBeforeEdits = YoGraphicTools.toYoGraphicCoordinateSystem3DDefinition(yoGraphicToEdit);
@@ -60,7 +60,10 @@ public class YoCoordinateSystemFX3DEditorController implements YoGraphicFXCreato
 
       positionEditorController.initialize(toolkit, toolkit.getYoCompositeSearchManager().getYoTuple3DCollection(), true);
       positionEditorController.setCompositeName("Position");
-      orientationEditorController.initialize(toolkit, toolkit.getYoCompositeSearchManager().getYoQuaternionCollection(), true);
+      if (yoGraphicToEdit.getOrientation() != null && yoGraphicToEdit.getOrientation() instanceof YawPitchRollProperty)
+         orientationEditorController.initialize(toolkit, toolkit.getYoCompositeSearchManager().getYoYawPitchRollCollection(), true);
+      else
+         orientationEditorController.initialize(toolkit, toolkit.getYoCompositeSearchManager().getYoQuaternionCollection(), true);
       orientationEditorController.setCompositeName("Orientation");
       yoBodyLengthTextField = new YoDoubleTextField(bodyLengthTextField, yoCompositeSearchManager, bodyLengthValidImageView);
       yoHeadLengthTextField = new YoDoubleTextField(headLengthTextField, yoCompositeSearchManager, headLengthValidImageView);

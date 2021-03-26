@@ -1,21 +1,15 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.managers;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import com.sun.javafx.application.PlatformImpl;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
-import javafx.stage.Stage;
-import javafx.stage.Window;
 import javafx.util.Pair;
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
@@ -26,8 +20,6 @@ import us.ihmc.scs2.sessionVisualizer.jfx.SCSGuiConfiguration;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.SidePaneController;
-import us.ihmc.scs2.sessionVisualizer.jfx.controllers.chart.YoChartGroupPanelController;
-import us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu.YoChartMenuController;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.SessionControlsController;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.SessionInfoController;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.log.LogSessionManagerController;
@@ -39,7 +31,7 @@ public class MultiSessionManager
 {
    private final SessionVisualizerToolkit toolkit;
    private final MainWindowController mainWindowController;
-   private final SidePaneController sidePaneController;
+   private final SidePaneController sidePaneController; // TODO Only here to trigger events when start/close a session, should be done via the messager.
 
    private final Map<Class<? extends SessionControlsController>, SessionControlsController> inactiveControllerMap = new HashMap<>();
    private final ObjectProperty<SessionControlsController> activeController = new SimpleObjectProperty<>(this, "activeSessionControls", null);
@@ -53,7 +45,7 @@ public class MultiSessionManager
 
       activeSession.addListener((o, oldValue, newValue) ->
       {
-         PlatformImpl.runAndWait(() -> stopSession());
+         JavaFXMissingTools.runAndWait(getClass(), () -> stopSession());
 
          if (newValue != null)
             startSession(newValue, () -> activeController.get().notifySessionLoaded());
@@ -190,34 +182,24 @@ public class MultiSessionManager
       if (configuration.hasYoCompositeConfiguration())
          messager.submitMessage(topics.getYoCompositePatternLoadRequest(), configuration.getYoCompositeConfigurationFile());
 
-      PlatformImpl.runAndWait(() ->
+      if (configuration.hasYoEntryConfiguration())
       {
-         if (configuration.hasYoEntryConfiguration())
-            sidePaneController.getYoEntryTabPaneController().load(configuration.getYoEntryConfigurationFile());
-      });
+         JavaFXMissingTools.runLaterWhen(getClass(),
+                                         () -> toolkit.getYoCompositeSearchManager().isSessionLoaded(),
+                                         () -> sidePaneController.getYoEntryTabPaneController().load(configuration.getYoEntryConfigurationFile()));
+      }
 
       if (configuration.hasMainYoChartGroupConfiguration())
          messager.submitMessage(topics.getYoChartGroupLoadConfiguration(),
                                 new Pair<>(toolkit.getMainWindow(), configuration.getMainYoChartGroupConfigurationFile()));
 
-      PlatformImpl.runAndWait(() ->
-      {
-         // TODO When the main window is already up, changing its configuration is quite unpleasant.
-         //         if (configuration.hasMainWindowConfiguration())
-         //            configuration.getMainWindowConfiguration(toolkit.getMainWindow());
-
-         for (int i = 0; i < configuration.getNumberOfSecondaryYoChartGroupConfigurations(); i++)
-         {
-            Window secondaryWindow = YoChartMenuController.newSecondaryChartWindow(toolkit);
-            File secondaryFile = configuration.getSecondaryYoChartGroupConfigurationFile(i);
-            messager.submitMessage(topics.getYoChartGroupLoadConfiguration(), new Pair<>(secondaryWindow, secondaryFile));
-         }
-         if (configuration.hasSecondaryWindowConfigurations())
-            configuration.getSecondaryWindowConfigurations(toolkit.getSecondaryWindows());
-
-         for (Stage secondaryWindow : toolkit.getSecondaryWindows())
-            secondaryWindow.show();
-      });
+      toolkit.getWindowManager().loadSessionConfiguration(configuration);
+      //      JavaFXMissingTools.runAndWait(getClass(), () ->
+      //      {
+      // TODO When the main window is already up, changing its configuration is quite unpleasant.
+      //         if (configuration.hasMainWindowConfiguration())
+      //            configuration.getMainWindowConfiguration(toolkit.getMainWindow());
+      //      });
 
       if (configuration.hasBufferSize())
          messager.submitMessage(topics.getYoBufferCurrentSizeRequest(), configuration.getBufferSize());
@@ -229,7 +211,7 @@ public class MultiSessionManager
 
    public void saveSessionConfiguration()
    {
-      SCSGuiConfiguration configuration = SCSGuiConfiguration.defaultSaver(robotName, sessionName, toolkit.getSecondaryWindows().size());
+      SCSGuiConfiguration configuration = SCSGuiConfiguration.defaultSaver(robotName, sessionName);
 
       // Can't use the messager as the JavaFX is going down which prevents to save properly.
       if (XMLTools.isYoGraphicContextReady())
@@ -238,23 +220,8 @@ public class MultiSessionManager
       sidePaneController.getYoEntryTabPaneController().exportAllTabs(configuration.getYoEntryConfigurationFile());
       mainWindowController.getYoChartGroupPanelController().saveChartGroupConfiguration(toolkit.getMainWindow(),
                                                                                         configuration.getMainYoChartGroupConfigurationFile());
-      if (toolkit.getYoSliderboardWindowController() != null)
-         toolkit.getYoSliderboardWindowController().save(configuration.getYoSliderboardConfigurationFile());
+      toolkit.getWindowManager().saveSessionConfiguration(configuration);
       configuration.setMainStage(toolkit.getMainWindow());
-
-      List<Stage> secondaryWindows = toolkit.getSecondaryWindows();
-      List<YoChartGroupPanelController> yoChartGroupPanelControllers = toolkit.getYoChartGroupPanelControllers();
-
-      for (int i = 0; i < secondaryWindows.size(); i++)
-      {
-         Window secondaryWindow = secondaryWindows.get(i);
-         YoChartGroupPanelController yoChartGroupPanelController = yoChartGroupPanelControllers.get(i);
-         File secondaryYoChartGroupFile = configuration.getSecondaryYoChartGroupConfigurationFile(i);
-
-         yoChartGroupPanelController.saveChartGroupConfiguration(secondaryWindow, secondaryYoChartGroupFile);
-      }
-
-      configuration.setSecondaryWindows(secondaryWindows);
 
       int currentBufferSize = toolkit.getYoManager().getBufferSize();
       configuration.setBufferSize(currentBufferSize);

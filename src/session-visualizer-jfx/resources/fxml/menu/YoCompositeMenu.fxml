@@ -5,14 +5,14 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuItem?>
 
-<Menu text="YoComposite" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu.YoCompositeMenuController">
+<Menu text="YoComposite" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu.YoCompositeMenuController">
    <items>
       <MenuItem onAction="#loadYoCompositePattern" text="Load YoCompositePattern...">
          <graphic>
             <FontAwesomeIconView>
                <styleClass>
-                  <String fx:value="load-icon-view"/>
-                  <String fx:value="menu-item-icon-view"/>
+                  <String fx:value="load-icon-view" />
+                  <String fx:value="menu-item-icon-view" />
                </styleClass>
             </FontAwesomeIconView>
          </graphic>
@@ -21,8 +21,8 @@
          <graphic>
             <FontAwesomeIconView>
                <styleClass>
-                  <String fx:value="save-icon-view"/>
-                  <String fx:value="menu-item-icon-view"/>
+                  <String fx:value="save-icon-view" />
+                  <String fx:value="menu-item-icon-view" />
                </styleClass>
             </FontAwesomeIconView>
          </graphic>
@@ -31,8 +31,8 @@
          <graphic>
             <FontAwesomeIconView>
                <styleClass>
-                  <String fx:value="refresh-composite-icon-view"/>
-                  <String fx:value="menu-item-icon-view"/>
+                  <String fx:value="refresh-composite-icon-view" />
+                  <String fx:value="menu-item-icon-view" />
                </styleClass>
             </FontAwesomeIconView>
          </graphic>
@@ -41,11 +41,14 @@
          <graphic>
             <FontAwesomeIconView>
                <styleClass>
-                  <String fx:value="properties-icon-view"/>
-                  <String fx:value="menu-item-icon-view"/>
+                  <String fx:value="properties-icon-view" />
+                  <String fx:value="menu-item-icon-view" />
                </styleClass>
             </FontAwesomeIconView>
          </graphic>
       </MenuItem>
    </items>
+   <graphic>
+      <FontAwesomeIconView glyphName="BOOKMARK" />
+   </graphic>
 </Menu>

@@ -53,14 +53,14 @@ public class Robot implements SimMultiBodySystemBasics, CollidableHolder
    private final Map<String, SimJointBasics> nameToJointMap;
    private final Map<String, SimRigidBody> nameToBodyMap;
    private final List<SimJointBasics> allJoints;
-   private final List<SimJointBasics> jointsToIgnore;
-   private final List<SimJointBasics> jointsToConsider;
-   private final JointMatrixIndexProvider jointMatrixIndexProvider;
-   private final List<JointStateReadOnly> allJointInitialStates;
+   private List<SimJointBasics> jointsToIgnore;
+   private List<SimJointBasics> jointsToConsider;
+   private JointMatrixIndexProvider jointMatrixIndexProvider;
+   private List<JointStateReadOnly> allJointInitialStates;
 
-   private final RobotControllerManager controllerManager;
+   private RobotControllerManager controllerManager;
 
-   private final RobotPhysics robotPhysics;
+   private RobotPhysics robotPhysics;
 
    public Robot(RobotDefinition robotDefinition, ReferenceFrame inertialFrame)
    {
@@ -75,6 +75,13 @@ public class Robot implements SimMultiBodySystemBasics, CollidableHolder
       nameToJointMap = SubtreeStreams.fromChildren(SimJointBasics.class, rootBody).collect(Collectors.toMap(SimJointBasics::getName, Function.identity()));
       nameToBodyMap = rootBody.subtreeStream().collect(Collectors.toMap(SimRigidBody::getName, Function.identity()));
       allJoints = SubtreeStreams.fromChildren(SimJointBasics.class, rootBody).collect(Collectors.toList());
+   }
+
+   public void setupPhysicsAndControllers()
+   {
+      if (robotPhysics != null)
+         return;
+
       jointsToIgnore = robotDefinition.getNameOfJointsToIgnore().stream().map(jointName -> nameToJointMap.get(jointName)).collect(Collectors.toList());
       jointsToConsider = allJoints.stream().filter(joint -> !jointsToIgnore.contains(joint)).collect(Collectors.toList());
       jointMatrixIndexProvider = JointMatrixIndexProvider.toIndexProvider(getJointsToConsider());

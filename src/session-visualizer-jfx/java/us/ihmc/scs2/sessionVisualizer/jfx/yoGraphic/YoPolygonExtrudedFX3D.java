@@ -79,7 +79,7 @@ public class YoPolygonExtrudedFX3D extends YoGraphicFX3D
       if (vertices.size() <= 2 || thickness.get() <= 0.0)
          return data;
 
-      if (numberOfVertices != null && numberOfVertices.get() < vertices.size())
+      if (numberOfVertices != null && numberOfVertices.get() >= 0 && numberOfVertices.get() < vertices.size())
          vertices = vertices.subList(0, numberOfVertices.get());
       data.vertices = vertices.stream().map(Point2D::new).collect(Collectors.toList());
       data.thickness = thickness.get();

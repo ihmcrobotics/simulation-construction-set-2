@@ -24,20 +24,21 @@ public class YoPointFX3D extends YoGraphicFX3D
    private final Translate translate = new Translate();
    private final Scale scale = new Scale();
    private final PhongMaterial material = new PhongMaterial();
-   private YoGraphicFXResource graphicResource = YoGraphicFXResourceManager.DEFAULT_POINT3D_GRAPHIC_RESOURCE;
+   private YoGraphicFXResource graphicResource;
 
    public YoPointFX3D()
    {
       pointNode.getTransforms().addAll(translate, scale);
+      setGraphicResource(YoGraphicFXResourceManager.DEFAULT_POINT3D_GRAPHIC_RESOURCE);
    }
 
    public void setGraphicResource(YoGraphicFXResource graphicResource)
    {
-      this.graphicResource = graphicResource;
-      pointNode.getChildren().clear();
-
       if (graphicResource == null || graphicResource.getResourceURL() == null)
          return;
+
+      this.graphicResource = graphicResource;
+      pointNode.getChildren().clear();
 
       Node[] nodes = JavaFXVisualTools.importModel(graphicResource.getResourceURL());
 

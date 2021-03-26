@@ -23,7 +23,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
@@ -73,7 +72,7 @@ public class YoBCF2000SliderboardWindowController
    private Stage window;
    private BCF2000SliderboardController sliderboard;
 
-   public void initialize(SessionVisualizerToolkit toolkit, Window owner)
+   public void initialize(SessionVisualizerToolkit toolkit)
    {
       knobControllers = Arrays.asList(knob0Controller,
                                       knob1Controller,
@@ -153,10 +152,10 @@ public class YoBCF2000SliderboardWindowController
             window.close();
       });
 
-      owner.addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> window.close());
+      toolkit.getMainWindow().addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> window.close());
       window.setTitle("YoSliderboard controller");
       window.setScene(new Scene(mainAnchorPane));
-      window.initOwner(owner);
+      window.initOwner(toolkit.getMainWindow());
 
       JavaFXMessager messager = toolkit.getMessager();
       SessionVisualizerTopics topics = toolkit.getTopics();
@@ -167,7 +166,6 @@ public class YoBCF2000SliderboardWindowController
 
       messager.registerJavaFXSyncedTopicListener(topics.getYoSliderboardLoadConfiguration(), this::load);
       messager.registerJavaFXSyncedTopicListener(topics.getYoSliderboardSaveConfiguration(), this::save);
-      toolkit.setYoSliderboardWindowController(this);
    }
 
    public void load(File file)

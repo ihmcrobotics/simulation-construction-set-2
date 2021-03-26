@@ -6,6 +6,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
@@ -47,9 +48,14 @@ public class YoPointFX2D extends YoGraphicFX2D
       SVGContent graphic = SVGLoader.load(graphicResource.getResourceURL());
 
       List<Shape> shapes = YoGraphicTools.extractShapes(graphic);
+      Translate graphicCentering = new Translate();
+      Bounds layoutBounds = graphic.getLayoutBounds();
+      graphicCentering.setX(-0.5 * (layoutBounds.getMinX() + layoutBounds.getMaxX()));
+      graphicCentering.setY(-0.5 * (layoutBounds.getMinY() + layoutBounds.getMaxY()));
 
       for (Shape shape : shapes)
       {
+         shape.getTransforms().add(graphicCentering);
          shape.fillProperty().bind(fillProperty);
          shape.strokeProperty().bind(strokeProperty);
          shape.strokeWidthProperty().bind(strokeWidthProperty);

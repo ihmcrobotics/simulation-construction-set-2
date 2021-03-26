@@ -1,47 +1,38 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu;
 
 import java.io.File;
-import java.io.IOException;
 
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.CheckMenuItem;
 import javafx.stage.Stage;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
-import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicPropertyWindowController;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SecondaryWindowManager;
 
 public class YoGraphicMenuController
 {
    @FXML
    private CheckMenuItem overheadPlotterMenuItem;
 
-   private final ObjectProperty<YoGraphicPropertyWindowController> activeControllerProperty = new SimpleObjectProperty<>(this, "activeController", null);
-
-   private SessionVisualizerToolkit toolkit;
-   private Stage mainWindow;
    private JavaFXMessager messager;
    private SessionVisualizerTopics topics;
+   private Stage owner;
 
-   public void initialize(SessionVisualizerToolkit toolkit)
+   public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
-      this.toolkit = toolkit;
-
       messager = toolkit.getMessager();
       topics = toolkit.getTopics();
+      owner = toolkit.getWindow();
 
-      mainWindow = toolkit.getMainWindow();
       messager.bindBidirectional(topics.getShowOverheadPlotter(), overheadPlotterMenuItem.selectedProperty(), false);
    }
 
    @FXML
    private void loadYoGraphic()
    {
-      File result = SessionVisualizerIOTools.yoGraphicConfigurationOpenFileDialog(mainWindow);
+      File result = SessionVisualizerIOTools.yoGraphicConfigurationOpenFileDialog(owner);
       if (result != null)
          messager.submitMessage(topics.getYoGraphicLoadRequest(), result);
    }
@@ -49,7 +40,7 @@ public class YoGraphicMenuController
    @FXML
    private void saveYoGraphic()
    {
-      File result = SessionVisualizerIOTools.yoGraphicConfigurationSaveFileDialog(mainWindow);
+      File result = SessionVisualizerIOTools.yoGraphicConfigurationSaveFileDialog(owner);
       if (result != null)
          messager.submitMessage(topics.getYoGraphicSaveRequest(), result);
    }
@@ -57,24 +48,6 @@ public class YoGraphicMenuController
    @FXML
    private void openYoGraphicEditor()
    {
-      if (activeControllerProperty.get() != null)
-      {
-         activeControllerProperty.get().showWindow();
-         return;
-      }
-
-      try
-      {
-         FXMLLoader fxmlLoader = new FXMLLoader(SessionVisualizerIOTools.YO_GRAPHIC_PROPERTY_URL);
-         fxmlLoader.load();
-         YoGraphicPropertyWindowController controller = fxmlLoader.getController();
-         controller.initialize(toolkit, mainWindow);
-         activeControllerProperty.set(controller);
-         controller.showWindow();
-      }
-      catch (IOException e)
-      {
-         e.printStackTrace();
-      }
+      messager.submitMessage(topics.getOpenWindowRequest(), SecondaryWindowManager.GRAPHIC_EDITOR_WINDOW_TYPE);
    }
 }

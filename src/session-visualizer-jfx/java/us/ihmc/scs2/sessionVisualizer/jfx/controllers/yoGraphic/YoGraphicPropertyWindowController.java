@@ -45,7 +45,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
@@ -85,7 +84,7 @@ public class YoGraphicPropertyWindowController
    private YoGroupFX rootGroup;
    private Stage window;
 
-   public void initialize(SessionVisualizerToolkit toolkit, Window parentWindow)
+   public void initialize(SessionVisualizerToolkit toolkit)
    {
       this.toolkit = toolkit;
       topics = toolkit.getTopics();
@@ -175,10 +174,10 @@ public class YoGraphicPropertyWindowController
          if (e.getCode() == KeyCode.ESCAPE)
             window.close();
       });
-      parentWindow.addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> window.close());
+      toolkit.getMainWindow().addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> window.close());
       window.setTitle("YoGraphic properties");
       window.setScene(new Scene(mainAnchorPane));
-      window.initOwner(parentWindow);
+      window.initOwner(toolkit.getMainWindow());
    }
 
    public void showWindow()
@@ -190,6 +189,11 @@ public class YoGraphicPropertyWindowController
       KeyFrame key = new KeyFrame(Duration.seconds(0.125), new KeyValue(window.opacityProperty(), 1.0));
       timeline.getKeyFrames().add(key);
       timeline.play();
+   }
+
+   public void close()
+   {
+      window.close();
    }
 
    private final SetChangeListener<YoGraphicFXItem> treeViewAutoRefreshListener = new SetChangeListener<YoGraphicFXItem>()
@@ -371,7 +375,7 @@ public class YoGraphicPropertyWindowController
             FXMLLoader loader = SessionVisualizerIOTools.getYoGraphicFXEditorFXMLLoader(itemType);
             loader.load();
             controller = loader.getController();
-            controller.initialize(toolkit, (YoGraphicFX) item, window);
+            controller.initialize(toolkit, (YoGraphicFX) item);
             cachedEditors.put(item, controller);
          }
          catch (IOException e)
@@ -429,7 +433,7 @@ public class YoGraphicPropertyWindowController
          FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.YO_GRAPHIC_ITEM_CREATOR_URL);
          loader.load();
          YoGraphicItemCreatorDialogController controller = loader.getController();
-         controller.initialize(toolkit, group, window);
+         controller.initialize(toolkit, group);
          controller.showAndWait();
 
          Optional<String> itemNameResult = controller.getItemNameResult();

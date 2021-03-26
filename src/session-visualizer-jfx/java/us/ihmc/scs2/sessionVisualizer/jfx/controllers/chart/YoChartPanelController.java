@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -22,7 +23,7 @@ import javafx.collections.ObservableMap;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.InvisibleNumberAxis;
 import javafx.scene.chart.XYChart.Data;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
@@ -38,7 +39,6 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
-import javafx.stage.Window;
 import us.ihmc.commons.MathTools;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.interfaces.Tuple2DReadOnly;
@@ -60,14 +60,14 @@ import us.ihmc.scs2.sessionVisualizer.jfx.charts.YoVariableChartData;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.YoVariableChartData.ChartDataUpdate;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.BackgroundExecutorManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ChartDataManager;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ChartTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.CompositePropertyTools.YoVariableDatabase;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
-import us.ihmc.scs2.sessionVisualizer.jfx.tools.CompositePropertyTools.YoVariableDatabase;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
@@ -75,6 +75,8 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoChartPanelController extends ObservedAnimationTimer
 {
+   private static final long LEGEND_UPDATE_PERIOD = TimeUnit.MILLISECONDS.toNanos(100);
+
    private static final String INPOINT_MARKER_STYLECLASS = "chart-inpoint-marker";
    private static final String OUTPOINT_MARKER_STYLECLASS = "chart-outpoint-marker";
    private static final String CURRENT_INDEX_MARKER_STYLECLASS = "chart-current-index-marker";
@@ -86,8 +88,8 @@ public class YoChartPanelController extends ObservedAnimationTimer
    @FXML
    private JFXButton closeButton;
 
-   private final NumberAxis xAxis = new NumberAxis(0.0, 0.0, 1000.0);
-   private final NumberAxis yAxis = new NumberAxis();
+   private final InvisibleNumberAxis xAxis = new InvisibleNumberAxis(0.0, 0.0, 1000.0);
+   private final InvisibleNumberAxis yAxis = new InvisibleNumberAxis();
    private DynamicLineChart dynamicLineChart;
 
    private final Data<Number, Number> inPointMarker = new Data<>(0, 0.0);
@@ -111,13 +113,11 @@ public class YoChartPanelController extends ObservedAnimationTimer
    private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
    private YoManager yoManager;
-   private SessionVisualizerToolkit toolkit;
-   private Window parentWindow;
+   private SessionVisualizerWindowToolkit toolkit;
 
-   public void initialize(SessionVisualizerToolkit toolkit, Window parentWindow)
+   public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
       this.toolkit = toolkit;
-      this.parentWindow = parentWindow;
       this.messager = toolkit.getMessager();
       this.chartDataManager = toolkit.getChartDataManager();
       this.yoManager = toolkit.getYoManager();
@@ -135,17 +135,9 @@ public class YoChartPanelController extends ObservedAnimationTimer
       AnchorPane.setLeftAnchor(dynamicLineChart, 0.0);
       AnchorPane.setRightAnchor(dynamicLineChart, 0.0);
 
-      xAxis.setMinorTickVisible(false);
-      xAxis.setTickLabelsVisible(false);
-      xAxis.setTickMarkVisible(false);
       xAxis.setLowerBound(-1);
-      xAxis.setAnimated(false);
       xAxis.setAutoRanging(false);
 
-      yAxis.setMinorTickVisible(false);
-      yAxis.setTickLabelsVisible(false);
-      yAxis.setTickMarkVisible(false);
-      yAxis.setAnimated(false);
       yAxis.setAutoRanging(true);
       yAxis.setForceZeroInRange(false);
 
@@ -287,7 +279,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
          FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.CHART_OPTION_DIALOG_URL);
          loader.load();
          YoChartOptionController controller = loader.getController();
-         controller.initialize(toolkit, parentWindow);
+         controller.initialize(toolkit);
          controller.setInput(yoNumberSeriesList, dynamicLineChart.chartStyleProperty());
          activeChartOptionControllerProperty.set(controller);
          controller.showWindow();
@@ -361,6 +353,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
       messager.removeInput(topics.getYoBufferCurrentProperties(), bufferPropertiesForMarkers);
       messager.removeInput(topics.getYoBufferCurrentProperties(), bufferPropertiesForScrolling);
       messager.removeJavaFXSyncedTopicListener(topics.getCurrentKeyFrames(), keyFrameMarkerListener);
+      stop();
    }
 
    public boolean isEmpty()
@@ -382,10 +375,12 @@ public class YoChartPanelController extends ObservedAnimationTimer
       }
    }
 
+   private long legendUpdateLastTime = -1L;
+
    @Override
    public void handleImpl(long now)
    {
-      ChartIntegerBounds chartsBounds = chartDataManager.chartBoundsProperty().getValue();
+      ChartIntegerBounds chartsBounds = chartDataManager.getChartZoomManager().chartBoundsProperty().getValue();
       YoBufferPropertiesReadOnly bufferProperties = bufferPropertiesForMarkers.getAndSet(null);
 
       if (bufferProperties != null)
@@ -401,10 +396,14 @@ public class YoChartPanelController extends ObservedAnimationTimer
             double scale = 0.001;
             xAxis.setLowerBound(-scale * bufferProperties.getSize());
             xAxis.setUpperBound((1.0 + scale) * bufferProperties.getSize());
-            xAxis.setMinorTickLength(0);
          }
 
-         charts.values().forEach(YoVariableChartPackage::updateLegend);
+         boolean updateLegends = legendUpdateLastTime == -1L || now - legendUpdateLastTime >= LEGEND_UPDATE_PERIOD;
+         if (updateLegends)
+         {
+            legendUpdateLastTime = now;
+            charts.values().forEach(YoVariableChartPackage::updateLegend);
+         }
 
          bufferProperties = null;
       }
@@ -548,7 +547,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
       if (bufferPropertiesForScrolling.get() == null)
          return -1;
       double xLocal = xAxis.screenToLocal(screenX, screenY).getX();
-      int index = Math.round(xAxis.getValueForDisplay(xLocal).floatValue());
+      int index = (int) Math.round(xAxis.getValueForDisplay(xLocal));
       return MathTools.clamp(index, 0, bufferPropertiesForScrolling.get().getSize());
    }
 

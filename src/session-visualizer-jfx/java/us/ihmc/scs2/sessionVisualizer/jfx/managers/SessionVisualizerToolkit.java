@@ -1,12 +1,8 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.managers;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.log.LogTools;
@@ -18,8 +14,6 @@ import us.ihmc.scs2.session.YoSharedBufferMessagerAPI;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizer;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerMessagerAPI;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
-import us.ihmc.scs2.sessionVisualizer.jfx.controllers.chart.YoChartGroupPanelController;
-import us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.bcf2000.YoBCF2000SliderboardWindowController;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.BufferedJavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
@@ -41,11 +35,9 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    private final EnvironmentManager environmentManager = new EnvironmentManager(backgroundExecutorManager);
    private final ReferenceFrameManager referenceFrameManager = new ReferenceFrameManager(backgroundExecutorManager);
    private final YoRobotFXManager yoRobotFXManager = new YoRobotFXManager(yoManager, referenceFrameManager, backgroundExecutorManager);
+   private final SecondaryWindowManager secondaryWindowManager;
 
    private Stage mainWindow;
-   private List<Stage> secondaryWindows = new ArrayList<>();
-   private List<YoChartGroupPanelController> yoChartGroupPanelControllers = new ArrayList<>();
-   private YoBCF2000SliderboardWindowController yoSliderboardWindowController;
 
    private final ObjectProperty<Session> activeSessionProperty = new SimpleObjectProperty<>(this, "activeSession", null);
 
@@ -66,6 +58,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       yoGraphicFXManager = new YoGraphicFXManager(messager, topics, yoManager, backgroundExecutorManager, referenceFrameManager);
       yoCompositeSearchManager = new YoCompositeSearchManager(messager, topics, yoManager, backgroundExecutorManager);
       keyFrameManager = new KeyFrameManager(messager, topics);
+      secondaryWindowManager = new SecondaryWindowManager(this);
    }
 
    public void startSession(Session session, Runnable sessionLoadedCallback)
@@ -91,6 +84,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
          yoGraphicFXManager.startSession(session);
          yoCompositeSearchManager.startSession(session);
          keyFrameManager.startSession(session);
+         secondaryWindowManager.startSession(session);
 
          while (!yoRobotFXManager.isSessionLoaded())
          {
@@ -130,22 +124,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       environmentManager.stopSession();
       keyFrameManager.stopSession();
       backgroundExecutorManager.stopSession();
-
-      for (int i = secondaryWindows.size() - 1; i >= 0; i--)
-      {
-         Stage secondaryWindow = secondaryWindows.get(i);
-         secondaryWindow.close();
-         secondaryWindow.fireEvent(new WindowEvent(secondaryWindow, WindowEvent.WINDOW_CLOSE_REQUEST));
-      }
-
-      secondaryWindows.clear();
-      yoChartGroupPanelControllers.clear();
-
-      if (yoSliderboardWindowController != null)
-      {
-         yoSliderboardWindowController.close();
-         yoSliderboardWindowController = null;
-      }
+      secondaryWindowManager.stopSession();
 
       mainWindow.setTitle(SessionVisualizer.NO_ACTIVE_SESSION_TITLE);
 
@@ -167,7 +146,6 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    {
       super.stop();
       yoRobotFXManager.stop();
-      chartDataManager.stop();
       yoGraphicFXManager.stop();
       backgroundExecutorManager.shutdown();
       try
@@ -178,31 +156,6 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       {
          e.printStackTrace();
       }
-   }
-
-   public void addSecondaryWindow(Stage secondaryWindow)
-   {
-      secondaryWindows.add(secondaryWindow);
-   }
-
-   public void removeSecondaryWindow(Stage secondaryWindow)
-   {
-      secondaryWindows.remove(secondaryWindow);
-   }
-
-   public void addYoChartGroupController(YoChartGroupPanelController controller)
-   {
-      yoChartGroupPanelControllers.add(controller);
-   }
-
-   public void removeYoChartGroupController(YoChartGroupPanelController controller)
-   {
-      yoChartGroupPanelControllers.remove(controller);
-   }
-
-   public void setYoSliderboardWindowController(YoBCF2000SliderboardWindowController yoSliderboardWindowController)
-   {
-      this.yoSliderboardWindowController = yoSliderboardWindowController;
    }
 
    public JavaFXMessager getMessager()
@@ -218,21 +171,6 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    public Stage getMainWindow()
    {
       return mainWindow;
-   }
-
-   public List<Stage> getSecondaryWindows()
-   {
-      return secondaryWindows;
-   }
-
-   public List<YoChartGroupPanelController> getYoChartGroupPanelControllers()
-   {
-      return yoChartGroupPanelControllers;
-   }
-
-   public YoBCF2000SliderboardWindowController getYoSliderboardWindowController()
-   {
-      return yoSliderboardWindowController;
    }
 
    public YoManager getYoManager()
@@ -298,5 +236,10 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    public BackgroundExecutorManager getBackgroundExecutorManager()
    {
       return backgroundExecutorManager;
+   }
+
+   public SecondaryWindowManager getWindowManager()
+   {
+      return secondaryWindowManager;
    }
 }

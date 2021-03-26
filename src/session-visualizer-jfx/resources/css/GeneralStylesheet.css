@@ -253,15 +253,16 @@
 
 .chart-legend {
 	-fx-hgap: 8.0;
-	-fx-vgap: 8.0;
+	-fx-vgap: 3.0;
 	-fx-alignment:CENTER_LEFT;
-	-fx-padding: 2.0 2.0 2.0 2.0;
+	-fx-padding: 2.0 -2.0 4.0 2.0;
 	-fx-opaque-insets: 0.0 0.0 0.0 0.0;
 	-fx-background-color:transparent;
 }
 
 .chart-legend-item {
 	-fx-spacing: 3.0;
+	-fx-padding: -3.0 0.0 -3.0 0.0;
 }
 
 .chart-legend-item-name {
@@ -461,6 +462,21 @@
 .graphic-editor-cancel-button {
 	-jfx-button-type: RAISED;
 	-fx-background-color: -default-pale-red;
+}
+
+.graphic-item-type-combo-box .list-cell {
+    -fx-padding: 2 0 2 7;
+    -fx-cell-size: 2.2em;
+} 
+
+/*******************************************************************************
+ *                                                                             *
+ * YoSearch pane                                                               *
+ *                                                                             *
+ ******************************************************************************/
+.search-target-combo-box .list-cell {
+    -fx-padding: 2 0 2 7;
+    -fx-cell-size: 2.2em;
 }
 
 /*******************************************************************************

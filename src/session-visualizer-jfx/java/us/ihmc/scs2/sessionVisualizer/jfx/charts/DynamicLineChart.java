@@ -13,9 +13,8 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Side;
-import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.InvisibleNumberAxis;
 import javafx.scene.chart.XYChart.Data;
-import us.ihmc.commons.MathTools;
 import us.ihmc.javaFXExtensions.chart.DynamicXYChart;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ChartRenderManager;
 
@@ -33,13 +32,13 @@ public class DynamicLineChart extends DynamicXYChart
    private final Map<Data<Number, Number>, ChartMarker> markers = new LinkedHashMap<>();
    private final DynamicChartLegend legend = new DynamicChartLegend();
 
-   private final NumberAxis xAxis;
-   private final NumberAxis yAxis;
+   private final InvisibleNumberAxis xAxis;
+   private final InvisibleNumberAxis yAxis;
 
    private final Executor backgroundExecutor;
    private final ChartRenderManager chartRenderManager;
 
-   public DynamicLineChart(NumberAxis xAxis, NumberAxis yAxis, Executor backgroundExecutor, ChartRenderManager chartRenderManager)
+   public DynamicLineChart(InvisibleNumberAxis xAxis, InvisibleNumberAxis yAxis, Executor backgroundExecutor, ChartRenderManager chartRenderManager)
    {
       super(xAxis, yAxis);
 
@@ -188,7 +187,7 @@ public class DynamicLineChart extends DynamicXYChart
       {
          if (chartStyleProperty.get() == ChartStyle.NORMALIZED)
          {
-            yAxis.invalidateRange(Arrays.asList(0.0, 1.0));
+            yAxis.invalidateRange(0.0, 1.0);
          }
          else
          {
@@ -207,32 +206,27 @@ public class DynamicLineChart extends DynamicXYChart
                   dataYBounds = dataYBounds.negate();
 
                if (yBounds == null)
-                  yBounds = new ChartDoubleBounds(dataYBounds);
+                  yBounds = dataYBounds;
                else
                   yBounds = yBounds.union(dataYBounds);
             }
 
             if (yBounds != null)
             {
-               if (MathTools.epsilonEquals(yBounds.getUpper(), yBounds.getLower(), 1.0e-12 * Math.max(1.0, yBounds.getLower())))
-               {
-                  yBounds = new ChartDoubleBounds(yBounds.getLower() - 0.5, yBounds.getUpper() + 0.5);
-               }
-
-               yAxis.invalidateRange(Arrays.asList(yBounds.getLower(), yBounds.getUpper()));
+               yAxis.invalidateRange(yBounds.getLower(), yBounds.getUpper());
             }
          }
       }
    }
 
    /** Get the X axis, by default it is along the bottom of the plot */
-   public NumberAxis getXAxis()
+   public InvisibleNumberAxis getXAxis()
    {
       return xAxis;
    }
 
    /** Get the Y axis, by default it is along the left of the plot */
-   public NumberAxis getYAxis()
+   public InvisibleNumberAxis getYAxis()
    {
       return yAxis;
    }

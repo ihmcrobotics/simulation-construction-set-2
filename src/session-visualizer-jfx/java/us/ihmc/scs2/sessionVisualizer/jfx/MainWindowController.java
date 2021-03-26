@@ -33,6 +33,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.controllers.SessionSimpleControlsContr
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.chart.YoChartGroupPanelController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu.MainWindowMenuBarController;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.plotter.Plotter2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 
@@ -60,14 +61,14 @@ public class MainWindowController extends ObservedAnimationTimer
    private YoChartGroupPanelController yoChartGroupPanelController;
    private SessionVisualizerToolkit toolkit;
 
-   public void initialize(SessionVisualizerToolkit toolkit)
+   public void initialize(Stage owner, SessionVisualizerToolkit globalToolkit)
    {
-      this.toolkit = toolkit;
-      Stage mainWindow = toolkit.getMainWindow();
-      mainWindowMenuBarController.initialize(toolkit, mainWindow);
-      sessionSimpleControlsController.initialize(toolkit);
-      sessionAdvancedControlsController.initialize(toolkit);
-      yoChartGroupPanelController.initialize(toolkit, mainWindow);
+      this.toolkit = globalToolkit;
+      SessionVisualizerWindowToolkit windowToolkit = new SessionVisualizerWindowToolkit(owner, globalToolkit);
+      mainWindowMenuBarController.initialize(windowToolkit);
+      sessionSimpleControlsController.initialize(windowToolkit);
+      sessionAdvancedControlsController.initialize(windowToolkit);
+      yoChartGroupPanelController.initialize(windowToolkit);
 
    }
 

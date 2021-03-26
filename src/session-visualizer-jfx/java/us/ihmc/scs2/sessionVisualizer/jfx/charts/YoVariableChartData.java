@@ -91,6 +91,10 @@ public class YoVariableChartData
          { // First time requesting data.
             linkedYoVariable.requestEntireBuffer();
          }
+         else if (currentBufferProperties.getSize() != lastProperties.getSize())
+         { // Buffer was either resized or cropped, data has been shifted around, need to get a complete update.
+            linkedYoVariable.requestEntireBuffer();
+         }
          else if (lastSessionModeStatus != SessionMode.RUNNING && currentSessionMode.get() == SessionMode.RUNNING)
          { // The session just start running, need to ensure we have all the data since it started running.
             linkedYoVariable.requestActiveBufferOnly();
@@ -101,10 +105,6 @@ public class YoVariableChartData
                linkedYoVariable.requestActiveBufferOnly();
             else
                linkedYoVariable.requestBufferStartingFrom(lastUpdateEndIndex);
-         }
-         else if (currentBufferProperties.getSize() != lastProperties.getSize())
-         { // Buffer was either resized or cropped, data has been shifted around, need to get a complete update.
-            linkedYoVariable.requestEntireBuffer();
          }
          else if (currentBufferProperties.getInPoint() != lastProperties.getInPoint() && currentBufferProperties.getOutPoint() != lastProperties.getOutPoint())
          { // When cropping without actually changing the size of the buffer, the data is still being shifted around.
@@ -130,6 +130,8 @@ public class YoVariableChartData
 
       @SuppressWarnings("unchecked")
       BufferSample<double[]> newBufferSample = bufferConverterFunction.apply(rawData);
+      if (lastDataSet != null && newBufferSample.getBufferProperties().getSize() != lastDataSet.size)
+         lastDataSet = null;
       DoubleArray newDataSet = updateDataSet(lastDataSet, newBufferSample);
       ChartDataUpdate chartDataUpdate = new ChartDataUpdate(newDataSet, rawData.getBufferProperties());
       lastChartDataUpdate = chartDataUpdate;

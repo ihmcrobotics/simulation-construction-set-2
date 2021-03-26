@@ -8,7 +8,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.Pane;
-import javafx.stage.Window;
 import us.ihmc.scs2.definition.yoChart.YoChartIdentifierDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartIdentifier;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.SCSDefaultUIController;
@@ -28,8 +27,7 @@ public class YoChartIdentifierEditorController implements SCSDefaultUIController
 
    private final ObjectProperty<YoChartIdentifierDefinition> chartIdentifierProperty = new SimpleObjectProperty<>(new YoChartIdentifierDefinition());
 
-   @Override
-   public void initialize(SessionVisualizerToolkit toolkit, Window owner)
+   public void initialize(SessionVisualizerToolkit toolkit)
    {
       TextFormatter<Integer> rowTextFormatter = new TextFormatter<>(new IntegerConverter(), 0, new PositiveIntegerValueFilter());
       TextFormatter<Integer> columnTextFormatter = new TextFormatter<>(new IntegerConverter(), 0, new PositiveIntegerValueFilter());

@@ -12,7 +12,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
-import javafx.stage.Window;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicPoint3DDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.yoTextFields.YoDoubleTextField;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
@@ -48,7 +47,7 @@ public class YoPointFX3DEditorController implements YoGraphicFXCreatorController
    private BooleanProperty hasChangesPendingProperty = new SimpleBooleanProperty(this, "hasChangesPending", false);
 
    @Override
-   public void initialize(SessionVisualizerToolkit toolkit, YoPointFX3D yoGraphicToEdit, Window owner)
+   public void initialize(SessionVisualizerToolkit toolkit, YoPointFX3D yoGraphicToEdit)
    {
       this.yoGraphicToEdit = yoGraphicToEdit;
       definitionBeforeEdits = YoGraphicTools.toYoGraphicPoint3DDefinition(yoGraphicToEdit);

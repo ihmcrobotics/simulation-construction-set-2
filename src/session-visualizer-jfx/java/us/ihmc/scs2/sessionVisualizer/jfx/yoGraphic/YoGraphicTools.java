@@ -23,7 +23,8 @@ import us.ihmc.scs2.sessionVisualizer.jfx.tools.CompositePropertyTools.YoVariabl
 
 public class YoGraphicTools
 {
-   public static final String ROOT_NAME = "root";
+   public static final String GUI_ROOT_NAME = "root";
+   public static final String SESSION_ROOT_NAME = "session";
    public static final String SEPARATOR = ":";
 
    public static List<String> collectAllExistingNamespaces(YoGroupFX group)
@@ -360,7 +361,8 @@ public class YoGraphicTools
       toYoGraphicFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
       yoGraphicFXToPack.setPosition(CompositePropertyTools.toTuple3DProperty(yoVariableDatabase, referenceFrameManager, definition.getPosition()));
       yoGraphicFXToPack.setSize(CompositePropertyTools.toDoubleProperty(yoVariableDatabase, definition.getSize()));
-      yoGraphicFXToPack.setGraphicResource(resourceManager.loadGraphic3DResource(definition.getGraphicName()));
+      if (definition.getGraphicName() != null)
+         yoGraphicFXToPack.setGraphicResource(resourceManager.loadGraphic3DResource(definition.getGraphicName()));
    }
 
    public static YoArrowFX3D toYoArrowFX3D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
