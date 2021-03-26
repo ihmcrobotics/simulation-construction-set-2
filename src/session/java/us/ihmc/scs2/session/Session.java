@@ -150,7 +150,7 @@ public abstract class Session
       if (playbackRealTimeRate.get().doubleValue() == realTimeRate)
          return;
 
-      playbackRealTimeRate.set(new Double(realTimeRate));
+      playbackRealTimeRate.set(Double.valueOf(realTimeRate));
       restartSessionTask();
    }
 
