@@ -51,8 +51,6 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
       messager.registerJavaFXSyncedTopicListener(topics.getYoGraphicLoadRequest(), this::loadYoGraphicFromFile);
       messager.registerJavaFXSyncedTopicListener(topics.getYoGraphicSaveRequest(), this::saveYoGraphicToFile);
 
-      root.addChild(sessionRoot);
-
       backgroundExecutorManager.scheduleTaskInBackground(this::computeBackground, 1000, 100, TimeUnit.MILLISECONDS);
    }
 
@@ -86,7 +84,7 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
    {
       if (!session.getYoGraphicDefinitions().isEmpty())
       {
-         setupYoGraphics(new YoGraphicListDefinition(session.getYoGraphicDefinitions()), sessionRoot);
+         setupYoGraphics(new YoGraphicListDefinition(session.getYoGraphicDefinitions()), sessionRoot, () -> root.addChild(sessionRoot));
       }
 
       start();
@@ -147,6 +145,11 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
 
    private void setupYoGraphics(YoGraphicListDefinition definition, YoGroupFX parentGroup)
    {
+      setupYoGraphics(definition, parentGroup, null);
+   }
+
+   private void setupYoGraphics(YoGraphicListDefinition definition, YoGroupFX parentGroup, Runnable postLoadingCallback)
+   {
       backgroundExecutorManager.queueTaskToExecuteInBackground(this, () ->
       {
          List<YoGraphicFXItem> items = YoGraphicTools.createYoGraphicFXs(yoManager.getRootRegistryDatabase(),
@@ -155,7 +158,15 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
                                                                          referenceFrameManager,
                                                                          definition);
          if (items != null && !items.isEmpty())
-            JavaFXMissingTools.runLater(getClass(), () -> items.forEach(parentGroup::addYoGraphicFXItem));
+         {
+            JavaFXMissingTools.runLater(getClass(), () ->
+            {
+               items.forEach(parentGroup::addYoGraphicFXItem);
+
+               if (postLoadingCallback != null)
+                  postLoadingCallback.run();
+            });
+         }
       });
    }
 

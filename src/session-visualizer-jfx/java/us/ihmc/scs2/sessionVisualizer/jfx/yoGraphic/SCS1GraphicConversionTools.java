@@ -2,7 +2,6 @@ package us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -10,6 +9,7 @@ import java.util.stream.Stream;
 import us.ihmc.graphicsDescription.appearance.AppearanceDefinition;
 import us.ihmc.graphicsDescription.appearance.YoAppearanceMaterial;
 import us.ihmc.graphicsDescription.appearance.YoAppearanceRGBColor;
+import us.ihmc.graphicsDescription.plotting.artifact.Artifact;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphic;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicCoordinateSystem;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicCylinder;
@@ -28,6 +28,13 @@ import us.ihmc.graphicsDescription.yoGraphics.YoGraphicVRML;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicVector;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition.GraphicType;
+import us.ihmc.graphicsDescription.yoGraphics.plotting.ArtifactList;
+import us.ihmc.graphicsDescription.yoGraphics.plotting.YoArtifactLine2d;
+import us.ihmc.graphicsDescription.yoGraphics.plotting.YoArtifactLineSegment2d;
+import us.ihmc.graphicsDescription.yoGraphics.plotting.YoArtifactOval;
+import us.ihmc.graphicsDescription.yoGraphics.plotting.YoArtifactPolygon;
+import us.ihmc.graphicsDescription.yoGraphics.plotting.YoArtifactPosition;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
 import us.ihmc.scs2.definition.yoComposite.YoQuaternionDefinition;
@@ -39,7 +46,10 @@ import us.ihmc.scs2.definition.yoGraphic.YoGraphicCoordinateSystem3DDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicCylinder3DDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicLine2DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicPoint2DDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicPoint3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicPolygon2DDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicPolygonExtruded3DDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicPolynomial3DDefinition;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -50,9 +60,12 @@ public class SCS1GraphicConversionTools
    {
       List<YoGraphicsList> yoGraphicsLists = new ArrayList<>();
       registry.getRegisteredYoGraphicsLists(yoGraphicsLists);
+      List<ArtifactList> artifactLists = new ArrayList<>();
+      registry.getRegisteredArtifactLists(artifactLists);
 
       List<YoGraphicDefinition> definitions = new ArrayList<>();
       yoGraphicsLists.forEach(yoGraphicsList -> definitions.add(toYoGraphicGroupDefinition(yoGraphicsList)));
+      artifactLists.forEach(artifactList -> definitions.add(toYoGraphicGroupDefinition(artifactList)));
 
       return definitions;
    }
@@ -61,13 +74,16 @@ public class SCS1GraphicConversionTools
    {
       YoGraphicGroupDefinition groupDefinition = new YoGraphicGroupDefinition();
       groupDefinition.setName(yoGraphicsList.getLabel());
-      groupDefinition.setChildren(toYoGraphicDefinitions(yoGraphicsList.getYoGraphics()));
+      groupDefinition.setChildren(yoGraphicsList.getYoGraphics().stream().map(SCS1GraphicConversionTools::toYoGraphicDefinition).collect(Collectors.toList()));
       return groupDefinition;
    }
 
-   public static List<YoGraphicDefinition> toYoGraphicDefinitions(Collection<? extends YoGraphic> yoGraphics)
+   public static YoGraphicGroupDefinition toYoGraphicGroupDefinition(ArtifactList artifactList)
    {
-      return yoGraphics.stream().map(SCS1GraphicConversionTools::toYoGraphicDefinition).filter(definition -> definition != null).collect(Collectors.toList());
+      YoGraphicGroupDefinition groupDefinition = new YoGraphicGroupDefinition();
+      groupDefinition.setName(artifactList.getLabel());
+      groupDefinition.setChildren(artifactList.getArtifacts().stream().map(SCS1GraphicConversionTools::toYoGraphicDefinition).collect(Collectors.toList()));
+      return groupDefinition;
    }
 
    public static YoGraphicDefinition toYoGraphicDefinition(YoGraphic yoGraphic)
@@ -78,37 +94,34 @@ public class SCS1GraphicConversionTools
       YoGraphicDefinition definition = null;
       if (yoGraphic instanceof YoGraphicPolygon)
          definition = toYoGraphicDefinition((YoGraphicPolygon) yoGraphic);
-      if (yoGraphic instanceof YoGraphicShape)
+      else if (yoGraphic instanceof YoGraphicShape)
          definition = toYoGraphicDefinition((YoGraphicShape) yoGraphic);
-      if (yoGraphic instanceof YoGraphicText)
+      else if (yoGraphic instanceof YoGraphicText)
          definition = toYoGraphicDefinition((YoGraphicText) yoGraphic);
-      if (yoGraphic instanceof YoGraphicText3D)
+      else if (yoGraphic instanceof YoGraphicText3D)
          definition = toYoGraphicDefinition((YoGraphicText3D) yoGraphic);
-      if (yoGraphic instanceof YoGraphicCoordinateSystem)
+      else if (yoGraphic instanceof YoGraphicCoordinateSystem)
          definition = toYoGraphicDefinition((YoGraphicCoordinateSystem) yoGraphic);
-      if (yoGraphic instanceof YoGraphicCylinder)
+      else if (yoGraphic instanceof YoGraphicCylinder)
          definition = toYoGraphicDefinition((YoGraphicCylinder) yoGraphic);
-      if (yoGraphic instanceof YoGraphicPolygon3D)
+      else if (yoGraphic instanceof YoGraphicPolygon3D)
          definition = toYoGraphicDefinition((YoGraphicPolygon3D) yoGraphic);
-      if (yoGraphic instanceof YoGraphicPolynomial3D)
+      else if (yoGraphic instanceof YoGraphicPolynomial3D)
          definition = toYoGraphicDefinition((YoGraphicPolynomial3D) yoGraphic);
-      if (yoGraphic instanceof YoGraphicPosition)
+      else if (yoGraphic instanceof YoGraphicPosition)
          definition = toYoGraphicDefinition((YoGraphicPosition) yoGraphic);
-      if (yoGraphic instanceof YoGraphicTriangle)
+      else if (yoGraphic instanceof YoGraphicTriangle)
          definition = toYoGraphicDefinition((YoGraphicTriangle) yoGraphic);
-      if (yoGraphic instanceof YoGraphicVector)
+      else if (yoGraphic instanceof YoGraphicVector)
          definition = toYoGraphicDefinition((YoGraphicVector) yoGraphic);
-
-      if (definition == null)
-      {
-         LogTools.error("Unsupported YoGraphic type: " + yoGraphic);
-      }
       else
       {
-         definition.setName(yoGraphic.getName());
-         definition.setVisible(yoGraphic.isGraphicObjectShowing());
+         LogTools.error("Unsupported YoGraphic type: " + yoGraphic);
+         return null;
       }
 
+      definition.setName(yoGraphic.getName());
+      definition.setVisible(yoGraphic.isGraphicObjectShowing());
       return definition;
    }
 
@@ -140,6 +153,8 @@ public class SCS1GraphicConversionTools
          yoVariableIndex += 2;
       }
 
+      definition.setVertices(vertices);
+
       definition.setPosition(toYoTuple3DDefinition(yoVariables, yoVariableIndex));
       yoVariableIndex += 3;
 
@@ -155,6 +170,7 @@ public class SCS1GraphicConversionTools
       }
 
       definition.setColor(toColorDefinition(yoGraphicPolygon.getAppearance()));
+      definition.setVisible(yoGraphicPolygon.isGraphicObjectShowing());
 
       return definition;
    }
@@ -219,6 +235,7 @@ public class SCS1GraphicConversionTools
          definition.setColor(new ColorDefinition((int) constants[1]));
          definition.getColor().setAlpha(1.0 - constants[2]);
       }
+      definition.setVisible(yoGraphicCoordinateSystem.isGraphicObjectShowing());
 
       return definition;
    }
@@ -257,6 +274,7 @@ public class SCS1GraphicConversionTools
 
       definition.setRadius(constants[0]);
       definition.setColor(toColorDefinition(yoGraphicCylinder.getAppearance()));
+      definition.setVisible(yoGraphicCylinder.isGraphicObjectShowing());
 
       return definition;
    }
@@ -316,6 +334,7 @@ public class SCS1GraphicConversionTools
          definition.setNumberOfCoefficientsZ(zNumberOfCoeffs);
          definition.setStartTime(0.0);
          definition.setEndTime(yoVariables[yoVariableIndex].getFullNameString());
+         definition.setVisible(yoGraphicPolynomial3D.isGraphicObjectShowing());
          return definition;
       }
       else
@@ -358,6 +377,7 @@ public class SCS1GraphicConversionTools
             definition.setNumberOfCoefficientsZ(zNumberOfCoeffs);
             definition.setStartTime(i == 0 ? Double.toString(0.0) : waypointTimes[i - 1].getFullNameString());
             definition.setEndTime(waypointTimes[i].getFullNameString());
+            definition.setVisible(yoGraphicPolynomial3D.isGraphicObjectShowing());
             groupDefinition.getChildren().add(definition);
          }
 
@@ -380,6 +400,7 @@ public class SCS1GraphicConversionTools
       definition.setPosition(position);
       definition.setSize(constants[0]);
       definition.setColor(toColorDefinition(yoGraphicPosition.getAppearance()));
+      definition.setVisible(yoGraphicPosition.isGraphicObjectShowing());
       return definition;
    }
 
@@ -411,6 +432,7 @@ public class SCS1GraphicConversionTools
       definition.setScaleLength(true);
       definition.setScaleRadius(true);
       definition.setColor(toColorDefinition(yoGraphicVector.getAppearance()));
+      definition.setVisible(yoGraphicVector.isGraphicObjectShowing());
       return definition;
    }
 
@@ -418,6 +440,143 @@ public class SCS1GraphicConversionTools
    {
       // TODO Unsupported for now
       return null;
+   }
+
+   public static YoGraphicDefinition toYoGraphicDefinition(Artifact artifact)
+   {
+      if (artifact == null)
+         return null;
+
+      YoGraphicDefinition definition = null;
+
+      if (artifact instanceof YoArtifactLine2d)
+         definition = toYoGraphicDefinition((YoArtifactLine2d) artifact);
+      else if (artifact instanceof YoArtifactLineSegment2d)
+         definition = toYoGraphicDefinition((YoArtifactLineSegment2d) artifact);
+      else if (artifact instanceof YoArtifactOval)
+         definition = toYoGraphicDefinition((YoArtifactOval) artifact);
+      else if (artifact instanceof YoArtifactPolygon)
+         definition = toYoGraphicDefinition((YoArtifactPolygon) artifact);
+      else if (artifact instanceof YoArtifactPosition)
+         definition = toYoGraphicDefinition((YoArtifactPosition) artifact);
+      else
+      {
+         LogTools.error("Unsupported YoArtifact type: " + artifact);
+         return null;
+      }
+
+      definition.setName(artifact.getID());
+      definition.setVisible(artifact.isVisible());
+      return definition;
+   }
+
+   public static YoGraphicDefinition toYoGraphicDefinition(YoArtifactLine2d yoArtifactLine2d)
+   {
+      YoGraphicLine2DDefinition definition = new YoGraphicLine2DDefinition();
+      definition.setName(yoArtifactLine2d.getName());
+
+      YoVariable[] yoVariables = yoArtifactLine2d.getVariables();
+      definition.setOrigin(toYoTuple2DDefinition(yoVariables, 0));
+      definition.setDirection(toYoTuple2DDefinition(yoVariables, 2));
+      definition.setStrokeColor(toColorDefinition(yoArtifactLine2d.getAppearance()));
+      definition.setStrokeWidth(1.5);
+      definition.setVisible(yoArtifactLine2d.isVisible());
+      return definition;
+   }
+
+   public static YoGraphicDefinition toYoGraphicDefinition(YoArtifactLineSegment2d yoArtifactLineSegment2d)
+   {
+      YoGraphicLine2DDefinition definition = new YoGraphicLine2DDefinition();
+      definition.setName(yoArtifactLineSegment2d.getName());
+
+      YoVariable[] yoVariables = yoArtifactLineSegment2d.getVariables();
+      definition.setOrigin(toYoTuple2DDefinition(yoVariables, 0));
+      definition.setDestination(toYoTuple2DDefinition(yoVariables, 2));
+      definition.setStrokeColor(toColorDefinition(yoArtifactLineSegment2d.getAppearance()));
+      definition.setStrokeWidth(1.5);
+      definition.setVisible(yoArtifactLineSegment2d.isVisible());
+      return definition;
+   }
+
+   public static YoGraphicDefinition toYoGraphicDefinition(YoArtifactOval yoArtifactOval)
+   {
+      // TODO Unsupported for now
+      return null;
+   }
+
+   public static YoGraphicDefinition toYoGraphicDefinition(YoArtifactPolygon yoArtifactPolygon)
+   {
+      YoGraphicPolygon2DDefinition definition = new YoGraphicPolygon2DDefinition();
+      definition.setName(yoArtifactPolygon.getName());
+
+      YoVariable[] yoVariables = yoArtifactPolygon.getVariables();
+      int yoVariableIndex = 0;
+      definition.setNumberOfVertices(yoVariables[yoVariableIndex++].getFullNameString());
+      definition.setVertices(new ArrayList<>());
+
+      for (int i = 1; i < yoVariables.length; i += 2)
+      {
+         definition.getVertices().add(toYoTuple2DDefinition(yoVariables, i));
+      }
+
+      if (yoArtifactPolygon.getConstants()[0] == 1.0)
+         definition.setFillColor(toColorDefinition(yoArtifactPolygon.getAppearance()));
+      definition.setStrokeColor(toColorDefinition(yoArtifactPolygon.getAppearance()));
+      definition.setStrokeWidth(1.5);
+      definition.setVisible(yoArtifactPolygon.isVisible());
+      return definition;
+   }
+
+   public static YoGraphicDefinition toYoGraphicDefinition(YoArtifactPosition yoArtifactPosition)
+   {
+      YoGraphicPoint2DDefinition definition = new YoGraphicPoint2DDefinition();
+      definition.setName(yoArtifactPosition.getName());
+      definition.setPosition(toYoTuple2DDefinition(yoArtifactPosition.getVariables(), 0));
+      definition.setSize(2.0 * yoArtifactPosition.getConstants()[0]);
+
+      int graphicTypeIndex = (int) yoArtifactPosition.getConstants()[1];
+      if (graphicTypeIndex >= 0 && graphicTypeIndex < GraphicType.values().length)
+      {
+         switch (GraphicType.values()[graphicTypeIndex])
+         {
+            case BALL:
+            case SOLID_BALL:
+               definition.setGraphicName("Circle");
+               break;
+            case CROSS:
+               definition.setGraphicName("Plus");
+               break;
+            case BALL_WITH_CROSS:
+               definition.setGraphicName("Circle plus");
+               break;
+            case ROTATED_CROSS:
+               definition.setGraphicName("Cross");
+               break;
+            case BALL_WITH_ROTATED_CROSS:
+               definition.setGraphicName("Circle cross");
+               break;
+            case DIAMOND:
+               definition.setGraphicName("Diamond");
+               break;
+            case DIAMOND_WITH_CROSS:
+               definition.setGraphicName("Diamond plus");
+               break;
+            case SQUARE:
+               definition.setGraphicName("Square");
+               break;
+            case SQUARE_WITH_CROSS:
+               definition.setGraphicName("Square cross");
+               break;
+            case ELLIPSOID:
+               definition.setGraphicName("Ellipsoid");
+               break;
+         }
+      }
+
+      definition.setStrokeColor(toColorDefinition(yoArtifactPosition.getAppearance()));
+      definition.setStrokeWidth(1.5);
+      definition.setVisible(yoArtifactPosition.isVisible());
+      return definition;
    }
 
    public static ColorDefinition toColorDefinition(AppearanceDefinition appearanceDefinition)

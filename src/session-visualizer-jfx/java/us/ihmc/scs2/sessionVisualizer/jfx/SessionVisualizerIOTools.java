@@ -89,11 +89,15 @@ public class SessionVisualizerIOTools
    public static final URL YO_SEARCH_TAB_PANE_URL = getFXMLResource(YO_COMPOSITE_SEARCH, "YoSearchTabPane");
    public static final URL YO_ENTRY_LIST_VIEW_URL = getFXMLResource(YO_COMPOSITE_ENTRY, "YoEntryListView");
    // YoGraphic resources:
+   public static final URL GRAPHIC_2D_CROSS_URL = getYoGraphicResource("cross.svg");
+   public static final URL GRAPHIC_2D_PLUS_URL = getYoGraphicResource("plus.svg");
    public static final URL GRAPHIC_2D_CIRCLE_URL = getYoGraphicResource("circle.svg");
    public static final URL GRAPHIC_2D_CIRCLE_CROSS_URL = getYoGraphicResource("circle_cross.svg");
    public static final URL GRAPHIC_2D_CIRCLE_PLUS_URL = getYoGraphicResource("circle_plus.svg");
    public static final URL GRAPHIC_2D_DIAMOND_URL = getYoGraphicResource("diamond.svg");
+   public static final URL GRAPHIC_2D_DIAMOND_PLUS_URL = getYoGraphicResource("diamond_plus.svg");
    public static final URL GRAPHIC_2D_SQUARE_URL = getYoGraphicResource("square.svg");
+   public static final URL GRAPHIC_2D_SQUARE_CROSS_URL = getYoGraphicResource("square_cross.svg");
    public static final Path GRAPHIC_2D_CUSTOM_GRAPHICS = Paths.get(SCS2_HOME.toString(), "yoGraphic");
    public static final URL GRAPHIC_3D_SPHERE_URL = getYoGraphicResource("sphere.stl");
    public static final URL GRAPHIC_3D_CUBE_URL = getYoGraphicResource("cube.stl");

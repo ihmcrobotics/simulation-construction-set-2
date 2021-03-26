@@ -3,6 +3,6 @@
 
  <g>
   <title>Diamond</title>
-  <rect transform="rotate(45 0,0) " id="diamond" height="707.106781187" width="707.106781187" y="-353.553390594" x="-353.553390594" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <rect transform="rotate(45 0,0) " id="diamond" height="707.106781187" width="707.106781187" y="-353.553390594" x="353.553390594" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
  </g>
 </svg>
