@@ -8,7 +8,7 @@ import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.WindowManager;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SecondaryWindowManager;
 
 public class YoCompositeMenuController
 {
@@ -26,7 +26,7 @@ public class YoCompositeMenuController
    @FXML
    public void openYoCompositePatternEditor()
    {
-      messager.submitMessage(topics.getOpenWindowRequest(), WindowManager.COMPOSITE_PATTERN_EDITOR_WINDOW_TYPE);
+      messager.submitMessage(topics.getOpenWindowRequest(), SecondaryWindowManager.COMPOSITE_PATTERN_EDITOR_WINDOW_TYPE);
    }
 
    @FXML

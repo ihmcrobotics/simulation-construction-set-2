@@ -9,7 +9,7 @@ import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.WindowManager;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SecondaryWindowManager;
 
 public class YoChartMenuController
 {
@@ -43,6 +43,6 @@ public class YoChartMenuController
    @FXML
    public void newChartWindow()
    {
-      messager.submitMessage(topics.getOpenWindowRequest(), WindowManager.SECONDARY_CHART_WINDOW_TYPE);
+      messager.submitMessage(topics.getOpenWindowRequest(), SecondaryWindowManager.SECONDARY_CHART_WINDOW_TYPE);
    }
 }

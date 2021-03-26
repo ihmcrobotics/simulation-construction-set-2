@@ -15,7 +15,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.controllers.chart.YoChartGroupPanelCon
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu.MainWindowMenuBarController;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.WindowManager;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SecondaryWindowManager;
 
 public class SecondaryWindowController
 {
@@ -73,7 +73,7 @@ public class SecondaryWindowController
 
    public void saveSessionConfiguration(SCSGuiConfiguration configuration)
    {
-      configuration.addSecondaryWindowConfiguration(WindowManager.toWindowConfigurationDefinition(toolkit.getWindow()));
+      configuration.addSecondaryWindowConfiguration(SecondaryWindowManager.toWindowConfigurationDefinition(toolkit.getWindow()));
       chartGroupController.saveChartGroupConfiguration(toolkit.getWindow(), configuration.addSecondaryYoChartGroupConfigurationFile());
    }
 

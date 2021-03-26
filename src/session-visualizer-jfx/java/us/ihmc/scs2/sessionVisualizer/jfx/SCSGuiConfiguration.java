@@ -28,7 +28,7 @@ import javafx.stage.Stage;
 import us.ihmc.commons.nio.FileTools;
 import us.ihmc.scs2.definition.configuration.SCSGuiConfigurationDefinition;
 import us.ihmc.scs2.definition.configuration.WindowConfigurationDefinition;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.WindowManager;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SecondaryWindowManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
 
 public class SCSGuiConfiguration
@@ -363,7 +363,7 @@ public class SCSGuiConfiguration
 
    public static WindowConfigurationDefinition toWindowConfigurationDefinition(Stage stage)
    {
-      return WindowManager.toWindowConfigurationDefinition(stage);
+      return SecondaryWindowManager.toWindowConfigurationDefinition(stage);
    }
 
    public static void loadWindowConfigurationDefinition(WindowConfigurationDefinition definition, Stage stage)

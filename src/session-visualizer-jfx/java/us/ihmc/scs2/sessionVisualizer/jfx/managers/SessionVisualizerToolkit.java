@@ -35,7 +35,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    private final EnvironmentManager environmentManager = new EnvironmentManager(backgroundExecutorManager);
    private final ReferenceFrameManager referenceFrameManager = new ReferenceFrameManager(backgroundExecutorManager);
    private final YoRobotFXManager yoRobotFXManager = new YoRobotFXManager(yoManager, referenceFrameManager, backgroundExecutorManager);
-   private final WindowManager windowManager;
+   private final SecondaryWindowManager secondaryWindowManager;
 
    private Stage mainWindow;
 
@@ -58,7 +58,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       yoGraphicFXManager = new YoGraphicFXManager(messager, topics, yoManager, backgroundExecutorManager, referenceFrameManager);
       yoCompositeSearchManager = new YoCompositeSearchManager(messager, topics, yoManager, backgroundExecutorManager);
       keyFrameManager = new KeyFrameManager(messager, topics);
-      windowManager = new WindowManager(this);
+      secondaryWindowManager = new SecondaryWindowManager(this);
    }
 
    public void startSession(Session session, Runnable sessionLoadedCallback)
@@ -84,7 +84,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
          yoGraphicFXManager.startSession(session);
          yoCompositeSearchManager.startSession(session);
          keyFrameManager.startSession(session);
-         windowManager.startSession(session);
+         secondaryWindowManager.startSession(session);
 
          while (!yoRobotFXManager.isSessionLoaded())
          {
@@ -124,7 +124,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       environmentManager.stopSession();
       keyFrameManager.stopSession();
       backgroundExecutorManager.stopSession();
-      windowManager.stopSession();
+      secondaryWindowManager.stopSession();
 
       mainWindow.setTitle(SessionVisualizer.NO_ACTIVE_SESSION_TITLE);
 
@@ -238,8 +238,8 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       return backgroundExecutorManager;
    }
 
-   public WindowManager getWindowManager()
+   public SecondaryWindowManager getWindowManager()
    {
-      return windowManager;
+      return secondaryWindowManager;
    }
 }

@@ -4,7 +4,7 @@ import javafx.fxml.FXML;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.WindowManager;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SecondaryWindowManager;
 
 public class YoSliderboardMenuController
 {
@@ -20,6 +20,6 @@ public class YoSliderboardMenuController
    @FXML
    public void openBCF2000SliderboardWindow()
    {
-      messager.submitMessage(topics.getOpenWindowRequest(), WindowManager.BCF2000_SLIDERBOARD_WINDOW_TYPE);
+      messager.submitMessage(topics.getOpenWindowRequest(), SecondaryWindowManager.BCF2000_SLIDERBOARD_WINDOW_TYPE);
    }
 }

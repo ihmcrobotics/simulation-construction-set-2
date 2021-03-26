@@ -26,7 +26,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.pattern.YoComp
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicPropertyWindowController;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 
-public class WindowManager implements Manager
+public class SecondaryWindowManager implements Manager
 {
    public static final String SECONDARY_CHART_WINDOW_TYPE = "SecondaryChartWindow";
    public static final String COMPOSITE_PATTERN_EDITOR_WINDOW_TYPE = "YoCompositeEditorWindow";
@@ -43,7 +43,7 @@ public class WindowManager implements Manager
    private final JavaFXMessager messager;
    private final SessionVisualizerTopics topics;
 
-   public WindowManager(SessionVisualizerToolkit toolkit)
+   public SecondaryWindowManager(SessionVisualizerToolkit toolkit)
    {
       this.toolkit = toolkit;
       messager = toolkit.getMessager();
