@@ -40,7 +40,7 @@ import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.definition.yoComposite.YoCompositePatternDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ContextMenuTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
@@ -73,9 +73,9 @@ public class YoCompositePatternPropertyWindowController
    private Stage window;
    private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
-   private SessionVisualizerWindowToolkit toolkit;
+   private SessionVisualizerToolkit toolkit;
 
-   public void initialize(SessionVisualizerWindowToolkit toolkit)
+   public void initialize(SessionVisualizerToolkit toolkit)
    {
       this.toolkit = toolkit;
       topics = toolkit.getTopics();
@@ -121,10 +121,10 @@ public class YoCompositePatternPropertyWindowController
             window.close();
       });
 
-      toolkit.getWindow().addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> window.close());
+      toolkit.getMainWindow().addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> window.close());
       window.setTitle("YoCompositePattern properties");
       window.setScene(new Scene(mainAnchorPane));
-      window.initOwner(toolkit.getWindow());
+      window.initOwner(toolkit.getMainWindow());
 
       List<YoCompositePatternDefinition> customYoCompositePatterns = YoCompositeTools.toYoCompositePatternDefinitions(yoCompositeSearchManager.customYoCompositePatterns());
 
@@ -191,6 +191,11 @@ public class YoCompositePatternPropertyWindowController
       KeyFrame key = new KeyFrame(Duration.seconds(0.125), new KeyValue(window.opacityProperty(), 1.0));
       timeline.getKeyFrames().add(key);
       timeline.play();
+   }
+
+   public void close()
+   {
+      window.close();
    }
 
    private boolean ignoreTreeSelectionUpdate = false;

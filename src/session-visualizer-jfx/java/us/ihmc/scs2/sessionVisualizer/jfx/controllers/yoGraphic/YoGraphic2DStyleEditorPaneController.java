@@ -23,7 +23,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphic2DDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.definition.JavaFXVisualTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX2D;
 
 public class YoGraphic2DStyleEditorPaneController
@@ -51,7 +51,7 @@ public class YoGraphic2DStyleEditorPaneController
    private final DoubleProperty strokeWidthProperty = new SimpleDoubleProperty(this, "strokeWidth", DEFAULT_STROKE_WIDTH);
    private ObservableBooleanValue inputsValidityProperty;
 
-   public void initialize(SessionVisualizerWindowToolkit toolkit)
+   public void initialize(SessionVisualizerToolkit toolkit)
    {
       new ToggleGroup().getToggles().addAll(fillRadioButton, strokeRadioButton);
 

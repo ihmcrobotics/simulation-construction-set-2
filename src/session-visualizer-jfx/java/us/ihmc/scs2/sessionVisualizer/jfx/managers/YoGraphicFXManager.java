@@ -77,6 +77,7 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
    public void stopSession()
    {
       root.clear();
+      stop();
    }
 
    @Override

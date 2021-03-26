@@ -42,6 +42,6 @@ public class FileMenuController
    @FXML
    private void close()
    {
-      // TODO implement me
+      messager.submitMessage(topics.getSessionVisualizerCloseRequest(), true);
    }
 }

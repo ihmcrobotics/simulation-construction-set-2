@@ -14,7 +14,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicArrow3DDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.yoTextFields.YoDoubleTextField;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoArrowFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
@@ -54,7 +54,7 @@ public class YoArrowFX3DEditorController implements YoGraphicFXCreatorController
    private BooleanProperty hasChangesPendingProperty = new SimpleBooleanProperty(this, "hasChangesPending", false);
 
    @Override
-   public void initialize(SessionVisualizerWindowToolkit toolkit, YoArrowFX3D yoGraphicToEdit)
+   public void initialize(SessionVisualizerToolkit toolkit, YoArrowFX3D yoGraphicToEdit)
    {
       this.yoGraphicToEdit = yoGraphicToEdit;
       definitionBeforeEdits = YoGraphicTools.toYoGraphicArrow3DDefinition(yoGraphicToEdit);

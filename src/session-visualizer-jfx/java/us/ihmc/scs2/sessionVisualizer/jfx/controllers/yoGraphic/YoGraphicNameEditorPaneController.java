@@ -13,7 +13,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXItem;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
@@ -39,7 +39,7 @@ public class YoGraphicNameEditorPaneController
 
    private YoGraphicFXItem yoGraphicFXItem;
 
-   public void initialize(SessionVisualizerWindowToolkit toolkit, YoGraphicFXItem yoGraphicFXItem)
+   public void initialize(SessionVisualizerToolkit toolkit, YoGraphicFXItem yoGraphicFXItem)
    {
       this.yoGraphicFXItem = yoGraphicFXItem;
       rootGroup = toolkit.getYoGraphicFXRootGroup();

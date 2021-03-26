@@ -6,8 +6,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
-import com.sun.javafx.application.PlatformImpl;
-
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
@@ -108,7 +106,7 @@ public class SharedMemoryJavaFXMessager extends SharedMemoryMessager implements 
          try
          { // The following one can throw an exception if the JavaFX thread has not started yet.
             MutableBoolean result = new MutableBoolean();
-            PlatformImpl.runAndWait(() -> result.setValue(topicListeners.removeListener(listener)));
+            JavaFXMissingTools.runAndWait(getClass(), () -> result.setValue(topicListeners.removeListener(listener)));
             return result.booleanValue();
          }
          catch (IllegalStateException e)

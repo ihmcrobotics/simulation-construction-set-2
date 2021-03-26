@@ -149,6 +149,7 @@ public class YoCompositeSearchManager implements Manager
 
       messager.registerTopicListener(topics.getYoCompositePatternLoadRequest(), this::loadYoCompositePatternFromFile);
       messager.registerTopicListener(topics.getYoCompositePatternSaveRequest(), this::saveYoCompositePatternToFile);
+      messager.registerTopicListener(topics.getYoCompositeRefreshAll(), m -> refreshYoCompositesInBackground());
    }
 
    @Override

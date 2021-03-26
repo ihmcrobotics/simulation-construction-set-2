@@ -560,7 +560,7 @@ public class YoChartGroupPanelController
 
    public void saveChartGroupConfiguration(Window source, File file)
    {
-      if (source != toolkit.getWindow())
+      if (source != null && source != toolkit.getWindow())
          return;
 
       if (!Platform.isFxApplicationThread())

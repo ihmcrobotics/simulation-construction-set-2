@@ -9,7 +9,7 @@ import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.yoSlider.YoButtonDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.YoBooleanSlider;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.YoVariableSlider;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
 import us.ihmc.yoVariables.variable.YoBoolean;
@@ -29,7 +29,7 @@ public class YoBCF2000ButtonController extends YoBCF2000InputController
    private YoBooleanSlider yoBooleanSlider;
    private YoManager yoManager;
 
-   public void initialize(SessionVisualizerWindowToolkit toolkit, SliderboardVariable sliderVariable)
+   public void initialize(SessionVisualizerToolkit toolkit, SliderboardVariable sliderVariable)
    {
       this.sliderVariable = sliderVariable;
       yoManager = toolkit.getYoManager();

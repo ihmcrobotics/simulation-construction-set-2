@@ -9,7 +9,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.layout.VBox;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicBox3DDefinition;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoBoxFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
@@ -35,7 +35,7 @@ public class YoBoxFX3DEditorController implements YoGraphicFXCreatorController<Y
    private BooleanProperty hasChangesPendingProperty = new SimpleBooleanProperty(this, "hasChangesPending", false);
 
    @Override
-   public void initialize(SessionVisualizerWindowToolkit toolkit, YoBoxFX3D yoGraphicToEdit)
+   public void initialize(SessionVisualizerToolkit toolkit, YoBoxFX3D yoGraphicToEdit)
    {
       this.yoGraphicToEdit = yoGraphicToEdit;
       definitionBeforeEdits = YoGraphicTools.toYoGraphicBox3DDefinition(yoGraphicToEdit);
