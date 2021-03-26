@@ -32,11 +32,15 @@ public class YoGraphicFXResourceManager
 
    public YoGraphicFXResourceManager()
    {
+      registerNewGraphic2D(SessionVisualizerIOTools.GRAPHIC_2D_CROSS_URL);
+      registerNewGraphic2D(SessionVisualizerIOTools.GRAPHIC_2D_PLUS_URL);
       registerNewGraphic2D(SessionVisualizerIOTools.GRAPHIC_2D_CIRCLE_URL);
       registerNewGraphic2D(SessionVisualizerIOTools.GRAPHIC_2D_CIRCLE_CROSS_URL);
       registerNewGraphic2D(SessionVisualizerIOTools.GRAPHIC_2D_CIRCLE_PLUS_URL);
       registerNewGraphic2D(SessionVisualizerIOTools.GRAPHIC_2D_DIAMOND_URL);
+      registerNewGraphic2D(SessionVisualizerIOTools.GRAPHIC_2D_DIAMOND_PLUS_URL);
       registerNewGraphic2D(SessionVisualizerIOTools.GRAPHIC_2D_SQUARE_URL);
+      registerNewGraphic2D(SessionVisualizerIOTools.GRAPHIC_2D_SQUARE_CROSS_URL);
       registerNewGraphic3D(SessionVisualizerIOTools.GRAPHIC_3D_SPHERE_URL);
       registerNewGraphic3D(SessionVisualizerIOTools.GRAPHIC_3D_CUBE_URL);
       registerNewGraphic3D(SessionVisualizerIOTools.GRAPHIC_3D_TETRAHEDRON_URL);

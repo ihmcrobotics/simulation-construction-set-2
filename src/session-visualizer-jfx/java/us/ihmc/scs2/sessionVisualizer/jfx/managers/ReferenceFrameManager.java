@@ -17,7 +17,9 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
 
 public class ReferenceFrameManager implements Manager
 {
-   private ReferenceFrame worldFrame = ReferenceFrameTools.constructARootFrame("worldFrame");
+   public static final String WORLD_FRAME = "worldFrame";
+
+   private ReferenceFrame worldFrame = ReferenceFrameTools.constructARootFrame(WORLD_FRAME);
 
    private final ObjectProperty<Map<String, ReferenceFrame>> uniqueNameToReferenceFrameMapProperty = new SimpleObjectProperty<>(this,
                                                                                                                                 "uniqueNameToReferenceFrameMap",
@@ -40,7 +42,7 @@ public class ReferenceFrameManager implements Manager
    @Override
    public void startSession(Session session)
    {
-      worldFrame = ReferenceFrameTools.constructARootFrame("worldFrame");
+      worldFrame = ReferenceFrameTools.constructARootFrame(WORLD_FRAME);
       refreshReferenceFramesNow();
    }
 

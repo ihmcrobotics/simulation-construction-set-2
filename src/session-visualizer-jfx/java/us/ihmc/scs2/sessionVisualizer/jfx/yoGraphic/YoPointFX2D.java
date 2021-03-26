@@ -47,9 +47,13 @@ public class YoPointFX2D extends YoGraphicFX2D
       SVGContent graphic = SVGLoader.load(graphicResource.getResourceURL());
 
       List<Shape> shapes = YoGraphicTools.extractShapes(graphic);
+      Translate graphicCentering = new Translate();
+      graphicCentering.setX(-graphic.getLayoutBounds().getCenterX());
+      graphicCentering.setY(-graphic.getLayoutBounds().getCenterY());
 
       for (Shape shape : shapes)
       {
+         shape.getTransforms().add(graphicCentering);
          shape.fillProperty().bind(fillProperty);
          shape.strokeProperty().bind(strokeProperty);
          shape.strokeWidthProperty().bind(strokeWidthProperty);

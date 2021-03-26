@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -23,7 +24,11 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
 
 public class YoGraphicFXManager extends ObservedAnimationTimer implements Manager
 {
-   private final YoGroupFX root = YoGroupFX.createRoot();
+   private static final String SESSION_GRAPHICS = "SessionGraphics";
+
+   private final YoGroupFX root = YoGroupFX.createGUIRoot();
+   private final YoGroupFX sessionRoot = new YoGroupFX(SESSION_GRAPHICS);
+
    private final JavaFXMessager messager;
    private final SessionVisualizerTopics topics;
    private final YoManager yoManager;
@@ -64,12 +69,24 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
    @Override
    public void handleImpl(long now)
    {
-      root.render();
+      try
+      {
+         root.render();
+      }
+      catch (Exception e)
+      {
+         e.printStackTrace();
+      }
    }
 
    @Override
    public void startSession(Session session)
    {
+      if (!session.getYoGraphicDefinitions().isEmpty())
+      {
+         setupYoGraphics(new YoGraphicListDefinition(session.getYoGraphicDefinitions()), sessionRoot, () -> root.addChild(sessionRoot));
+      }
+
       start();
    }
 
@@ -77,6 +94,7 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
    public void stopSession()
    {
       root.clear();
+      sessionRoot.clear();
       stop();
    }
 
@@ -117,21 +135,39 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
       try
       {
          YoGraphicListDefinition yoGraphicListDefinition = XMLTools.loadYoGraphicListDefinition(new FileInputStream(file));
-         backgroundExecutorManager.queueTaskToExecuteInBackground(this, () ->
-         {
-            List<YoGraphicFXItem> items = YoGraphicTools.createYoGraphicFXs(yoManager.getRootRegistryDatabase(),
-                                                                            root,
-                                                                            yoGraphicFXResourceManager,
-                                                                            referenceFrameManager,
-                                                                            yoGraphicListDefinition);
-            if (items != null && !items.isEmpty())
-               JavaFXMissingTools.runLater(getClass(), () -> items.forEach(root::addYoGraphicFXItem));
-         });
+         setupYoGraphics(yoGraphicListDefinition, root);
       }
       catch (Exception e)
       {
          e.printStackTrace();
       }
+   }
+
+   private void setupYoGraphics(YoGraphicListDefinition definition, YoGroupFX parentGroup)
+   {
+      setupYoGraphics(definition, parentGroup, null);
+   }
+
+   private void setupYoGraphics(YoGraphicListDefinition definition, YoGroupFX parentGroup, Runnable postLoadingCallback)
+   {
+      backgroundExecutorManager.queueTaskToExecuteInBackground(this, () ->
+      {
+         List<YoGraphicFXItem> items = YoGraphicTools.createYoGraphicFXs(yoManager.getRootRegistryDatabase(),
+                                                                         parentGroup,
+                                                                         yoGraphicFXResourceManager,
+                                                                         referenceFrameManager,
+                                                                         definition);
+         if (items != null && !items.isEmpty())
+         {
+            JavaFXMissingTools.runLater(getClass(), () ->
+            {
+               items.forEach(parentGroup::addYoGraphicFXItem);
+
+               if (postLoadingCallback != null)
+                  postLoadingCallback.run();
+            });
+         }
+      });
    }
 
    public void saveYoGraphicToFile(File file)
@@ -142,7 +178,9 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
       LogTools.info("Saving file: " + file);
       try
       {
-         XMLTools.saveYoGraphicListDefinition(new FileOutputStream(file), YoGraphicTools.toYoGraphicListDefinition(root.getItemChildren()));
+         XMLTools.saveYoGraphicListDefinition(new FileOutputStream(file),
+                                              YoGraphicTools.toYoGraphicListDefinition(root.getItemChildren().stream().filter(item -> item != sessionRoot)
+                                                                                           .collect(Collectors.toList())));
       }
       catch (Exception e)
       {
