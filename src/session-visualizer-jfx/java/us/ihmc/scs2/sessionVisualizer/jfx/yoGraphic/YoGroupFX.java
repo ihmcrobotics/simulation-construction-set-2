@@ -29,45 +29,57 @@ public class YoGroupFX implements YoGraphicFXItem
 
    private final BooleanProperty visibleProperty = new SimpleBooleanProperty(this, "visible", true);
 
-   public static YoGroupFX createRoot()
+   public static YoGroupFX createGUIRoot()
    {
-      return new YoGroupFX();
+      return new YoGroupFX(YoGraphicTools.GUI_ROOT_NAME, true);
    }
 
-   private YoGroupFX()
+   public static YoGroupFX createSessionRoot()
    {
-      nameProperty.set(YoGraphicTools.ROOT_NAME);
-      parentGroupProperty = null;
+      return new YoGroupFX(YoGraphicTools.SESSION_ROOT_NAME, true);
+   }
 
-      setupChildrenListener();
-      setupYoGraphicFXsListener(yoGraphicFX2DSet, group2D);
-      setupYoGraphicFXsListener(yoGraphicFX3DSet, group3D);
+   private YoGroupFX(String name, boolean isRoot)
+   {
+      if (isRoot)
+      {
+         nameProperty.set(name);
+         parentGroupProperty = null;
+
+         setupChildrenListener();
+         setupYoGraphicFXsListener(yoGraphicFX2DSet, group2D);
+         setupYoGraphicFXsListener(yoGraphicFX3DSet, group3D);
+      }
+      else
+      {
+         Objects.requireNonNull(name);
+         nameProperty.set(name);
+
+         parentGroupProperty = new SimpleObjectProperty<>(this, "parent", null);
+         parentGroupProperty.addListener((observable, oldValue, newValue) ->
+         {
+            if (oldValue == null || newValue == oldValue)
+               return;
+
+            if (oldValue != null)
+               oldValue.children.remove(YoGroupFX.this);
+
+            if (newValue != null && !newValue.children.contains(this))
+               newValue.children.add(this);
+         });
+
+         setupChildrenListener();
+         setupYoGraphicFXsListener(yoGraphicFX2DSet, group2D);
+         setupYoGraphicFXsListener(yoGraphicFX3DSet, group3D);
+
+         group2D.visibleProperty().bind(visibleProperty);
+         group3D.visibleProperty().bind(visibleProperty);
+      }
    }
 
    public YoGroupFX(String name)
    {
-      Objects.requireNonNull(name);
-      nameProperty.set(name);
-
-      parentGroupProperty = new SimpleObjectProperty<>(this, "parent", null);
-      parentGroupProperty.addListener((observable, oldValue, newValue) ->
-      {
-         if (oldValue == null || newValue == oldValue)
-            return;
-
-         if (oldValue != null)
-            oldValue.children.remove(YoGroupFX.this);
-
-         if (newValue != null && !newValue.children.contains(this))
-            newValue.children.add(this);
-      });
-
-      setupChildrenListener();
-      setupYoGraphicFXsListener(yoGraphicFX2DSet, group2D);
-      setupYoGraphicFXsListener(yoGraphicFX3DSet, group3D);
-
-      group2D.visibleProperty().bind(visibleProperty);
-      group3D.visibleProperty().bind(visibleProperty);
+      this(name, false);
    }
 
    private void setupChildrenListener()
@@ -173,7 +185,8 @@ public class YoGroupFX implements YoGraphicFXItem
    }
 
    /**
-    * All graphic items registered to this group including {@link YoGroupFX}, {@link YoGraphicFX2D}, and {@link YoGraphicFX3D}.
+    * All graphic items registered to this group including {@link YoGroupFX}, {@link YoGraphicFX2D},
+    * and {@link YoGraphicFX3D}.
     * <p>
     * Should be accessed for read-only operations.
     * </p>

@@ -23,7 +23,8 @@ import us.ihmc.scs2.sessionVisualizer.jfx.tools.CompositePropertyTools.YoVariabl
 
 public class YoGraphicTools
 {
-   public static final String ROOT_NAME = "root";
+   public static final String GUI_ROOT_NAME = "root";
+   public static final String SESSION_ROOT_NAME = "session";
    public static final String SEPARATOR = ":";
 
    public static List<String> collectAllExistingNamespaces(YoGroupFX group)
