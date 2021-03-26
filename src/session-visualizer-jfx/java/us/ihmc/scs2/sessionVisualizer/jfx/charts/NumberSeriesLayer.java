@@ -210,8 +210,6 @@ public class NumberSeriesLayer extends ImageView
          clearImage = false;
       }
 
-      boolean layoutChanged = layoutChangedProperty.get();
-      layoutChangedProperty.set(false);
       List<Point2D> data = numberSeries.getData();
       dataSizeProperty.set(data.size());
 
@@ -219,7 +217,9 @@ public class NumberSeriesLayer extends ImageView
 
       try
       {
-         if (data.isEmpty() || (!numberSeries.pollDirty() && !layoutChanged))
+         if (data.isEmpty())
+            return false;
+         else if (!numberSeries.pollDirty() && !pollLayoutChanged())
             return false;
 
          xData = resize(xData, data.size());
@@ -269,6 +269,13 @@ public class NumberSeriesLayer extends ImageView
          isUpdatingImage.set(false);
          numberSeries.getLock().readLock().unlock();
       }
+   }
+
+   private boolean pollLayoutChanged()
+   {
+      boolean ret = layoutChangedProperty.get();
+      layoutChangedProperty.set(false);
+      return ret;
    }
 
    private static int[] resize(int[] in, int length)
