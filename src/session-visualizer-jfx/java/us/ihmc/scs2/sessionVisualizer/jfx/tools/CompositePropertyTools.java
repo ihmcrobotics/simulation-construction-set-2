@@ -188,7 +188,7 @@ public class CompositePropertyTools
                                                                    String field)
    {
       if (field == null)
-         return new SimpleObjectProperty<>(referenceFrameManager.getWorldFrame());
+         return null;
       ReferenceFrame referenceFrame = referenceFrameManager.getReferenceFrameFromFullname(field);
       if (referenceFrame != null)
          return new SimpleObjectProperty<>(referenceFrame);

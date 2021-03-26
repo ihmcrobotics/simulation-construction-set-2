@@ -53,6 +53,7 @@ import us.ihmc.scs2.definition.yoGraphic.YoGraphicPolygon2DDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicPolygonExtruded3DDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicPolynomial3DDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameManager;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class SCS1GraphicConversionTools
@@ -150,7 +151,9 @@ public class SCS1GraphicConversionTools
 
       for (int i = 0; i < vertexBufferSize; i++)
       {
-         vertices.add(toYoTuple2DDefinition(yoVariables, yoVariableIndex));
+         YoTuple2DDefinition vertex = toYoTuple2DDefinition(yoVariables, yoVariableIndex);
+         vertex.setReferenceFrame(null);
+         vertices.add(vertex);
          yoVariableIndex += 2;
       }
 
@@ -398,6 +401,7 @@ public class SCS1GraphicConversionTools
       position.setX(yoVariables[0].getFullNameString());
       position.setY(yoVariables[1].getFullNameString());
       position.setZ(yoVariables.length == 3 ? yoVariables[2].getFullNameString() : Double.toString(0.0));
+      position.setReferenceFrame(ReferenceFrameManager.WORLD_FRAME);
       definition.setPosition(position);
       definition.setSize(constants[0]);
       definition.setGraphicName(YoGraphicFXResourceManager.graphicName(SessionVisualizerIOTools.GRAPHIC_3D_SPHERE_URL));
@@ -619,6 +623,7 @@ public class SCS1GraphicConversionTools
       position.setX(x.getFullNameString());
       position.setY(y.getFullNameString());
       position.setZ(z.getFullNameString());
+      position.setReferenceFrame(ReferenceFrameManager.WORLD_FRAME);
       return position;
    }
 
@@ -632,6 +637,7 @@ public class SCS1GraphicConversionTools
       YoTuple2DDefinition position = new YoTuple2DDefinition();
       position.setX(x.getFullNameString());
       position.setY(y.getFullNameString());
+      position.setReferenceFrame(ReferenceFrameManager.WORLD_FRAME);
       return position;
    }
 
@@ -642,11 +648,12 @@ public class SCS1GraphicConversionTools
 
    public static YoYawPitchRollDefinition toYoYawPitchRollDefinition(YoVariable yaw, YoVariable pitch, YoVariable roll)
    {
-      YoYawPitchRollDefinition position = new YoYawPitchRollDefinition();
-      position.setYaw(yaw.getFullNameString());
-      position.setPitch(pitch.getFullNameString());
-      position.setRoll(roll.getFullNameString());
-      return position;
+      YoYawPitchRollDefinition orientation = new YoYawPitchRollDefinition();
+      orientation.setYaw(yaw.getFullNameString());
+      orientation.setPitch(pitch.getFullNameString());
+      orientation.setRoll(roll.getFullNameString());
+      orientation.setReferenceFrame(ReferenceFrameManager.WORLD_FRAME);
+      return orientation;
    }
 
    public static YoQuaternionDefinition toYoQuaternionDefinition(YoVariable[] variables, int startIndex)
@@ -656,11 +663,12 @@ public class SCS1GraphicConversionTools
 
    public static YoQuaternionDefinition toYoQuaternionDefinition(YoVariable qx, YoVariable qy, YoVariable qz, YoVariable qs)
    {
-      YoQuaternionDefinition position = new YoQuaternionDefinition();
-      position.setX(qx.getFullNameString());
-      position.setY(qy.getFullNameString());
-      position.setZ(qz.getFullNameString());
-      position.setS(qs.getFullNameString());
-      return position;
+      YoQuaternionDefinition orientation = new YoQuaternionDefinition();
+      orientation.setX(qx.getFullNameString());
+      orientation.setY(qy.getFullNameString());
+      orientation.setZ(qz.getFullNameString());
+      orientation.setS(qs.getFullNameString());
+      orientation.setReferenceFrame(ReferenceFrameManager.WORLD_FRAME);
+      return orientation;
    }
 }
