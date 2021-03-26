@@ -10,13 +10,13 @@ import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.Pane;
 import us.ihmc.scs2.definition.yoChart.YoChartIdentifierDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartIdentifier;
-import us.ihmc.scs2.sessionVisualizer.jfx.controllers.SCSDefaultUIController;
+import us.ihmc.scs2.sessionVisualizer.jfx.controllers.UIElement;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ChartTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.IntegerConverter;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.PositiveIntegerValueFilter;
 
-public class YoChartIdentifierEditorController implements SCSDefaultUIController
+public class YoChartIdentifierEditorController implements UIElement
 {
    @FXML
    private Pane mainPane;
@@ -78,6 +78,11 @@ public class YoChartIdentifierEditorController implements SCSDefaultUIController
    public Label getColumnLabel()
    {
       return columnLabel;
+   }
+
+   public void closeAndDispose()
+   {
+      
    }
 
    @Override

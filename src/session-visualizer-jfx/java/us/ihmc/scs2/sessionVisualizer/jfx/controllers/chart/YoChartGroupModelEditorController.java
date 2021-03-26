@@ -22,11 +22,11 @@ import javafx.scene.layout.VBox;
 import us.ihmc.scs2.definition.yoChart.YoChartGroupModelDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.ControllerListCell;
-import us.ihmc.scs2.sessionVisualizer.jfx.controllers.SCSDefaultUIController;
+import us.ihmc.scs2.sessionVisualizer.jfx.controllers.UIElement;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 
-public class YoChartGroupModelEditorController implements SCSDefaultUIController
+public class YoChartGroupModelEditorController implements UIElement
 {
    @FXML
    private VBox mainPane;
@@ -87,7 +87,10 @@ public class YoChartGroupModelEditorController implements SCSDefaultUIController
       while (listItems.size() < input.getChartIdentifiers().size())
          listItems.add(newYoChartIdentifierEditor());
       while (listItems.size() > input.getChartIdentifiers().size())
-         listItems.remove(listItems.size() - 1);
+      {
+         YoChartIdentifierEditorController removedController = listItems.remove(listItems.size() - 1);
+         removedController.closeAndDispose();
+      }
       for (int i = 0; i < listItems.size(); i++)
          listItems.get(i).setInput(input.getChartIdentifiers().get(i));
 
@@ -169,6 +172,11 @@ public class YoChartGroupModelEditorController implements SCSDefaultUIController
    public ReadOnlyObjectProperty<YoChartGroupModelDefinition> chartGroupModelProperty()
    {
       return chartGroupModelProperty;
+   }
+
+   public void closeAndDispose()
+   {
+      prefHeightAdjustmentAnimation.stop();
    }
 
    @Override

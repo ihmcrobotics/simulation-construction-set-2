@@ -341,8 +341,10 @@ public class YoChartPanelController extends ObservedAnimationTimer
          chart.close();
    }
 
-   public void close()
+   public void closeAndDispose()
    {
+      stop();
+
       if (activeChartOptionControllerProperty.get() != null)
          activeChartOptionControllerProperty.get().close();
 
@@ -353,7 +355,6 @@ public class YoChartPanelController extends ObservedAnimationTimer
       messager.removeInput(topics.getYoBufferCurrentProperties(), bufferPropertiesForMarkers);
       messager.removeInput(topics.getYoBufferCurrentProperties(), bufferPropertiesForScrolling);
       messager.removeJavaFXSyncedTopicListener(topics.getCurrentKeyFrames(), keyFrameMarkerListener);
-      stop();
    }
 
    public boolean isEmpty()

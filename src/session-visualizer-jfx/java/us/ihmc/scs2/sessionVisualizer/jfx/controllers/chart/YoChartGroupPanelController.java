@@ -139,7 +139,7 @@ public class YoChartGroupPanelController
 
    private void clear()
    {
-      new ArrayList<>(chartControllers).forEach(this::closeChart);
+      new ArrayList<>(chartControllers).forEach(this::closeAndDisposeChart);
       numberOfRows.set(0);
       numberOfCols.set(0);
    }
@@ -169,7 +169,7 @@ public class YoChartGroupPanelController
             while (emptyCharts.size() > excess)
                emptyCharts.removeFirst();
 
-            emptyCharts.forEach(this::closeChart);
+            emptyCharts.forEach(this::closeAndDisposeChart);
          }
       }
 
@@ -251,13 +251,13 @@ public class YoChartGroupPanelController
 
    private void handleCloseChart(ActionEvent event, YoChartPanelController chartToClose)
    {
-      closeChart(chartToClose);
+      closeAndDisposeChart(chartToClose);
       event.consume();
    }
 
-   private void closeChart(YoChartPanelController chartToClose)
+   private void closeAndDisposeChart(YoChartPanelController chartToClose)
    {
-      chartToClose.close();
+      chartToClose.closeAndDispose();
       gridPane.getChildren().remove(chartToClose.getMainPane());
       chartControllers.remove(chartToClose);
       removeEmptyRowsAndColumns();
@@ -274,7 +274,7 @@ public class YoChartGroupPanelController
          if (controller.isEmpty())
          {
             chartControllersIterator.remove();
-            closeChart(controller);
+            closeAndDisposeChart(controller);
          }
       }
    }
@@ -348,7 +348,7 @@ public class YoChartGroupPanelController
       chartControllers.forEach(YoChartPanelController::stop);
    }
 
-   public void close()
+   public void closeAndDispose()
    {
       isRunning.set(false);
       clear();

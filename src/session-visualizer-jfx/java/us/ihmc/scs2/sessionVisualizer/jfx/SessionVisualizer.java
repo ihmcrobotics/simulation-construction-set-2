@@ -60,6 +60,7 @@ public class SessionVisualizer
 
       toolkit.getEnvironmentManager().addWorldCoordinateSystem(0.3);
       toolkit.getEnvironmentManager().addSkybox(view3dFactory.getSubScene());
+      toolkit.getMessager().registerJavaFXSyncedTopicListener(toolkit.getTopics().getSessionVisualizerCloseRequest(), m -> stop());
 
       sidePaneController.initialize(toolkit);
 

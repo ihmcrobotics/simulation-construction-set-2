@@ -65,7 +65,11 @@ public class MultiSessionManager
          if (sessionLoadedCallback != null)
             sessionLoadedCallback.run();
       };
-      JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> toolkit.startSession(session, callback));
+      JavaFXMissingTools.runLaterIfNeeded(getClass(), () ->
+      {
+         toolkit.startSession(session, callback);
+         mainWindowController.startSession();
+      });
    }
 
    public void stopSession()
@@ -75,6 +79,7 @@ public class MultiSessionManager
 
       saveSessionConfiguration();
       toolkit.stopSession();
+      mainWindowController.stopSession();
       inactiveControllerMap.values().forEach(SessionControlsController::unloadSession);
    }
 

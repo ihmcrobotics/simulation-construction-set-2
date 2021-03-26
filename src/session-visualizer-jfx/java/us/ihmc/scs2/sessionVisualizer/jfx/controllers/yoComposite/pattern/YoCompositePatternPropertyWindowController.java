@@ -193,9 +193,13 @@ public class YoCompositePatternPropertyWindowController
       timeline.play();
    }
 
-   public void close()
+   public void closeAndDispose()
    {
       window.close();
+
+      if (activeEditor.get() != null)
+         activeEditor.get().closeAndDispose();
+      cachedEditors.values().forEach(YoCompositePatternEditorController::closeAndDispose);
    }
 
    private boolean ignoreTreeSelectionUpdate = false;

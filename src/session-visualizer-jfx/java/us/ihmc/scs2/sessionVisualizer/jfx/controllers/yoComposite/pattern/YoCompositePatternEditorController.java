@@ -38,7 +38,7 @@ import us.ihmc.scs2.definition.yoChart.YoChartIdentifierDefinition;
 import us.ihmc.scs2.definition.yoComposite.YoCompositePatternDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.ControllerListCell;
-import us.ihmc.scs2.sessionVisualizer.jfx.controllers.SCSDefaultUIController;
+import us.ihmc.scs2.sessionVisualizer.jfx.controllers.UIElement;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.chart.YoChartGroupModelEditorController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
@@ -46,7 +46,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.tools.ContextMenuTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 
-public class YoCompositePatternEditorController implements SCSDefaultUIController
+public class YoCompositePatternEditorController implements UIElement
 {
    private static final String NEW_COMPONENT_IDENTIFIER = "c";
 
@@ -289,7 +289,10 @@ public class YoCompositePatternEditorController implements SCSDefaultUIControlle
       while (modelListItems.size() < definitionBeforeEdits.getPreferredConfigurations().size())
          addChartGroupModel();
       while (modelListItems.size() > definitionBeforeEdits.getPreferredConfigurations().size())
-         modelListItems.remove(modelListItems.size() - 1);
+      {
+         YoChartGroupModelEditorController removedController = modelListItems.remove(modelListItems.size() - 1);
+         removedController.closeAndDispose();
+      }
       for (int i = 0; i < modelListItems.size(); i++)
          modelListItems.get(i).setInput(definitionBeforeEdits.getPreferredConfigurations().get(i), definitionBeforeEdits.getIdentifiers());
    }
@@ -432,6 +435,11 @@ public class YoCompositePatternEditorController implements SCSDefaultUIControlle
    public ReadOnlyBooleanProperty hasChangesPendingProperty()
    {
       return hasChangesPendingProperty;
+   }
+
+   public void closeAndDispose()
+   {
+      prefHeightAdjustmentAnimation.stop();
    }
 
    @Override

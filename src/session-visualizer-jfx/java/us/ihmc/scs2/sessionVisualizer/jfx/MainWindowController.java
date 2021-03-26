@@ -206,14 +206,23 @@ public class MainWindowController extends ObservedAnimationTimer
    public void start()
    {
       super.start();
-      yoChartGroupPanelController.start();
    }
 
    @Override
    public void stop()
    {
+      stopSession();
       super.stop();
-      yoChartGroupPanelController.close();
+   }
+
+   public void startSession()
+   {
+      yoChartGroupPanelController.start();
+   }
+
+   public void stopSession()
+   {
+      yoChartGroupPanelController.closeAndDispose();
    }
 
    public AnchorPane getMainPane()

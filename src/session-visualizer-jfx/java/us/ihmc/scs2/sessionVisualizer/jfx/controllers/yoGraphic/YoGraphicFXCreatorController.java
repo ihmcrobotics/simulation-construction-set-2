@@ -2,11 +2,11 @@ package us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.value.ObservableBooleanValue;
-import javafx.scene.layout.Pane;
+import us.ihmc.scs2.sessionVisualizer.jfx.controllers.UIElement;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX;
 
-public interface YoGraphicFXCreatorController<G extends YoGraphicFX>
+public interface YoGraphicFXCreatorController<G extends YoGraphicFX> extends UIElement
 {
    void initialize(SessionVisualizerToolkit toolkit, G yoGraphicToEdit);
 
@@ -24,6 +24,4 @@ public interface YoGraphicFXCreatorController<G extends YoGraphicFX>
    }
 
    G getYoGraphicFX();
-
-   Pane getMainPane();
 }

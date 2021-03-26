@@ -282,7 +282,7 @@ public class BCF2000SliderboardController
          currentTask.cancel(false);
    }
 
-   public void close()
+   public void closeAndDispose()
    {
       stop();
       executor.shutdown();
