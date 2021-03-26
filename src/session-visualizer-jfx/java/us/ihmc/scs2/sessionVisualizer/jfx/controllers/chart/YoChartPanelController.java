@@ -353,6 +353,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
       messager.removeInput(topics.getYoBufferCurrentProperties(), bufferPropertiesForMarkers);
       messager.removeInput(topics.getYoBufferCurrentProperties(), bufferPropertiesForScrolling);
       messager.removeJavaFXSyncedTopicListener(topics.getCurrentKeyFrames(), keyFrameMarkerListener);
+      stop();
    }
 
    public boolean isEmpty()
