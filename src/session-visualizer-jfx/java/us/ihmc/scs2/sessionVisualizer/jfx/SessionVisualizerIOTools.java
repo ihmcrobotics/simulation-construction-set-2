@@ -21,7 +21,7 @@ public class SessionVisualizerIOTools
 {
    private static final ClassLoader classLoader = SessionVisualizerIOTools.class.getClassLoader();
 
-   public static final Path SCS2_HOME = Paths.get(System.getProperty("user.home"), "SCS2");
+   public static final Path SCS2_HOME = Paths.get(System.getProperty("user.home"), ".ihmc", "scs2");
    public static final Path SCS2_CONFIGURATION_DEFAULT_PATH = Paths.get(SCS2_HOME.toString(), "Configurations");
    static
    {
@@ -103,7 +103,7 @@ public class SessionVisualizerIOTools
    public static final URL GRAPHIC_3D_CUBE_URL = getYoGraphicResource("cube.stl");
    public static final URL GRAPHIC_3D_TETRAHEDRON_URL = getYoGraphicResource("tetrahedron.stl");
    public static final URL GRAPHIC_3D_ICOSAHEDRON_URL = getYoGraphicResource("icosahedron.stl");
-   public static final Path GRAPHIC_3D_CUSTOM_GRAPHICS = Paths.get(System.getProperty("user.home"), "scs2", "yoGraphic");
+   public static final Path GRAPHIC_3D_CUSTOM_GRAPHICS = Paths.get(SCS2_HOME.toString(), "yoGraphic");
    // YoSliderboard resources:
    public static final URL YO_SLIDERBOARD_BCF2000_WINDOW_URL = getFXMLResource(YO_SLIDERBOARD_BCF2000, "YoBCF2000SliderboardWindow");
 
