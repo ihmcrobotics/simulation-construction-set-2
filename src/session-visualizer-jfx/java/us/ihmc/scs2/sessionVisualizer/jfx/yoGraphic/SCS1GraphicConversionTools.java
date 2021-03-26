@@ -19,6 +19,7 @@ import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPolygon;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPolygon3D;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPolynomial3D;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition;
+import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition.GraphicType;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicReferenceFrame;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicShape;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicText;
@@ -28,7 +29,6 @@ import us.ihmc.graphicsDescription.yoGraphics.YoGraphicVRML;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicVector;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsList;
 import us.ihmc.graphicsDescription.yoGraphics.YoGraphicsListRegistry;
-import us.ihmc.graphicsDescription.yoGraphics.YoGraphicPosition.GraphicType;
 import us.ihmc.graphicsDescription.yoGraphics.plotting.ArtifactList;
 import us.ihmc.graphicsDescription.yoGraphics.plotting.YoArtifactLine2d;
 import us.ihmc.graphicsDescription.yoGraphics.plotting.YoArtifactLineSegment2d;
@@ -52,6 +52,7 @@ import us.ihmc.scs2.definition.yoGraphic.YoGraphicPoint3DDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicPolygon2DDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicPolygonExtruded3DDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicPolynomial3DDefinition;
+import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class SCS1GraphicConversionTools
@@ -399,6 +400,7 @@ public class SCS1GraphicConversionTools
       position.setZ(yoVariables.length == 3 ? yoVariables[2].getFullNameString() : Double.toString(0.0));
       definition.setPosition(position);
       definition.setSize(constants[0]);
+      definition.setGraphicName(YoGraphicFXResourceManager.graphicName(SessionVisualizerIOTools.GRAPHIC_3D_SPHERE_URL));
       definition.setColor(toColorDefinition(yoGraphicPosition.getAppearance()));
       definition.setVisible(yoGraphicPosition.isGraphicObjectShowing());
       return definition;
@@ -541,34 +543,34 @@ public class SCS1GraphicConversionTools
          {
             case BALL:
             case SOLID_BALL:
-               definition.setGraphicName("Circle");
+               definition.setGraphicName(YoGraphicFXResourceManager.graphicName(SessionVisualizerIOTools.GRAPHIC_2D_CIRCLE_URL));
                break;
             case CROSS:
-               definition.setGraphicName("Plus");
+               definition.setGraphicName(YoGraphicFXResourceManager.graphicName(SessionVisualizerIOTools.GRAPHIC_2D_PLUS_URL));
                break;
             case BALL_WITH_CROSS:
-               definition.setGraphicName("Circle plus");
+               definition.setGraphicName(YoGraphicFXResourceManager.graphicName(SessionVisualizerIOTools.GRAPHIC_2D_CIRCLE_PLUS_URL));
                break;
             case ROTATED_CROSS:
-               definition.setGraphicName("Cross");
+               definition.setGraphicName(YoGraphicFXResourceManager.graphicName(SessionVisualizerIOTools.GRAPHIC_2D_CROSS_URL));
                break;
             case BALL_WITH_ROTATED_CROSS:
-               definition.setGraphicName("Circle cross");
+               definition.setGraphicName(YoGraphicFXResourceManager.graphicName(SessionVisualizerIOTools.GRAPHIC_2D_CIRCLE_CROSS_URL));
                break;
             case DIAMOND:
-               definition.setGraphicName("Diamond");
+               definition.setGraphicName(YoGraphicFXResourceManager.graphicName(SessionVisualizerIOTools.GRAPHIC_2D_DIAMOND_URL));
                break;
             case DIAMOND_WITH_CROSS:
-               definition.setGraphicName("Diamond plus");
+               definition.setGraphicName(YoGraphicFXResourceManager.graphicName(SessionVisualizerIOTools.GRAPHIC_2D_DIAMOND_PLUS_URL));
                break;
             case SQUARE:
-               definition.setGraphicName("Square");
+               definition.setGraphicName(YoGraphicFXResourceManager.graphicName(SessionVisualizerIOTools.GRAPHIC_2D_SQUARE_URL));
                break;
             case SQUARE_WITH_CROSS:
-               definition.setGraphicName("Square cross");
+               definition.setGraphicName(YoGraphicFXResourceManager.graphicName(SessionVisualizerIOTools.GRAPHIC_2D_SQUARE_CROSS_URL));
                break;
             case ELLIPSOID:
-               definition.setGraphicName("Ellipsoid");
+               definition.setGraphicName(null);
                break;
          }
       }

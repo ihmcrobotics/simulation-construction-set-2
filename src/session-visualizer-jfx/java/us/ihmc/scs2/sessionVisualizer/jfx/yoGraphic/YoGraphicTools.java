@@ -361,7 +361,8 @@ public class YoGraphicTools
       toYoGraphicFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
       yoGraphicFXToPack.setPosition(CompositePropertyTools.toTuple3DProperty(yoVariableDatabase, referenceFrameManager, definition.getPosition()));
       yoGraphicFXToPack.setSize(CompositePropertyTools.toDoubleProperty(yoVariableDatabase, definition.getSize()));
-      yoGraphicFXToPack.setGraphicResource(resourceManager.loadGraphic3DResource(definition.getGraphicName()));
+      if (definition.getGraphicName() != null)
+         yoGraphicFXToPack.setGraphicResource(resourceManager.loadGraphic3DResource(definition.getGraphicName()));
    }
 
    public static YoArrowFX3D toYoArrowFX3D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,

@@ -17,6 +17,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.yoTextFields.YoD
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple2DProperty;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YawPitchRollProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoPolygonExtrudedFX3D;
 
@@ -55,7 +56,10 @@ public class YoPolygonExtrudedFX3DEditorController implements YoGraphicFXCreator
 
       positionEditorController.initialize(toolkit, toolkit.getYoCompositeSearchManager().getYoTuple3DCollection(), true);
       positionEditorController.setCompositeName("Position");
-      orientationEditorController.initialize(toolkit, toolkit.getYoCompositeSearchManager().getYoQuaternionCollection(), true);
+      if (yoGraphicToEdit.getOrientation() != null && yoGraphicToEdit.getOrientation() instanceof YawPitchRollProperty)
+         orientationEditorController.initialize(toolkit, toolkit.getYoCompositeSearchManager().getYoYawPitchRollCollection(), true);
+      else
+         orientationEditorController.initialize(toolkit, toolkit.getYoCompositeSearchManager().getYoQuaternionCollection(), true);
       orientationEditorController.setCompositeName("Orientation");
 
       YoCompositeSearchManager yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
