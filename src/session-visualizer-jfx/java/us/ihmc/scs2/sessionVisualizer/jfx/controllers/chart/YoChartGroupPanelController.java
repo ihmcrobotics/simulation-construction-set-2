@@ -46,7 +46,6 @@ import us.ihmc.log.LogTools;
 import us.ihmc.messager.TopicListener;
 import us.ihmc.scs2.definition.yoChart.YoChartConfigurationDefinition;
 import us.ihmc.scs2.definition.yoChart.YoChartGroupConfigurationDefinition;
-import us.ihmc.scs2.session.SessionState;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartGroupLayout;
@@ -82,11 +81,6 @@ public class YoChartGroupPanelController
 
    private TopicListener<Pair<Window, File>> loadChartGroupConfigurationListener = m -> loadChartGroupConfiguration(m.getKey(), m.getValue());
    private TopicListener<Pair<Window, File>> saveChartGroupConfigurationListener = m -> saveChartGroupConfiguration(m.getKey(), m.getValue());
-   private TopicListener<SessionState> stopSessionListener = state ->
-   {
-      if (state == SessionState.INACTIVE)
-         clear();
-   };
 
    private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
@@ -109,7 +103,6 @@ public class YoChartGroupPanelController
 
       messager.registerJavaFXSyncedTopicListener(topics.getYoChartGroupLoadConfiguration(), loadChartGroupConfigurationListener);
       messager.registerJavaFXSyncedTopicListener(topics.getYoChartGroupSaveConfiguration(), saveChartGroupConfigurationListener);
-      messager.registerJavaFXSyncedTopicListener(topics.getSessionCurrentState(), stopSessionListener);
 
       toolkit.getWindow().iconifiedProperty().addListener((o, oldValue, newValue) ->
       {
@@ -157,7 +150,6 @@ public class YoChartGroupPanelController
       {
          messager.removeJavaFXSyncedTopicListener(topics.getYoChartGroupLoadConfiguration(), loadChartGroupConfigurationListener);
          messager.removeJavaFXSyncedTopicListener(topics.getYoChartGroupSaveConfiguration(), saveChartGroupConfigurationListener);
-         messager.removeJavaFXSyncedTopicListener(topics.getSessionCurrentState(), stopSessionListener);
       });
    }
 
@@ -359,7 +351,7 @@ public class YoChartGroupPanelController
    public void close()
    {
       isRunning.set(false);
-      chartControllers.forEach(YoChartPanelController::close);
+      clear();
       scheduleMessagerCleanup();
    }
 
