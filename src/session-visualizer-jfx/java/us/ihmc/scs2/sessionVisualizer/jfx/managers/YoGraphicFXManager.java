@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -23,8 +24,10 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
 
 public class YoGraphicFXManager extends ObservedAnimationTimer implements Manager
 {
+   private static final String SESSION_GRAPHICS = "SessionGraphics";
+
    private final YoGroupFX root = YoGroupFX.createGUIRoot();
-   private final YoGroupFX sessionRoot = YoGroupFX.createSessionRoot();
+   private final YoGroupFX sessionRoot = new YoGroupFX(SESSION_GRAPHICS);
 
    private final JavaFXMessager messager;
    private final SessionVisualizerTopics topics;
@@ -48,6 +51,8 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
       messager.registerJavaFXSyncedTopicListener(topics.getYoGraphicLoadRequest(), this::loadYoGraphicFromFile);
       messager.registerJavaFXSyncedTopicListener(topics.getYoGraphicSaveRequest(), this::saveYoGraphicToFile);
 
+      root.addChild(sessionRoot);
+
       backgroundExecutorManager.scheduleTaskInBackground(this::computeBackground, 1000, 100, TimeUnit.MILLISECONDS);
    }
 
@@ -61,15 +66,6 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
       {
          e.printStackTrace();
       }
-
-      try
-      {
-         sessionRoot.computeBackground();
-      }
-      catch (Exception e)
-      {
-         e.printStackTrace();
-      }
    }
 
    @Override
@@ -78,15 +74,6 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
       try
       {
          root.render();
-      }
-      catch (Exception e)
-      {
-         e.printStackTrace();
-      }
-
-      try
-      {
-         sessionRoot.render();
       }
       catch (Exception e)
       {
@@ -109,6 +96,7 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
    public void stopSession()
    {
       root.clear();
+      sessionRoot.clear();
       stop();
    }
 
@@ -157,17 +145,17 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
       }
    }
 
-   private void setupYoGraphics(YoGraphicListDefinition definition, YoGroupFX root)
+   private void setupYoGraphics(YoGraphicListDefinition definition, YoGroupFX parentGroup)
    {
       backgroundExecutorManager.queueTaskToExecuteInBackground(this, () ->
       {
          List<YoGraphicFXItem> items = YoGraphicTools.createYoGraphicFXs(yoManager.getRootRegistryDatabase(),
-                                                                         root,
+                                                                         parentGroup,
                                                                          yoGraphicFXResourceManager,
                                                                          referenceFrameManager,
                                                                          definition);
          if (items != null && !items.isEmpty())
-            JavaFXMissingTools.runLater(getClass(), () -> items.forEach(root::addYoGraphicFXItem));
+            JavaFXMissingTools.runLater(getClass(), () -> items.forEach(parentGroup::addYoGraphicFXItem));
       });
    }
 
@@ -179,7 +167,9 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
       LogTools.info("Saving file: " + file);
       try
       {
-         XMLTools.saveYoGraphicListDefinition(new FileOutputStream(file), YoGraphicTools.toYoGraphicListDefinition(root.getItemChildren()));
+         XMLTools.saveYoGraphicListDefinition(new FileOutputStream(file),
+                                              YoGraphicTools.toYoGraphicListDefinition(root.getItemChildren().stream().filter(item -> item != sessionRoot)
+                                                                                           .collect(Collectors.toList())));
       }
       catch (Exception e)
       {

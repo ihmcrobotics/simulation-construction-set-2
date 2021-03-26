@@ -47,16 +47,31 @@ public class YoGraphicPolynomial3DDefinition extends YoGraphic3DDefinition
       this.numberOfCoefficientsZ = numberOfCoefficientsZ;
    }
 
+   public void setStartTime(double startTime)
+   {
+      setStartTime(Double.toString(startTime));
+   }
+
    @XmlElement
    public void setStartTime(String startTime)
    {
       this.startTime = startTime;
    }
 
+   public void setEndTime(double endTime)
+   {
+      setEndTime(Double.toString(endTime));
+   }
+
    @XmlElement
    public void setEndTime(String endTime)
    {
       this.endTime = endTime;
+   }
+
+   public void setSize(double size)
+   {
+      setSize(Double.toString(size));
    }
 
    @XmlElement

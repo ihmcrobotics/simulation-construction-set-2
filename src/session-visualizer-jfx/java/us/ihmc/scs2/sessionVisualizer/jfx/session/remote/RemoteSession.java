@@ -14,9 +14,11 @@ import us.ihmc.robotDataLogger.util.DebugRegistry;
 import us.ihmc.robotDataLogger.websocket.command.DataServerCommand;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.RobotModelLoader;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.SCS1GraphicConversionTools;
 
 public class RemoteSession extends Session
 {
@@ -26,6 +28,7 @@ public class RemoteSession extends Session
 
    private final String sessionName;
    private final List<RobotDefinition> robotDefinitions = new ArrayList<>();
+   private final List<YoGraphicDefinition> yoGraphicDefinitions;
    private final Runnable robotStateUpdater;
 
    private final AtomicLong serverTimestamp = new AtomicLong(-1);
@@ -41,6 +44,7 @@ public class RemoteSession extends Session
 
       rootRegistry.addChild(handshakeParser.getRootRegistry());
       rootRegistry.addChild(debugRegistry.getYoRegistry());
+      yoGraphicDefinitions = SCS1GraphicConversionTools.toYoGraphicDefinitions(handshakeParser.getYoGraphicsListRegistry());
 
       RobotDefinition robotDefinition = RobotModelLoader.loadModel(handshake.getModelName(),
                                                                    handshake.getResourceDirectories(),
@@ -168,6 +172,12 @@ public class RemoteSession extends Session
    public List<TerrainObjectDefinition> getTerrainObjectDefinitions()
    {
       return Collections.emptyList();
+   }
+
+   @Override
+   public List<YoGraphicDefinition> getYoGraphicDefinitions()
+   {
+      return yoGraphicDefinitions;
    }
 
    public LoggerStatusUpdater getLoggerStatusUpdater()

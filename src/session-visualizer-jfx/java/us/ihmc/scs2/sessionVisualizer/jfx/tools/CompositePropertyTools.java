@@ -154,7 +154,7 @@ public class CompositePropertyTools
          if (yoDouble == null)
          {
             LogTools.warn("Incompatible variable name, searching similar variables");
-            yoDouble = (YoDouble) yoVariableDatabase.searchSimilar(field, 0.90, YoDouble.class);
+            yoDouble = yoVariableDatabase.searchSimilar(field, 0.90, YoDouble.class);
          }
          Objects.requireNonNull(yoDouble, "Could not find the YoVariable: " + field);
          return new YoDoubleProperty(yoDouble);
@@ -188,7 +188,7 @@ public class CompositePropertyTools
                                                                    String field)
    {
       if (field == null)
-         return null;
+         return new SimpleObjectProperty<>(referenceFrameManager.getWorldFrame());
       ReferenceFrame referenceFrame = referenceFrameManager.getReferenceFrameFromFullname(field);
       if (referenceFrame != null)
          return new SimpleObjectProperty<>(referenceFrame);
@@ -357,7 +357,7 @@ public class CompositePropertyTools
             public Double apply(CharSequence left, CharSequence right)
             {
                return caseSensitiveSearchEngine.apply(left.toString().toLowerCase(), right.toString().toLowerCase()).doubleValue()
-                     / (double) Math.max(left.length(), right.length());
+                     / Math.max(left.length(), right.length());
             }
          };
       }
