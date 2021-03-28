@@ -1,5 +1,6 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.xml;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Modifier;
@@ -87,96 +88,166 @@ public class XMLTools
       return yoGraphicContext != null;
    }
 
-   public static SCSGuiConfigurationDefinition loadSCSGuiConfigurationDefinition(InputStream inputStream) throws JAXBException
+   public static SCSGuiConfigurationDefinition loadSCSGuiConfigurationDefinition(InputStream inputStream) throws JAXBException, IOException
    {
-      JAXBContext context = JAXBContext.newInstance(SCSGuiConfigurationDefinition.class);
-      Unmarshaller unmarshaller = context.createUnmarshaller();
-      return (SCSGuiConfigurationDefinition) unmarshaller.unmarshal(inputStream);
+      try
+      {
+         JAXBContext context = JAXBContext.newInstance(SCSGuiConfigurationDefinition.class);
+         Unmarshaller unmarshaller = context.createUnmarshaller();
+         return (SCSGuiConfigurationDefinition) unmarshaller.unmarshal(inputStream);
+      }
+      finally
+      {
+         inputStream.close();
+      }
    }
 
-   public static List<YoCompositePattern> loadYoCompositePatterns(InputStream inputStream) throws JAXBException
+   public static List<YoCompositePattern> loadYoCompositePatterns(InputStream inputStream) throws JAXBException, IOException
    {
       return YoCompositeTools.toYoCompositePatterns(loadYoCompositePatternListDefinition(inputStream));
    }
 
-   public static YoGraphicListDefinition loadYoGraphicListDefinition(InputStream inputStream) throws JAXBException
+   public static YoGraphicListDefinition loadYoGraphicListDefinition(InputStream inputStream) throws JAXBException, IOException
    {
-      if (yoGraphicContext == null)
+      try
       {
-         LogTools.error("Context not loaded, unable to load YoGraphics.");
-         return null;
+         if (yoGraphicContext == null)
+         {
+            LogTools.error("Context not loaded, unable to load YoGraphics.");
+            return null;
+         }
+         Unmarshaller unmarshaller = yoGraphicContext.createUnmarshaller();
+         return (YoGraphicListDefinition) unmarshaller.unmarshal(inputStream);
       }
-      Unmarshaller unmarshaller = yoGraphicContext.createUnmarshaller();
-      return (YoGraphicListDefinition) unmarshaller.unmarshal(inputStream);
-   }
-
-   public static YoCompositePatternListDefinition loadYoCompositePatternListDefinition(InputStream inputStream) throws JAXBException
-   {
-      JAXBContext context = JAXBContext.newInstance(YoCompositePatternListDefinition.class);
-      Unmarshaller unmarshaller = context.createUnmarshaller();
-      return (YoCompositePatternListDefinition) unmarshaller.unmarshal(inputStream);
-   }
-
-   public static YoEntryConfigurationDefinition loadYoEntryConfigurationDefinition(InputStream inputStream) throws JAXBException
-   {
-      JAXBContext context = JAXBContext.newInstance(YoEntryConfigurationDefinition.class);
-      Unmarshaller unmarshaller = context.createUnmarshaller();
-      return (YoEntryConfigurationDefinition) unmarshaller.unmarshal(inputStream);
-   }
-
-   public static YoSliderboardListDefinition loadYoSliderboardListDefinition(InputStream inputStream) throws JAXBException
-   {
-      JAXBContext context = JAXBContext.newInstance(YoSliderboardListDefinition.class);
-      Unmarshaller unmarshaller = context.createUnmarshaller();
-      return (YoSliderboardListDefinition) unmarshaller.unmarshal(inputStream);
-   }
-
-   public static void saveSCSGuiConfigurationDefinition(OutputStream outputStream, SCSGuiConfigurationDefinition definition) throws JAXBException
-   {
-      JAXBContext context = JAXBContext.newInstance(SCSGuiConfigurationDefinition.class);
-      Marshaller marshaller = context.createMarshaller();
-      marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-      marshaller.marshal(definition, outputStream);
-   }
-
-   public static void saveYoGraphicListDefinition(OutputStream outputStream, YoGraphicListDefinition definition) throws JAXBException
-   {
-      if (yoGraphicContext == null)
+      finally
       {
-         LogTools.error("Context not loaded, unable to save YoGraphics.");
-         return;
+         inputStream.close();
       }
-      Marshaller marshaller = yoGraphicContext.createMarshaller();
-      marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-      marshaller.marshal(definition, outputStream);
    }
 
-   public static void saveYoCompositePatterns(OutputStream outputStream, List<YoCompositePattern> yoCompositePatterns) throws JAXBException
+   public static YoCompositePatternListDefinition loadYoCompositePatternListDefinition(InputStream inputStream) throws JAXBException, IOException
+   {
+      try
+      {
+         JAXBContext context = JAXBContext.newInstance(YoCompositePatternListDefinition.class);
+         Unmarshaller unmarshaller = context.createUnmarshaller();
+         return (YoCompositePatternListDefinition) unmarshaller.unmarshal(inputStream);
+      }
+      finally
+      {
+         inputStream.close();
+      }
+   }
+
+   public static YoEntryConfigurationDefinition loadYoEntryConfigurationDefinition(InputStream inputStream) throws JAXBException, IOException
+   {
+      try
+      {
+         JAXBContext context = JAXBContext.newInstance(YoEntryConfigurationDefinition.class);
+         Unmarshaller unmarshaller = context.createUnmarshaller();
+         return (YoEntryConfigurationDefinition) unmarshaller.unmarshal(inputStream);
+      }
+      finally
+      {
+         inputStream.close();
+      }
+   }
+
+   public static YoSliderboardListDefinition loadYoSliderboardListDefinition(InputStream inputStream) throws JAXBException, IOException
+   {
+      try
+      {
+         JAXBContext context = JAXBContext.newInstance(YoSliderboardListDefinition.class);
+         Unmarshaller unmarshaller = context.createUnmarshaller();
+         return (YoSliderboardListDefinition) unmarshaller.unmarshal(inputStream);
+      }
+      finally
+      {
+         inputStream.close();
+      }
+   }
+
+   public static void saveSCSGuiConfigurationDefinition(OutputStream outputStream, SCSGuiConfigurationDefinition definition) throws JAXBException, IOException
+   {
+      try
+      {
+         JAXBContext context = JAXBContext.newInstance(SCSGuiConfigurationDefinition.class);
+         Marshaller marshaller = context.createMarshaller();
+         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+         marshaller.marshal(definition, outputStream);
+      }
+      finally
+      {
+         outputStream.close();
+      }
+   }
+
+   public static void saveYoGraphicListDefinition(OutputStream outputStream, YoGraphicListDefinition definition) throws JAXBException, IOException
+   {
+      try
+      {
+         if (yoGraphicContext == null)
+         {
+            LogTools.error("Context not loaded, unable to save YoGraphics.");
+            return;
+         }
+         Marshaller marshaller = yoGraphicContext.createMarshaller();
+         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+         marshaller.marshal(definition, outputStream);
+      }
+      finally
+      {
+         outputStream.close();
+      }
+   }
+
+   public static void saveYoCompositePatterns(OutputStream outputStream, List<YoCompositePattern> yoCompositePatterns) throws JAXBException, IOException
    {
       saveYoCompositePatternListDefinition(outputStream, YoCompositeTools.toYoCompositePatternListDefinition(yoCompositePatterns));
    }
 
-   public static void saveYoCompositePatternListDefinition(OutputStream outputStream, YoCompositePatternListDefinition definition) throws JAXBException
+   public static void saveYoCompositePatternListDefinition(OutputStream outputStream, YoCompositePatternListDefinition definition) throws JAXBException, IOException
    {
-      JAXBContext context = JAXBContext.newInstance(YoCompositePatternListDefinition.class);
-      Marshaller marshaller = context.createMarshaller();
-      marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-      marshaller.marshal(definition, outputStream);
+      try
+      {
+         JAXBContext context = JAXBContext.newInstance(YoCompositePatternListDefinition.class);
+         Marshaller marshaller = context.createMarshaller();
+         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+         marshaller.marshal(definition, outputStream);
+      }
+      finally
+      {
+         outputStream.close();
+      }
    }
 
-   public static void saveYoEntryConfigurationDefinition(OutputStream outputStream, YoEntryConfigurationDefinition definition) throws JAXBException
+   public static void saveYoEntryConfigurationDefinition(OutputStream outputStream, YoEntryConfigurationDefinition definition) throws JAXBException, IOException
    {
-      JAXBContext context = JAXBContext.newInstance(YoEntryConfigurationDefinition.class);
-      Marshaller marshaller = context.createMarshaller();
-      marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-      marshaller.marshal(definition, outputStream);
+      try
+      {
+         JAXBContext context = JAXBContext.newInstance(YoEntryConfigurationDefinition.class);
+         Marshaller marshaller = context.createMarshaller();
+         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+         marshaller.marshal(definition, outputStream);
+      }
+      finally
+      {
+         outputStream.close();
+      }
    }
 
-   public static void saveYoSliderboardListDefinition(OutputStream outputStream, YoSliderboardListDefinition definition) throws JAXBException
+   public static void saveYoSliderboardListDefinition(OutputStream outputStream, YoSliderboardListDefinition definition) throws JAXBException, IOException
    {
-      JAXBContext context = JAXBContext.newInstance(YoSliderboardListDefinition.class);
-      Marshaller marshaller = context.createMarshaller();
-      marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-      marshaller.marshal(definition, outputStream);
+      try
+      {
+         JAXBContext context = JAXBContext.newInstance(YoSliderboardListDefinition.class);
+         Marshaller marshaller = context.createMarshaller();
+         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+         marshaller.marshal(definition, outputStream);
+      }
+      finally
+      {
+         outputStream.close();
+      }
    }
 }
