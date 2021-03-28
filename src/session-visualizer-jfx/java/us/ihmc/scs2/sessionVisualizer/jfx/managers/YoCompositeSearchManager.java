@@ -13,8 +13,8 @@ import static us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools.se
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -100,7 +100,7 @@ public class YoCompositeSearchManager implements Manager
       {
          compositePatterns = XMLTools.loadYoCompositePatterns(SessionVisualizerIOTools.getConfigurationResource(SessionVisualizerIOTools.DEFAULT_YO_COMPOSITE_PATTERNS_FILE));
       }
-      catch (JAXBException e)
+      catch (JAXBException | IOException e)
       {
          throw new RuntimeException("Failed to load the default " + YoCompositePattern.class.getSimpleName() + "s.", e);
       }
@@ -267,7 +267,7 @@ public class YoCompositeSearchManager implements Manager
          List<YoCompositePattern> newPatterns = XMLTools.loadYoCompositePatterns(new FileInputStream(file));
          newPatterns.forEach(this::searchYoCompositeInBackground);
       }
-      catch (FileNotFoundException | JAXBException e)
+      catch (IOException | JAXBException e)
       {
          e.printStackTrace();
       }
@@ -288,7 +288,7 @@ public class YoCompositeSearchManager implements Manager
       {
          XMLTools.saveYoCompositePatterns(new FileOutputStream(file), patternsToExport);
       }
-      catch (FileNotFoundException | JAXBException e)
+      catch (IOException | JAXBException e)
       {
          e.printStackTrace();
       }
