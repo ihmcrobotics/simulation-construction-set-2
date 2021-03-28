@@ -6,7 +6,7 @@ import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryRandomTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoLong;
 
@@ -21,7 +21,7 @@ public class LongPullRequestTest
       
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoLong variableToUpdate = YoRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
+         YoLong variableToUpdate = SharedMemoryRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
          long initialValue = variableToUpdate.getValue();
          long valueToPull = random.nextLong();
          LongPullRequest pullRequest = new LongPullRequest(variableToUpdate, valueToPull);

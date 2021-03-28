@@ -7,8 +7,7 @@ import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
-import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryRandomTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoInteger;
 
@@ -25,7 +24,7 @@ public class LinkedYoIntegerTest extends LinkedYoVariableTest<YoInteger>
    @Override
    YoInteger nextYoVariable(Random random, int iteration)
    {
-      return YoRandomTools.nextYoInteger(random, new YoRegistry("Dummy"));
+      return SharedMemoryRandomTools.nextYoInteger(random, new YoRegistry("Dummy"));
    }
 
    @Test
@@ -35,8 +34,8 @@ public class LinkedYoIntegerTest extends LinkedYoVariableTest<YoInteger>
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoInteger linkedVariable = YoRandomTools.nextYoInteger(random, new YoRegistry("Dummy"));
-         YoIntegerBuffer buffer = YoBufferRandomTools.nextYoIntegerBuffer(random, new YoRegistry("Dummy"));
+         YoInteger linkedVariable = SharedMemoryRandomTools.nextYoInteger(random, new YoRegistry("Dummy"));
+         YoIntegerBuffer buffer = SharedMemoryRandomTools.nextYoIntegerBuffer(random, new YoRegistry("Dummy"));
          LinkedYoInteger linkedYoInteger = new LinkedYoInteger(linkedVariable, buffer);
 
          assertTrue(linkedVariable == linkedYoInteger.getLinkedYoVariable());
@@ -45,8 +44,8 @@ public class LinkedYoIntegerTest extends LinkedYoVariableTest<YoInteger>
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoInteger linkedVariable = YoRandomTools.nextYoInteger(random, new YoRegistry("Dummy"));
-         YoIntegerBuffer buffer = YoBufferRandomTools.nextYoIntegerBuffer(random, new YoRegistry("Dummy"));
+         YoInteger linkedVariable = SharedMemoryRandomTools.nextYoInteger(random, new YoRegistry("Dummy"));
+         YoIntegerBuffer buffer = SharedMemoryRandomTools.nextYoIntegerBuffer(random, new YoRegistry("Dummy"));
          LinkedYoInteger linkedYoInteger = (LinkedYoInteger) LinkedYoVariable.newLinkedYoVariable(linkedVariable, buffer);
 
          assertTrue(linkedVariable == linkedYoInteger.getLinkedYoVariable());
@@ -61,8 +60,8 @@ public class LinkedYoIntegerTest extends LinkedYoVariableTest<YoInteger>
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoInteger linkedVariable = YoRandomTools.nextYoInteger(random, new YoRegistry("Dummy"));
-         YoIntegerBuffer buffer = YoBufferRandomTools.nextYoIntegerBuffer(random, new YoRegistry("Dummy"));
+         YoInteger linkedVariable = SharedMemoryRandomTools.nextYoInteger(random, new YoRegistry("Dummy"));
+         YoIntegerBuffer buffer = SharedMemoryRandomTools.nextYoIntegerBuffer(random, new YoRegistry("Dummy"));
          LinkedYoInteger linkedYoInteger = new LinkedYoInteger(linkedVariable, buffer);
 
          IntegerPullRequest pullRequest = linkedYoInteger.toPullRequest();
@@ -81,8 +80,8 @@ public class LinkedYoIntegerTest extends LinkedYoVariableTest<YoInteger>
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoInteger linkedVariable = YoRandomTools.nextYoInteger(random, new YoRegistry("Dummy"));
-         YoIntegerBuffer buffer = YoBufferRandomTools.nextYoIntegerBuffer(random, new YoRegistry("Dummy"));
+         YoInteger linkedVariable = SharedMemoryRandomTools.nextYoInteger(random, new YoRegistry("Dummy"));
+         YoIntegerBuffer buffer = SharedMemoryRandomTools.nextYoIntegerBuffer(random, new YoRegistry("Dummy"));
          LinkedYoInteger linkedYoInteger = new LinkedYoInteger(linkedVariable, buffer);
 
          IntegerPushRequest pullRequest = linkedYoInteger.toPushRequest();

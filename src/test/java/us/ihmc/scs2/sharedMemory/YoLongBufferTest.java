@@ -9,9 +9,8 @@ import java.util.Random;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.commons.RandomNumbers;
-import us.ihmc.scs2.sharedMemory.tools.BufferTools;
-import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
-import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryRandomTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoLong;
 
@@ -26,8 +25,8 @@ public class YoLongBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoLong yoLong = YoRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
-         YoBufferProperties yoBufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
+         YoLong yoLong = SharedMemoryRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
+         YoBufferProperties yoBufferProperties = SharedMemoryRandomTools.nextYoBufferProperties(random);
          YoLongBuffer yoLongBuffer = new YoLongBuffer(yoLong, yoBufferProperties);
          assertTrue(yoLong == yoLongBuffer.getYoVariable());
          assertTrue(yoBufferProperties == yoLongBuffer.getProperties());
@@ -39,8 +38,8 @@ public class YoLongBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoLong yoLong = YoRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
-         YoBufferProperties yoBufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
+         YoLong yoLong = SharedMemoryRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
+         YoBufferProperties yoBufferProperties = SharedMemoryRandomTools.nextYoBufferProperties(random);
          YoLongBuffer yoLongBuffer = (YoLongBuffer) YoVariableBuffer.newYoVariableBuffer(yoLong, yoBufferProperties);
          assertTrue(yoLong == yoLongBuffer.getYoVariable());
          assertTrue(yoBufferProperties == yoLongBuffer.getProperties());
@@ -58,11 +57,11 @@ public class YoLongBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoLongBuffer yoLongBuffer = YoBufferRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
+         YoLongBuffer yoLongBuffer = SharedMemoryRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
          YoBufferProperties originalBufferProperties = new YoBufferProperties(yoLongBuffer.getProperties());
          int from = random.nextInt(yoLongBuffer.getProperties().getSize());
          int newLength = random.nextInt(yoLongBuffer.getProperties().getSize());
-         long[] expectedBuffer = BufferTools.ringArrayCopy(yoLongBuffer.getBuffer(), from, newLength);
+         long[] expectedBuffer = SharedMemoryTools.ringArrayCopy(yoLongBuffer.getBuffer(), from, newLength);
 
          yoLongBuffer.resizeBuffer(from, newLength);
          assertArrayEquals(expectedBuffer, yoLongBuffer.getBuffer());
@@ -81,7 +80,7 @@ public class YoLongBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoLongBuffer yoLongBuffer = YoBufferRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
+         YoLongBuffer yoLongBuffer = SharedMemoryRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
          YoLong yoLong = yoLongBuffer.getYoVariable();
 
          int currentIndex = yoLongBuffer.getProperties().getCurrentIndex();
@@ -103,7 +102,7 @@ public class YoLongBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoLongBuffer yoLongBuffer = YoBufferRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
+         YoLongBuffer yoLongBuffer = SharedMemoryRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
          YoLong yoLong = yoLongBuffer.getYoVariable();
 
          int currentIndex = yoLongBuffer.getProperties().getCurrentIndex();
@@ -125,11 +124,11 @@ public class YoLongBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoLongBuffer yoLongBuffer = YoBufferRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
+         YoLongBuffer yoLongBuffer = SharedMemoryRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
          int from = random.nextInt(yoLongBuffer.getProperties().getSize());
          int length = random.nextInt(yoLongBuffer.getProperties().getSize() - 1) + 1;
 
-         long[] expectedCopy = BufferTools.ringArrayCopy(yoLongBuffer.getBuffer(), from, length);
+         long[] expectedCopy = SharedMemoryTools.ringArrayCopy(yoLongBuffer.getBuffer(), from, length);
          BufferSample<long[]> actualCopy = yoLongBuffer.copy(from, length, yoLongBuffer.getProperties().copy());
 
          assertEquals(from, actualCopy.getFrom());
@@ -150,7 +149,7 @@ public class YoLongBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoLongBuffer yoLongBuffer = YoBufferRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
+         YoLongBuffer yoLongBuffer = SharedMemoryRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
          YoLong linkedLong = new YoLong("linked", new YoRegistry("Dummy"));
          LinkedYoLong linkedYoVariable = yoLongBuffer.newLinkedYoVariable(linkedLong);
          assertTrue(linkedLong == linkedYoVariable.getLinkedYoVariable());

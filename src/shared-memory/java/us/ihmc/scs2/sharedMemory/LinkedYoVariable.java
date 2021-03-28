@@ -3,7 +3,7 @@ package us.ihmc.scs2.sharedMemory;
 import java.util.Objects;
 
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.scs2.sharedMemory.tools.BufferTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 import us.ihmc.yoVariables.variable.*;
 
 public abstract class LinkedYoVariable<T extends YoVariable> extends LinkedBuffer
@@ -127,7 +127,7 @@ public abstract class LinkedYoVariable<T extends YoVariable> extends LinkedBuffe
          }
          else if (from >= 0)
          {
-            length = BufferTools.computeSubLength(from, properties.getOutPoint(), properties.getSize());
+            length = SharedMemoryTools.computeSubLength(from, properties.getOutPoint(), properties.getSize());
          }
       }
       else if (length == -2 && from == -1)

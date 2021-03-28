@@ -2,6 +2,7 @@ package us.ihmc.scs2.sharedMemory.tools;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Arrays;
@@ -11,8 +12,10 @@ import org.junit.jupiter.api.Test;
 
 import us.ihmc.commons.RandomNumbers;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
+import us.ihmc.yoVariables.registry.YoRegistry;
+import us.ihmc.yoVariables.variable.YoVariable;
 
-public class BufferToolsTest
+public class SharedMemoryToolsTest
 {
    private static final int ITERATIONS = 1000;
 
@@ -22,12 +25,12 @@ public class BufferToolsTest
       Random random = new Random(34536);
 
       { // Test exceptions
-         assertThrows(IllegalArgumentException.class, () -> BufferTools.computeSubLength(0, 10, 0));
-         assertThrows(IllegalArgumentException.class, () -> BufferTools.computeSubLength(0, 10, -1));
-         assertThrows(IndexOutOfBoundsException.class, () -> BufferTools.computeSubLength(0, 10, 5));
-         assertThrows(IndexOutOfBoundsException.class, () -> BufferTools.computeSubLength(5, 4, 5));
-         assertThrows(IndexOutOfBoundsException.class, () -> BufferTools.computeSubLength(-1, 4, 5));
-         assertThrows(IndexOutOfBoundsException.class, () -> BufferTools.computeSubLength(0, -1, 5));
+         assertThrows(IllegalArgumentException.class, () -> SharedMemoryTools.computeSubLength(0, 10, 0));
+         assertThrows(IllegalArgumentException.class, () -> SharedMemoryTools.computeSubLength(0, 10, -1));
+         assertThrows(IndexOutOfBoundsException.class, () -> SharedMemoryTools.computeSubLength(0, 10, 5));
+         assertThrows(IndexOutOfBoundsException.class, () -> SharedMemoryTools.computeSubLength(5, 4, 5));
+         assertThrows(IndexOutOfBoundsException.class, () -> SharedMemoryTools.computeSubLength(-1, 4, 5));
+         assertThrows(IndexOutOfBoundsException.class, () -> SharedMemoryTools.computeSubLength(0, -1, 5));
       }
 
       for (int i = 0; i < ITERATIONS; i++)
@@ -35,7 +38,7 @@ public class BufferToolsTest
          int length = random.nextInt(1000) + 1;
          int from = random.nextInt(length);
          int to = random.nextInt(length);
-         int subLength = BufferTools.computeSubLength(from, to, length);
+         int subLength = SharedMemoryTools.computeSubLength(from, to, length);
 
          // Use naive approach to measure the length
 
@@ -60,11 +63,11 @@ public class BufferToolsTest
       Random random = new Random(2456);
 
       { // Test exceptions
-         assertThrows(IllegalArgumentException.class, () -> BufferTools.computeFromIndex(9, 1, 0));
-         assertThrows(IllegalArgumentException.class, () -> BufferTools.computeFromIndex(9, 0, 1));
-         assertThrows(IllegalArgumentException.class, () -> BufferTools.computeFromIndex(9, 2, 1));
-         assertThrows(IndexOutOfBoundsException.class, () -> BufferTools.computeFromIndex(11, 10, 11));
-         assertThrows(IndexOutOfBoundsException.class, () -> BufferTools.computeFromIndex(-1, 10, 11));
+         assertThrows(IllegalArgumentException.class, () -> SharedMemoryTools.computeFromIndex(9, 1, 0));
+         assertThrows(IllegalArgumentException.class, () -> SharedMemoryTools.computeFromIndex(9, 0, 1));
+         assertThrows(IllegalArgumentException.class, () -> SharedMemoryTools.computeFromIndex(9, 2, 1));
+         assertThrows(IndexOutOfBoundsException.class, () -> SharedMemoryTools.computeFromIndex(11, 10, 11));
+         assertThrows(IndexOutOfBoundsException.class, () -> SharedMemoryTools.computeFromIndex(-1, 10, 11));
       }
 
       for (int i = 0; i < ITERATIONS; i++)
@@ -72,9 +75,9 @@ public class BufferToolsTest
          int length = random.nextInt(1000) + 1;
          int to = random.nextInt(length);
          int subLength = random.nextInt(length - 1) + 1;
-         int from = BufferTools.computeFromIndex(to, subLength, length);
+         int from = SharedMemoryTools.computeFromIndex(to, subLength, length);
 
-         assertEquals(subLength, BufferTools.computeSubLength(from, to, length));
+         assertEquals(subLength, SharedMemoryTools.computeSubLength(from, to, length));
       }
    }
 
@@ -84,11 +87,11 @@ public class BufferToolsTest
       Random random = new Random(2456);
 
       { // Test exceptions
-         assertThrows(IllegalArgumentException.class, () -> BufferTools.computeToIndex(9, 1, 0));
-         assertThrows(IllegalArgumentException.class, () -> BufferTools.computeToIndex(9, 0, 1));
-         assertThrows(IllegalArgumentException.class, () -> BufferTools.computeToIndex(9, 2, 1));
-         assertThrows(IndexOutOfBoundsException.class, () -> BufferTools.computeToIndex(11, 10, 11));
-         assertThrows(IndexOutOfBoundsException.class, () -> BufferTools.computeToIndex(-1, 10, 11));
+         assertThrows(IllegalArgumentException.class, () -> SharedMemoryTools.computeToIndex(9, 1, 0));
+         assertThrows(IllegalArgumentException.class, () -> SharedMemoryTools.computeToIndex(9, 0, 1));
+         assertThrows(IllegalArgumentException.class, () -> SharedMemoryTools.computeToIndex(9, 2, 1));
+         assertThrows(IndexOutOfBoundsException.class, () -> SharedMemoryTools.computeToIndex(11, 10, 11));
+         assertThrows(IndexOutOfBoundsException.class, () -> SharedMemoryTools.computeToIndex(-1, 10, 11));
       }
 
       for (int i = 0; i < ITERATIONS; i++)
@@ -96,9 +99,9 @@ public class BufferToolsTest
          int length = random.nextInt(1000) + 1;
          int from = random.nextInt(length);
          int subLength = random.nextInt(length - 1) + 1;
-         int to = BufferTools.computeToIndex(from, subLength, length);
+         int to = SharedMemoryTools.computeToIndex(from, subLength, length);
 
-         assertEquals(subLength, BufferTools.computeSubLength(from, to, length));
+         assertEquals(subLength, SharedMemoryTools.computeSubLength(from, to, length));
       }
    }
 
@@ -111,7 +114,7 @@ public class BufferToolsTest
       { // Trivial example: Test full copy.
          int length = random.nextInt(1000) + 1;
          boolean[] source = nextBooleanArray(random, length);
-         boolean[] copy = BufferTools.ringArrayCopy(source, 0, length);
+         boolean[] copy = SharedMemoryTools.ringArrayCopy(source, 0, length);
          assertArrayEquals(source, copy);
       }
 
@@ -121,7 +124,7 @@ public class BufferToolsTest
          boolean[] source = nextBooleanArray(random, length);
          int from = random.nextInt(length);
          int copyLength = random.nextInt(length - from);
-         boolean[] copy = BufferTools.ringArrayCopy(source, from, copyLength);
+         boolean[] copy = SharedMemoryTools.ringArrayCopy(source, from, copyLength);
 
          for (int k = 0; k < copyLength; k++)
          {
@@ -136,7 +139,7 @@ public class BufferToolsTest
          int length = random.nextInt(1000) + 1;
          int from = random.nextInt(length);
          boolean[] source = nextBooleanArray(random, length);
-         boolean[] copy = BufferTools.ringArrayCopy(source, from, length);
+         boolean[] copy = SharedMemoryTools.ringArrayCopy(source, from, length);
 
          for (int k = 0; k < length; k++)
          {
@@ -151,7 +154,7 @@ public class BufferToolsTest
          boolean[] source = nextBooleanArray(random, length);
          int from = random.nextInt(length);
          int copyLength = random.nextInt(from + 1) + length - from;
-         boolean[] copy = BufferTools.ringArrayCopy(source, from, copyLength);
+         boolean[] copy = SharedMemoryTools.ringArrayCopy(source, from, copyLength);
 
          for (int k = 0; k < copyLength; k++)
          {
@@ -171,7 +174,7 @@ public class BufferToolsTest
       { // Trivial example: Test full copy.
          int length = random.nextInt(1000) + 1;
          double[] source = nextDoubleArray(random, length);
-         double[] copy = BufferTools.ringArrayCopy(source, 0, length);
+         double[] copy = SharedMemoryTools.ringArrayCopy(source, 0, length);
          assertArrayEquals(source, copy);
       }
 
@@ -181,7 +184,7 @@ public class BufferToolsTest
          double[] source = nextDoubleArray(random, length);
          int from = random.nextInt(length);
          int copyLength = random.nextInt(length - from);
-         double[] copy = BufferTools.ringArrayCopy(source, from, copyLength);
+         double[] copy = SharedMemoryTools.ringArrayCopy(source, from, copyLength);
 
          for (int k = 0; k < copyLength; k++)
          {
@@ -196,7 +199,7 @@ public class BufferToolsTest
          int length = random.nextInt(1000) + 1;
          int from = random.nextInt(length);
          double[] source = nextDoubleArray(random, length);
-         double[] copy = BufferTools.ringArrayCopy(source, from, length);
+         double[] copy = SharedMemoryTools.ringArrayCopy(source, from, length);
 
          for (int k = 0; k < length; k++)
          {
@@ -211,7 +214,7 @@ public class BufferToolsTest
          double[] source = nextDoubleArray(random, length);
          int from = random.nextInt(length);
          int copyLength = random.nextInt(from + 1) + length - from;
-         double[] copy = BufferTools.ringArrayCopy(source, from, copyLength);
+         double[] copy = SharedMemoryTools.ringArrayCopy(source, from, copyLength);
 
          for (int k = 0; k < copyLength; k++)
          {
@@ -231,7 +234,7 @@ public class BufferToolsTest
       { // Trivial example: Test full copy.
          int length = random.nextInt(1000) + 1;
          int[] source = nextIntegerArray(random, length);
-         int[] copy = BufferTools.ringArrayCopy(source, 0, length);
+         int[] copy = SharedMemoryTools.ringArrayCopy(source, 0, length);
          assertArrayEquals(source, copy);
       }
 
@@ -241,7 +244,7 @@ public class BufferToolsTest
          int[] source = nextIntegerArray(random, length);
          int from = random.nextInt(length);
          int copyLength = random.nextInt(length - from);
-         int[] copy = BufferTools.ringArrayCopy(source, from, copyLength);
+         int[] copy = SharedMemoryTools.ringArrayCopy(source, from, copyLength);
 
          for (int k = 0; k < copyLength; k++)
          {
@@ -256,7 +259,7 @@ public class BufferToolsTest
          int length = random.nextInt(1000) + 1;
          int from = random.nextInt(length);
          int[] source = nextIntegerArray(random, length);
-         int[] copy = BufferTools.ringArrayCopy(source, from, length);
+         int[] copy = SharedMemoryTools.ringArrayCopy(source, from, length);
 
          for (int k = 0; k < length; k++)
          {
@@ -271,7 +274,7 @@ public class BufferToolsTest
          int[] source = nextIntegerArray(random, length);
          int from = random.nextInt(length);
          int copyLength = random.nextInt(from + 1) + length - from;
-         int[] copy = BufferTools.ringArrayCopy(source, from, copyLength);
+         int[] copy = SharedMemoryTools.ringArrayCopy(source, from, copyLength);
 
          for (int k = 0; k < copyLength; k++)
          {
@@ -291,7 +294,7 @@ public class BufferToolsTest
       { // Trivial example: Test full copy.
          int length = random.nextInt(1000) + 1;
          long[] source = nextLongArray(random, length);
-         long[] copy = BufferTools.ringArrayCopy(source, 0, length);
+         long[] copy = SharedMemoryTools.ringArrayCopy(source, 0, length);
          assertArrayEquals(source, copy);
       }
 
@@ -301,7 +304,7 @@ public class BufferToolsTest
          long[] source = nextLongArray(random, length);
          int from = random.nextInt(length);
          int copyLength = random.nextInt(length - from);
-         long[] copy = BufferTools.ringArrayCopy(source, from, copyLength);
+         long[] copy = SharedMemoryTools.ringArrayCopy(source, from, copyLength);
 
          for (int k = 0; k < copyLength; k++)
          {
@@ -316,7 +319,7 @@ public class BufferToolsTest
          int length = random.nextInt(1000) + 1;
          int from = random.nextInt(length);
          long[] source = nextLongArray(random, length);
-         long[] copy = BufferTools.ringArrayCopy(source, from, length);
+         long[] copy = SharedMemoryTools.ringArrayCopy(source, from, length);
 
          for (int k = 0; k < length; k++)
          {
@@ -331,7 +334,7 @@ public class BufferToolsTest
          long[] source = nextLongArray(random, length);
          int from = random.nextInt(length);
          int copyLength = random.nextInt(from + 1) + length - from;
-         long[] copy = BufferTools.ringArrayCopy(source, from, copyLength);
+         long[] copy = SharedMemoryTools.ringArrayCopy(source, from, copyLength);
 
          for (int k = 0; k < copyLength; k++)
          {
@@ -351,7 +354,7 @@ public class BufferToolsTest
       { // Trivial example: Test full copy.
          int length = random.nextInt(1000) + 1;
          byte[] source = nextByteArray(random, length);
-         byte[] copy = BufferTools.ringArrayCopy(source, 0, length);
+         byte[] copy = SharedMemoryTools.ringArrayCopy(source, 0, length);
          assertArrayEquals(source, copy);
       }
 
@@ -361,7 +364,7 @@ public class BufferToolsTest
          byte[] source = nextByteArray(random, length);
          int from = random.nextInt(length);
          int copyLength = random.nextInt(length - from);
-         byte[] copy = BufferTools.ringArrayCopy(source, from, copyLength);
+         byte[] copy = SharedMemoryTools.ringArrayCopy(source, from, copyLength);
 
          for (int k = 0; k < copyLength; k++)
          {
@@ -376,7 +379,7 @@ public class BufferToolsTest
          int length = random.nextInt(1000) + 1;
          int from = random.nextInt(length);
          byte[] source = nextByteArray(random, length);
-         byte[] copy = BufferTools.ringArrayCopy(source, from, length);
+         byte[] copy = SharedMemoryTools.ringArrayCopy(source, from, length);
 
          for (int k = 0; k < length; k++)
          {
@@ -391,7 +394,7 @@ public class BufferToolsTest
          byte[] source = nextByteArray(random, length);
          int from = random.nextInt(length);
          int copyLength = random.nextInt(from + 1) + length - from;
-         byte[] copy = BufferTools.ringArrayCopy(source, from, copyLength);
+         byte[] copy = SharedMemoryTools.ringArrayCopy(source, from, copyLength);
 
          for (int k = 0; k < copyLength; k++)
          {
@@ -439,5 +442,110 @@ public class BufferToolsTest
       byte[] next = new byte[length];
       random.nextBytes(next);
       return next;
+   }
+
+   @Test
+   public void testDuplicateMissingYoVariablesInTarget()
+   {
+      Random random = new Random(469);
+
+      for (int i = 0; i < ITERATIONS; i++)
+      { // Test with single registry
+         int numberOfVariables = RandomNumbers.nextInt(random, 0, 100);
+         YoRegistry original = SharedMemoryRandomTools.nextYoRegistry(random, numberOfVariables);
+         YoRegistry target = new YoRegistry(SharedMemoryRandomTools.nextAlphanumericString(random, 1, 50));
+         int numberOfYoVariablesCreated = SharedMemoryTools.duplicateMissingYoVariablesInTarget(original, target);
+
+         assertEquals(numberOfVariables, numberOfYoVariablesCreated);
+
+         for (YoVariable originalVariable : original.getVariables())
+         {
+            YoVariable targetVariable = target.findVariable(originalVariable.getName());
+            assertNotNull(targetVariable);
+            assertEquals(originalVariable.getClass(), targetVariable.getClass());
+         }
+      }
+
+      for (int i = 0; i < ITERATIONS; i++)
+      { // Test duplicating entire registry tree
+         int numberOfVariables = RandomNumbers.nextInt(random, 0, 100);
+         YoRegistry originalRoot = SharedMemoryRandomTools.nextYoRegistryTree(random, numberOfVariables, 50)[0];
+         YoRegistry targetRoot = new YoRegistry(originalRoot.getName());
+         int numberOfYoVariablesCreated = SharedMemoryTools.duplicateMissingYoVariablesInTarget(originalRoot, targetRoot);
+
+         assertEquals(originalRoot.collectSubtreeVariables().size(), numberOfYoVariablesCreated);
+
+         for (YoRegistry originalRegistry : originalRoot.collectSubtreeRegistries())
+         {
+            YoRegistry targetRegistry = targetRoot.findRegistry(originalRegistry.getNamespace());
+            assertNotNull(targetRegistry);
+            assertEquals(originalRegistry.getNumberOfVariables(), targetRegistry.getNumberOfVariables());
+         }
+
+         for (YoVariable originalVariable : originalRoot.collectSubtreeVariables())
+         {
+            YoVariable targetVariable = targetRoot.findVariable(originalVariable.getNamespace().toString(), originalVariable.getName());
+            assertNotNull(targetVariable);
+            assertEquals(originalVariable.getClass(), targetVariable.getClass());
+         }
+      }
+
+      for (int i = 0; i < ITERATIONS; i++)
+      { // Test completing single registry
+         int numberOfVariables = RandomNumbers.nextInt(random, 0, 50);
+         YoRegistry original = SharedMemoryRandomTools.nextYoRegistry(random, numberOfVariables);
+         YoRegistry target = new YoRegistry(SharedMemoryRandomTools.nextAlphanumericString(random, 1, 50));
+         SharedMemoryTools.duplicateMissingYoVariablesInTarget(original, target);
+
+         int numberOfMissingVariables = RandomNumbers.nextInt(random, 0, 50);
+         SharedMemoryRandomTools.nextYoVariables(random, numberOfMissingVariables, original);
+
+         int numberOfYoVariablesCreated = SharedMemoryTools.duplicateMissingYoVariablesInTarget(original, target);
+         assertEquals(numberOfMissingVariables, numberOfYoVariablesCreated);
+
+         for (YoVariable originalVariable : original.getVariables())
+         {
+            YoVariable targetVariable = target.findVariable(originalVariable.getName());
+            assertNotNull(targetVariable);
+            assertEquals(originalVariable.getClass(), targetVariable.getClass());
+         }
+      }
+
+      for (int i = 0; i < ITERATIONS; i++)
+      { // Test completing registry tree
+         int numberOfVariables = RandomNumbers.nextInt(random, 0, 50);
+         YoRegistry[] originalRegistries = SharedMemoryRandomTools.nextYoRegistryTree(random, numberOfVariables, 25);
+         YoRegistry originalRoot = originalRegistries[0];
+         YoRegistry targetRoot = new YoRegistry(originalRoot.getName());
+         SharedMemoryTools.duplicateMissingYoVariablesInTarget(originalRoot, targetRoot);
+
+         int numberOfMissingVariables = 0;
+
+         for (int j = 0; j < 25; j++)
+         {
+            int n = RandomNumbers.nextInt(random, 0, 50);
+            YoRegistry parent = originalRegistries[random.nextInt(originalRegistries.length)];
+            YoRegistry registry = SharedMemoryRandomTools.nextYoRegistry(random, SharedMemoryRandomTools.nextAvailableRegistryName(random, 1, 50, parent), n);
+            parent.addChild(registry);
+            numberOfMissingVariables += n;
+         }
+
+         int numberOfYoVariablesCreated = SharedMemoryTools.duplicateMissingYoVariablesInTarget(originalRoot, targetRoot);
+         assertEquals(numberOfMissingVariables, numberOfYoVariablesCreated);
+
+         for (YoRegistry originalRegistry : originalRoot.collectSubtreeRegistries())
+         {
+            YoRegistry targetRegistry = targetRoot.findRegistry(originalRegistry.getNamespace());
+            assertNotNull(targetRegistry);
+            assertEquals(originalRegistry.getNumberOfVariables(), targetRegistry.getNumberOfVariables());
+         }
+
+         for (YoVariable originalVariable : originalRoot.collectSubtreeVariables())
+         {
+            YoVariable targetVariable = targetRoot.findVariable(originalVariable.getNamespace().toString(), originalVariable.getName());
+            assertNotNull(targetVariable);
+            assertEquals(originalVariable.getClass(), targetVariable.getClass());
+         }
+      }
    }
 }

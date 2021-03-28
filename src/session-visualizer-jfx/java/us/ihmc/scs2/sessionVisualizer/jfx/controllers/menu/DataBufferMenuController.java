@@ -16,7 +16,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.tools.PositiveIntegerValueFilter;
 import us.ihmc.scs2.sharedMemory.CropBufferRequest;
 import us.ihmc.scs2.sharedMemory.FillBufferRequest;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.scs2.sharedMemory.tools.BufferTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 
 public class DataBufferMenuController
 {
@@ -114,8 +114,8 @@ public class DataBufferMenuController
       if (properties != null)
       {
          FillBufferRequest fillBufferRequest = new FillBufferRequest(false,
-                                                                     BufferTools.increment(properties.getOutPoint(), 1, properties.getSize()),
-                                                                     BufferTools.decrement(properties.getInPoint(), 1, properties.getSize()));
+                                                                     SharedMemoryTools.increment(properties.getOutPoint(), 1, properties.getSize()),
+                                                                     SharedMemoryTools.decrement(properties.getInPoint(), 1, properties.getSize()));
          messager.submitMessage(topics.getYoBufferFillRequest(), fillBufferRequest);
       }
    }

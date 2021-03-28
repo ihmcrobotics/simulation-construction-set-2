@@ -1,7 +1,7 @@
 package us.ihmc.scs2.sharedMemory;
 
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.scs2.sharedMemory.tools.BufferTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 
 public class YoBufferProperties implements YoBufferPropertiesReadOnly
 {
@@ -52,7 +52,7 @@ public class YoBufferProperties implements YoBufferPropertiesReadOnly
 
    public int incrementIndex(boolean updateBufferBounds)
    {
-      currentIndex = BufferTools.increment(currentIndex, 1, getSize());
+      currentIndex = SharedMemoryTools.increment(currentIndex, 1, getSize());
 
       if (updateBufferBounds)
       {
@@ -61,7 +61,7 @@ public class YoBufferProperties implements YoBufferPropertiesReadOnly
 
          if (outPoint == inPoint)
          { // Push the in-point
-            inPoint = BufferTools.increment(inPoint, 1, getSize());
+            inPoint = SharedMemoryTools.increment(inPoint, 1, getSize());
          }
       }
       else if (!isIndexBetweenBounds(currentIndex))
@@ -73,7 +73,7 @@ public class YoBufferProperties implements YoBufferPropertiesReadOnly
 
    public int decrementIndex()
    {
-      currentIndex = BufferTools.decrement(currentIndex, 1, getSize());
+      currentIndex = SharedMemoryTools.decrement(currentIndex, 1, getSize());
 
       if (!isIndexBetweenBounds(currentIndex))
       { // The current index has to remain within the bounds when reading.

@@ -1,6 +1,6 @@
 package us.ihmc.scs2.sharedMemory;
 
-import us.ihmc.scs2.sharedMemory.tools.BufferTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 
 public class FillBufferRequest
 {
@@ -31,7 +31,7 @@ public class FillBufferRequest
 
    public int getFilledSize(int originalBufferSize)
    {
-      return BufferTools.computeSubLength(from, to, originalBufferSize);
+      return SharedMemoryTools.computeSubLength(from, to, originalBufferSize);
    }
 
    @Override

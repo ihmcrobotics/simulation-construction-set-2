@@ -4,7 +4,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.scs2.sharedMemory.tools.BufferTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -159,12 +159,12 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
 
       if (newSize < properties.getActiveBufferLength())
       { // Cannot keep all of the active buffer, keeping data closest to out-point.
-         startBufferCopyIndex = BufferTools.computeFromIndex(oldOutPoint, newSize, oldSize);
+         startBufferCopyIndex = SharedMemoryTools.computeFromIndex(oldOutPoint, newSize, oldSize);
 
          newInPoint = 0;
          newOutPoint = newSize - 1;
-         if (BufferTools.isInsideBounds(oldCurrentIndex, BufferTools.computeFromIndex(oldOutPoint, newSize, oldSize), oldOutPoint, oldSize))
-            newCurrentIndex = newOutPoint - BufferTools.computeSubLength(oldCurrentIndex, oldOutPoint, oldSize) + 1;
+         if (SharedMemoryTools.isInsideBounds(oldCurrentIndex, SharedMemoryTools.computeFromIndex(oldOutPoint, newSize, oldSize), oldOutPoint, oldSize))
+            newCurrentIndex = newOutPoint - SharedMemoryTools.computeSubLength(oldCurrentIndex, oldOutPoint, oldSize) + 1;
          else
             newCurrentIndex = newOutPoint;
       }
@@ -173,7 +173,7 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
          newInPoint = 0;
          newOutPoint = properties.getActiveBufferLength() - 1;
          if (properties.isIndexBetweenBounds(oldCurrentIndex))
-            newCurrentIndex = BufferTools.computeSubLength(oldInPoint, oldCurrentIndex, oldSize) - 1;
+            newCurrentIndex = SharedMemoryTools.computeSubLength(oldInPoint, oldCurrentIndex, oldSize) - 1;
          else
             newCurrentIndex = newOutPoint;
       }

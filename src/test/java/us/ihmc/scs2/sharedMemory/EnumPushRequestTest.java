@@ -8,7 +8,7 @@ import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryRandomTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoEnum;
 
@@ -23,8 +23,8 @@ public class EnumPushRequestTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoEnum<?> bufferYoEnum = YoRandomTools.nextYoEnum(random, new YoRegistry("Dummy"));
-         int valueToPush = YoRandomTools.nextOrdinal(random, bufferYoEnum);
+         YoEnum<?> bufferYoEnum = SharedMemoryRandomTools.nextYoEnum(random, new YoRegistry("Dummy"));
+         int valueToPush = SharedMemoryRandomTools.nextOrdinal(random, bufferYoEnum);
 
          int currentValue = bufferYoEnum.getOrdinal();
 
@@ -39,7 +39,7 @@ public class EnumPushRequestTest
          if (bufferYoEnum.getEnumValuesAsString().length > 1)
          {
             while (valueToPush == bufferYoEnum.getOrdinal())
-               valueToPush = YoRandomTools.nextOrdinal(random, bufferYoEnum);
+               valueToPush = SharedMemoryRandomTools.nextOrdinal(random, bufferYoEnum);
             pushRequest = new EnumPushRequest<>(valueToPush, bufferYoEnum);
             assertTrue(pushRequest.push());
          }

@@ -8,9 +8,8 @@ import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.scs2.sharedMemory.tools.BufferTools;
-import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
-import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryRandomTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoEnum;
 
@@ -25,8 +24,8 @@ public class YoEnumBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoEnum<?> yoEnum = YoRandomTools.nextYoEnum(random, new YoRegistry("Dummy"));
-         YoBufferProperties yoBufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
+         YoEnum<?> yoEnum = SharedMemoryRandomTools.nextYoEnum(random, new YoRegistry("Dummy"));
+         YoBufferProperties yoBufferProperties = SharedMemoryRandomTools.nextYoBufferProperties(random);
          YoEnumBuffer<?> yoEnumBuffer = new YoEnumBuffer<>(yoEnum, yoBufferProperties);
          assertTrue(yoEnum == yoEnumBuffer.getYoVariable());
          assertTrue(yoBufferProperties == yoEnumBuffer.getProperties());
@@ -38,8 +37,8 @@ public class YoEnumBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoEnum<?> yoEnum = YoRandomTools.nextYoEnum(random, new YoRegistry("Dummy"));
-         YoBufferProperties yoBufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
+         YoEnum<?> yoEnum = SharedMemoryRandomTools.nextYoEnum(random, new YoRegistry("Dummy"));
+         YoBufferProperties yoBufferProperties = SharedMemoryRandomTools.nextYoBufferProperties(random);
          YoEnumBuffer<?> yoEnumBuffer = (YoEnumBuffer<?>) YoVariableBuffer.newYoVariableBuffer(yoEnum, yoBufferProperties);
          assertTrue(yoEnum == yoEnumBuffer.getYoVariable());
          assertTrue(yoBufferProperties == yoEnumBuffer.getProperties());
@@ -57,11 +56,11 @@ public class YoEnumBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoEnumBuffer<?> yoEnumBuffer = YoBufferRandomTools.nextYoEnumBuffer(random, new YoRegistry("Dummy"));
+         YoEnumBuffer<?> yoEnumBuffer = SharedMemoryRandomTools.nextYoEnumBuffer(random, new YoRegistry("Dummy"));
          YoBufferProperties originalBufferProperties = new YoBufferProperties(yoEnumBuffer.getProperties());
          int from = random.nextInt(yoEnumBuffer.getProperties().getSize());
          int newLength = random.nextInt(yoEnumBuffer.getProperties().getSize());
-         byte[] expectedBuffer = BufferTools.ringArrayCopy(yoEnumBuffer.getBuffer(), from, newLength);
+         byte[] expectedBuffer = SharedMemoryTools.ringArrayCopy(yoEnumBuffer.getBuffer(), from, newLength);
 
          yoEnumBuffer.resizeBuffer(from, newLength);
          assertArrayEquals(expectedBuffer, yoEnumBuffer.getBuffer());
@@ -80,7 +79,7 @@ public class YoEnumBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoEnumBuffer<?> yoEnumBuffer = YoBufferRandomTools.nextYoEnumBuffer(random, new YoRegistry("Dummy"));
+         YoEnumBuffer<?> yoEnumBuffer = SharedMemoryRandomTools.nextYoEnumBuffer(random, new YoRegistry("Dummy"));
          YoEnum<?> yoEnum = yoEnumBuffer.getYoVariable();
 
          int currentIndex = yoEnumBuffer.getProperties().getCurrentIndex();
@@ -102,7 +101,7 @@ public class YoEnumBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoEnumBuffer<?> yoEnumBuffer = YoBufferRandomTools.nextYoEnumBuffer(random, new YoRegistry("Dummy"));
+         YoEnumBuffer<?> yoEnumBuffer = SharedMemoryRandomTools.nextYoEnumBuffer(random, new YoRegistry("Dummy"));
          YoEnum<?> yoEnum = yoEnumBuffer.getYoVariable();
 
          int currentIndex = yoEnumBuffer.getProperties().getCurrentIndex();
@@ -124,11 +123,11 @@ public class YoEnumBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoEnumBuffer<?> yoEnumBuffer = YoBufferRandomTools.nextYoEnumBuffer(random, new YoRegistry("Dummy"));
+         YoEnumBuffer<?> yoEnumBuffer = SharedMemoryRandomTools.nextYoEnumBuffer(random, new YoRegistry("Dummy"));
          int from = random.nextInt(yoEnumBuffer.getProperties().getSize());
          int length = random.nextInt(yoEnumBuffer.getProperties().getSize() - 1) + 1;
 
-         byte[] expectedCopy = BufferTools.ringArrayCopy(yoEnumBuffer.getBuffer(), from, length);
+         byte[] expectedCopy = SharedMemoryTools.ringArrayCopy(yoEnumBuffer.getBuffer(), from, length);
          BufferSample<byte[]> actualCopy = yoEnumBuffer.copy(from, length, yoEnumBuffer.getProperties().copy());
 
          assertEquals(from, actualCopy.getFrom());
@@ -150,7 +149,7 @@ public class YoEnumBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoEnumBuffer yoEnumBuffer = YoBufferRandomTools.nextYoEnumBuffer(random, new YoRegistry("Dummy"));
+         YoEnumBuffer yoEnumBuffer = SharedMemoryRandomTools.nextYoEnumBuffer(random, new YoRegistry("Dummy"));
          YoEnum linkedEnum = new YoEnum<>("linked",
                                           new YoRegistry("Dummy"),
                                           ((YoEnum) yoEnumBuffer.getYoVariable()).getEnumType(),

@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
-import us.ihmc.scs2.sharedMemory.tools.YoMirroredRegistryTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -54,7 +54,7 @@ public class LinkedYoRegistry extends LinkedBuffer
       try
       {
          yoRegistryBuffer.registerMissingBuffers();
-         numberOfNewVariables = YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(bufferRootRegistry, rootRegistry, this::setupNewLinkedYoVariable);
+         numberOfNewVariables = SharedMemoryTools.duplicateMissingYoVariablesInTarget(bufferRootRegistry, rootRegistry, this::setupNewLinkedYoVariable);
       }
       finally
       {

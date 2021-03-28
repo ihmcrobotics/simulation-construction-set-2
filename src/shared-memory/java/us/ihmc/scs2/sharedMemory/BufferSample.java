@@ -3,7 +3,7 @@ package us.ihmc.scs2.sharedMemory;
 import java.util.Arrays;
 
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.scs2.sharedMemory.tools.BufferTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 
 public class BufferSample<D>
 {
@@ -19,7 +19,7 @@ public class BufferSample<D>
       this.sampleLength = sampleLength;
       this.bufferProperties = bufferProperties;
 
-      to = BufferTools.computeToIndex(from, sampleLength, bufferProperties.getSize());
+      to = SharedMemoryTools.computeToIndex(from, sampleLength, bufferProperties.getSize());
    }
 
    public BufferSample(BufferSample<D> other)
@@ -29,7 +29,7 @@ public class BufferSample<D>
       this.sampleLength = other.sampleLength;
       this.bufferProperties = other.bufferProperties;
 
-      to = BufferTools.computeToIndex(from, sampleLength, bufferProperties.getSize());
+      to = SharedMemoryTools.computeToIndex(from, sampleLength, bufferProperties.getSize());
    }
 
    public int getFrom()

@@ -8,7 +8,7 @@ import java.util.Random;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryRandomTools;
 
 public class LinkedBufferPropertiesTest
 {
@@ -20,7 +20,7 @@ public class LinkedBufferPropertiesTest
       Random random = new Random(68935);
 
       {
-         YoBufferProperties sourceProperties = YoBufferRandomTools.nextYoBufferProperties(random);
+         YoBufferProperties sourceProperties = SharedMemoryRandomTools.nextYoBufferProperties(random);
          LinkedBufferProperties linkedBufferProperties = new LinkedBufferProperties(sourceProperties);
 
          for (int i = 0; i < ITERATIONS; i++)
@@ -28,7 +28,7 @@ public class LinkedBufferPropertiesTest
             assertNull(linkedBufferProperties.peekCurrentBufferProperties());
             assertNull(linkedBufferProperties.pollCurrentBufferProperties());
 
-            sourceProperties.set(YoBufferRandomTools.nextYoBufferProperties(random));
+            sourceProperties.set(SharedMemoryRandomTools.nextYoBufferProperties(random));
             linkedBufferProperties.prepareForPull();
 
             assertEquals(sourceProperties, linkedBufferProperties.peekCurrentBufferProperties());
@@ -37,14 +37,14 @@ public class LinkedBufferPropertiesTest
             assertNull(linkedBufferProperties.peekCurrentBufferProperties());
             assertNull(linkedBufferProperties.pollCurrentBufferProperties());
 
-            sourceProperties.set(YoBufferRandomTools.nextYoBufferProperties(random));
+            sourceProperties.set(SharedMemoryRandomTools.nextYoBufferProperties(random));
             YoBufferPropertiesReadOnly expectedProperties = sourceProperties.copy();
             linkedBufferProperties.prepareForPull();
 
             assertEquals(expectedProperties, linkedBufferProperties.peekCurrentBufferProperties());
-            sourceProperties.set(YoBufferRandomTools.nextYoBufferProperties(random));
+            sourceProperties.set(SharedMemoryRandomTools.nextYoBufferProperties(random));
             assertEquals(expectedProperties, linkedBufferProperties.peekCurrentBufferProperties());
-            sourceProperties.set(YoBufferRandomTools.nextYoBufferProperties(random));
+            sourceProperties.set(SharedMemoryRandomTools.nextYoBufferProperties(random));
             assertEquals(expectedProperties, linkedBufferProperties.pollCurrentBufferProperties());
          }
       }
