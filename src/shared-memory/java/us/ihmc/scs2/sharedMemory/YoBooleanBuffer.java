@@ -58,7 +58,8 @@ public class YoBooleanBuffer extends YoVariableBuffer<YoBoolean>
       return new LinkedYoBoolean(variableToLink, this);
    }
 
-   boolean[] getBuffer()
+   @Override
+   public boolean[] getBuffer()
    {
       return buffer;
    }

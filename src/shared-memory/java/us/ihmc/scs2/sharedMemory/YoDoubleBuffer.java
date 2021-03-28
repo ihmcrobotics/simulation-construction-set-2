@@ -58,7 +58,8 @@ public class YoDoubleBuffer extends YoVariableBuffer<YoDouble>
       return new LinkedYoDouble(variableToLink, this);
    }
 
-   double[] getBuffer()
+   @Override
+   public double[] getBuffer()
    {
       return buffer;
    }

@@ -1,7 +1,5 @@
 package us.ihmc.scs2.sharedMemory.tools;
 
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -10,25 +8,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-
-import us.ihmc.scs2.definition.yoVariable.YoBooleanDefinition;
-import us.ihmc.scs2.definition.yoVariable.YoDoubleDefinition;
-import us.ihmc.scs2.definition.yoVariable.YoEnumDefinition;
-import us.ihmc.scs2.definition.yoVariable.YoIntegerDefinition;
-import us.ihmc.scs2.definition.yoVariable.YoLongDefinition;
-import us.ihmc.scs2.definition.yoVariable.YoRegistryDefinition;
-import us.ihmc.scs2.definition.yoVariable.YoVariableDefinition;
 import us.ihmc.yoVariables.registry.YoNamespace;
 import us.ihmc.yoVariables.registry.YoRegistry;
-import us.ihmc.yoVariables.variable.YoBoolean;
-import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoEnum;
-import us.ihmc.yoVariables.variable.YoInteger;
-import us.ihmc.yoVariables.variable.YoLong;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class SharedMemoryTools
@@ -495,139 +477,5 @@ public class SharedMemoryTools
       }
 
       return currentRegistry;
-   }
-
-   private static JAXBContext yoRegistryContext = null;
-
-   public static JAXBContext getYoRegistryContext()
-   {
-      if (yoRegistryContext == null)
-      {
-         try
-         {
-            yoRegistryContext = JAXBContext.newInstance(YoRegistryDefinition.class,
-                                                        YoVariableDefinition.class,
-                                                        YoBooleanDefinition.class,
-                                                        YoDoubleDefinition.class,
-                                                        YoIntegerDefinition.class,
-                                                        YoLongDefinition.class,
-                                                        YoEnumDefinition.class);
-         }
-         catch (JAXBException e)
-         {
-            throw new RuntimeException("Problem creating the JAXBContext.", e);
-         }
-      }
-
-      return yoRegistryContext;
-   }
-
-   public static YoRegistry loadYoRegistry(InputStream inputStream) throws JAXBException
-   {
-      JAXBContext context = getYoRegistryContext();
-      Unmarshaller unmarshaller = context.createUnmarshaller();
-      return (YoRegistry) unmarshaller.unmarshal(inputStream);
-   }
-
-   public static void saveYoRegistry(OutputStream outputStream, YoRegistryDefinition definition) throws JAXBException
-   {
-      JAXBContext context = getYoRegistryContext();
-      Marshaller marshaller = context.createMarshaller();
-      marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-      marshaller.marshal(definition, outputStream);
-   }
-
-   public static YoRegistryDefinition toYoRegistryDefinition(YoRegistry yoRegistry)
-   {
-      YoRegistryDefinition definition = new YoRegistryDefinition();
-      definition.setYoVariables(yoRegistry.getVariables().stream().map(SharedMemoryTools::toYoVariableDefinition).collect(Collectors.toList()));
-      definition.setYoRegistries(yoRegistry.getChildren().stream().map(SharedMemoryTools::toYoRegistryDefinition).collect(Collectors.toList()));
-      return definition;
-   }
-
-   public static YoVariableDefinition toYoVariableDefinition(YoVariable yoVariable)
-   {
-      YoVariableDefinition definition = null;
-
-      if (yoVariable instanceof YoBoolean)
-      {
-         definition = new YoBooleanDefinition();
-      }
-      else if (yoVariable instanceof YoDouble)
-      {
-         definition = new YoDoubleDefinition();
-      }
-      else if (yoVariable instanceof YoInteger)
-      {
-         definition = new YoIntegerDefinition();
-      }
-      else if (yoVariable instanceof YoLong)
-      {
-         definition = new YoLongDefinition();
-      }
-      else if (yoVariable instanceof YoEnum<?>)
-      {
-         YoEnumDefinition enumDefinition = new YoEnumDefinition();
-         enumDefinition.setAllowNullValue(((YoEnum<?>) yoVariable).isNullAllowed());
-         enumDefinition.setEnumValuesAsString(((YoEnum<?>) yoVariable).getEnumValuesAsString());
-      }
-      else
-      {
-         throw new UnsupportedOperationException("Unsupported yoVariable type: " + yoVariable);
-      }
-
-      definition.setName(yoVariable.getName());
-      definition.setDescription(yoVariable.getDescription());
-      definition.setLowerBound(yoVariable.getLowerBound());
-      definition.setUpperBound(yoVariable.getUpperBound());
-      return definition;
-   }
-
-   public static YoRegistry toYoRegistry(YoRegistryDefinition definition)
-   {
-      YoRegistry yoRegistry = new YoRegistry(definition.getName());
-      definition.getYoVariables().forEach(varDefinition -> yoRegistry.addVariable(toYoVariable(varDefinition)));
-      definition.getYoRegistries().forEach(regDefinition -> yoRegistry.addChild(toYoRegistry(regDefinition)));
-      return yoRegistry;
-   }
-
-   public static YoVariable toYoVariable(YoVariableDefinition definition)
-   {
-      YoVariable yoVariable = null;
-
-      String name = definition.getName();
-      String description = definition.getDescription();
-
-      if (definition instanceof YoBooleanDefinition)
-      {
-         yoVariable = new YoBoolean(name, description, null);
-      }
-      else if (definition instanceof YoDoubleDefinition)
-      {
-         yoVariable = new YoDouble(name, description, null);
-      }
-      else if (definition instanceof YoIntegerDefinition)
-      {
-         yoVariable = new YoInteger(name, description, null);
-      }
-      else if (definition instanceof YoLongDefinition)
-      {
-         yoVariable = new YoLong(name, description, null);
-      }
-      else if (definition instanceof YoEnumDefinition)
-      {
-         yoVariable = new YoEnum<>(name,
-                                   description,
-                                   null,
-                                   ((YoEnumDefinition) definition).isAllowNullValue(),
-                                   ((YoEnumDefinition) definition).getEnumValuesAsString());
-      }
-      else
-      {
-         throw new UnsupportedOperationException("Unsupported definition type: " + definition);
-      }
-
-      yoVariable.setVariableBounds(definition.getLowerBound(), definition.getUpperBound());
-      return yoVariable;
    }
 }

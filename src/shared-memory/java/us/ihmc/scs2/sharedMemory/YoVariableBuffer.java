@@ -68,4 +68,6 @@ public abstract class YoVariableBuffer<T extends YoVariable>
    public abstract BufferSample copy(int from, int length, YoBufferPropertiesReadOnly properties);
 
    abstract LinkedYoVariable<T> newLinkedYoVariable(T variableToLink);
+
+   public abstract Object getBuffer();
 }

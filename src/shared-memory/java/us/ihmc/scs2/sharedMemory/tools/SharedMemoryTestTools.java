@@ -1,0 +1,217 @@
+package us.ihmc.scs2.sharedMemory.tools;
+
+import java.util.Arrays;
+import java.util.Objects;
+
+import us.ihmc.euclid.tools.EuclidCoreIOTools;
+import us.ihmc.euclid.tools.EuclidCoreTestTools;
+import us.ihmc.scs2.sharedMemory.YoSharedBuffer;
+import us.ihmc.scs2.sharedMemory.YoVariableBuffer;
+import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
+import us.ihmc.yoVariables.registry.YoRegistry;
+import us.ihmc.yoVariables.variable.YoVariable;
+
+public class SharedMemoryTestTools
+{
+   public static void assertYoSharedBufferEquals(YoSharedBuffer expected, YoSharedBuffer actual, double epsilon)
+   {
+      assertYoSharedBufferEquals(null, expected, actual, epsilon);
+   }
+
+   public static void assertYoSharedBufferEquals(String messagePrefix, YoSharedBuffer expected, YoSharedBuffer actual, double epsilon)
+   {
+      if (expected == null)
+      {
+         if (actual != null)
+            throwNotEqualAssertionError(messagePrefix, expected, actual);
+      }
+      else
+      {
+         if (actual == null)
+            throwNotEqualAssertionError(messagePrefix, expected, actual);
+
+         assertYoBufferPropertiesEquals(messagePrefix, expected.getProperties(), actual.getProperties());
+         assertYoRegistryEquals(expected.getRootRegistry(), actual.getRootRegistry());
+
+         if (expected.getRegistryBuffer().getYoVariableBuffers().size() != actual.getRegistryBuffer().getYoVariableBuffers().size())
+            throwNotEqualAssertionError(messagePrefix, expected, actual);
+
+         for (int i = 0; i < expected.getRegistryBuffer().getYoVariableBuffers().size(); i++)
+         {
+            assertYoVariableBufferEquals(messagePrefix,
+                                         expected.getRegistryBuffer().getYoVariableBuffers().get(i),
+                                         actual.getRegistryBuffer().getYoVariableBuffers().get(i),
+                                         epsilon);
+         }
+      }
+   }
+
+   public static void assertYoVariableBufferEquals(YoVariableBuffer<?> expected, YoVariableBuffer<?> actual, double epsilon)
+   {
+      assertYoVariableBufferEquals(null, expected, actual, epsilon);
+   }
+
+   public static void assertYoVariableBufferEquals(String messagePrefix, YoVariableBuffer<?> expected, YoVariableBuffer<?> actual, double epsilon)
+   {
+      if (expected == null)
+      {
+         if (actual != null)
+            throwNotEqualAssertionError(messagePrefix, expected, actual);
+      }
+      else
+      {
+         if (actual == null)
+            throwNotEqualAssertionError(messagePrefix, expected, actual);
+
+         assertYoVariableEquals(expected.getYoVariable(), actual.getYoVariable());
+         assertYoBufferPropertiesEquals(messagePrefix, expected.getProperties(), actual.getProperties());
+
+         if (!Objects.deepEquals(expected.getBuffer(), actual.getBuffer()))
+            throwNotEqualAssertionError(messagePrefix, expected, actual);
+      }
+   }
+
+   public static void assertYoBufferPropertiesEquals(YoBufferPropertiesReadOnly expected, YoBufferPropertiesReadOnly actual)
+   {
+      assertYoBufferPropertiesEquals(null, expected, actual);
+   }
+
+   public static void assertYoBufferPropertiesEquals(String messagePrefix, YoBufferPropertiesReadOnly expected, YoBufferPropertiesReadOnly actual)
+   {
+      if (!expected.equals(actual))
+         EuclidCoreTestTools.throwNotEqualAssertionError(messagePrefix, expected.toString(), actual.toString());
+   }
+
+   public static void assertYoRegistryEquals(YoRegistry expected, YoRegistry actual)
+   {
+      assertYoRegistryEquals(null, expected, actual);
+   }
+
+   public static void assertYoRegistryEquals(String messagePrefix, YoRegistry expected, YoRegistry actual)
+   {
+      if (expected == null)
+      {
+         if (actual != null)
+            throwNotEqualAssertionError(messagePrefix, expected, actual);
+      }
+      else
+      {
+         if (actual == null)
+            throwNotEqualAssertionError(messagePrefix, expected, actual);
+
+         if (!Objects.equals(expected.getName(), actual.getName()))
+            throwNotEqualAssertionError(messagePrefix, expected, actual);
+         if (expected.getVariables().size() != actual.getVariables().size())
+            throwNotEqualAssertionError(messagePrefix, expected, actual);
+         for (int i = 0; i < expected.getNumberOfVariables(); i++)
+         {
+            YoVariable expectedVariable = expected.getVariable(i);
+            YoVariable actualVariable = actual.getVariable(expectedVariable.getName());
+            assertYoVariableEquals(messagePrefix, expectedVariable, actualVariable);
+         }
+
+         if (expected.getChildren().size() != actual.getChildren().size())
+            EuclidCoreTestTools.throwNotEqualAssertionError(messagePrefix, expected.toString(), actual.toString());
+         for (int i = 0; i < expected.getChildren().size(); i++)
+         {
+            YoRegistry expectedChild = expected.getChildren().get(i);
+            YoRegistry actualChild = actual.getChildren().stream().filter(child -> child.getName().equals(expectedChild.getName())).findFirst().orElse(null);
+            assertYoRegistryEquals(messagePrefix, expectedChild, actualChild);
+         }
+      }
+   }
+
+   public static void assertYoVariableEquals(YoVariable expected, YoVariable actual)
+   {
+      assertYoVariableEquals(null, expected, actual);
+   }
+
+   public static void assertYoVariableEquals(String messagePrefix, YoVariable expected, YoVariable actual)
+   {
+      if (expected == null)
+      {
+         if (actual != null)
+            throwNotEqualAssertionError(messagePrefix, expected, actual);
+      }
+      else
+      {
+         if (actual == null)
+            throwNotEqualAssertionError(messagePrefix, expected, actual);
+
+         if (!Objects.equals(expected.getType(), actual.getType()))
+            throwNotEqualAssertionError(messagePrefix, expected, actual);
+         if (!Objects.equals(expected.getName(), actual.getName()))
+            throwNotEqualAssertionError(messagePrefix, expected, actual);
+         if (!Objects.equals(expected.getDescription(), actual.getDescription()))
+            throwNotEqualAssertionError(messagePrefix, expected, actual);
+      }
+   }
+
+   private static void throwNotEqualAssertionError(String messagePrefix, YoRegistry expected, YoRegistry actual)
+   {
+      String expectedAsString = getYoRegistryString(expected);
+      String actualAsString = getYoRegistryString(actual);
+      EuclidCoreTestTools.throwNotEqualAssertionError(messagePrefix, expectedAsString, actualAsString);
+   }
+
+   private static void throwNotEqualAssertionError(String messagePrefix, YoVariable expected, YoVariable actual)
+   {
+      String expectedAsString = getYoVariableString(expected);
+      String actualAsString = getYoVariableString(actual);
+      EuclidCoreTestTools.throwNotEqualAssertionError(messagePrefix, expectedAsString, actualAsString);
+   }
+
+   private static void throwNotEqualAssertionError(String messagePrefix, YoVariableBuffer<?> expected, YoVariableBuffer<?> actual)
+   {
+      String expectedAsString = getYoVariableBufferString(expected);
+      String actualAsString = getYoVariableBufferString(actual);
+      EuclidCoreTestTools.throwNotEqualAssertionError(messagePrefix, expectedAsString, actualAsString);
+   }
+
+   private static void throwNotEqualAssertionError(String messagePrefix, YoSharedBuffer expected, YoSharedBuffer actual)
+   {
+      String expectedAsString = getYoSharedBufferString(expected);
+      String actualAsString = getYoSharedBufferString(actual);
+      EuclidCoreTestTools.throwNotEqualAssertionError(messagePrefix, expectedAsString, actualAsString);
+   }
+
+   public static String getYoRegistryString(YoRegistry yoRegistry)
+   {
+      if (yoRegistry == null)
+         return "null";
+      else
+         return yoRegistry.getClass().getSimpleName() + ", name: " + yoRegistry.getName() + ", variables: "
+               + EuclidCoreIOTools.getCollectionString("[", "]", ", ", yoRegistry.getVariables(), YoVariable::getName) + ", children: "
+               + EuclidCoreIOTools.getCollectionString("[", "]", ", ", yoRegistry.getChildren(), YoRegistry::getName);
+   }
+
+   public static String getYoVariableString(YoVariable yoVariable)
+   {
+      if (yoVariable == null)
+         return "null";
+      else
+         return yoVariable.getClass().getSimpleName() + ", name: " + yoVariable.getName() + ", description: " + yoVariable.getDescription();
+   }
+
+   public static String getYoSharedBufferString(YoSharedBuffer yoSharedBuffer)
+   {
+      if (yoSharedBuffer == null)
+         return "null";
+      else
+         return "properties: " + yoSharedBuffer.getProperties() + ", root registry: " + getYoRegistryString(yoSharedBuffer.getRootRegistry()) + ", buffers: "
+               + EuclidCoreIOTools.getCollectionString("[",
+                                                       "]",
+                                                       ", ",
+                                                       yoSharedBuffer.getRegistryBuffer().getYoVariableBuffers(),
+                                                       b -> b.getYoVariable().getName());
+   }
+
+   public static String getYoVariableBufferString(YoVariableBuffer<?> yoVariableBuffer)
+   {
+      if (yoVariableBuffer == null)
+         return "null";
+      else
+         return yoVariableBuffer.getClass().getSimpleName() + ", variable [" + getYoVariableString(yoVariableBuffer.getYoVariable()) + "], buffer properties: ["
+               + yoVariableBuffer.getProperties() + "], buffer: " + Arrays.toString((Object[]) yoVariableBuffer.getBuffer());
+   }
+}

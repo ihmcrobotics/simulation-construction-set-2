@@ -58,7 +58,8 @@ public class YoLongBuffer extends YoVariableBuffer<YoLong>
       return new LinkedYoLong(variableToLink, this);
    }
 
-   long[] getBuffer()
+   @Override
+   public long[] getBuffer()
    {
       return buffer;
    }

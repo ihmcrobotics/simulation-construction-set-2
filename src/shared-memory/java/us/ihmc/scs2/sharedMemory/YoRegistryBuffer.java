@@ -104,12 +104,17 @@ public class YoRegistryBuffer
       yoVariableBuffers.forEach(buffer -> buffer.readBufferAt(index));
    }
 
-   YoVariableBuffer<?> findYoVariableBuffer(YoVariable yoVariable)
+   public List<YoVariableBuffer<?>> getYoVariableBuffers()
+   {
+      return yoVariableBuffers;
+   }
+
+   public YoVariableBuffer<?> findYoVariableBuffer(YoVariable yoVariable)
    {
       return yoVariableFullnameToBufferMap.get(yoVariable.getFullNameString());
    }
 
-   YoVariableBuffer<?> findOrCreateYoVariableBuffer(YoVariable yoVariable)
+   public YoVariableBuffer<?> findOrCreateYoVariableBuffer(YoVariable yoVariable)
    {
       String variableFullName = yoVariable.getFullNameString();
       YoVariableBuffer<?> yoVariableBuffer = yoVariableFullnameToBufferMap.get(variableFullName);
