@@ -9,6 +9,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 import us.ihmc.yoVariables.listener.YoRegistryChangedListener;
 import us.ihmc.yoVariables.registry.YoNamespace;
 import us.ihmc.yoVariables.registry.YoRegistry;
@@ -116,7 +117,7 @@ public class YoRegistryBuffer
       if (yoVariableBuffer == null)
       {
          YoNamespace yoVariableNamespace = new YoNamespace(variableFullName);
-         YoRegistry registry = ensurePathExists(rootRegistry, yoVariableNamespace.getParent());
+         YoRegistry registry = SharedMemoryTools.ensurePathExists(rootRegistry, yoVariableNamespace.getParent());
          Optional<YoVariable> duplicateOptional = registry.collectSubtreeVariables().stream().filter(v -> v.getFullNameString().equals(variableFullName))
                                                           .findFirst();
          YoVariable duplicate;
@@ -131,29 +132,6 @@ public class YoRegistryBuffer
       }
 
       return yoVariableBuffer;
-   }
-
-   private static YoRegistry ensurePathExists(YoRegistry rootRegistry, YoNamespace registryNamespace)
-   {
-      if (!rootRegistry.getName().equals(registryNamespace.getRootName()))
-         return null;
-
-      List<String> subNames = registryNamespace.getSubNames();
-      YoRegistry currentRegistry = rootRegistry;
-
-      for (String subName : subNames.subList(1, subNames.size()))
-      {
-         YoRegistry childRegistry = currentRegistry.getChildren().stream().filter(r -> r.getName().equals(subName)).findFirst().orElse(null);
-         if (childRegistry == null)
-         {
-            childRegistry = new YoRegistry(subName);
-            currentRegistry.addChild(childRegistry);
-         }
-
-         currentRegistry = childRegistry;
-      }
-
-      return currentRegistry;
    }
 
    LinkedYoRegistry newLinkedYoRegistry(YoRegistry registryToLink)
