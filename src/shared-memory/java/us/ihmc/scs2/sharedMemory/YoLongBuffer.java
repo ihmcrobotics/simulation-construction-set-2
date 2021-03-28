@@ -1,7 +1,7 @@
 package us.ihmc.scs2.sharedMemory;
 
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.scs2.sharedMemory.tools.BufferTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 import us.ihmc.yoVariables.variable.YoLong;
 
 public class YoLongBuffer extends YoVariableBuffer<YoLong>
@@ -19,7 +19,7 @@ public class YoLongBuffer extends YoVariableBuffer<YoLong>
    {
       if (from == 0 && length == buffer.length)
          return;
-      buffer = BufferTools.ringArrayCopy(buffer, from, length);
+      buffer = SharedMemoryTools.ringArrayCopy(buffer, from, length);
    }
 
    @Override
@@ -43,13 +43,13 @@ public class YoLongBuffer extends YoVariableBuffer<YoLong>
    @Override
    public BufferSample<long[]> copy(int from, int length, YoBufferPropertiesReadOnly properties)
    {
-      return new BufferSample<>(from, BufferTools.ringArrayCopy(buffer, from, length), length, properties);
+      return new BufferSample<>(from, SharedMemoryTools.ringArrayCopy(buffer, from, length), length, properties);
    }
 
    @Override
    public void fillBuffer(boolean zeroFill, int from, int length)
    {
-      BufferTools.ringArrayFill(buffer, zeroFill ? 0 : yoVariable.getValue(), from, length);
+      SharedMemoryTools.ringArrayFill(buffer, zeroFill ? 0 : yoVariable.getValue(), from, length);
    }
 
    @Override

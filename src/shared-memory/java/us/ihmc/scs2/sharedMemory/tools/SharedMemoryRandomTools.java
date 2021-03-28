@@ -1,5 +1,6 @@
 package us.ihmc.scs2.sharedMemory.tools;
 
+import java.util.List;
 import java.util.Random;
 
 import org.apache.commons.lang3.RandomStringUtils;
@@ -7,10 +8,11 @@ import org.apache.commons.lang3.mutable.MutableObject;
 
 import us.ihmc.commons.RandomNumbers;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
+import us.ihmc.scs2.sharedMemory.*;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.*;
 
-public class YoRandomTools
+public class SharedMemoryRandomTools
 {
    public enum EnumTypeA
    {
@@ -30,6 +32,118 @@ public class YoRandomTools
    public enum EnumTypeD
    {
       D1
+   }
+
+   public static YoBufferProperties nextYoBufferProperties(Random random)
+   {
+      return nextYoBufferProperties(random, random.nextInt(1000) + 2);
+   }
+
+   public static YoBufferProperties nextYoBufferProperties(Random random, int size)
+   {
+      YoBufferProperties next = new YoBufferProperties(random.nextInt(size), size);
+      next.setInPointIndex(random.nextInt(size));
+      next.setOutPointIndex(random.nextInt(size));
+      return next;
+   }
+
+   public static YoVariableBuffer<?> nextYoVariableBuffer(Random random, YoVariable yoVariable)
+   {
+      YoBufferProperties properties = nextYoBufferProperties(random);
+      YoVariableBuffer<?> next = YoVariableBuffer.newYoVariableBuffer(yoVariable, properties);
+      randomizeYoVariableBuffer(random, next);
+
+      return next;
+   }
+
+   public static YoBooleanBuffer nextYoBooleanBuffer(Random random, YoRegistry registry)
+   {
+      YoBoolean yoBoolean = nextYoBoolean(random, registry);
+      YoBufferProperties properties = nextYoBufferProperties(random);
+      YoBooleanBuffer next = new YoBooleanBuffer(yoBoolean, properties);
+      randomizeYoVariableBuffer(random, next);
+
+      return next;
+   }
+
+   public static YoDoubleBuffer nextYoDoubleBuffer(Random random, YoRegistry registry)
+   {
+      YoDouble yoDouble = nextYoDouble(random, registry);
+      YoBufferProperties properties = nextYoBufferProperties(random);
+      YoDoubleBuffer next = new YoDoubleBuffer(yoDouble, properties);
+      randomizeYoVariableBuffer(random, next);
+
+      return next;
+   }
+
+   public static YoIntegerBuffer nextYoIntegerBuffer(Random random, YoRegistry registry)
+   {
+      YoInteger yoInteger = nextYoInteger(random, registry);
+      YoBufferProperties properties = nextYoBufferProperties(random);
+      YoIntegerBuffer next = new YoIntegerBuffer(yoInteger, properties);
+      randomizeYoVariableBuffer(random, next);
+
+      return next;
+   }
+
+   public static YoLongBuffer nextYoLongBuffer(Random random, YoRegistry registry)
+   {
+      YoLong yoLong = nextYoLong(random, registry);
+      YoBufferProperties properties = nextYoBufferProperties(random);
+      YoLongBuffer next = new YoLongBuffer(yoLong, properties);
+      randomizeYoVariableBuffer(random, next);
+
+      return next;
+   }
+
+   public static YoEnumBuffer<?> nextYoEnumBuffer(Random random, YoRegistry registry)
+   {
+      YoEnum<?> yoEnum = nextYoEnum(random, registry);
+      YoBufferProperties properties = nextYoBufferProperties(random);
+      YoEnumBuffer<?> next = new YoEnumBuffer<>(yoEnum, properties);
+      randomizeYoVariableBuffer(random, next);
+
+      return next;
+   }
+
+   public static YoSharedBuffer nextYoSharedBuffer(Random random, int maxNumberOfVariablesPerRegistry, int numberOfRegistries)
+   {
+      return nextYoSharedBuffer(random, nextYoRegistryTree(random, maxNumberOfVariablesPerRegistry, numberOfRegistries)[0]);
+   }
+
+   public static YoSharedBuffer nextYoSharedBuffer(Random random, YoRegistry rootRegistry)
+   {
+      YoSharedBuffer next = new YoSharedBuffer(rootRegistry, random.nextInt(500) + 2);
+      randomizeYoSharedBuffer(random, next);
+      return next;
+   }
+
+   public static void randomizeYoSharedBuffer(Random random, YoSharedBuffer yoSharedBuffer)
+   {
+      randomizeYoRegistryBuffer(random, yoSharedBuffer.getRegistryBuffer());
+      yoSharedBuffer.setCurrentIndex(random.nextInt(yoSharedBuffer.getProperties().getSize()));
+      yoSharedBuffer.setInPoint(random.nextInt(yoSharedBuffer.getProperties().getSize()));
+      yoSharedBuffer.setOutPoint(random.nextInt(yoSharedBuffer.getProperties().getSize()));
+   }
+
+   public static void randomizeYoRegistryBuffer(Random random, YoRegistryBuffer YoRegistryBuffer)
+   {
+      List<YoVariable> allVariables = YoRegistryBuffer.getRootRegistry().collectSubtreeVariables();
+
+      for (int i = 0; i < YoRegistryBuffer.getProperties().getSize(); i++)
+      {
+         allVariables.forEach(v -> randomizeYoVariable(random, v));
+         YoRegistryBuffer.writeBufferAt(i);
+      }
+   }
+
+   public static void randomizeYoVariableBuffer(Random random, YoVariableBuffer<?> yoVariableBuffer)
+   {
+      for (int i = 0; i < yoVariableBuffer.getProperties().getSize(); i++)
+      {
+         randomizeYoVariable(random, yoVariableBuffer.getYoVariable());
+         yoVariableBuffer.writeBufferAt(i);
+      }
    }
 
    public static Class<? extends Enum<?>> nextEnumType(Random random)
@@ -276,14 +390,14 @@ public class YoRandomTools
       YoRegistry root = nextYoRegistry(random, namePrefix + "0", random.nextInt(maxNumberOfVariablesPerRegistry + 1));
       YoRegistry[] registries = new YoRegistry[numberOfRegistries];
       registries[0] = root;
-
+   
       for (int i = 1; i < numberOfRegistries; i++)
       {
          YoRegistry next = nextYoRegistry(random, namePrefix + i, random.nextInt(maxNumberOfVariablesPerRegistry + 1));
          registries[i] = next;
          registries[i - 1].addChild(next);
       }
-
+   
       return registries;
    }
 
@@ -303,14 +417,14 @@ public class YoRandomTools
       nextYoVariables(random, namePrefix, maxNumberOfVariablesPerRegistry, rootRegistry);
       YoRegistry[] registries = new YoRegistry[numberOfRegistries];
       registries[0] = rootRegistry;
-
+   
       for (int i = 1; i < numberOfRegistries; i++)
       {
          YoRegistry next = nextYoRegistry(random, namePrefix + i, random.nextInt(maxNumberOfVariablesPerRegistry + 1));
          registries[i] = next;
          registries[random.nextInt(i)].addChild(next);
       }
-
+   
       return registries;
    }
 }

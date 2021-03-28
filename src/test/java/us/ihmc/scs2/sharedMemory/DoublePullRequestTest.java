@@ -6,7 +6,7 @@ import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryRandomTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
@@ -21,7 +21,7 @@ public class DoublePullRequestTest
       
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoDouble variableToUpdate = YoRandomTools.nextYoDouble(random, new YoRegistry("Dummy"));
+         YoDouble variableToUpdate = SharedMemoryRandomTools.nextYoDouble(random, new YoRegistry("Dummy"));
          double initialValue = variableToUpdate.getValue();
          double valueToPull = random.nextDouble();
          DoublePullRequest pullRequest = new DoublePullRequest(variableToUpdate, valueToPull);
