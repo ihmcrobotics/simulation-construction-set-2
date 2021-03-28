@@ -28,6 +28,7 @@ definitionDependencies {
 }
 
 sharedMemoryDependencies {
+   api(ihmc.sourceSetProject("definition"))
    api("us.ihmc:ihmc-yovariables:0.9.8")
 }
 
