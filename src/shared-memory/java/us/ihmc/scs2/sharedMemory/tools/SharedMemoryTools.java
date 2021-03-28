@@ -1,6 +1,7 @@
 package us.ihmc.scs2.sharedMemory.tools;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -356,10 +357,10 @@ public class SharedMemoryTools
    public static YoRegistry newEmptyCloneRegistry(YoRegistry original)
    {
       YoRegistry clone = new YoRegistry(original.getName());
-   
+
       YoRegistry originalParent = original.getParent();
       YoRegistry currentClone = clone;
-   
+
       while (originalParent != null)
       {
          YoRegistry parentClone = new YoRegistry(originalParent.getName());
@@ -367,7 +368,7 @@ public class SharedMemoryTools
          currentClone = parentClone;
          originalParent = originalParent.getParent();
       }
-   
+
       return clone;
    }
 
@@ -379,7 +380,7 @@ public class SharedMemoryTools
    public static YoRegistry newRegistryFromNamespace(YoNamespace namespace)
    {
       YoRegistry registry = null;
-   
+
       for (String subName : namespace.getSubNames())
       {
          YoRegistry child = new YoRegistry(subName);
@@ -387,7 +388,7 @@ public class SharedMemoryTools
             registry.addChild(child);
          registry = child;
       }
-   
+
       return registry;
    }
 
@@ -401,10 +402,10 @@ public class SharedMemoryTools
    public static int duplicateMissingYoVariablesInTarget(YoRegistry original, YoRegistry target, Consumer<YoVariable> newYoVariableConsumer)
    {
       int numberOfYoVariablesCreated = 0;
-   
+
       // Check for missing variables
       Set<String> targetVariableNames = target.getVariables().stream().map(YoVariable::getName).collect(Collectors.toSet());
-   
+
       for (YoVariable originalVariable : original.getVariables())
       {
          if (!targetVariableNames.contains(originalVariable.getName()))
@@ -427,25 +428,54 @@ public class SharedMemoryTools
             numberOfYoVariablesCreated++;
          }
       }
-   
+
       // Check for missing registries
       Map<String, YoRegistry> targetChildren = target.getChildren().stream().collect(Collectors.toMap(reg -> reg.getName(), Function.identity()));
-   
+
       for (YoRegistry originalChild : original.getChildren())
       {
          String childName = originalChild.getName();
          YoRegistry targetChild = targetChildren.get(childName);
-   
+
          if (targetChild == null)
          {
             targetChild = new YoRegistry(childName);
             target.addChild(targetChild);
          }
-   
+
          // Recurse down the tree
          numberOfYoVariablesCreated += duplicateMissingYoVariablesInTarget(originalChild, targetChild, newYoVariableConsumer);
       }
-   
+
       return numberOfYoVariablesCreated;
+   }
+
+   public static YoRegistry ensurePathExists(YoRegistry rootRegistry, YoNamespace registryNamespace)
+   {
+      if (rootRegistry == null)
+      {
+         rootRegistry = new YoRegistry(registryNamespace.getRootName());
+      }
+      else if (!rootRegistry.getName().equals(registryNamespace.getRootName()))
+      {
+         return null;
+      }
+
+      List<String> subNames = registryNamespace.getSubNames();
+      YoRegistry currentRegistry = rootRegistry;
+
+      for (String subName : subNames.subList(1, subNames.size()))
+      {
+         YoRegistry childRegistry = currentRegistry.getChildren().stream().filter(r -> r.getName().equals(subName)).findFirst().orElse(null);
+         if (childRegistry == null)
+         {
+            childRegistry = new YoRegistry(subName);
+            currentRegistry.addChild(childRegistry);
+         }
+
+         currentRegistry = childRegistry;
+      }
+
+      return currentRegistry;
    }
 }
