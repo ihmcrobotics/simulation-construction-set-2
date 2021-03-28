@@ -58,7 +58,8 @@ public class YoEnumBuffer<E extends Enum<E>> extends YoVariableBuffer<YoEnum<E>>
       return new LinkedYoEnum<>(variableToLink, this);
    }
 
-   byte[] getBuffer()
+   @Override
+   public byte[] getBuffer()
    {
       return buffer;
    }

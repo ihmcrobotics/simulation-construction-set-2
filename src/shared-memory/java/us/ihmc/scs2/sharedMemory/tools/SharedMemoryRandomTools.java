@@ -166,7 +166,7 @@ public class SharedMemoryRandomTools
    public static String nextString(Random random, int minLengthInclusive, int maxLengthInclusive)
    {
       int length = RandomNumbers.nextInt(random, minLengthInclusive, maxLengthInclusive);
-      return RandomStringUtils.random(length, 0, 0, false, false, null, random);
+      return RandomStringUtils.randomAscii(length);
    }
 
    public static String nextAlphanumericString(Random random, int minLengthInclusive, int maxLengthInclusive)
@@ -390,14 +390,14 @@ public class SharedMemoryRandomTools
       YoRegistry root = nextYoRegistry(random, namePrefix + "0", random.nextInt(maxNumberOfVariablesPerRegistry + 1));
       YoRegistry[] registries = new YoRegistry[numberOfRegistries];
       registries[0] = root;
-   
+
       for (int i = 1; i < numberOfRegistries; i++)
       {
          YoRegistry next = nextYoRegistry(random, namePrefix + i, random.nextInt(maxNumberOfVariablesPerRegistry + 1));
          registries[i] = next;
          registries[i - 1].addChild(next);
       }
-   
+
       return registries;
    }
 
@@ -411,20 +411,20 @@ public class SharedMemoryRandomTools
       return nextYoRegistryTree(random, new YoRegistry(namePrefix + "0"), namePrefix, maxNumberOfVariablesPerRegistry, numberOfRegistries);
    }
 
-   public static YoRegistry[] nextYoRegistryTree(Random random, YoRegistry rootRegistry, String namePrefix,
-                                                                 int maxNumberOfVariablesPerRegistry, int numberOfRegistries)
+   public static YoRegistry[] nextYoRegistryTree(Random random, YoRegistry rootRegistry, String namePrefix, int maxNumberOfVariablesPerRegistry,
+                                                 int numberOfRegistries)
    {
       nextYoVariables(random, namePrefix, maxNumberOfVariablesPerRegistry, rootRegistry);
       YoRegistry[] registries = new YoRegistry[numberOfRegistries];
       registries[0] = rootRegistry;
-   
+
       for (int i = 1; i < numberOfRegistries; i++)
       {
          YoRegistry next = nextYoRegistry(random, namePrefix + i, random.nextInt(maxNumberOfVariablesPerRegistry + 1));
          registries[i] = next;
          registries[random.nextInt(i)].addChild(next);
       }
-   
+
       return registries;
    }
 }

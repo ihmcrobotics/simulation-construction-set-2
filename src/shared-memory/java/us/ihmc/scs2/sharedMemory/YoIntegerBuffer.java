@@ -58,7 +58,8 @@ public class YoIntegerBuffer extends YoVariableBuffer<YoInteger>
       return new LinkedYoInteger(variableToLink, this);
    }
 
-   int[] getBuffer()
+   @Override
+   public int[] getBuffer()
    {
       return buffer;
    }
