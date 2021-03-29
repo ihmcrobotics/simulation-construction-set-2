@@ -36,9 +36,8 @@ public abstract class YoBCF2000InputController
 {
    private static final String HIGHLIGHTED_BORDER = "-fx-border-color:green; -fx-border-radius:5;";
    private static final String HIGHLIGHTED_BACKGROUND = "-fx-background-color: #c5fcee88;";
-   private static final String DEFAULT_BORDER = "-fx-border-color: null;";
-   private static final String DEFAULT_BACKGROUND = "-fx-background-color: null;";
-
+   private static final String DEFAULT_BORDER = null;
+   private static final String DEFAULT_BACKGROUND = null;
 
    private YoCompositeSearchManager yoCompositeSearchManager;
 
@@ -78,7 +77,12 @@ public abstract class YoBCF2000InputController
 
       ChangeListener<Object> styleChangeListener = (o, oldValue, newValue) ->
       { // TODO Consider switching to CSS
-         rootPane.setStyle(backgroundStyle.get() + borderStyle.get());
+         String style = null;
+         if (backgroundStyle.get() != null)
+            style = backgroundStyle.get();
+         if (borderStyle.get() != null)
+            style = (style != null ? style + borderStyle.get() : borderStyle.get());
+         rootPane.setStyle(style);
       };
 
       backgroundStyle.addListener(styleChangeListener);
