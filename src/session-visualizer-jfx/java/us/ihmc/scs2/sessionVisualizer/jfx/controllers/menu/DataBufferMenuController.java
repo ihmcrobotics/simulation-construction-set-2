@@ -9,6 +9,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.util.converter.IntegerStringConverter;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
+import us.ihmc.scs2.session.SessionState;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sharedMemory.CropBufferRequest;
@@ -32,6 +33,7 @@ public class DataBufferMenuController
       this.messager = toolkit.getMessager();
       topics = toolkit.getTopics();
       bufferProperties = messager.createPropertyInput(topics.getYoBufferCurrentProperties(), null);
+      messager.registerTopicListener(topics.getSessionCurrentState(), m -> initializeBufferSizeTextField = m == SessionState.INACTIVE);
 
       TextFormatter<Integer> formatter = new TextFormatter<>(new IntegerStringConverter());
       formatter.setValue(0);
@@ -67,11 +69,14 @@ public class DataBufferMenuController
 
       formatter.valueProperty().addListener((o, oldValue, newValue) ->
       {
-         if (updatingBuffer.isFalse())
+         if (bufferProperties.getValue() != null && bufferProperties.getValue().getSize() == newValue.intValue())
+            return;
+
+         if (updatingFormatter.isFalse())
          {
-            updatingFormatter.setTrue();
+            updatingBuffer.setTrue();
             messager.submitMessage(topics.getYoBufferCurrentSizeRequest(), newValue);
-            updatingFormatter.setFalse();
+            updatingBuffer.setFalse();
          }
       });
    }
