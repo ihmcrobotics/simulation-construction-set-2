@@ -501,4 +501,13 @@
 	-jfx-size: 6;
 	-fx-content-display: TOP;
 	-fx-graphic-text-gap: 0;
+    -fx-effect: dropshadow( three-pass-box , derive(-fx-background, -50.0%) , 2.5, 0.0 , 1.5 , 1.5 );
+    -jfx-toggle-color: -default-pale-red;
+    -jfx-untoggle-color: -default-grey;
+}
+
+.sliderboard-button:selected {
+    -fx-effect: dropshadow( three-pass-box , derive(-fx-background, -50.0%) , -2.5, 0.0 , -1.5 , -1.5 );
+    -jfx-toggle-color: -default-pale-red;
+    -jfx-untoggle-color: -default-grey;
 }

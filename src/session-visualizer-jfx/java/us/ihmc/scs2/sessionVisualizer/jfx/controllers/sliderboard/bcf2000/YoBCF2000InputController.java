@@ -11,7 +11,7 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
+import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
@@ -42,7 +42,7 @@ public abstract class YoBCF2000InputController
    private YoCompositeSearchManager yoCompositeSearchManager;
 
    private Region rootPane;
-   private Label yoVariableDropLabel;
+   private Labeled yoVariableDropLabel;
 
    private final SimpleObjectProperty<ContextMenu> contextMenuProperty = new SimpleObjectProperty<>(this, "buttonContextMenu", null);
 
@@ -60,12 +60,12 @@ public abstract class YoBCF2000InputController
    {
    }
 
-   protected void initialize(SessionVisualizerToolkit toolkit, Region rootPane, Label yoVariableDropLabel)
+   protected void initialize(SessionVisualizerToolkit toolkit, Region rootPane, Labeled yoVariableDropLabel)
    {
       initialize(toolkit, rootPane, yoVariableDropLabel, var -> true);
    }
 
-   protected void initialize(SessionVisualizerToolkit toolkit, Region rootPane, Label yoVariableDropLabel, Predicate<YoVariable> filter)
+   protected void initialize(SessionVisualizerToolkit toolkit, Region rootPane, Labeled yoVariableDropLabel, Predicate<YoVariable> filter)
    {
       this.rootPane = rootPane;
       this.yoVariableDropLabel = yoVariableDropLabel;
@@ -105,6 +105,8 @@ public abstract class YoBCF2000InputController
       rootPane.setOnDragExited(this::handleDragExited);
       rootPane.setOnMousePressed(this::handleMousePressed);
       rootPane.setOnMouseReleased(this::handleMouseReleased);
+      yoVariableDropLabel.setOnMousePressed(this::handleMousePressed);
+      yoVariableDropLabel.setOnMouseReleased(this::handleMouseReleased);
    }
 
    public abstract void setYoVariableInput(YoVariable yoVariable);
