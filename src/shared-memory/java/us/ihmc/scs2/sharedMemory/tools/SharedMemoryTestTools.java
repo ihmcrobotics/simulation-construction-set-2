@@ -5,6 +5,12 @@ import java.util.Objects;
 
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.tools.EuclidCoreTestTools;
+import us.ihmc.euclid.tools.EuclidCoreTools;
+import us.ihmc.scs2.sharedMemory.YoBooleanBuffer;
+import us.ihmc.scs2.sharedMemory.YoDoubleBuffer;
+import us.ihmc.scs2.sharedMemory.YoEnumBuffer;
+import us.ihmc.scs2.sharedMemory.YoIntegerBuffer;
+import us.ihmc.scs2.sharedMemory.YoLongBuffer;
 import us.ihmc.scs2.sharedMemory.YoSharedBuffer;
 import us.ihmc.scs2.sharedMemory.YoVariableBuffer;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
@@ -30,7 +36,9 @@ public class SharedMemoryTestTools
          if (actual == null)
             throwNotEqualAssertionError(messagePrefix, expected, actual);
 
-         assertYoBufferPropertiesEquals(messagePrefix, expected.getProperties(), actual.getProperties());
+         if (expected.getProperties().getActiveBufferLength() != actual.getProperties().getActiveBufferLength())
+            throwNotEqualAssertionError(messagePrefix, expected, actual);
+
          assertYoRegistryEquals(expected.getRootRegistry(), actual.getRootRegistry());
 
          if (expected.getRegistryBuffer().getYoVariableBuffers().size() != actual.getRegistryBuffer().getYoVariableBuffers().size())
@@ -64,10 +72,103 @@ public class SharedMemoryTestTools
             throwNotEqualAssertionError(messagePrefix, expected, actual);
 
          assertYoVariableEquals(expected.getYoVariable(), actual.getYoVariable());
-         assertYoBufferPropertiesEquals(messagePrefix, expected.getProperties(), actual.getProperties());
+         if (expected instanceof YoBooleanBuffer)
+            assertYoBooleanBufferDataEquals(messagePrefix, (YoBooleanBuffer) expected, (YoBooleanBuffer) actual, epsilon);
+         else if (expected instanceof YoDoubleBuffer)
+            assertYoDoubleBufferDataEquals(messagePrefix, (YoDoubleBuffer) expected, (YoDoubleBuffer) actual, epsilon);
+         else if (expected instanceof YoIntegerBuffer)
+            assertYoIntegerBufferDataEquals(messagePrefix, (YoIntegerBuffer) expected, (YoIntegerBuffer) actual, epsilon);
+         else if (expected instanceof YoLongBuffer)
+            assertYoLongBufferDataEquals(messagePrefix, (YoLongBuffer) expected, (YoLongBuffer) actual, epsilon);
+         else if (expected instanceof YoEnumBuffer)
+            assertYoEnumBufferDataEquals(messagePrefix, (YoEnumBuffer<?>) expected, (YoEnumBuffer<?>) actual, epsilon);
+         else
+            throw new IllegalArgumentException("Unsupported buffer type: " + expected);
+      }
+   }
 
-         if (!Objects.deepEquals(expected.getBuffer(), actual.getBuffer()))
+   private static void assertYoBooleanBufferDataEquals(String messagePrefix, YoBooleanBuffer expected, YoBooleanBuffer actual, double epsilon)
+   {
+      if (expected.getProperties().getActiveBufferLength() != actual.getProperties().getActiveBufferLength())
+         throwNotEqualAssertionError(messagePrefix, expected, actual);
+
+      int expectedReadIndex = expected.getProperties().getInPoint();
+      int actualReadIndex = actual.getProperties().getInPoint();
+
+      for (int i = 0; i < expected.getProperties().getActiveBufferLength(); i++)
+      {
+         if (expected.getBuffer()[expectedReadIndex] != actual.getBuffer()[actualReadIndex])
             throwNotEqualAssertionError(messagePrefix, expected, actual);
+         expectedReadIndex = SharedMemoryTools.increment(expectedReadIndex, 1, expected.getProperties().getSize());
+         actualReadIndex = SharedMemoryTools.increment(actualReadIndex, 1, actual.getProperties().getSize());
+      }
+   }
+
+   private static void assertYoDoubleBufferDataEquals(String messagePrefix, YoDoubleBuffer expected, YoDoubleBuffer actual, double epsilon)
+   {
+      if (expected.getProperties().getActiveBufferLength() != actual.getProperties().getActiveBufferLength())
+         throwNotEqualAssertionError(messagePrefix, expected, actual);
+
+      int expectedReadIndex = expected.getProperties().getInPoint();
+      int actualReadIndex = actual.getProperties().getInPoint();
+
+      for (int i = 0; i < expected.getProperties().getActiveBufferLength(); i++)
+      {
+         if (!EuclidCoreTools.epsilonEquals(expected.getBuffer()[expectedReadIndex], actual.getBuffer()[actualReadIndex], epsilon))
+            throwNotEqualAssertionError(messagePrefix, expected, actual);
+         expectedReadIndex = SharedMemoryTools.increment(expectedReadIndex, 1, expected.getProperties().getSize());
+         actualReadIndex = SharedMemoryTools.increment(actualReadIndex, 1, actual.getProperties().getSize());
+      }
+   }
+
+   private static void assertYoIntegerBufferDataEquals(String messagePrefix, YoIntegerBuffer expected, YoIntegerBuffer actual, double epsilon)
+   {
+      if (expected.getProperties().getActiveBufferLength() != actual.getProperties().getActiveBufferLength())
+         throwNotEqualAssertionError(messagePrefix, expected, actual);
+
+      int expectedReadIndex = expected.getProperties().getInPoint();
+      int actualReadIndex = actual.getProperties().getInPoint();
+
+      for (int i = 0; i < expected.getProperties().getActiveBufferLength(); i++)
+      {
+         if (expected.getBuffer()[expectedReadIndex] != actual.getBuffer()[actualReadIndex])
+            throwNotEqualAssertionError(messagePrefix, expected, actual);
+         expectedReadIndex = SharedMemoryTools.increment(expectedReadIndex, 1, expected.getProperties().getSize());
+         actualReadIndex = SharedMemoryTools.increment(actualReadIndex, 1, actual.getProperties().getSize());
+      }
+   }
+
+   private static void assertYoLongBufferDataEquals(String messagePrefix, YoLongBuffer expected, YoLongBuffer actual, double epsilon)
+   {
+      if (expected.getProperties().getActiveBufferLength() != actual.getProperties().getActiveBufferLength())
+         throwNotEqualAssertionError(messagePrefix, expected, actual);
+
+      int expectedReadIndex = expected.getProperties().getInPoint();
+      int actualReadIndex = actual.getProperties().getInPoint();
+
+      for (int i = 0; i < expected.getProperties().getActiveBufferLength(); i++)
+      {
+         if (expected.getBuffer()[expectedReadIndex] != actual.getBuffer()[actualReadIndex])
+            throwNotEqualAssertionError(messagePrefix, expected, actual);
+         expectedReadIndex = SharedMemoryTools.increment(expectedReadIndex, 1, expected.getProperties().getSize());
+         actualReadIndex = SharedMemoryTools.increment(actualReadIndex, 1, actual.getProperties().getSize());
+      }
+   }
+
+   private static void assertYoEnumBufferDataEquals(String messagePrefix, YoEnumBuffer<?> expected, YoEnumBuffer<?> actual, double epsilon)
+   {
+      if (expected.getProperties().getActiveBufferLength() != actual.getProperties().getActiveBufferLength())
+         throwNotEqualAssertionError(messagePrefix, expected, actual);
+
+      int expectedReadIndex = expected.getProperties().getInPoint();
+      int actualReadIndex = actual.getProperties().getInPoint();
+
+      for (int i = 0; i < expected.getProperties().getActiveBufferLength(); i++)
+      {
+         if (expected.getBuffer()[expectedReadIndex] != actual.getBuffer()[actualReadIndex])
+            throwNotEqualAssertionError(messagePrefix, expected, actual);
+         expectedReadIndex = SharedMemoryTools.increment(expectedReadIndex, 1, expected.getProperties().getSize());
+         actualReadIndex = SharedMemoryTools.increment(actualReadIndex, 1, actual.getProperties().getSize());
       }
    }
 

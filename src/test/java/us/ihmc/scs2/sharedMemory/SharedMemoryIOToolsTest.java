@@ -52,7 +52,31 @@ public class SharedMemoryIOToolsTest
          SharedMemoryTestTools.assertYoRegistryEquals(exportedBuffer.getRootRegistry(), importedRoot);
          YoSharedBuffer importedBuffer = SharedMemoryIOTools.importDataASCII(new FileInputStream(dataFileName), importedRoot);
 
-         exportedBuffer.cropBuffer(new CropBufferRequest(exportedBuffer.getProperties().getInPoint(), exportedBuffer.getProperties().getOutPoint()));
+         SharedMemoryTestTools.assertYoSharedBufferEquals(exportedBuffer, importedBuffer, 0.0);
+      }
+
+      Files.delete(Paths.get(dataFileName));
+      Files.delete(Paths.get(registryFileName));
+   }
+
+   @Test
+   public void testExportImportCSV() throws JAXBException, IOException
+   {
+      Random random = new Random(35453);
+
+      String dataFileName = "./bufferCSVExport.scs2.data";
+      String registryFileName = "./bufferCSVExport.scs2.registry";
+
+      for (int i = 0; i < 10; i++)
+      {
+         YoSharedBuffer exportedBuffer = SharedMemoryRandomTools.nextYoSharedBuffer(random, 20, 20);
+         SharedMemoryIOTools.exportRegistry(exportedBuffer.getRootRegistry(), new FileOutputStream(registryFileName));
+         SharedMemoryIOTools.exportDataCSV(exportedBuffer, new FileOutputStream(dataFileName));
+
+         YoRegistry importedRoot = SharedMemoryIOTools.importRegistry(new FileInputStream(registryFileName));
+         SharedMemoryTestTools.assertYoRegistryEquals(exportedBuffer.getRootRegistry(), importedRoot);
+         YoSharedBuffer importedBuffer = SharedMemoryIOTools.importDataCSV(new FileInputStream(dataFileName), importedRoot);
+
          SharedMemoryTestTools.assertYoSharedBufferEquals(exportedBuffer, importedBuffer, 0.0);
       }
 
