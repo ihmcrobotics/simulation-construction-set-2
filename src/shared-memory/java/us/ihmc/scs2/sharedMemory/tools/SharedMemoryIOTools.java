@@ -7,8 +7,13 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.IntConsumer;
+import java.util.function.ObjIntConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -31,6 +36,7 @@ import us.ihmc.scs2.sharedMemory.YoSharedBuffer;
 import us.ihmc.scs2.sharedMemory.YoVariableBuffer;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.yoVariables.registry.YoRegistry;
+import us.ihmc.yoVariables.tools.YoSearchTools;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoEnum;
@@ -96,17 +102,24 @@ public class SharedMemoryIOTools
 
    public static YoRegistryDefinition toYoRegistryDefinition(YoRegistry yoRegistry)
    {
-      return toYoRegistryDefinition(yoRegistry, var -> true, reg -> true);
+      return toYoRegistryDefinition(yoRegistry, null, null);
    }
 
    public static YoRegistryDefinition toYoRegistryDefinition(YoRegistry yoRegistry, Predicate<YoVariable> variableFilter, Predicate<YoRegistry> registryFilter)
    {
       YoRegistryDefinition definition = new YoRegistryDefinition();
       definition.setName(yoRegistry.getName());
-      definition.setYoVariables(yoRegistry.getVariables().stream().filter(variableFilter).map(SharedMemoryIOTools::toYoVariableDefinition)
-                                          .collect(Collectors.toList()));
-      definition.setYoRegistries(yoRegistry.getChildren().stream().filter(registryFilter).map(SharedMemoryIOTools::toYoRegistryDefinition)
-                                           .collect(Collectors.toList()));
+
+      Stream<YoVariable> variablesStream = yoRegistry.getVariables().stream();
+      if (variableFilter != null)
+         variablesStream = variablesStream.filter(variableFilter);
+      definition.setYoVariables(variablesStream.map(SharedMemoryIOTools::toYoVariableDefinition).collect(Collectors.toList()));
+
+      Stream<YoRegistry> childrenStream = yoRegistry.getChildren().stream();
+      if (registryFilter != null)
+         childrenStream = childrenStream.filter(registryFilter);
+      definition.setYoRegistries(childrenStream.map(SharedMemoryIOTools::toYoRegistryDefinition).collect(Collectors.toList()));
+
       return definition;
    }
 
@@ -201,7 +214,7 @@ public class SharedMemoryIOTools
 
    public static void exportRegistry(YoRegistry rootRegistry, OutputStream outputStream) throws JAXBException, IOException
    {
-      exportRegistry(rootRegistry, outputStream, var -> true, reg -> true);
+      exportRegistry(rootRegistry, outputStream, null, null);
    }
 
    public static void exportRegistry(YoRegistry rootRegistry, OutputStream outputStream, Predicate<YoVariable> variableFilter,
@@ -213,21 +226,153 @@ public class SharedMemoryIOTools
 
    public static void exportDataASCII(YoSharedBuffer buffer, OutputStream dataOutputStream)
    {
-      exportDataASCII(buffer, dataOutputStream, var -> true, reg -> true);
+      exportDataASCII(buffer, dataOutputStream, null, null);
    }
 
-   public static void exportDataASCII(YoSharedBuffer buffer, OutputStream dataOutputStream, Predicate<YoVariable> variableFilter,
+   public static void exportDataASCII(YoSharedBuffer buffer, OutputStream outputStream, Predicate<YoVariable> variableFilter,
                                       Predicate<YoRegistry> registryFilter)
    {
-      YoVariableBufferWriter writer = newASCIIWriter(dataOutputStream);
+      Stream<YoVariableBuffer<?>> yoVariableBufferStream;
 
-      for (YoVariableBuffer<?> yoVariableBuffer : buffer.getRegistryBuffer().getYoVariableBuffers())
+      if (registryFilter != null)
       {
-         if (variableFilter.test(yoVariableBuffer.getYoVariable()))
-            exportYoVariableBuffer(yoVariableBuffer, writer);
+         List<YoRegistry> filteredRegistries = YoSearchTools.filterRegistries(registryFilter, buffer.getRootRegistry());
+         yoVariableBufferStream = filteredRegistries.stream().flatMap(registry -> registry.getVariables().stream())
+                                                    .map(yoVariable -> buffer.getRegistryBuffer().findYoVariableBuffer(yoVariable));
+      }
+      else
+      {
+         yoVariableBufferStream = buffer.getRegistryBuffer().getYoVariableBuffers().stream();
       }
 
-      writer.closeAndDispose();
+      if (variableFilter != null)
+      {
+         yoVariableBufferStream = yoVariableBufferStream.filter(yoVariableBuffer -> variableFilter.test(yoVariableBuffer.getYoVariable()));
+      }
+
+      PrintStream printStream = new PrintStream(outputStream);
+
+      yoVariableBufferStream.forEach(yoVariableBuffer ->
+      {
+         String variableName = yoVariableBuffer.getYoVariable().getFullNameString();
+         YoBufferPropertiesReadOnly properties = yoVariableBuffer.getProperties();
+         int inPoint = properties.getInPoint();
+         int activeBufferLength = properties.getActiveBufferLength();
+
+         printStream.print(variableName + ": ");
+         printStream.println(arrayToString(yoVariableBuffer.copy(inPoint, activeBufferLength, properties).getSample()));
+      });
+
+      printStream.close();
+   }
+
+   public static void exportDataCSV(YoSharedBuffer buffer, OutputStream dataOutputStream)
+   {
+      exportDataCSV(buffer, dataOutputStream, null, null);
+   }
+
+   public static void exportDataCSV(YoSharedBuffer buffer, OutputStream outputStream, Predicate<YoVariable> variableFilter,
+                                    Predicate<YoRegistry> registryFilter)
+   {
+      Stream<YoVariableBuffer<?>> yoVariableBufferStream;
+
+      if (registryFilter != null)
+      {
+         List<YoRegistry> filteredRegistries = YoSearchTools.filterRegistries(registryFilter, buffer.getRootRegistry());
+         yoVariableBufferStream = filteredRegistries.stream().flatMap(registry -> registry.getVariables().stream())
+                                                    .map(yoVariable -> buffer.getRegistryBuffer().findYoVariableBuffer(yoVariable));
+      }
+      else
+      {
+         yoVariableBufferStream = buffer.getRegistryBuffer().getYoVariableBuffers().stream();
+      }
+
+      if (variableFilter != null)
+      {
+         yoVariableBufferStream = yoVariableBufferStream.filter(yoVariableBuffer -> variableFilter.test(yoVariableBuffer.getYoVariable()));
+      }
+
+      PrintStream printStream = new PrintStream(outputStream);
+
+      YoVariableBuffer<?>[] yoVariableBuffersToExport = yoVariableBufferStream.toArray(YoVariableBuffer[]::new);
+
+      for (int bufferIndex = 0; bufferIndex < yoVariableBuffersToExport.length; bufferIndex++)
+      {
+         printStream.print(yoVariableBuffersToExport[bufferIndex].getYoVariable().getFullNameString());
+         if (bufferIndex < yoVariableBuffersToExport.length - 1)
+            printStream.print(", ");
+         else
+            printStream.println();
+      }
+
+      YoBufferPropertiesReadOnly properties = buffer.getProperties();
+      int readPosition = properties.getInPoint();
+
+      IntConsumer[] bufferValueWriters = Stream.of(yoVariableBuffersToExport).map(yoVariableBuffer ->
+      {
+         Object internalBuffer = yoVariableBuffer.getBuffer();
+
+         if (yoVariableBuffer instanceof YoBooleanBuffer)
+         {
+            boolean[] booleanBuffer = (boolean[]) internalBuffer;
+            return (IntConsumer) position -> printStream.print(booleanBuffer[position]);
+         }
+         if (yoVariableBuffer instanceof YoDoubleBuffer)
+         {
+            double[] doubleBuffer = (double[]) internalBuffer;
+            return (IntConsumer) position -> printStream.print(doubleBuffer[position]);
+         }
+         if (yoVariableBuffer instanceof YoIntegerBuffer)
+         {
+            int[] intBuffer = (int[]) internalBuffer;
+            return (IntConsumer) position -> printStream.print(intBuffer[position]);
+         }
+         if (yoVariableBuffer instanceof YoLongBuffer)
+         {
+            long[] longBuffer = (long[]) internalBuffer;
+            return (IntConsumer) position -> printStream.print(longBuffer[position]);
+         }
+         if (yoVariableBuffer instanceof YoEnumBuffer)
+         {
+            byte[] byteBuffer = (byte[]) internalBuffer;
+            String[] enumConstants = ((YoEnum<?>) yoVariableBuffer.getYoVariable()).getEnumValuesAsString();
+            return (IntConsumer) position -> printStream.print(byteBuffer[position] == YoEnum.NULL_VALUE ? YoEnum.NULL_VALUE_STRING
+                  : enumConstants[byteBuffer[position]]);
+         }
+
+         throw new IllegalArgumentException("Unhandled buffer type: " + yoVariableBuffer);
+      }).toArray(IntConsumer[]::new);
+
+      for (int i = 0; i < properties.getActiveBufferLength(); i++)
+      {
+         for (int bufferIndex = 0; bufferIndex < yoVariableBuffersToExport.length; bufferIndex++)
+         {
+            bufferValueWriters[bufferIndex].accept(readPosition);
+            if (bufferIndex < yoVariableBuffersToExport.length - 1)
+               printStream.print(", ");
+            else
+               printStream.println();
+         }
+
+         readPosition = SharedMemoryTools.increment(readPosition, 1, properties.getSize());
+      }
+
+      printStream.close();
+   }
+
+   private static String arrayToString(Object array)
+   {
+      if (array instanceof boolean[])
+         return Arrays.toString((boolean[]) array);
+      if (array instanceof double[])
+         return Arrays.toString((double[]) array);
+      if (array instanceof int[])
+         return Arrays.toString((int[]) array);
+      if (array instanceof long[])
+         return Arrays.toString((long[]) array);
+      if (array instanceof byte[])
+         return Arrays.toString((byte[]) array);
+      throw new IllegalArgumentException("Unsupported type: " + array);
    }
 
    public static YoRegistry importRegistry(InputStream inputStream) throws JAXBException, IOException
@@ -235,11 +380,11 @@ public class SharedMemoryIOTools
       return toYoRegistry(loadYoRegistryDefinition(inputStream));
    }
 
-   public static YoSharedBuffer importDataASCII(InputStream dataInputStream, YoRegistry root) throws IOException
+   public static YoSharedBuffer importDataASCII(InputStream inputStream, YoRegistry root) throws IOException
    {
       YoSharedBuffer buffer = new YoSharedBuffer(root, 1);
 
-      BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(dataInputStream));
+      BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
       bufferedReader.lines().forEach(line ->
       {
@@ -286,6 +431,83 @@ public class SharedMemoryIOTools
          }
       });
 
+      bufferedReader.close();
+
+      return buffer;
+   }
+
+   public static YoSharedBuffer importDataCSV(InputStream inputStream, YoRegistry root) throws IOException
+   {
+      YoSharedBuffer buffer = new YoSharedBuffer(root, 2048);
+
+      BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+
+      String currentLine = bufferedReader.readLine();
+
+      int currentPosition = 0;
+      String[] variableNames = currentLine.split(", ");
+
+      @SuppressWarnings("unchecked")
+      ObjIntConsumer<String>[] bufferValueReaders = Stream.of(variableNames).map(variableName ->
+      {
+         YoVariable yoVariable = root.findVariable(variableName);
+         YoVariableBuffer<?> yoVariableBuffer = buffer.getRegistryBuffer().findYoVariableBuffer(yoVariable);
+
+         Object internalBuffer = yoVariableBuffer.getBuffer();
+
+         if (yoVariableBuffer instanceof YoBooleanBuffer)
+         {
+            boolean[] booleanBuffer = (boolean[]) internalBuffer;
+            return (ObjIntConsumer<String>) (value, position) -> booleanBuffer[position] = Boolean.parseBoolean(value);
+         }
+         if (yoVariableBuffer instanceof YoDoubleBuffer)
+         {
+            double[] doubleBuffer = (double[]) internalBuffer;
+            return (ObjIntConsumer<String>) (value, position) -> doubleBuffer[position] = Double.parseDouble(value);
+         }
+         if (yoVariableBuffer instanceof YoIntegerBuffer)
+         {
+            int[] intBuffer = (int[]) internalBuffer;
+            return (ObjIntConsumer<String>) (value, position) -> intBuffer[position] = Integer.parseInt(value);
+         }
+         if (yoVariableBuffer instanceof YoLongBuffer)
+         {
+            long[] longBuffer = (long[]) internalBuffer;
+            return (ObjIntConsumer<String>) (value, position) -> longBuffer[position] = Long.parseLong(value);
+         }
+         if (yoVariableBuffer instanceof YoEnumBuffer)
+         {
+            byte[] byteBuffer = (byte[]) internalBuffer;
+            List<String> enumConstants = Arrays.asList(((YoEnum<?>) yoVariable).getEnumValuesAsString());
+            return (ObjIntConsumer<String>) (value, position) ->
+            {
+               if (Objects.equals(value, YoEnum.NULL_VALUE_STRING))
+                  byteBuffer[position] = YoEnum.NULL_VALUE;
+               else
+                  byteBuffer[position] = (byte) enumConstants.indexOf(value);
+            };
+         }
+
+         throw new IllegalArgumentException("Unhandled buffer type: " + yoVariableBuffer);
+
+      }).toArray(ObjIntConsumer[]::new);
+
+      while ((currentLine = bufferedReader.readLine()) != null)
+      {
+         if (currentPosition >= buffer.getProperties().getSize())
+            buffer.resizeBuffer(2 * buffer.getProperties().getSize());
+
+         String[] currentValues = currentLine.split(", ");
+         for (int bufferIndex = 0; bufferIndex < bufferValueReaders.length; bufferIndex++)
+         {
+            bufferValueReaders[bufferIndex].accept(currentValues[bufferIndex], currentPosition);
+         }
+
+         currentPosition++;
+      }
+
+      buffer.setInPoint(0);
+      buffer.setOutPoint(currentPosition - 1);
       bufferedReader.close();
 
       return buffer;
@@ -369,100 +591,5 @@ public class SharedMemoryIOTools
       }
 
       return parsedArray;
-   }
-
-   private static YoVariableBufferWriter newASCIIWriter(OutputStream outputStream)
-   {
-      PrintStream printStream = new PrintStream(outputStream);
-
-      return new YoVariableBufferWriter()
-      {
-         @Override
-         public void writeBoolean(String variableName, boolean[] buffer)
-         {
-            printStream.print(variableName + ": ");
-            printStream.println(Arrays.toString(buffer));
-         }
-
-         @Override
-         public void writeDouble(String variableName, double[] buffer)
-         {
-            printStream.print(variableName + ": ");
-            printStream.println(Arrays.toString(buffer));
-         }
-
-         @Override
-         public void writeInteger(String variableName, int[] buffer)
-         {
-            printStream.print(variableName + ": ");
-            printStream.println(Arrays.toString(buffer));
-         }
-
-         @Override
-         public void writeLong(String variableName, long[] buffer)
-         {
-            printStream.print(variableName + ": ");
-            printStream.println(Arrays.toString(buffer));
-         }
-
-         @Override
-         public void writeEnum(String variableName, String[] enumConstants, byte[] buffer)
-         {
-            printStream.print(variableName + ": ");
-            printStream.println(Arrays.toString(buffer));
-         }
-
-         @Override
-         public void closeAndDispose()
-         {
-            printStream.close();
-         }
-      };
-   }
-
-   public static void exportYoVariableBuffer(YoVariableBuffer<?> yoVariableBuffer, YoVariableBufferWriter writer)
-   {
-      String variableName = yoVariableBuffer.getYoVariable().getFullNameString();
-      YoBufferPropertiesReadOnly properties = yoVariableBuffer.getProperties();
-      int inPoint = properties.getInPoint();
-      int activeBufferLength = properties.getActiveBufferLength();
-
-      if (yoVariableBuffer instanceof YoBooleanBuffer)
-      {
-         writer.writeBoolean(variableName, (boolean[]) yoVariableBuffer.copy(inPoint, activeBufferLength, properties).getSample());
-      }
-      else if (yoVariableBuffer instanceof YoDoubleBuffer)
-      {
-         writer.writeDouble(variableName, (double[]) yoVariableBuffer.copy(inPoint, activeBufferLength, properties).getSample());
-      }
-      else if (yoVariableBuffer instanceof YoIntegerBuffer)
-      {
-         writer.writeInteger(variableName, (int[]) yoVariableBuffer.copy(inPoint, activeBufferLength, properties).getSample());
-      }
-      else if (yoVariableBuffer instanceof YoLongBuffer)
-      {
-         writer.writeLong(variableName, (long[]) yoVariableBuffer.copy(inPoint, activeBufferLength, properties).getSample());
-      }
-      else if (yoVariableBuffer instanceof YoEnumBuffer)
-      {
-         writer.writeEnum(variableName,
-                          ((YoEnum<?>) yoVariableBuffer.getYoVariable()).getEnumValuesAsString(),
-                          (byte[]) yoVariableBuffer.copy(inPoint, activeBufferLength, properties).getSample());
-      }
-   }
-
-   private static interface YoVariableBufferWriter
-   {
-      void writeBoolean(String variableName, boolean[] buffer);
-
-      void writeDouble(String variableName, double[] buffer);
-
-      void writeInteger(String variableName, int[] buffer);
-
-      void writeLong(String variableName, long[] buffer);
-
-      void writeEnum(String variableName, String[] enumConstants, byte[] buffer);
-
-      void closeAndDispose();
    }
 }
