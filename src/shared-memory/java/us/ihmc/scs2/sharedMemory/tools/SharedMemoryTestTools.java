@@ -311,8 +311,22 @@ public class SharedMemoryTestTools
    {
       if (yoVariableBuffer == null)
          return "null";
+
+      String bufferAsString;
+      if (yoVariableBuffer instanceof YoBooleanBuffer)
+         bufferAsString = Arrays.toString((boolean[]) yoVariableBuffer.getBuffer());
+      else if (yoVariableBuffer instanceof YoDoubleBuffer)
+         bufferAsString = Arrays.toString((double[]) yoVariableBuffer.getBuffer());
+      else if (yoVariableBuffer instanceof YoIntegerBuffer)
+         bufferAsString = Arrays.toString((int[]) yoVariableBuffer.getBuffer());
+      else if (yoVariableBuffer instanceof YoLongBuffer)
+         bufferAsString = Arrays.toString((long[]) yoVariableBuffer.getBuffer());
+      else if (yoVariableBuffer instanceof YoEnumBuffer)
+         bufferAsString = Arrays.toString((byte[]) yoVariableBuffer.getBuffer());
       else
-         return yoVariableBuffer.getClass().getSimpleName() + ", variable [" + getYoVariableString(yoVariableBuffer.getYoVariable()) + "], buffer properties: ["
-               + yoVariableBuffer.getProperties() + "], buffer: " + Arrays.toString((Object[]) yoVariableBuffer.getBuffer());
+         bufferAsString = "Unknow type: " + yoVariableBuffer.getBuffer();
+
+      return yoVariableBuffer.getClass().getSimpleName() + ", variable [" + getYoVariableString(yoVariableBuffer.getYoVariable()) + "], buffer properties: ["
+            + yoVariableBuffer.getProperties() + "], buffer: " + bufferAsString;
    }
 }

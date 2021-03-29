@@ -1,5 +1,6 @@
 package us.ihmc.scs2.sharedMemory;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -76,6 +77,33 @@ public class SharedMemoryIOToolsTest
          YoRegistry importedRoot = SharedMemoryIOTools.importRegistry(new FileInputStream(registryFileName));
          SharedMemoryTestTools.assertYoRegistryEquals(exportedBuffer.getRootRegistry(), importedRoot);
          YoSharedBuffer importedBuffer = SharedMemoryIOTools.importDataCSV(new FileInputStream(dataFileName), importedRoot);
+
+         SharedMemoryTestTools.assertYoSharedBufferEquals(exportedBuffer, importedBuffer, 0.0);
+      }
+
+      Files.delete(Paths.get(dataFileName));
+      Files.delete(Paths.get(registryFileName));
+   }
+
+   @Test
+   public void testExportImportMatlab() throws JAXBException, IOException
+   {
+      Random random = new Random(35453);
+
+      String dataFileName = "./bufferMatlabExport.scs2.mat";
+      String registryFileName = "./bufferMatlabExport.scs2.registry";
+
+      for (int i = 0; i < 100; i++)
+      {
+         YoSharedBuffer exportedBuffer = SharedMemoryRandomTools.nextYoSharedBuffer(random, 20, 20);
+         SharedMemoryIOTools.exportRegistry(exportedBuffer.getRootRegistry(), new FileOutputStream(registryFileName));
+         SharedMemoryIOTools.exportDataMatlab(exportedBuffer, new File(dataFileName));
+
+         YoRegistry importedRoot = SharedMemoryIOTools.importRegistry(new FileInputStream(registryFileName));
+         SharedMemoryTestTools.assertYoRegistryEquals(exportedBuffer.getRootRegistry(), importedRoot);
+         YoSharedBuffer importedBuffer = SharedMemoryIOTools.importDataMatlab(new File(dataFileName), importedRoot);
+
+         exportedBuffer.cropBuffer(new CropBufferRequest(exportedBuffer.getProperties().getInPoint(), exportedBuffer.getProperties().getOutPoint()));
 
          SharedMemoryTestTools.assertYoSharedBufferEquals(exportedBuffer, importedBuffer, 0.0);
       }

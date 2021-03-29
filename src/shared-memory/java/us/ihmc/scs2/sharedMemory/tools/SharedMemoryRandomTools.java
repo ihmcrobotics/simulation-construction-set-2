@@ -1,16 +1,32 @@
 package us.ihmc.scs2.sharedMemory.tools;
 
+import static us.ihmc.euclid.tools.EuclidCoreTestTools.addPrefixToMessage;
+
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.mutable.MutableObject;
 
 import us.ihmc.commons.RandomNumbers;
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
-import us.ihmc.scs2.sharedMemory.*;
+import us.ihmc.scs2.sharedMemory.YoBooleanBuffer;
+import us.ihmc.scs2.sharedMemory.YoBufferProperties;
+import us.ihmc.scs2.sharedMemory.YoDoubleBuffer;
+import us.ihmc.scs2.sharedMemory.YoEnumBuffer;
+import us.ihmc.scs2.sharedMemory.YoIntegerBuffer;
+import us.ihmc.scs2.sharedMemory.YoLongBuffer;
+import us.ihmc.scs2.sharedMemory.YoRegistryBuffer;
+import us.ihmc.scs2.sharedMemory.YoSharedBuffer;
+import us.ihmc.scs2.sharedMemory.YoVariableBuffer;
 import us.ihmc.yoVariables.registry.YoRegistry;
-import us.ihmc.yoVariables.variable.*;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoEnum;
+import us.ihmc.yoVariables.variable.YoInteger;
+import us.ihmc.yoVariables.variable.YoLong;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class SharedMemoryRandomTools
 {
@@ -111,6 +127,11 @@ public class SharedMemoryRandomTools
       return nextYoSharedBuffer(random, nextYoRegistryTree(random, maxNumberOfVariablesPerRegistry, numberOfRegistries)[0]);
    }
 
+   public static YoSharedBuffer nextYoSharedBuffer(Random random, int maxNumberOfVariablesPerRegistry, int numberOfRegistries, int maxRegistryDepth)
+   {
+      return nextYoSharedBuffer(random, nextYoRegistryTree(random, maxNumberOfVariablesPerRegistry, numberOfRegistries)[0]);
+   }
+
    public static YoSharedBuffer nextYoSharedBuffer(Random random, YoRegistry rootRegistry)
    {
       YoSharedBuffer next = new YoSharedBuffer(rootRegistry, random.nextInt(500) + 2);
@@ -172,7 +193,7 @@ public class SharedMemoryRandomTools
    public static String nextAlphanumericString(Random random, int minLengthInclusive, int maxLengthInclusive)
    {
       int length = RandomNumbers.nextInt(random, minLengthInclusive, maxLengthInclusive);
-      return RandomStringUtils.random(length, 0, 0, true, true, null, random);
+      return RandomStringUtils.randomAlphanumeric(length);
    }
 
    public static String nextAvailableVariableName(Random random, int minLengthInclusive, int maxLengthInclusive, YoRegistry registry)
@@ -185,10 +206,11 @@ public class SharedMemoryRandomTools
 
    public static String nextAvailableRegistryName(Random random, int minLengthInclusive, int maxLengthInclusive, YoRegistry registry)
    {
-      MutableObject<String> next = new MutableObject<>(nextAlphanumericString(random, minLengthInclusive, maxLengthInclusive));
-      while (registry.getChildren().stream().anyMatch(child -> child.getName().equals(next.getValue())))
-         next.setValue(nextAlphanumericString(random, minLengthInclusive, maxLengthInclusive));
-      return next.getValue();
+      Set<String> childrenNames = registry.getChildren().stream().map(YoRegistry::getName).collect(Collectors.toSet());
+      String next = nextAlphanumericString(random, minLengthInclusive, maxLengthInclusive);
+      while (childrenNames.contains(next))
+         next = nextAlphanumericString(random, minLengthInclusive, maxLengthInclusive);
+      return next;
    }
 
    public static YoVariable nextYoVariable(Random random, YoRegistry registry)
@@ -376,26 +398,31 @@ public class SharedMemoryRandomTools
    public static YoRegistry nextYoRegistry(Random random, String name, int numberOfVariables)
    {
       YoRegistry next = new YoRegistry(name);
-      nextYoVariables(random, name, numberOfVariables, next);
+      nextYoVariables(random, name + "_var", numberOfVariables, next);
       return next;
    }
 
    public static YoRegistry[] nextYoRegistryChain(Random random, int maxNumberOfVariablesPerRegistry, int numberOfRegistries)
    {
-      return nextYoRegistryChain(random, nextAlphanumericString(random, 1, 50), maxNumberOfVariablesPerRegistry, numberOfRegistries);
+      return nextYoRegistryChain(random, null, maxNumberOfVariablesPerRegistry, numberOfRegistries);
    }
 
    public static YoRegistry[] nextYoRegistryChain(Random random, String namePrefix, int maxNumberOfVariablesPerRegistry, int numberOfRegistries)
    {
-      YoRegistry root = nextYoRegistry(random, namePrefix + "0", random.nextInt(maxNumberOfVariablesPerRegistry + 1));
+      YoRegistry root = nextYoRegistry(random,
+                                       addPrefixToMessage(namePrefix, nextAlphanumericString(random, 1, 50)),
+                                       random.nextInt(maxNumberOfVariablesPerRegistry + 1));
       YoRegistry[] registries = new YoRegistry[numberOfRegistries];
       registries[0] = root;
 
       for (int i = 1; i < numberOfRegistries; i++)
       {
-         YoRegistry next = nextYoRegistry(random, namePrefix + i, random.nextInt(maxNumberOfVariablesPerRegistry + 1));
+         YoRegistry parentRegistry = registries[i - 1];
+         YoRegistry next = nextYoRegistry(random,
+                                          addPrefixToMessage(namePrefix, nextAvailableRegistryName(random, 1, 50, parentRegistry)),
+                                          random.nextInt(maxNumberOfVariablesPerRegistry + 1));
          registries[i] = next;
-         registries[i - 1].addChild(next);
+         parentRegistry.addChild(next);
       }
 
       return registries;
@@ -403,26 +430,41 @@ public class SharedMemoryRandomTools
 
    public static YoRegistry[] nextYoRegistryTree(Random random, int maxNumberOfVariablesPerRegistry, int numberOfRegistries)
    {
-      return nextYoRegistryTree(random, nextAlphanumericString(random, 1, 50), maxNumberOfVariablesPerRegistry, numberOfRegistries);
+      return nextYoRegistryTree(random, (String) null, maxNumberOfVariablesPerRegistry, numberOfRegistries);
    }
 
    public static YoRegistry[] nextYoRegistryTree(Random random, String namePrefix, int maxNumberOfVariablesPerRegistry, int numberOfRegistries)
    {
-      return nextYoRegistryTree(random, new YoRegistry(namePrefix + "0"), namePrefix, maxNumberOfVariablesPerRegistry, numberOfRegistries);
+      return nextYoRegistryTree(random,
+                                nextYoRegistry(random,
+                                               addPrefixToMessage(namePrefix, nextAlphanumericString(random, 1, 50)),
+                                               random.nextInt(maxNumberOfVariablesPerRegistry + 1)),
+                                maxNumberOfVariablesPerRegistry,
+                                numberOfRegistries);
    }
 
-   public static YoRegistry[] nextYoRegistryTree(Random random, YoRegistry rootRegistry, String namePrefix, int maxNumberOfVariablesPerRegistry,
+   public static YoRegistry[] nextYoRegistryTree(Random random, YoRegistry rootRegistry, int maxNumberOfVariablesPerRegistry, int numberOfRegistries)
+   {
+      return nextYoRegistryTree(random, rootRegistry, null, maxNumberOfVariablesPerRegistry, numberOfRegistries);
+   }
+
+   public static YoRegistry[] nextYoRegistryTree(Random random,
+                                                 YoRegistry rootRegistry,
+                                                 String namePrefix,
+                                                 int maxNumberOfVariablesPerRegistry,
                                                  int numberOfRegistries)
    {
-      nextYoVariables(random, namePrefix, maxNumberOfVariablesPerRegistry, rootRegistry);
       YoRegistry[] registries = new YoRegistry[numberOfRegistries];
       registries[0] = rootRegistry;
 
       for (int i = 1; i < numberOfRegistries; i++)
       {
-         YoRegistry next = nextYoRegistry(random, namePrefix + i, random.nextInt(maxNumberOfVariablesPerRegistry + 1));
+         YoRegistry parentRegistry = registries[random.nextInt(i)];
+         YoRegistry next = nextYoRegistry(random,
+                                          addPrefixToMessage(namePrefix, nextAvailableRegistryName(random, 1, 50, parentRegistry)),
+                                          random.nextInt(maxNumberOfVariablesPerRegistry + 1));
          registries[i] = next;
-         registries[random.nextInt(i)].addChild(next);
+         parentRegistry.addChild(next);
       }
 
       return registries;
