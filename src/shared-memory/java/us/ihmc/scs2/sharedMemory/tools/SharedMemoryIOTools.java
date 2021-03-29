@@ -1,6 +1,7 @@
 package us.ihmc.scs2.sharedMemory.tools;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -20,6 +21,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
+import us.hebi.matlab.mat.format.Mat5;
+import us.hebi.matlab.mat.types.MatFile;
+import us.hebi.matlab.mat.types.Matrix;
 import us.ihmc.scs2.definition.yoVariable.YoBooleanDefinition;
 import us.ihmc.scs2.definition.yoVariable.YoDoubleDefinition;
 import us.ihmc.scs2.definition.yoVariable.YoEnumDefinition;
@@ -360,6 +364,101 @@ public class SharedMemoryIOTools
       printStream.close();
    }
 
+   public static void exportDataMatlab(YoSharedBuffer buffer, File outputFile) throws IOException
+   {
+      exportDataMatlab(buffer, outputFile, null, null);
+   }
+
+   public static void exportDataMatlab(YoSharedBuffer buffer, File outputFile, Predicate<YoVariable> variableFilter,
+                                       Predicate<YoRegistry> registryFilter)
+         throws IOException
+   {
+      Stream<YoVariableBuffer<?>> yoVariableBufferStream;
+
+      if (registryFilter != null)
+      {
+         List<YoRegistry> filteredRegistries = YoSearchTools.filterRegistries(registryFilter, buffer.getRootRegistry());
+         yoVariableBufferStream = filteredRegistries.stream().flatMap(registry -> registry.getVariables().stream())
+                                                    .map(yoVariable -> buffer.getRegistryBuffer().findYoVariableBuffer(yoVariable));
+      }
+      else
+      {
+         yoVariableBufferStream = buffer.getRegistryBuffer().getYoVariableBuffers().stream();
+      }
+
+      if (variableFilter != null)
+      {
+         yoVariableBufferStream = yoVariableBufferStream.filter(yoVariableBuffer -> variableFilter.test(yoVariableBuffer.getYoVariable()));
+      }
+
+      MatFile matFile = Mat5.newMatFile();
+
+      yoVariableBufferStream.forEach(yoVariableBuffer ->
+      {
+         YoBufferPropertiesReadOnly properties = yoVariableBuffer.getProperties();
+         Matrix matMatrix = Mat5.newMatrix(new int[] {1, properties.getActiveBufferLength()});
+         writeBuffer(yoVariableBuffer.getBuffer(), matMatrix, properties.getInPoint(), properties.getActiveBufferLength());
+         matFile.addArray(yoVariableBuffer.getYoVariable().getFullNameString(), matMatrix);
+      });
+
+      Mat5.writeToFile(matFile, outputFile);
+   }
+
+   private static void writeBuffer(Object buffer, Matrix matrix, int start, int length)
+   {
+      int readingPosition = start;
+
+      if (buffer instanceof boolean[])
+      {
+         boolean[] booleanBuffer = (boolean[]) buffer;
+         for (int i = 0; i < length; i++)
+         {
+            matrix.setBoolean(i, booleanBuffer[readingPosition]);
+            readingPosition = SharedMemoryTools.increment(readingPosition, 1, booleanBuffer.length);
+         }
+      }
+      else if (buffer instanceof double[])
+      {
+         double[] doubleBuffer = (double[]) buffer;
+         for (int i = 0; i < length; i++)
+         {
+            matrix.setDouble(i, doubleBuffer[readingPosition]);
+            readingPosition = SharedMemoryTools.increment(readingPosition, 1, doubleBuffer.length);
+         }
+      }
+      else if (buffer instanceof int[])
+      {
+         int[] intBuffer = (int[]) buffer;
+         for (int i = 0; i < length; i++)
+         {
+            matrix.setInt(i, intBuffer[readingPosition]);
+            readingPosition = SharedMemoryTools.increment(readingPosition, 1, intBuffer.length);
+         }
+      }
+      else if (buffer instanceof long[])
+      {
+         long[] longBuffer = (long[]) buffer;
+         for (int i = 0; i < length; i++)
+         {
+            matrix.setLong(i, longBuffer[readingPosition]);
+            readingPosition = SharedMemoryTools.increment(readingPosition, 1, longBuffer.length);
+         }
+      }
+      else if (buffer instanceof byte[])
+      {
+         byte[] byteBuffer = (byte[]) buffer;
+         for (int i = 0; i < length; i++)
+         {
+            matrix.setByte(i, byteBuffer[readingPosition]);
+            readingPosition = SharedMemoryTools.increment(readingPosition, 1, byteBuffer.length);
+         }
+      }
+      else
+      {
+         throw new IllegalArgumentException("Unsupported buffer type: " + buffer);
+      }
+   }
+
    private static String arrayToString(Object array)
    {
       if (array instanceof boolean[])
@@ -395,35 +494,34 @@ public class SharedMemoryIOTools
          YoVariable yoVariable = root.findVariable(variableName);
          YoVariableBuffer<?> yoVariableBuffer = buffer.getRegistryBuffer().findYoVariableBuffer(yoVariable);
 
+         data = data.substring(data.indexOf("[") + 1, data.lastIndexOf("]"));
+         String[] values = data.split(", ");
+         growBufferIfNeeded(buffer, values.length);
+
          if (yoVariable instanceof YoBoolean)
          {
-            boolean[] bufferData = parseBooleanArray(data);
-            growBufferIfNeeded(buffer, bufferData.length);
-            System.arraycopy(bufferData, 0, yoVariableBuffer.getBuffer(), 0, bufferData.length);
+            for (int i = 0; i < values.length; i++)
+               ((boolean[]) yoVariableBuffer.getBuffer())[i] = Boolean.parseBoolean(values[i]);
          }
          else if (yoVariable instanceof YoDouble)
          {
-            double[] bufferData = parseDoubleArray(data);
-            growBufferIfNeeded(buffer, bufferData.length);
-            System.arraycopy(bufferData, 0, yoVariableBuffer.getBuffer(), 0, bufferData.length);
+            for (int i = 0; i < values.length; i++)
+               ((double[]) yoVariableBuffer.getBuffer())[i] = Double.parseDouble(values[i]);
          }
          else if (yoVariable instanceof YoInteger)
          {
-            int[] bufferData = parseIntegerArray(data);
-            growBufferIfNeeded(buffer, bufferData.length);
-            System.arraycopy(bufferData, 0, yoVariableBuffer.getBuffer(), 0, bufferData.length);
+            for (int i = 0; i < values.length; i++)
+               ((int[]) yoVariableBuffer.getBuffer())[i] = Integer.parseInt(values[i]);
          }
          else if (yoVariable instanceof YoLong)
          {
-            long[] bufferData = parseLongArray(data);
-            growBufferIfNeeded(buffer, bufferData.length);
-            System.arraycopy(bufferData, 0, yoVariableBuffer.getBuffer(), 0, bufferData.length);
+            for (int i = 0; i < values.length; i++)
+               ((long[]) yoVariableBuffer.getBuffer())[i] = Long.parseLong(values[i]);
          }
          else if (yoVariable instanceof YoEnum<?>)
          {
-            byte[] bufferData = parseByteArray(data);
-            growBufferIfNeeded(buffer, bufferData.length);
-            System.arraycopy(bufferData, 0, yoVariableBuffer.getBuffer(), 0, bufferData.length);
+            for (int i = 0; i < values.length; i++)
+               ((byte[]) yoVariableBuffer.getBuffer())[i] = Byte.parseByte(values[i]);
          }
          else
          {
@@ -521,75 +619,5 @@ public class SharedMemoryIOTools
          buffer.setInPoint(0);
          buffer.setOutPoint(newSize - 1);
       }
-   }
-
-   private static boolean[] parseBooleanArray(String data)
-   {
-      data = data.substring(data.indexOf("[") + 1, data.lastIndexOf("]"));
-      String[] elements = data.split(", ");
-      boolean[] parsedArray = new boolean[elements.length];
-
-      for (int i = 0; i < elements.length; i++)
-      {
-         parsedArray[i] = Boolean.parseBoolean(elements[i]);
-      }
-
-      return parsedArray;
-   }
-
-   private static double[] parseDoubleArray(String data)
-   {
-      data = data.substring(data.indexOf("[") + 1, data.lastIndexOf("]"));
-      String[] elements = data.split(", ");
-      double[] parsedArray = new double[elements.length];
-
-      for (int i = 0; i < elements.length; i++)
-      {
-         parsedArray[i] = Double.parseDouble(elements[i]);
-      }
-
-      return parsedArray;
-   }
-
-   private static int[] parseIntegerArray(String data)
-   {
-      data = data.substring(data.indexOf("[") + 1, data.lastIndexOf("]"));
-      String[] elements = data.split(", ");
-      int[] parsedArray = new int[elements.length];
-
-      for (int i = 0; i < elements.length; i++)
-      {
-         parsedArray[i] = Integer.parseInt(elements[i]);
-      }
-
-      return parsedArray;
-   }
-
-   private static long[] parseLongArray(String data)
-   {
-      data = data.substring(data.indexOf("[") + 1, data.lastIndexOf("]"));
-      String[] elements = data.split(", ");
-      long[] parsedArray = new long[elements.length];
-
-      for (int i = 0; i < elements.length; i++)
-      {
-         parsedArray[i] = Long.parseLong(elements[i]);
-      }
-
-      return parsedArray;
-   }
-
-   private static byte[] parseByteArray(String data)
-   {
-      data = data.substring(data.indexOf("[") + 1, data.lastIndexOf("]"));
-      String[] elements = data.split(", ");
-      byte[] parsedArray = new byte[elements.length];
-
-      for (int i = 0; i < elements.length; i++)
-      {
-         parsedArray[i] = Byte.parseByte(elements[i]);
-      }
-
-      return parsedArray;
    }
 }

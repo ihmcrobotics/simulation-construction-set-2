@@ -30,6 +30,7 @@ definitionDependencies {
 sharedMemoryDependencies {
    api(ihmc.sourceSetProject("definition"))
    api("us.ihmc:ihmc-yovariables:0.9.8")
+   api("us.hebi.matlab.mat:mfl-core:0.5.7")
 }
 
 sessionDependencies {
