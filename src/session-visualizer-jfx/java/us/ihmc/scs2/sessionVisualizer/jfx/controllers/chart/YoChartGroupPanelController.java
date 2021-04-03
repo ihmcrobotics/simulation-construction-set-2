@@ -101,9 +101,6 @@ public class YoChartGroupPanelController
       topics = toolkit.getTopics();
       messager.submitMessage(topics.getRegisterRecordable(), mainPane);
 
-      messager.registerJavaFXSyncedTopicListener(topics.getYoChartGroupLoadConfiguration(), loadChartGroupConfigurationListener);
-      messager.registerJavaFXSyncedTopicListener(topics.getYoChartGroupSaveConfiguration(), saveChartGroupConfigurationListener);
-
       toolkit.getWindow().iconifiedProperty().addListener((o, oldValue, newValue) ->
       {
          if (newValue != isRunning.get())
@@ -144,10 +141,24 @@ public class YoChartGroupPanelController
       numberOfCols.set(0);
    }
 
+   private boolean isMessagerSetup = false;
+
+   public void setupMessager()
+   {
+      if (isMessagerSetup)
+         return;
+      isMessagerSetup = true;
+      messager.registerJavaFXSyncedTopicListener(topics.getYoChartGroupLoadConfiguration(), loadChartGroupConfigurationListener);
+      messager.registerJavaFXSyncedTopicListener(topics.getYoChartGroupSaveConfiguration(), saveChartGroupConfigurationListener);
+   }
+
    public void scheduleMessagerCleanup()
    {
       toolkit.getBackgroundExecutorManager().executeInBackground(() ->
       {
+         if (!isMessagerSetup)
+            return;
+         isMessagerSetup = false;
          messager.removeJavaFXSyncedTopicListener(topics.getYoChartGroupLoadConfiguration(), loadChartGroupConfigurationListener);
          messager.removeJavaFXSyncedTopicListener(topics.getYoChartGroupSaveConfiguration(), saveChartGroupConfigurationListener);
       });
@@ -339,6 +350,7 @@ public class YoChartGroupPanelController
    public void start()
    {
       isRunning.set(true);
+      setupMessager();
       chartControllers.forEach(YoChartPanelController::start);
    }
 
