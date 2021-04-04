@@ -33,7 +33,11 @@ public class DataBufferMenuController
       this.messager = toolkit.getMessager();
       topics = toolkit.getTopics();
       bufferProperties = messager.createPropertyInput(topics.getYoBufferCurrentProperties(), null);
-      messager.registerTopicListener(topics.getSessionCurrentState(), m -> initializeBufferSizeTextField = m == SessionState.INACTIVE);
+      messager.registerTopicListener(topics.getSessionCurrentState(), m ->
+      {
+         if (m == SessionState.INACTIVE)
+            initializeBufferSizeTextField = true;
+      });
 
       TextFormatter<Integer> formatter = new TextFormatter<>(new IntegerStringConverter());
       formatter.setValue(0);
