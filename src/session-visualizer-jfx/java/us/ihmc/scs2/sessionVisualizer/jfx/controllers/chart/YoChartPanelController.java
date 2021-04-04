@@ -381,7 +381,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
    @Override
    public void handleImpl(long now)
    {
-      ChartIntegerBounds chartsBounds = chartDataManager.getChartZoomManager().chartBoundsProperty().getValue();
+      ChartIntegerBounds chartsBounds = toolkit.getChartZoomManager().chartBoundsProperty().getValue();
       YoBufferPropertiesReadOnly bufferProperties = bufferPropertiesForMarkers.getAndSet(null);
 
       if (bufferProperties != null)

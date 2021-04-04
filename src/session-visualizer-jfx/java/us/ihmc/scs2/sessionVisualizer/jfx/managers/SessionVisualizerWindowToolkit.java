@@ -50,15 +50,20 @@ public class SessionVisualizerWindowToolkit
    {
       return globalToolkit.getChartDataManager();
    }
+   
+   public ChartRenderManager getChartRenderManager()
+   {
+      return globalToolkit.getChartRenderManager();
+   }
+
+   public ChartZoomManager getChartZoomManager()
+   {
+      return globalToolkit.getChartZoomManager();
+   }
 
    public YoManager getYoManager()
    {
       return globalToolkit.getYoManager();
-   }
-
-   public ChartRenderManager getChartRenderManager()
-   {
-      return globalToolkit.getChartRenderManager();
    }
 
    public KeyFrameManager getKeyFrameManager()

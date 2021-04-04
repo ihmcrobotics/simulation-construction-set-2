@@ -69,7 +69,6 @@ public class MainWindowController extends ObservedAnimationTimer
       sessionSimpleControlsController.initialize(windowToolkit);
       sessionAdvancedControlsController.initialize(windowToolkit);
       yoChartGroupPanelController.initialize(windowToolkit);
-
    }
 
    public void setupViewport3D(Pane viewportPane)
