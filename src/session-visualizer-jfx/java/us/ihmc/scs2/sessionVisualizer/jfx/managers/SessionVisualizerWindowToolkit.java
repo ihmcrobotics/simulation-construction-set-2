@@ -7,13 +7,25 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
 
 public class SessionVisualizerWindowToolkit
 {
-   private Stage window;
-   private SessionVisualizerToolkit globalToolkit;
+   private final Stage window;
+   private final SessionVisualizerToolkit globalToolkit;
+   private final ChartZoomManager chartZoomManager;
 
    public SessionVisualizerWindowToolkit(Stage window, SessionVisualizerToolkit globalToolkit)
    {
       this.window = window;
       this.globalToolkit = globalToolkit;
+      chartZoomManager = new ChartZoomManager(window, globalToolkit.getMessager(), globalToolkit.getTopics());
+   }
+
+   public void start()
+   {
+      chartZoomManager.start();
+   }
+
+   public void stop()
+   {
+      chartZoomManager.stop();
    }
 
    public Stage getWindow()
@@ -50,7 +62,7 @@ public class SessionVisualizerWindowToolkit
    {
       return globalToolkit.getChartDataManager();
    }
-   
+
    public ChartRenderManager getChartRenderManager()
    {
       return globalToolkit.getChartRenderManager();
@@ -58,7 +70,7 @@ public class SessionVisualizerWindowToolkit
 
    public ChartZoomManager getChartZoomManager()
    {
-      return globalToolkit.getChartZoomManager();
+      return chartZoomManager;
    }
 
    public YoManager getYoManager()

@@ -79,11 +79,13 @@ public class SecondaryWindowController
 
    public void start()
    {
+      toolkit.start();
    }
 
    public void closeAndDispose()
    {
       chartGroupController.closeAndDispose();
       toolkit.getWindow().close();
+      toolkit.stop();
    }
 }

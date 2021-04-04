@@ -110,12 +110,12 @@ public class SessionVisualizerMessagerAPI
       private static final CategoryTheme Out = apiFactory.createCategoryTheme("Out");
       private static final CategoryTheme Shift = apiFactory.createCategoryTheme("Shift");
 
-      private static final TypedTopicTheme<Double> Factor = apiFactory.createTypedTopicTheme("Factor");
+      private static final TopicTheme Factor = apiFactory.createTopicTheme("Factor");
 
-      public static final Topic<Double> YoChartZoomFactor = APIRoot.child(YoChart).child(Zoom).topic(Factor);
-      public static final Topic<Boolean> YoChartRequestZoomIn = APIRoot.child(YoChart).child(Zoom).child(In).topic(Request);
-      public static final Topic<Boolean> YoChartRequestZoomOut = APIRoot.child(YoChart).child(Zoom).child(Out).topic(Request);
-      public static final Topic<Integer> YoChartRequestShift = APIRoot.child(YoChart).child(Shift).topic(Request);
+      public static final Topic<Pair<Window, Double>> YoChartZoomFactor = APIRoot.child(YoChart).child(Zoom).topic(Factor);
+      public static final Topic<Pair<Window, Boolean>> YoChartRequestZoomIn = APIRoot.child(YoChart).child(Zoom).child(In).topic(Request);
+      public static final Topic<Pair<Window, Boolean>> YoChartRequestZoomOut = APIRoot.child(YoChart).child(Zoom).child(Out).topic(Request);
+      public static final Topic<Pair<Window, Integer>> YoChartRequestShift = APIRoot.child(YoChart).child(Shift).topic(Request);
       public static final Topic<Pair<Window, File>> YoChartGroupSaveConfiguration = APIRoot.child(YoChart).child(Group).child(Configuration).topic(Save);
       public static final Topic<Pair<Window, File>> YoChartGroupLoadConfiguration = APIRoot.child(YoChart).child(Group).child(Configuration).topic(Load);
    }

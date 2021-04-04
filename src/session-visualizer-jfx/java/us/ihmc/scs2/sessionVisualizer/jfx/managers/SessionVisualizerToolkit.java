@@ -26,7 +26,6 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    private final YoManager yoManager = new YoManager();
    private final ChartDataManager chartDataManager;
    private final ChartRenderManager chartRenderManager = new ChartRenderManager();
-   private final ChartZoomManager chartZoomManager;
    private final YoGraphicFXManager yoGraphicFXManager;
    private final YoCompositeSearchManager yoCompositeSearchManager;
    private final SnapshotManager snapshotManager;
@@ -56,7 +55,6 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
 
       snapshotManager = new SnapshotManager(mainWindow, messager, topics);
       chartDataManager = new ChartDataManager(messager, topics, yoManager, backgroundExecutorManager);
-      chartZoomManager = new ChartZoomManager(messager, topics);
       yoGraphicFXManager = new YoGraphicFXManager(messager, topics, yoManager, backgroundExecutorManager, referenceFrameManager);
       yoCompositeSearchManager = new YoCompositeSearchManager(messager, topics, yoManager, backgroundExecutorManager);
       keyFrameManager = new KeyFrameManager(messager, topics);
@@ -83,7 +81,6 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
          environmentManager.startSession(session);
          chartDataManager.startSession(session);
          chartRenderManager.startSession(session);
-         chartZoomManager.startSession(session);
          yoGraphicFXManager.startSession(session);
          yoCompositeSearchManager.startSession(session);
          keyFrameManager.startSession(session);
@@ -121,7 +118,6 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       yoRobotFXManager.stopSession();
       chartDataManager.stopSession();
       chartRenderManager.stopSession();
-      chartZoomManager.stopSession();
       yoGraphicFXManager.stopSession();
       referenceFrameManager.stopSession();
       yoCompositeSearchManager.stopSession();
@@ -205,11 +201,6 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    public ChartRenderManager getChartRenderManager()
    {
       return chartRenderManager;
-   }
-
-   public ChartZoomManager getChartZoomManager()
-   {
-      return chartZoomManager;
    }
 
    public YoCompositeSearchManager getYoCompositeSearchManager()

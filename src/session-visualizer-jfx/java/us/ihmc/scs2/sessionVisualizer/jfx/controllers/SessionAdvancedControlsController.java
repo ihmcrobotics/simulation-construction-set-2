@@ -18,6 +18,8 @@ import javafx.scene.Node;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Window;
+import javafx.util.Pair;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.session.SessionState;
@@ -30,6 +32,7 @@ public class SessionAdvancedControlsController
    public static final String INACTIVE_MODE = "session-controls-inactive-mode";
    public static final String ACTIVE_MODE = "session-controls-active-mode";
 
+   private Window owner;
    private JavaFXMessager messager;
    private SessionVisualizerTopics topics;
 
@@ -54,7 +57,8 @@ public class SessionAdvancedControlsController
 
    public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
-      this.messager = toolkit.getMessager();
+      owner = toolkit.getWindow();
+      messager = toolkit.getMessager();
       topics = toolkit.getTopics();
 
       MutableBoolean updatingIndex = new MutableBoolean(false);
@@ -251,13 +255,13 @@ public class SessionAdvancedControlsController
    @FXML
    private void requestZoomInGraphs()
    {
-      messager.submitMessage(topics.getYoChartRequestZoomIn(), true);
+      messager.submitMessage(topics.getYoChartRequestZoomIn(), new Pair<>(owner, true));
    }
 
    @FXML
    private void requestZoomOutGraphs()
    {
-      messager.submitMessage(topics.getYoChartRequestZoomOut(), true);
+      messager.submitMessage(topics.getYoChartRequestZoomOut(), new Pair<>(owner, true));
    }
 
    @FXML

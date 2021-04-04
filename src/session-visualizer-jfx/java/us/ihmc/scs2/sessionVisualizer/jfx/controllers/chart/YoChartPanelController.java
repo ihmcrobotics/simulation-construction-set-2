@@ -39,6 +39,7 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
+import javafx.util.Pair;
 import us.ihmc.commons.MathTools;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.interfaces.Tuple2DReadOnly;
@@ -475,7 +476,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
             if (lastMouseScreenPosition != null)
             {
                int drag = screenToBufferIndex(lastMouseScreenPosition) - screenToBufferIndex(newMouseScreenPosition);
-               messager.submitMessage(topics.getYoChartRequestShift(), drag);
+               messager.submitMessage(topics.getYoChartRequestShift(), new Pair<>(toolkit.getWindow(), drag));
             }
          }
 

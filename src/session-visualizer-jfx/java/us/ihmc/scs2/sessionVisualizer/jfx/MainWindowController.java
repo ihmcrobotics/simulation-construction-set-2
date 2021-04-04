@@ -60,11 +60,12 @@ public class MainWindowController extends ObservedAnimationTimer
    @FXML
    private YoChartGroupPanelController yoChartGroupPanelController;
    private SessionVisualizerToolkit toolkit;
+   private SessionVisualizerWindowToolkit windowToolkit;
 
    public void initialize(Stage owner, SessionVisualizerToolkit globalToolkit)
    {
       this.toolkit = globalToolkit;
-      SessionVisualizerWindowToolkit windowToolkit = new SessionVisualizerWindowToolkit(owner, globalToolkit);
+      windowToolkit = new SessionVisualizerWindowToolkit(owner, globalToolkit);
       mainWindowMenuBarController.initialize(windowToolkit);
       sessionSimpleControlsController.initialize(windowToolkit);
       sessionAdvancedControlsController.initialize(windowToolkit);
@@ -205,6 +206,7 @@ public class MainWindowController extends ObservedAnimationTimer
    public void start()
    {
       super.start();
+      windowToolkit.start();
    }
 
    @Override
@@ -212,6 +214,7 @@ public class MainWindowController extends ObservedAnimationTimer
    {
       stopSession();
       super.stop();
+      windowToolkit.stop();
    }
 
    public void startSession()

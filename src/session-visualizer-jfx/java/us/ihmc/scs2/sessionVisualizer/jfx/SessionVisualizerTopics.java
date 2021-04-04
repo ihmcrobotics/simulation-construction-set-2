@@ -42,9 +42,9 @@ public class SessionVisualizerTopics
    private Topic<File> yoGraphicLoadRequest;
    private Topic<File> yoGraphicSaveRequest;
 
-   private Topic<Double> yoChartZoomFactor;
-   private Topic<Boolean> yoChartRequestZoomIn, yoChartRequestZoomOut;
-   private Topic<Integer> yoChartRequestShift;
+   private Topic<Pair<Window, Double>> yoChartZoomFactor;
+   private Topic<Pair<Window, Boolean>> yoChartRequestZoomIn, yoChartRequestZoomOut;
+   private Topic<Pair<Window, Integer>> yoChartRequestShift;
 
    private Topic<Pair<Window, File>> yoChartGroupSaveConfiguration;
    private Topic<Pair<Window, File>> yoChartGroupLoadConfiguration;
@@ -234,22 +234,22 @@ public class SessionVisualizerTopics
       return yoGraphicSaveRequest;
    }
 
-   public Topic<Double> getYoChartZoomFactor()
+   public Topic<Pair<Window, Double>> getYoChartZoomFactor()
    {
       return yoChartZoomFactor;
    }
 
-   public Topic<Boolean> getYoChartRequestZoomIn()
+   public Topic<Pair<Window, Boolean>> getYoChartRequestZoomIn()
    {
       return yoChartRequestZoomIn;
    }
 
-   public Topic<Boolean> getYoChartRequestZoomOut()
+   public Topic<Pair<Window, Boolean>> getYoChartRequestZoomOut()
    {
       return yoChartRequestZoomOut;
    }
 
-   public Topic<Integer> getYoChartRequestShift()
+   public Topic<Pair<Window, Integer>> getYoChartRequestShift()
    {
       return yoChartRequestShift;
    }
