@@ -22,8 +22,10 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
 import us.hebi.matlab.mat.format.Mat5;
+import us.hebi.matlab.mat.format.Mat5File;
 import us.hebi.matlab.mat.types.MatFile;
 import us.hebi.matlab.mat.types.Matrix;
+import us.hebi.matlab.mat.types.Struct;
 import us.ihmc.scs2.definition.yoVariable.YoBooleanDefinition;
 import us.ihmc.scs2.definition.yoVariable.YoDoubleDefinition;
 import us.ihmc.scs2.definition.yoVariable.YoEnumDefinition;
@@ -39,6 +41,7 @@ import us.ihmc.scs2.sharedMemory.YoLongBuffer;
 import us.ihmc.scs2.sharedMemory.YoSharedBuffer;
 import us.ihmc.scs2.sharedMemory.YoVariableBuffer;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
+import us.ihmc.yoVariables.registry.YoNamespace;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.tools.YoSearchTools;
 import us.ihmc.yoVariables.variable.YoBoolean;
@@ -369,15 +372,16 @@ public class SharedMemoryIOTools
       exportDataMatlab(buffer, outputFile, null, null);
    }
 
-   public static void exportDataMatlab(YoSharedBuffer buffer, File outputFile, Predicate<YoVariable> variableFilter,
-                                       Predicate<YoRegistry> registryFilter)
+   @SuppressWarnings("resource")
+   public static void exportDataMatlab(YoSharedBuffer buffer, File outputFile, Predicate<YoVariable> variableFilter, Predicate<YoRegistry> registryFilter)
          throws IOException
    {
       Stream<YoVariableBuffer<?>> yoVariableBufferStream;
+      YoRegistry rootRegistry = buffer.getRootRegistry();
 
       if (registryFilter != null)
       {
-         List<YoRegistry> filteredRegistries = YoSearchTools.filterRegistries(registryFilter, buffer.getRootRegistry());
+         List<YoRegistry> filteredRegistries = YoSearchTools.filterRegistries(registryFilter, rootRegistry);
          yoVariableBufferStream = filteredRegistries.stream().flatMap(registry -> registry.getVariables().stream())
                                                     .map(yoVariable -> buffer.getRegistryBuffer().findYoVariableBuffer(yoVariable));
       }
@@ -392,13 +396,44 @@ public class SharedMemoryIOTools
       }
 
       MatFile matFile = Mat5.newMatFile();
+      Struct rootStruct = Mat5.newStruct();
+      matFile.addArray(rootRegistry.getName(), rootStruct);
+      matFile.addArray("hohohoho", Mat5.newMatrix(60, 1));
 
       yoVariableBufferStream.forEach(yoVariableBuffer ->
       {
          YoBufferPropertiesReadOnly properties = yoVariableBuffer.getProperties();
-         Matrix matMatrix = Mat5.newMatrix(new int[] {1, properties.getActiveBufferLength()});
+
+         Struct parentStruct = rootStruct;
+
+         YoVariable yoVariable = yoVariableBuffer.getYoVariable();
+
+         if (yoVariable.getRegistry() != rootRegistry)
+         {
+            YoNamespace parentNamespace = yoVariable.getNamespace().getParent();
+            
+            for (int i = 1; i < parentNamespace.size(); i++)
+            {
+               String subName = parentNamespace.getSubNames().get(i);
+               Struct childStruct;
+
+               try
+               {
+                  childStruct = parentStruct.getStruct(subName);
+               }
+               catch (IllegalArgumentException e)
+               {
+                  childStruct = Mat5.newStruct();
+                  parentStruct.set(subName, childStruct);
+               }
+               
+               parentStruct = childStruct;
+            }
+         }
+
+         Matrix matMatrix = Mat5.newMatrix(properties.getActiveBufferLength(), 1);
          writeBuffer(yoVariableBuffer.getBuffer(), matMatrix, properties.getInPoint(), properties.getActiveBufferLength());
-         matFile.addArray(yoVariableBuffer.getYoVariable().getFullNameString(), matMatrix);
+         parentStruct.set(yoVariableBuffer.getYoVariable().getFullNameString(), matMatrix);
       });
 
       Mat5.writeToFile(matFile, outputFile);
@@ -609,6 +644,13 @@ public class SharedMemoryIOTools
       bufferedReader.close();
 
       return buffer;
+   }
+
+   public static void importDataMatlab(YoSharedBuffer buffer, File inputFile) throws IOException
+   {
+      Mat5File mat5File = Mat5.readFromFile(inputFile);
+
+//      mat5File.get
    }
 
    private static void growBufferIfNeeded(YoSharedBuffer buffer, int newSize)
