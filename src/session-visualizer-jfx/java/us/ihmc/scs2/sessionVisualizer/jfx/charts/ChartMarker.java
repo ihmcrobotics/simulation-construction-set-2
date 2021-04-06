@@ -68,6 +68,21 @@ public final class ChartMarker extends Line
       this.typeProperty.set(type);
    }
 
+   public void setCoordinate(double coordinate)
+   {
+      this.coordinate.set(coordinate);
+   }
+
+   public double getCoordinate()
+   {
+      return coordinate.get();
+   }
+
+   public DoubleProperty coordinateProperty()
+   {
+      return coordinate;
+   }
+
    public void addListener(ChangeListener<Object> listener)
    {
       listeners.add(listener);
