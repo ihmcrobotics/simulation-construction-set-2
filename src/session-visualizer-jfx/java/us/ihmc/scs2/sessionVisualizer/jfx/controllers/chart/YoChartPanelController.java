@@ -13,7 +13,9 @@ import java.util.stream.Collectors;
 
 import com.jfoenix.controls.JFXButton;
 
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
@@ -24,7 +26,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.chart.InvisibleNumberAxis;
-import javafx.scene.chart.XYChart.Data;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -93,10 +94,10 @@ public class YoChartPanelController extends ObservedAnimationTimer
    private final InvisibleNumberAxis yAxis = new InvisibleNumberAxis();
    private DynamicLineChart dynamicLineChart;
 
-   private final Data<Number, Number> inPointMarker = new Data<>(0, 0.0);
-   private final Data<Number, Number> outPointMarker = new Data<>(0, 0.0);
-   private final Data<Number, Number> bufferIndexMarker = new Data<>(0, 0.0);
-   private final List<Data<Number, Number>> keyFrameMarkers = new ArrayList<>();
+   private final DoubleProperty inPointMarker = new SimpleDoubleProperty(this, "inPointMarkerCoordinate", 0.0);
+   private final DoubleProperty outPointMarker = new SimpleDoubleProperty(this, "outPointMarkerCoordinate", 0.0);
+   private final DoubleProperty bufferIndexMarker = new SimpleDoubleProperty(this, "bufferIndexMarkerCoordinate", 0.0);
+   private final List<DoubleProperty> keyFrameMarkers = new ArrayList<>();
 
    private YoCompositeSearchManager yoCompositeSearchManager;
 
@@ -149,7 +150,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
       ChartMarker currentIndexMarkerNode = dynamicLineChart.addMarker(bufferIndexMarker);
       currentIndexMarkerNode.getStyleClass().add(CURRENT_INDEX_MARKER_STYLECLASS);
 
-      Data<Number, Number> origin = new Data<>(0.0, 0.0);
+      DoubleProperty origin = new SimpleDoubleProperty(this, "origin", 0.0);
       ChangeListener<? super ChartStyle> originMarkerUpdater = (o, oldValue, newValue) ->
       {
          if (newValue == ChartStyle.RAW)
@@ -370,7 +371,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
 
       for (int keyFrame : newKeyFrames)
       {
-         Data<Number, Number> marker = new Data<>(keyFrame, 0);
+         DoubleProperty marker = new SimpleDoubleProperty(this, "keyFrameMarkerCoordinate", keyFrame);
          keyFrameMarkers.add(marker);
          ChartMarker keyFrameMarkerNode = dynamicLineChart.addMarker(marker);
          keyFrameMarkerNode.getStyleClass().add(KEYFRAME_MARKER_STYLECLASS);
@@ -387,12 +388,12 @@ public class YoChartPanelController extends ObservedAnimationTimer
 
       if (bufferProperties != null)
       {
-         if (bufferProperties.getInPoint() != inPointMarker.getXValue().intValue())
-            inPointMarker.setXValue(bufferProperties.getInPoint());
-         if (bufferProperties.getOutPoint() != outPointMarker.getXValue().intValue())
-            outPointMarker.setXValue(bufferProperties.getOutPoint());
-         if (bufferProperties.getCurrentIndex() != bufferIndexMarker.getXValue().intValue())
-            bufferIndexMarker.setXValue(bufferProperties.getCurrentIndex());
+         if (bufferProperties.getInPoint() != inPointMarker.intValue())
+            inPointMarker.set(bufferProperties.getInPoint());
+         if (bufferProperties.getOutPoint() != outPointMarker.intValue())
+            outPointMarker.set(bufferProperties.getOutPoint());
+         if (bufferProperties.getCurrentIndex() != bufferIndexMarker.intValue())
+            bufferIndexMarker.set(bufferProperties.getCurrentIndex());
          if (chartsBounds == null)
          {
             double scale = 0.001;

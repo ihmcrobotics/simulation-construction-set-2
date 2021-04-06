@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
@@ -14,7 +15,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Side;
 import javafx.scene.chart.InvisibleNumberAxis;
-import javafx.scene.chart.XYChart.Data;
 import us.ihmc.javaFXExtensions.chart.DynamicXYChart;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ChartRenderManager;
 
@@ -29,7 +29,7 @@ public class DynamicLineChart extends DynamicXYChart
    private final ObservableList<NumberSeriesLayer> seriesLayers = FXCollections.observableArrayList();
    private final ChangeListener<Object> chartUpdaterListener = (o, oldValue, newValue) -> requestChartLayout();
    private final ChangeListener<Object> markerUpdaterListener = (o, oldValue, newValue) -> updateMarkers();
-   private final Map<Data<Number, Number>, ChartMarker> markers = new LinkedHashMap<>();
+   private final Map<DoubleProperty, ChartMarker> markers = new LinkedHashMap<>();
    private final DynamicChartLegend legend = new DynamicChartLegend();
 
    private final InvisibleNumberAxis xAxis;
@@ -98,32 +98,28 @@ public class DynamicLineChart extends DynamicXYChart
       }
    }
 
-   public ChartMarker addMarker(Data<Number, Number> markerCoordinates)
+   public ChartMarker addMarker(DoubleProperty markerCoordinate)
    {
-      Objects.requireNonNull(markerCoordinates, "The marker must not be null.");
-      if (markers.containsKey(markerCoordinates))
-         return markers.get(markerCoordinates);
+      Objects.requireNonNull(markerCoordinate, "The marker must not be null.");
+      if (markers.containsKey(markerCoordinate))
+         return markers.get(markerCoordinate);
 
-      ChartMarker marker = new ChartMarker(markerCoordinates);
-      plotContent.getChildren().add(marker.getNode());
-      markers.put(markerCoordinates, marker);
+      ChartMarker marker = new ChartMarker(markerCoordinate);
+      plotContent.getChildren().add(marker);
+      markers.put(markerCoordinate, marker);
       marker.addListener(markerUpdaterListener);
 
       markerUpdaterListener.changed(null, null, null);
       return marker;
    }
 
-   public void removeMarker(Data<Number, Number> markerCoordinates)
+   public void removeMarker(DoubleProperty markerCoordinate)
    {
-      Objects.requireNonNull(markerCoordinates, "The marker must not be null.");
+      Objects.requireNonNull(markerCoordinate, "The marker must not be null.");
 
-      ChartMarker marker = markers.remove(markerCoordinates);
-
-      if (marker.getNode() != null)
-      {
-         plotContent.getChildren().remove(marker.getNode());
-         marker.destroy();
-      }
+      ChartMarker marker = markers.remove(markerCoordinate);
+      plotContent.getChildren().remove(marker);
+      marker.destroy();
    }
 
    private void updateSeriesList(double top, double left, double width, double height)

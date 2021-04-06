@@ -3,15 +3,15 @@ package us.ihmc.scs2.sessionVisualizer.jfx.charts;
 import java.util.List;
 
 import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.css.CssMetaData;
 import javafx.css.Styleable;
 import javafx.css.StyleableObjectProperty;
 import javafx.css.StyleablePropertyFactory;
-import javafx.scene.Node;
 import javafx.scene.chart.InvisibleNumberAxis;
-import javafx.scene.chart.XYChart.Data;
 import javafx.scene.shape.Line;
 
 public final class ChartMarker extends Line
@@ -43,36 +43,34 @@ public final class ChartMarker extends Line
       }
    };
 
-   private final Data<Number, Number> coordinates;
-   private final DoubleProperty positionProperty = new SimpleDoubleProperty(this, "position", 0.0);
+   private final DoubleProperty coordinate;
+   private final ObservableList<ChangeListener<Object>> listeners = FXCollections.observableArrayList();
 
-   public ChartMarker(Data<Number, Number> coordinates)
+   public ChartMarker(DoubleProperty coordinate)
    {
-      this.coordinates = coordinates;
-      typeProperty.addListener((o, oldValue, newValue) -> updatePositionBinding(newValue));
-      updatePositionBinding(typeProperty.get());
-      coordinates.setNode(this);
+      this.coordinate = coordinate;
+      listeners.addListener((ListChangeListener<ChangeListener<Object>>) change ->
+      {
+         while (change.next())
+         {
+            if (change.wasAdded())
+               change.getAddedSubList().forEach(coordinate::addListener);
+
+            if (change.wasRemoved())
+               change.getRemoved().forEach(coordinate::removeListener);
+         }
+      });
    }
 
-   public ChartMarker(ChartMarkerType type, Data<Number, Number> coordinates)
+   public ChartMarker(ChartMarkerType type, DoubleProperty coordinate)
    {
-      this(coordinates);
+      this(coordinate);
       this.typeProperty.set(type);
-   }
-
-   private void updatePositionBinding(ChartMarkerType type)
-   {
-      positionProperty.bind(type == ChartMarkerType.HORIZONTAL ? coordinates.YValueProperty() : coordinates.XValueProperty());
    }
 
    public void addListener(ChangeListener<Object> listener)
    {
-      positionProperty.addListener(listener);
-   }
-
-   public Node getNode()
-   {
-      return coordinates.getNode();
+      listeners.add(listener);
    }
 
    public void updateMarker(InvisibleNumberAxis xAxis, InvisibleNumberAxis yAxis)
@@ -81,7 +79,7 @@ public final class ChartMarker extends Line
       {
          setStartX(0);
          setEndX(xAxis.getWidth());
-         setStartY(Math.ceil(yAxis.getDisplayPosition(coordinates.getYValue().doubleValue())));
+         setStartY(Math.ceil(yAxis.getDisplayPosition(coordinate.get())));
          setEndY(getStartY());
          toFront();
       }
@@ -89,7 +87,7 @@ public final class ChartMarker extends Line
       {
          setStartY(0d);
          setEndY(yAxis.getHeight());
-         setStartX(Math.ceil(xAxis.getDisplayPosition(coordinates.getXValue().doubleValue())));
+         setStartX(Math.ceil(xAxis.getDisplayPosition(coordinate.get())));
          setEndX(getStartX());
          toFront();
       }
@@ -97,7 +95,7 @@ public final class ChartMarker extends Line
 
    public void destroy()
    {
-      coordinates.setNode(null);
+      listeners.clear();
    }
 
    @Override
