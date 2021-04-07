@@ -214,6 +214,11 @@
     -marker-type: HORIZONTAL;
 }
 
+.chart-user-marker {
+	-fx-stroke-dash-array: 10.0 8.0 10.0 8.0;
+    -marker-type: HORIZONTAL;
+}
+
 .chart-inpoint-marker {
 	-fx-stroke: -default-pale-green;
     -marker-type: VERTICAL;
