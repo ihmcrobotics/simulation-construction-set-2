@@ -50,6 +50,7 @@ import us.ihmc.messager.MessagerAPIFactory.Topic;
 import us.ihmc.messager.TopicListener;
 import us.ihmc.scs2.definition.yoChart.ChartDoubleBoundsDefinition;
 import us.ihmc.scs2.definition.yoChart.YoChartConfigurationDefinition;
+import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartIdentifier;
@@ -106,8 +107,8 @@ public class YoChartPanelController extends ObservedAnimationTimer
    private ChartDataManager chartDataManager;
    private final ObservableList<YoNumberSeries> yoNumberSeriesList = FXCollections.observableArrayList();
    private final ObservableMap<YoVariable, YoVariableChartPackage> charts = FXCollections.observableMap(new LinkedHashMap<>());
-   private AtomicReference<YoBufferPropertiesReadOnly> bufferPropertiesForMarkers;
-   private AtomicReference<YoBufferPropertiesReadOnly> bufferPropertiesForScrolling;
+   private YoBufferPropertiesReadOnly lastBufferProperties = null;
+   private AtomicReference<YoBufferPropertiesReadOnly> newBufferProperties;
    private final TopicListener<int[]> keyFrameMarkerListener = newKeyFrames -> updateKeyFrameMarkers(newKeyFrames);
    private AtomicReference<List<String>> yoCompositeSelected;
    private Topic<List<String>> yoCompositeSelectedTopic;
@@ -129,8 +130,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
       topics = toolkit.getTopics();
       BackgroundExecutorManager backgroundExecutorManager = toolkit.getBackgroundExecutorManager();
 
-      bufferPropertiesForMarkers = messager.createInput(topics.getYoBufferCurrentProperties());
-      bufferPropertiesForScrolling = messager.createInput(topics.getYoBufferCurrentProperties());
+      newBufferProperties = messager.createInput(topics.getYoBufferCurrentProperties());
 
       dynamicLineChart = new DynamicLineChart(xAxis, yAxis, backgroundExecutorManager::executeInBackground, toolkit.getChartRenderManager());
       chartMainPane.getChildren().add(0, dynamicLineChart);
@@ -256,6 +256,9 @@ public class YoChartPanelController extends ObservedAnimationTimer
       });
 
       messager.registerJavaFXSyncedTopicListener(topics.getCurrentKeyFrames(), keyFrameMarkerListener);
+      // Only show the update markers when the session is running and the chart may be behind.
+      messager.registerJavaFXSyncedTopicListener(topics.getSessionCurrentMode(),
+                                                 m -> dynamicLineChart.updateIndexMarkersVisible().set(m == SessionMode.RUNNING));
       messager.submitMessage(topics.getRequestCurrentKeyFrames(), new Object());
 
       messager = toolkit.getMessager();
@@ -404,8 +407,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
       charts.clear();
       chartsCopy.forEach(YoVariableChartPackage::close);
 
-      messager.removeInput(topics.getYoBufferCurrentProperties(), bufferPropertiesForMarkers);
-      messager.removeInput(topics.getYoBufferCurrentProperties(), bufferPropertiesForScrolling);
+      messager.removeInput(topics.getYoBufferCurrentProperties(), newBufferProperties);
       messager.removeJavaFXSyncedTopicListener(topics.getCurrentKeyFrames(), keyFrameMarkerListener);
    }
 
@@ -428,10 +430,12 @@ public class YoChartPanelController extends ObservedAnimationTimer
    public void handleImpl(long now)
    {
       ChartIntegerBounds chartsBounds = toolkit.getChartZoomManager().chartBoundsProperty().getValue();
-      YoBufferPropertiesReadOnly bufferProperties = bufferPropertiesForMarkers.getAndSet(null);
+      YoBufferPropertiesReadOnly bufferProperties = newBufferProperties.getAndSet(null);
 
       if (bufferProperties != null)
       {
+         lastBufferProperties = bufferProperties;
+
          if (bufferProperties.getInPoint() != inPointMarker.coordinateProperty().intValue())
             inPointMarker.setCoordinate(bufferProperties.getInPoint());
          if (bufferProperties.getOutPoint() != outPointMarker.coordinateProperty().intValue())
@@ -490,7 +494,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
       {
          hideContextMenu();
 
-         if (bufferPropertiesForScrolling.get() != null)
+         if (lastBufferProperties != null)
          {
             Node intersectedNode = event.getPickResult().getIntersectedNode();
 
@@ -591,16 +595,16 @@ public class YoChartPanelController extends ObservedAnimationTimer
 
    private int screenToBufferIndex(double screenX, double screenY)
    {
-      if (bufferPropertiesForScrolling.get() == null)
+      if (lastBufferProperties == null)
          return -1;
       double xLocal = xAxis.screenToLocal(screenX, screenY).getX();
       int index = (int) Math.round(xAxis.getValueForDisplay(xLocal));
-      return MathTools.clamp(index, 0, bufferPropertiesForScrolling.get().getSize());
+      return MathTools.clamp(index, 0, lastBufferProperties.getSize());
    }
 
    private void handleScroll(ScrollEvent event)
    {
-      if (bufferPropertiesForScrolling.get() != null)
+      if (lastBufferProperties != null)
       {
          int scrollDelta = event.isControlDown() ? 10 : 1;
          if (event.getDeltaY() == 0.0)

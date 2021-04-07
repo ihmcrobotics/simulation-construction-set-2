@@ -114,6 +114,7 @@ public class NumberSeriesLayer extends ImageView
    private AtomicBoolean isUpdatingImage = new AtomicBoolean(false);
    private BufferedImage imageToRender = null;
    private IntegerProperty dataSizeProperty = new SimpleIntegerProperty(this, "dataSize", 0);
+   private BooleanProperty updateIndexMarkerVisible = new SimpleBooleanProperty(this, "updateIndexMarkerVisible", false);
 
    public NumberSeriesLayer(InvisibleNumberAxis xAxis, InvisibleNumberAxis yAxis, NumberSeries numberSeries, Executor backgroundExecutor,
                             ChartRenderManager renderManager)
@@ -135,6 +136,7 @@ public class NumberSeriesLayer extends ImageView
       stroke.addListener(dirtyListener);
       strokeWidth.addListener(dirtyListener);
       dataSizeProperty.addListener(dirtyListener);
+      updateIndexMarkerVisible.addListener(dirtyListener);
    }
 
    public void scheduleRender()
@@ -251,11 +253,14 @@ public class NumberSeriesLayer extends ImageView
 
          drawMultiLine(graphics, data, xTransform, yTransform, xData, yData);
 
-         graphics.setColor(toAWTColor(Color.GREY.deriveColor(0, 1.0, 0.92, 0.5)));
-         graphics.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
-         List<Point2D> markerData = Arrays.asList(new Point2D(numberSeries.bufferCurrentIndexProperty().get(), yAxis.getLowerBound()),
-                                                  new Point2D(numberSeries.bufferCurrentIndexProperty().get(), yAxis.getUpperBound()));
-         drawMultiLine(graphics, markerData, xTransform, yTransform, xData, yData);
+         if (updateIndexMarkerVisible.get())
+         {
+            graphics.setColor(toAWTColor(Color.GREY.deriveColor(0, 1.0, 0.92, 0.5)));
+            graphics.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER));
+            List<Point2D> markerData = Arrays.asList(new Point2D(numberSeries.bufferCurrentIndexProperty().get(), yAxis.getLowerBound()),
+                                                     new Point2D(numberSeries.bufferCurrentIndexProperty().get(), yAxis.getUpperBound()));
+            drawMultiLine(graphics, markerData, xTransform, yTransform, xData, yData);
+         }
 
          return true;
       }
@@ -344,6 +349,11 @@ public class NumberSeriesLayer extends ImageView
    private static DoubleUnaryOperator affineTransform(double scale, double offset)
    {
       return coordinate -> coordinate * scale + offset;
+   }
+
+   public BooleanProperty updateIndexMarkerVisibleProperty()
+   {
+      return updateIndexMarkerVisible;
    }
 
    public ObjectProperty<ChartStyle> chartStyleProperty()

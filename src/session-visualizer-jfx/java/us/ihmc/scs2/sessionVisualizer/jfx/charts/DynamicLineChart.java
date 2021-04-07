@@ -4,7 +4,9 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
@@ -27,6 +29,8 @@ public class DynamicLineChart extends DynamicXYChart
    private final ChangeListener<Object> chartUpdaterListener = (o, oldValue, newValue) -> requestChartLayout();
    private final ObservableList<ChartMarker> markers = FXCollections.observableArrayList();
    private final DynamicChartLegend legend = new DynamicChartLegend();
+
+   private final BooleanProperty updateIndexMarkersVisible = new SimpleBooleanProperty(this, "updateIndexMarkersVisible", false);
 
    private final InvisibleNumberAxis xAxis;
    private final InvisibleNumberAxis yAxis;
@@ -90,6 +94,7 @@ public class DynamicLineChart extends DynamicXYChart
       series.dirtyProperty().addListener(chartUpdaterListener);
       NumberSeriesLayer layer = new NumberSeriesLayer(xAxis, yAxis, series, backgroundExecutor, chartRenderManager);
       layer.chartStyleProperty().bind(chartStyleProperty);
+      layer.updateIndexMarkerVisibleProperty().bind(updateIndexMarkersVisible);
       setSeriesDefaultStyleClass(layer, seriesIndex);
       seriesLayers.add(layer);
       legend.getItems().add(layer.getLegendNode());
@@ -104,7 +109,9 @@ public class DynamicLineChart extends DynamicXYChart
       if (containingLayer.isPresent())
       {
          int indexOf = seriesLayers.indexOf(containingLayer.get());
-         seriesLayers.remove(indexOf);
+         NumberSeriesLayer removedLayer = seriesLayers.remove(indexOf);
+         removedLayer.chartStyleProperty().unbind();
+         removedLayer.updateIndexMarkerVisibleProperty().unbind();
          series.negatedProperty().removeListener(chartUpdaterListener);
          series.customYBoundsProperty().removeListener(chartUpdaterListener);
          series.dirtyProperty().removeListener(chartUpdaterListener);
@@ -232,6 +239,15 @@ public class DynamicLineChart extends DynamicXYChart
    public InvisibleNumberAxis getYAxis()
    {
       return yAxis;
+   }
+
+   /**
+    * Property controlling visibility of markers used to indicate up to what index the charts have been
+    * updated.
+    */
+   public BooleanProperty updateIndexMarkersVisible()
+   {
+      return updateIndexMarkersVisible;
    }
 
    public void setChartStyle(ChartStyle style)
