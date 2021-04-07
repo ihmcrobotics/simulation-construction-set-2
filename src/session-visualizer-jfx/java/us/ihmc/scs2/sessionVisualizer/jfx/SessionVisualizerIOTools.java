@@ -118,6 +118,7 @@ public class SessionVisualizerIOTools
    public static final URL CHART_IDENTIFIER_EDITOR_PANE_URL = getFXMLResource(CHART, "YoChartIdentifierEditorPane");
    public static final URL CHART_OPTION_DIALOG_URL = getFXMLResource(CHART, "YoChartOptionDialog");
    public static final URL CHART_VARIABLE_OPTION_PANE_URL = getFXMLResource(CHART, "YoChartVariableOptionPane");
+   public static final URL CHART_BASELINE_EDITOR_PANE_URL = getFXMLResource(CHART, "YoChartBaselineEditorPane");
 
    public static final URL YO_GRAPHIC_ITEM_CREATOR_URL = getFXMLResource(YO_GRAPHIC, "YoGraphicItemCreatorDialog");
    public static final URL YO_GRAPHIC_PROPERTY_URL = getFXMLResource(YO_GRAPHIC, "YoGraphicPropertyWindow");

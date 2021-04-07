@@ -33,6 +33,7 @@ import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartDoubleBounds;
+import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartMarker;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.DynamicLineChart.ChartStyle;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
@@ -54,6 +55,8 @@ public class YoChartOptionController
    private JFXTextField manualRangeMinTextField, manualRangeMaxTextField;
    @FXML
    private Label actualRangeMinLabel, actualRangeMaxLabel;
+   @FXML
+   private YoChartBaselinesOptionPaneController yoChartBaselinesOptionPaneController;
 
    public enum ChartScalingMode
    {
@@ -191,6 +194,9 @@ public class YoChartOptionController
          resizeWindow();
       });
 
+      yoChartBaselinesOptionPaneController.initialize(toolkit);
+      yoChartBaselinesOptionPaneController.getMainPane().heightProperty().addListener(resizeWindowListener);
+
       window = new Stage(StageStyle.UTILITY);
       window.addEventHandler(KeyEvent.KEY_PRESSED, e ->
       {
@@ -222,7 +228,7 @@ public class YoChartOptionController
       window.close();
    }
 
-   public void setInput(ObservableList<YoNumberSeries> yoNumberSeriesList, ObjectProperty<ChartStyle> chartStyleProperty)
+   public void setInput(ObservableList<YoNumberSeries> yoNumberSeriesList, ObjectProperty<ChartStyle> chartStyleProperty, ObservableList<ChartMarker> userMarkers)
    {
       this.yoNumberSeriesList = yoNumberSeriesList;
       this.chartStyleProperty = chartStyleProperty;
@@ -271,6 +277,9 @@ public class YoChartOptionController
 
       actualYBoundsProperty.addListener((o, oldValue, newValue) ->
       {
+         if (newValue == null)
+            return;
+
          if (manualYBoundsProperty.get() == null)
          {
             minFormatter.setValue(newValue.getLower());
@@ -282,6 +291,9 @@ public class YoChartOptionController
 
       scalingModeListener.changed(null, null, scalingComboBox.getValue());
       updateActualBounds();
+
+      yoChartBaselinesOptionPaneController.setInput(userMarkers);
+
       resizeWindow();
    }
 

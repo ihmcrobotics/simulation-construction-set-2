@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="mainPane" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.chart.YoChartOptionController">
+<VBox fx:id="mainPane" stylesheets="@../../css/GeneralStylesheet.css" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.chart.YoChartOptionController">
    <children>
       <TitledPane fx:id="masterSettingsPane" animated="false" text="Master settings" VBox.vgrow="NEVER">
          <content>
@@ -40,5 +40,6 @@
             </GridPane>
          </content>
       </TitledPane>
+      <fx:include fx:id="yoChartBaselinesOptionPane" source="YoChartBaselinesOptionPane.fxml" />
    </children>
 </VBox>

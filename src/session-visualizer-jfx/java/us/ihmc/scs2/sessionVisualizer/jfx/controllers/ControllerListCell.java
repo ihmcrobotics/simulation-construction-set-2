@@ -15,7 +15,11 @@ public class ControllerListCell<T extends UIElement> extends ListCell<T>
       super.updateItem(item, empty);
 
       setText(null);
-      if (!empty && item != null)
+      if (empty)
+      {
+         setGraphic(null);
+      }
+      else
       {
          Pane mainPane = item.getMainPane();
          setGraphic(mainPane);

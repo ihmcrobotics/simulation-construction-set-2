@@ -161,7 +161,8 @@ public class YoChartPanelController extends ObservedAnimationTimer
                for (ChartMarker newMarker : change.getAddedSubList())
                {
                   dynamicLineChart.addMarker(newMarker);
-                  newMarker.getStyleClass().add(USER_MARKER_STYLECLASS);
+                  if (!newMarker.getStyleClass().contains(USER_MARKER_STYLECLASS))
+                     newMarker.getStyleClass().add(USER_MARKER_STYLECLASS);
                }
             }
 
@@ -184,7 +185,8 @@ public class YoChartPanelController extends ObservedAnimationTimer
                for (ChartMarker newMarker : change.getAddedSubList())
                {
                   dynamicLineChart.addMarker(newMarker);
-                  newMarker.getStyleClass().add(KEYFRAME_MARKER_STYLECLASS);
+                  if (!newMarker.getStyleClass().contains(KEYFRAME_MARKER_STYLECLASS))
+                     newMarker.getStyleClass().add(KEYFRAME_MARKER_STYLECLASS);
                }
             }
 
@@ -319,7 +321,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
    {
       if (activeChartOptionControllerProperty.get() != null)
       {
-         activeChartOptionControllerProperty.get().setInput(yoNumberSeriesList, dynamicLineChart.chartStyleProperty());
+         activeChartOptionControllerProperty.get().setInput(yoNumberSeriesList, dynamicLineChart.chartStyleProperty(), userMarkers);
          activeChartOptionControllerProperty.get().showWindow();
          return;
       }
@@ -330,7 +332,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
          loader.load();
          YoChartOptionController controller = loader.getController();
          controller.initialize(toolkit);
-         controller.setInput(yoNumberSeriesList, dynamicLineChart.chartStyleProperty());
+         controller.setInput(yoNumberSeriesList, dynamicLineChart.chartStyleProperty(), userMarkers);
          activeChartOptionControllerProperty.set(controller);
          controller.showWindow();
       }
