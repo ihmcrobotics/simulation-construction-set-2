@@ -57,6 +57,8 @@ public class RemoteSession extends Session
       setSessionTickToTimeIncrement(Conversions.secondsToNanoseconds(handshakeParser.getDt()));
       setSessionModeTask(SessionMode.RUNNING, () ->
       {
+         if (!this.yoVariableClientInterface.isConnected())
+            setSessionMode(SessionMode.PAUSE);
          /* Do nothing, the client thread calls runTick(). */
       });
       addSessionPropertiesListener(properties ->
