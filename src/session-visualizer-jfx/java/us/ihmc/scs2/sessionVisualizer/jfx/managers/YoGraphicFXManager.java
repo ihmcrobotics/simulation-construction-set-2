@@ -113,10 +113,7 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
    {
       if (XMLTools.isYoGraphicContextReady())
       {
-         if (Platform.isFxApplicationThread())
-            loadYoGraphicFromFileNow(file);
-         else
-            JavaFXMissingTools.runLater(getClass(), () -> loadYoGraphicFromFileNow(file));
+         JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> loadYoGraphicFromFileNow(file));
       }
       else
       {
