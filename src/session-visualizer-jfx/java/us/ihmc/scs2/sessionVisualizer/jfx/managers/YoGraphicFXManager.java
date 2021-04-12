@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.List;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -34,6 +35,7 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
    private final YoManager yoManager;
    private final BackgroundExecutorManager backgroundExecutorManager;
    private final ReferenceFrameManager referenceFrameManager;
+   private Future<?> backgroundTask = null;
 
    // TODO Not sure if that belongs here.
    private final YoGraphicFXResourceManager yoGraphicFXResourceManager = new YoGraphicFXResourceManager();
@@ -50,8 +52,6 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
       messager.registerJavaFXSyncedTopicListener(topics.getYoGraphicRootGroupRequest(), this::processRootGroupRequest);
       messager.registerJavaFXSyncedTopicListener(topics.getYoGraphicLoadRequest(), this::loadYoGraphicFromFile);
       messager.registerJavaFXSyncedTopicListener(topics.getYoGraphicSaveRequest(), this::saveYoGraphicToFile);
-
-      backgroundExecutorManager.scheduleTaskInBackground(this::computeBackground, 1000, 100, TimeUnit.MILLISECONDS);
    }
 
    private void computeBackground()
@@ -88,6 +88,7 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
       }
 
       start();
+      backgroundTask = backgroundExecutorManager.scheduleTaskInBackground(this::computeBackground, 1000, 100, TimeUnit.MILLISECONDS);
    }
 
    @Override
@@ -96,6 +97,11 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
       root.clear();
       sessionRoot.clear();
       stop();
+      if (backgroundTask != null)
+      {
+         backgroundTask.cancel(false);
+         backgroundTask = null;
+      }
    }
 
    @Override
