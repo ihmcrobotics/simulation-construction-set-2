@@ -122,6 +122,11 @@
 	-glyph-name: CROP;
 }
 
+.flush-data-buffer-icon-view {
+	-fx-fill: black;
+	-glyph-name: ERASER;
+}
+
 .resize-data-buffer-icon-view {
 	-fx-fill: black;
 	-glyph-name: TACHOMETER;

@@ -47,6 +47,12 @@ public class YoBooleanBuffer extends YoVariableBuffer<YoBoolean>
    }
 
    @Override
+   public void fillBuffer(boolean zeroFill, int from, int length)
+   {
+      BufferTools.ringArrayFill(buffer, zeroFill ? false : yoVariable.getValue(), from, length);
+   }
+
+   @Override
    LinkedYoBoolean newLinkedYoVariable(YoBoolean variableToLink)
    {
       return new LinkedYoBoolean(variableToLink, this);

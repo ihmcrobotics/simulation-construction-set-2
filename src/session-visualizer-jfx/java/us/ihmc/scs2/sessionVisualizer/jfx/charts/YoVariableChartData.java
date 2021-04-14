@@ -10,16 +10,18 @@ import java.util.function.Function;
 
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.messager.Messager;
+import us.ihmc.messager.TopicListener;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sharedMemory.BufferSample;
+import us.ihmc.scs2.sharedMemory.CropBufferRequest;
+import us.ihmc.scs2.sharedMemory.FillBufferRequest;
 import us.ihmc.scs2.sharedMemory.LinkedYoBoolean;
 import us.ihmc.scs2.sharedMemory.LinkedYoDouble;
 import us.ihmc.scs2.sharedMemory.LinkedYoEnum;
 import us.ihmc.scs2.sharedMemory.LinkedYoInteger;
 import us.ihmc.scs2.sharedMemory.LinkedYoLong;
 import us.ihmc.scs2.sharedMemory.LinkedYoVariable;
-import us.ihmc.scs2.sharedMemory.YoBufferProperties;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.scs2.sharedMemory.tools.BufferTools;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -31,7 +33,6 @@ public class YoVariableChartData
    private SessionMode lastSessionModeStatus = null;
    private final AtomicReference<SessionMode> currentSessionMode;
    private YoBufferPropertiesReadOnly lastProperties = null;
-   private final AtomicReference<YoBufferPropertiesReadOnly> currentBufferPropertiesReference;
 
    @SuppressWarnings("rawtypes")
    private final AtomicReference<BufferSample> rawDataProperty = new AtomicReference<>(null);
@@ -43,14 +44,24 @@ public class YoVariableChartData
    private final Queue<Object> callerIDs = new ConcurrentLinkedQueue<>();
    private final Map<Object, ChartDataUpdate> newChartDataUpdate = new ConcurrentHashMap<>();
 
+   private final AtomicBoolean requestEntireBuffer = new AtomicBoolean(true);
+
    @SuppressWarnings("rawtypes")
    private final Function<BufferSample<double[]>, BufferSample> bufferConverterFunction;
 
+   private final TopicListener<CropBufferRequest> cropRequestListener = m -> requestEntireBuffer.set(true);
+   private final TopicListener<FillBufferRequest> fillRequestListener = m -> requestEntireBuffer.set(true);
+   private final TopicListener<YoBufferPropertiesReadOnly> propertiesListener;
+
+   private final Messager messager;
+   private final SessionVisualizerTopics topics;
+
    public YoVariableChartData(Messager messager, SessionVisualizerTopics topics, LinkedYoVariable<?> linkedYoVariable)
    {
+      this.messager = messager;
+      this.topics = topics;
       this.linkedYoVariable = linkedYoVariable;
       currentSessionMode = messager.createInput(topics.getSessionCurrentMode(), SessionMode.PAUSE);
-      currentBufferPropertiesReference = messager.createInput(topics.getYoBufferCurrentProperties(), new YoBufferProperties());
 
       if (linkedYoVariable instanceof LinkedYoBoolean)
          bufferConverterFunction = in -> booleanToDoubleBuffer(in);
@@ -64,6 +75,35 @@ public class YoVariableChartData
          bufferConverterFunction = in -> longToDoubleBuffer(in);
       else
          throw new UnsupportedOperationException("Unsupported YoVariable type: " + linkedYoVariable.getLinkedYoVariable().getClass().getSimpleName());
+
+      propertiesListener = m ->
+      {
+         if (lastProperties == null)
+         { // First time requesting data.
+            requestEntireBuffer.set(true);
+         }
+         else if (lastProperties.getSize() != m.getSize())
+         { // Buffer was either resized or cropped, data has been shifted around, need to get a complete update.
+            requestEntireBuffer.set(true);
+         }
+         else if (m.getInPoint() != lastProperties.getInPoint() && m.getOutPoint() != lastProperties.getOutPoint())
+         { // When cropping without actually changing the size of the buffer, the data is still being shifted around.
+            linkedYoVariable.requestEntireBuffer();
+         }
+         lastProperties = m;
+      };
+
+      messager.registerTopicListener(topics.getYoBufferCropRequest(), cropRequestListener);
+      messager.registerTopicListener(topics.getYoBufferFillRequest(), fillRequestListener);
+      messager.registerTopicListener(topics.getYoBufferCurrentProperties(), propertiesListener);
+   }
+
+   public void dispose()
+   {
+      messager.removeInput(topics.getSessionCurrentMode(), currentSessionMode);
+      messager.removeTopicListener(topics.getYoBufferCropRequest(), cropRequestListener);
+      messager.removeTopicListener(topics.getYoBufferFillRequest(), fillRequestListener);
+      messager.removeTopicListener(topics.getYoBufferCurrentProperties(), propertiesListener);
    }
 
    @SuppressWarnings("rawtypes")
@@ -78,8 +118,6 @@ public class YoVariableChartData
          lastUpdateEndIndex = newRawData.getBufferProperties().getOutPoint();
       }
 
-      YoBufferPropertiesReadOnly currentBufferProperties = currentBufferPropertiesReference.get();
-
       // Now check if a new request should be submitted.
       if (lastSessionModeStatus == SessionMode.RUNNING && currentSessionMode.get() != SessionMode.RUNNING)
       { // The session just stopped running, need to ensure we have all the data up to the out-point.
@@ -87,12 +125,8 @@ public class YoVariableChartData
       }
       else if (callerIDs.stream().anyMatch(callerID -> !hasNewChartData(callerID)))
       {// Only request data if JFX is keeping up with the rendering.
-         if (lastProperties == null)
-         { // First time requesting data.
-            linkedYoVariable.requestEntireBuffer();
-         }
-         else if (currentBufferProperties.getSize() != lastProperties.getSize())
-         { // Buffer was either resized or cropped, data has been shifted around, need to get a complete update.
+         if (requestEntireBuffer.getAndSet(false))
+         {
             linkedYoVariable.requestEntireBuffer();
          }
          else if (lastSessionModeStatus != SessionMode.RUNNING && currentSessionMode.get() == SessionMode.RUNNING)
@@ -106,14 +140,9 @@ public class YoVariableChartData
             else
                linkedYoVariable.requestBufferStartingFrom(lastUpdateEndIndex);
          }
-         else if (currentBufferProperties.getInPoint() != lastProperties.getInPoint() && currentBufferProperties.getOutPoint() != lastProperties.getOutPoint())
-         { // When cropping without actually changing the size of the buffer, the data is still being shifted around.
-            linkedYoVariable.requestEntireBuffer();
-         }
       }
 
       lastSessionModeStatus = currentSessionMode.get();
-      lastProperties = currentBufferProperties;
 
       publishForCharts();
    }

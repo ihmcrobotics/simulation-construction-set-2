@@ -74,6 +74,14 @@ public class YoRegistryBuffer
       yoVariableBuffers.parallelStream().forEach(buffer -> buffer.resizeBuffer(from, length));
    }
 
+   public void fillBuffer(boolean zeroFill, int from, int length)
+   {
+      if (length <= 0)
+         return;
+
+      yoVariableBuffers.forEach(buffer -> buffer.fillBuffer(zeroFill, from, length));
+   }
+
    public void writeBuffer()
    {
       writeBufferAt(properties.getCurrentIndex());

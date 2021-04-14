@@ -60,7 +60,13 @@ public class ChartDataManager implements Manager
    {
       try
       {
-         chartDataMap.values().removeIf(value -> !value.isCurrentlyInUse());
+         chartDataMap.values().removeIf(value ->
+         {
+            boolean remove = !value.isCurrentlyInUse();
+            if (remove)
+               value.dispose();
+            return remove;
+         });
          chartDataMap.values().forEach(YoVariableChartData::updateData);
       }
       catch (Exception e)

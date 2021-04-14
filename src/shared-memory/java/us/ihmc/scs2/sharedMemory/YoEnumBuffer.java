@@ -47,6 +47,12 @@ public class YoEnumBuffer<E extends Enum<E>> extends YoVariableBuffer<YoEnum<E>>
    }
 
    @Override
+   public void fillBuffer(boolean zeroFill, int from, int length)
+   {
+      BufferTools.ringArrayFill(buffer, zeroFill ? 0 : (byte) yoVariable.getOrdinal(), from, length);
+   }
+
+   @Override
    LinkedYoEnum<E> newLinkedYoVariable(YoEnum<E> variableToLink)
    {
       return new LinkedYoEnum<>(variableToLink, this);

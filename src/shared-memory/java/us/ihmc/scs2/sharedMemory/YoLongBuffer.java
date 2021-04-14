@@ -47,6 +47,12 @@ public class YoLongBuffer extends YoVariableBuffer<YoLong>
    }
 
    @Override
+   public void fillBuffer(boolean zeroFill, int from, int length)
+   {
+      BufferTools.ringArrayFill(buffer, zeroFill ? 0 : yoVariable.getValue(), from, length);
+   }
+
+   @Override
    LinkedYoLong newLinkedYoVariable(YoLong variableToLink)
    {
       return new LinkedYoLong(variableToLink, this);

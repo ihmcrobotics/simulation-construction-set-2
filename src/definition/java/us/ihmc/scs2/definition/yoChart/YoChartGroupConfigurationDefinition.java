@@ -2,14 +2,22 @@ package us.ihmc.scs2.definition.yoChart;
 
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "YoChartGroupConfiguration")
 public class YoChartGroupConfigurationDefinition
 {
+   private String name;
    private int numberOfRows, numberOfColumns;
    private List<YoChartConfigurationDefinition> chartConfigurations;
+
+   @XmlAttribute
+   public void setName(String name)
+   {
+      this.name = name;
+   }
 
    @XmlElement
    public void setNumberOfRows(int numberOfRows)
@@ -27,6 +35,11 @@ public class YoChartGroupConfigurationDefinition
    public void setChartConfigurations(List<YoChartConfigurationDefinition> chartConfigurations)
    {
       this.chartConfigurations = chartConfigurations;
+   }
+
+   public String getName()
+   {
+      return name;
    }
 
    public int getNumberOfRows()

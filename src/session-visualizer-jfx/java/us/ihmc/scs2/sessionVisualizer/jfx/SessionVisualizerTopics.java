@@ -13,6 +13,7 @@ import us.ihmc.scs2.session.YoSharedBufferMessagerAPI;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.search.SearchEngines;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
 import us.ihmc.scs2.sharedMemory.CropBufferRequest;
+import us.ihmc.scs2.sharedMemory.FillBufferRequest;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 
 public class SessionVisualizerTopics
@@ -65,6 +66,7 @@ public class SessionVisualizerTopics
    private Topic<Integer> yoBufferIncrementCurrentIndexRequest, yoBufferDecrementCurrentIndexRequest;
    private Topic<Integer> yoBufferInPointIndexRequest, yoBufferOutPointIndexRequest;
    private Topic<CropBufferRequest> yoBufferCropRequest;
+   private Topic<FillBufferRequest> yoBufferFillRequest;
    private Topic<Integer> yoBufferCurrentSizeRequest;
    private Topic<YoBufferPropertiesReadOnly> yoBufferCurrentProperties;
 
@@ -120,6 +122,7 @@ public class SessionVisualizerTopics
       yoBufferInPointIndexRequest = YoSharedBufferMessagerAPI.InPointIndexRequest;
       yoBufferOutPointIndexRequest = YoSharedBufferMessagerAPI.OutPointIndexRequest;
       yoBufferCropRequest = YoSharedBufferMessagerAPI.CropRequest;
+      yoBufferFillRequest = YoSharedBufferMessagerAPI.FillRequest;
       yoBufferCurrentSizeRequest = YoSharedBufferMessagerAPI.CurrentBufferSizeRequest;
       yoBufferCurrentProperties = YoSharedBufferMessagerAPI.CurrentBufferProperties;
    }
@@ -337,6 +340,11 @@ public class SessionVisualizerTopics
    public Topic<CropBufferRequest> getYoBufferCropRequest()
    {
       return yoBufferCropRequest;
+   }
+
+   public Topic<FillBufferRequest> getYoBufferFillRequest()
+   {
+      return yoBufferFillRequest;
    }
 
    public Topic<Integer> getYoBufferCurrentSizeRequest()

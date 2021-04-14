@@ -47,6 +47,12 @@ public class YoDoubleBuffer extends YoVariableBuffer<YoDouble>
    }
 
    @Override
+   public void fillBuffer(boolean zeroFill, int from, int length)
+   {
+      BufferTools.ringArrayFill(buffer, zeroFill ? 0.0 : yoVariable.getValue(), from, length);
+   }
+
+   @Override
    LinkedYoDouble newLinkedYoVariable(YoDouble variableToLink)
    {
       return new LinkedYoDouble(variableToLink, this);

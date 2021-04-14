@@ -21,6 +21,7 @@ import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
 import us.ihmc.scs2.sharedMemory.CropBufferRequest;
+import us.ihmc.scs2.sharedMemory.FillBufferRequest;
 import us.ihmc.scs2.sharedMemory.YoSharedBuffer;
 import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
@@ -52,6 +53,7 @@ public abstract class Session
 
    // Fields for external requests on buffer.
    private final AtomicReference<CropBufferRequest> pendingCropBufferRequest = new AtomicReference<>(null);
+   private final AtomicReference<FillBufferRequest> pendingFillBufferRequest = new AtomicReference<>(null);
    private final AtomicReference<Integer> pendingBufferIndexRequest = new AtomicReference<>(null);
    private final AtomicReference<Integer> pendingBufferInPointIndexRequest = new AtomicReference<>(null);
    private final AtomicReference<Integer> pendingBufferOutPointIndexRequest = new AtomicReference<>(null);
@@ -164,6 +166,11 @@ public abstract class Session
    public void submitCropBufferRequest(CropBufferRequest cropBufferRequest)
    {
       pendingCropBufferRequest.set(cropBufferRequest);
+   }
+
+   public void submitFillBufferRequest(FillBufferRequest fillBufferRequest)
+   {
+      pendingFillBufferRequest.set(fillBufferRequest);
    }
 
    public void submitBufferSizeRequest(Integer bufferSizeRequest)
@@ -529,6 +536,13 @@ public abstract class Session
             hasBufferBeenUpdated |= sharedBuffer.resizeBuffer(newSize.intValue());
          }
 
+         FillBufferRequest fillBufferRequest = pendingFillBufferRequest.getAndSet(null);
+         if (fillBufferRequest != null)
+         {
+            sharedBuffer.fillBuffer(fillBufferRequest);
+            hasBufferBeenUpdated = true;
+         }
+
          return hasBufferBeenUpdated;
       }
       else
@@ -600,6 +614,7 @@ public abstract class Session
       private final Messager messager;
 
       private final TopicListener<CropBufferRequest> cropRequestListener = Session.this::submitCropBufferRequest;
+      private final TopicListener<FillBufferRequest> fillRequestListener = Session.this::submitFillBufferRequest;
       private final TopicListener<Integer> currentIndexListener = Session.this::submitBufferIndexRequest;
       private final TopicListener<Integer> inPointIndexListener = Session.this::submitBufferInPointIndexRequest;
       private final TopicListener<Integer> outPointIndexListener = Session.this::submitBufferOutPointIndexRequest;
@@ -623,6 +638,7 @@ public abstract class Session
          addCurrentBufferPropertiesListener(bufferPropertiesListener);
 
          messager.registerTopicListener(YoSharedBufferMessagerAPI.CropRequest, cropRequestListener);
+         messager.registerTopicListener(YoSharedBufferMessagerAPI.FillRequest, fillRequestListener);
          messager.registerTopicListener(YoSharedBufferMessagerAPI.CurrentIndexRequest, currentIndexListener);
          messager.registerTopicListener(YoSharedBufferMessagerAPI.InPointIndexRequest, inPointIndexListener);
          messager.registerTopicListener(YoSharedBufferMessagerAPI.OutPointIndexRequest, outPointIndexListener);
@@ -645,6 +661,7 @@ public abstract class Session
             return;
 
          messager.removeTopicListener(YoSharedBufferMessagerAPI.CropRequest, cropRequestListener);
+         messager.removeTopicListener(YoSharedBufferMessagerAPI.FillRequest, fillRequestListener);
          messager.removeTopicListener(YoSharedBufferMessagerAPI.CurrentIndexRequest, currentIndexListener);
          messager.removeTopicListener(YoSharedBufferMessagerAPI.InPointIndexRequest, inPointIndexListener);
          messager.removeTopicListener(YoSharedBufferMessagerAPI.OutPointIndexRequest, outPointIndexListener);

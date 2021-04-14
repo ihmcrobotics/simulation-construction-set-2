@@ -119,6 +119,11 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
       properties.setCurrentIndexUnsafe(0);
    }
 
+   public void fillBuffer(FillBufferRequest request)
+   {
+      registryBuffer.fillBuffer(request.getZeroFill(), request.getFrom(), request.getFilledSize(properties.getSize()));
+   }
+
    /**
     * Resize the buffer. This is typically used to increase its size.
     * <p>

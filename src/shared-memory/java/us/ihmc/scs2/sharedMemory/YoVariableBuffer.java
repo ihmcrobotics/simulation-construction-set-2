@@ -45,6 +45,8 @@ public abstract class YoVariableBuffer<T extends YoVariable>
 
    public abstract void readBufferAt(int index);
 
+   public abstract void fillBuffer(boolean zeroFill, int from, int length);
+
    public T getYoVariable()
    {
       return yoVariable;

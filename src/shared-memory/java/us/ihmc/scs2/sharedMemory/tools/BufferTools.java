@@ -220,6 +220,81 @@ public class BufferTools
       return bufferCopy;
    }
 
+   public static void ringArrayFill(boolean[] ringArray, boolean fillValue, int from, int length)
+   {
+      length = Math.min(length, ringArray.length);
+
+      if (from + length <= ringArray.length)
+      {
+         Arrays.fill(ringArray, from, from + length, fillValue);
+      }
+      else
+      {
+         Arrays.fill(ringArray, from, ringArray.length, fillValue);
+         Arrays.fill(ringArray, 0, from + length - ringArray.length, fillValue);
+      }
+   }
+
+   public static void ringArrayFill(double[] ringArray, double fillValue, int from, int length)
+   {
+      length = Math.min(length, ringArray.length);
+
+      if (from + length <= ringArray.length)
+      {
+         Arrays.fill(ringArray, from, from + length, fillValue);
+      }
+      else
+      {
+         Arrays.fill(ringArray, from, ringArray.length, fillValue);
+         Arrays.fill(ringArray, 0, from + length - ringArray.length, fillValue);
+      }
+   }
+
+   public static void ringArrayFill(int[] ringArray, int fillValue, int from, int length)
+   {
+      length = Math.min(length, ringArray.length);
+
+      if (from + length <= ringArray.length)
+      {
+         Arrays.fill(ringArray, from, from + length, fillValue);
+      }
+      else
+      {
+         Arrays.fill(ringArray, from, ringArray.length, fillValue);
+         Arrays.fill(ringArray, 0, from + length - ringArray.length, fillValue);
+      }
+   }
+
+   public static void ringArrayFill(long[] ringArray, long fillValue, int from, int length)
+   {
+      length = Math.min(length, ringArray.length);
+
+      if (from + length <= ringArray.length)
+      {
+         Arrays.fill(ringArray, from, from + length, fillValue);
+      }
+      else
+      {
+         Arrays.fill(ringArray, from, ringArray.length, fillValue);
+         Arrays.fill(ringArray, 0, from + length - ringArray.length, fillValue);
+      }
+   }
+
+   public static void ringArrayFill(byte[] ringArray, byte fillValue, int from, int length)
+   {
+      length = Math.min(length, ringArray.length);
+
+      if (from + length <= ringArray.length)
+      {
+         Arrays.fill(ringArray, from, from + length, fillValue);
+      }
+      else
+      {
+         Arrays.fill(ringArray, from, ringArray.length, fillValue);
+         Arrays.fill(ringArray, 0, from + length - ringArray.length, fillValue);
+      }
+   }
+
    public static double[] toDoubleArray(boolean[] array)
    {
       if (array == null)

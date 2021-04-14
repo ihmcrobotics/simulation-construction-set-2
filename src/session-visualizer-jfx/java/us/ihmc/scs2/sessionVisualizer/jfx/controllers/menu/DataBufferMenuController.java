@@ -13,7 +13,9 @@ import us.ihmc.scs2.session.SessionState;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sharedMemory.CropBufferRequest;
+import us.ihmc.scs2.sharedMemory.FillBufferRequest;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
+import us.ihmc.scs2.sharedMemory.tools.BufferTools;
 
 public class DataBufferMenuController
 {
@@ -92,6 +94,19 @@ public class DataBufferMenuController
       {
          CropBufferRequest cropBufferRequest = new CropBufferRequest(bufferProperties.getValue().getInPoint(), bufferProperties.getValue().getOutPoint());
          messager.submitMessage(topics.getYoBufferCropRequest(), cropBufferRequest);
+      }
+   }
+
+   @FXML
+   private void requestFlushDataBuffer()
+   {
+      YoBufferPropertiesReadOnly properties = bufferProperties.getValue();
+      if (properties != null)
+      {
+         FillBufferRequest fillBufferRequest = new FillBufferRequest(false,
+                                                                     BufferTools.increment(properties.getOutPoint(), 1, properties.getSize()),
+                                                                     BufferTools.decrement(properties.getInPoint(), 1, properties.getSize()));
+         messager.submitMessage(topics.getYoBufferFillRequest(), fillBufferRequest);
       }
    }
 }
