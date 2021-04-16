@@ -59,6 +59,7 @@ public class SessionVisualizerTopics
    private Topic<Boolean> runAtRealTimeRate;
    private Topic<Long> sessionTickToTimeIncrement;
    private Topic<Double> playbackRealTimeRate;
+   private Topic<Integer> bufferRecordTickPeriod;
    private Topic<Boolean> remoteSessionControlsRequest;
    private Topic<Boolean> logSessionControlsRequest;
 
@@ -113,6 +114,7 @@ public class SessionVisualizerTopics
       runAtRealTimeRate = SessionMessagerAPI.RunAtRealTimeRate;
       sessionTickToTimeIncrement = SessionMessagerAPI.SessionTickToTimeIncrement;
       playbackRealTimeRate = SessionMessagerAPI.PlaybackRealTimeRate;
+      bufferRecordTickPeriod = SessionMessagerAPI.BufferRecordTickPeriod;
       remoteSessionControlsRequest = SessionVisualizerMessagerAPI.Session.RemoteSessionControlsRequest;
       logSessionControlsRequest = SessionVisualizerMessagerAPI.Session.LogSessionControlsRequest;
 
@@ -300,6 +302,11 @@ public class SessionVisualizerTopics
    public Topic<Double> getPlaybackRealTimeRate()
    {
       return playbackRealTimeRate;
+   }
+
+   public Topic<Integer> getBufferRecordTickPeriod()
+   {
+      return bufferRecordTickPeriod;
    }
 
    public Topic<Boolean> getRemoteSessionControlsRequest()

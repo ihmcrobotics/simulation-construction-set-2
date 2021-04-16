@@ -12,6 +12,7 @@ import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.session.SessionState;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.PositiveIntegerValueFilter;
 import us.ihmc.scs2.sharedMemory.CropBufferRequest;
 import us.ihmc.scs2.sharedMemory.FillBufferRequest;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
@@ -21,6 +22,8 @@ public class DataBufferMenuController
 {
    @FXML
    private TextField bufferSizeTextField;
+   @FXML
+   private TextField bufferRecordTickPeriodTextField;
    @FXML
    private MenuItem sizeMenuItem;
 
@@ -41,9 +44,8 @@ public class DataBufferMenuController
             initializeBufferSizeTextField = true;
       });
 
-      TextFormatter<Integer> formatter = new TextFormatter<>(new IntegerStringConverter());
-      formatter.setValue(0);
-      bufferSizeTextField.setTextFormatter(formatter);
+      TextFormatter<Integer> bufferSizeFormatter = new TextFormatter<>(new IntegerStringConverter(), 0, new PositiveIntegerValueFilter());
+      bufferSizeTextField.setTextFormatter(bufferSizeFormatter);
       /*
        * TODO: Workaround for a bug in JFX that's causing the previous MenuItem to be triggered and
        * pressing enter while editing the TextField. Registering an EventHandler (even empty) using
@@ -56,35 +58,43 @@ public class DataBufferMenuController
       {
       });
 
-      MutableBoolean updatingBuffer = new MutableBoolean(false);
-      MutableBoolean updatingFormatter = new MutableBoolean(false);
+      MutableBoolean updatingBufferResize = new MutableBoolean(false);
 
       bufferProperties.addListener((o, oldValue, newValue) ->
       {
          if (!initializeBufferSizeTextField && (oldValue == null || newValue.getSize() == oldValue.getSize()))
             return;
 
-         if (updatingBuffer.isFalse())
+         if (updatingBufferResize.isFalse())
          {
-            updatingFormatter.setTrue();
-            formatter.setValue(newValue.getSize());
+            updatingBufferResize.setTrue();
+            bufferSizeFormatter.setValue(newValue.getSize());
             initializeBufferSizeTextField = false;
-            updatingFormatter.setFalse();
+            updatingBufferResize.setFalse();
          }
       });
 
-      formatter.valueProperty().addListener((o, oldValue, newValue) ->
+      bufferSizeFormatter.valueProperty().addListener((o, oldValue, newValue) ->
       {
          if (bufferProperties.getValue() != null && bufferProperties.getValue().getSize() == newValue.intValue())
             return;
 
-         if (updatingFormatter.isFalse())
+         if (updatingBufferResize.isFalse())
          {
-            updatingBuffer.setTrue();
+            updatingBufferResize.setTrue();
             messager.submitMessage(topics.getYoBufferCurrentSizeRequest(), newValue);
-            updatingBuffer.setFalse();
+            updatingBufferResize.setFalse();
          }
       });
+
+      TextFormatter<Integer> recordPeriodFormatter = new TextFormatter<Integer>(new IntegerStringConverter(), 0, new PositiveIntegerValueFilter());
+      bufferRecordTickPeriodTextField.setTextFormatter(recordPeriodFormatter);
+
+      bufferRecordTickPeriodTextField.setOnAction(e ->
+      {
+      });
+
+      messager.bindBidirectional(topics.getBufferRecordTickPeriod(), recordPeriodFormatter.valueProperty(), false);
    }
 
    @FXML

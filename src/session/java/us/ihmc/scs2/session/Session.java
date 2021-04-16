@@ -9,6 +9,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -38,12 +39,14 @@ public abstract class Session
    private final AtomicBoolean runAtRealTimeRate = new AtomicBoolean(false);
    private final AtomicReference<Double> playbackRealTimeRate = new AtomicReference<>(2.0);
    private int stepSizePerPlaybackTick = 1;
+   private final AtomicInteger bufferRecordTickPeriod = new AtomicInteger(1);
    /**
     * Map from one session tick to the time increment in the data.
     * <p>
     * When simulating, this corresponds to the simulation DT for instance.
     * </p>
     */
+   // TODO Should be renamed to something like sessionDT
    private final AtomicLong sessionTickToTimeIncrement = new AtomicLong(Conversions.secondsToNanoseconds(1.0e-4));
    private final AtomicLong desiredBufferPublishPeriod = new AtomicLong(-1L);
 
@@ -156,6 +159,13 @@ public abstract class Session
 
       playbackRealTimeRate.set(Double.valueOf(realTimeRate));
       restartSessionTask();
+   }
+
+   public void submitBufferRecordTickPeriod(int bufferRecordTickPeriod)
+   {
+      if (bufferRecordTickPeriod == this.bufferRecordTickPeriod.get())
+         return;
+      this.bufferRecordTickPeriod.set(Math.max(1, bufferRecordTickPeriod));
    }
 
    public void submitDesiredBufferPublishPeriod(long publishPeriod)
@@ -287,10 +297,16 @@ public abstract class Session
    private void reportActiveMode()
    {
       for (Consumer<SessionProperties> listener : sessionPropertiesListeners)
-         listener.accept(new SessionProperties(activeMode.get(),
-                                               runAtRealTimeRate.get(),
-                                               playbackRealTimeRate.get().doubleValue(),
-                                               sessionTickToTimeIncrement.get()));
+         listener.accept(getSessionProperties());
+   }
+
+   public SessionProperties getSessionProperties()
+   {
+      return new SessionProperties(activeMode.get(),
+                                   runAtRealTimeRate.get(),
+                                   playbackRealTimeRate.get().doubleValue(),
+                                   sessionTickToTimeIncrement.get(),
+                                   bufferRecordTickPeriod.get());
    }
 
    /**
@@ -305,6 +321,8 @@ public abstract class Session
    {
       return runAtRealTimeRate.get() ? sessionTickToTimeIncrement.get() : 1L;
    }
+
+   private int nextBufferRecordTickCounter = 0;
 
    public void runTick()
    {
@@ -336,46 +354,59 @@ public abstract class Session
 
    protected void initializeRunTick()
    {
-      sharedBuffer.incrementBufferIndex(true);
-
       if (firstRunTick)
       {
+         sharedBuffer.incrementBufferIndex(true);
          sharedBuffer.setInPoint(sharedBuffer.getProperties().getCurrentIndex());
+         sharedBuffer.processLinkedPushRequests(false);
          firstRunTick = false;
       }
-
-      sharedBuffer.processLinkedPushRequests(false);
+      else if (nextBufferRecordTickCounter <= 0)
+      {
+         sharedBuffer.incrementBufferIndex(true);
+         sharedBuffer.processLinkedPushRequests(false);
+      }
    }
 
    protected abstract void doSpecificRunTick();
 
    protected void finalizeRunTick()
    {
-      sharedBuffer.writeBuffer();
-
-      long currentTimestamp = System.nanoTime();
-
-      if (currentTimestamp - lastPublishedBufferTimestamp > desiredBufferPublishPeriod.get())
+      if (nextBufferRecordTickCounter <= 0)
       {
-         sharedBuffer.prepareLinkedBuffersForPull();
-         lastPublishedBufferTimestamp = currentTimestamp;
+         sharedBuffer.writeBuffer();
+
+         long currentTimestamp = System.nanoTime();
+
+         if (currentTimestamp - lastPublishedBufferTimestamp > desiredBufferPublishPeriod.get())
+         {
+            sharedBuffer.prepareLinkedBuffersForPull();
+            lastPublishedBufferTimestamp = currentTimestamp;
+         }
+
+         processBufferRequests(false);
+         publishBufferProperties(sharedBuffer.getProperties());
+
+         nextBufferRecordTickCounter = Math.max(1, bufferRecordTickPeriod.get());
       }
 
-      processBufferRequests(false);
-      publishBufferProperties(sharedBuffer.getProperties());
+      nextBufferRecordTickCounter--;
    }
 
    protected long computePlaybackTaskPeriod()
    {
+      long timeIncrement = sessionTickToTimeIncrement.get() * bufferRecordTickPeriod.get();
+
       if (playbackRealTimeRate.get().doubleValue() <= 0.5)
       {
          stepSizePerPlaybackTick = 1;
-         return (long) (sessionTickToTimeIncrement.get() / playbackRealTimeRate.get().doubleValue());
+         return (long) (timeIncrement / playbackRealTimeRate.get().doubleValue());
       }
-
-      stepSizePerPlaybackTick = 2 * Math.max(1, (int) Math.floor(playbackRealTimeRate.get().doubleValue()));
-      long timeIncrement = sessionTickToTimeIncrement.longValue() * stepSizePerPlaybackTick;
-      return (long) (timeIncrement / playbackRealTimeRate.get().doubleValue());
+      else
+      {
+         stepSizePerPlaybackTick = 2 * Math.max(1, (int) Math.floor(playbackRealTimeRate.get().doubleValue()));
+         return (long) (timeIncrement * stepSizePerPlaybackTick / playbackRealTimeRate.get().doubleValue());
+      }
    }
 
    public void playbackTick()
@@ -583,6 +614,11 @@ public abstract class Session
       return playbackRealTimeRate.get().doubleValue();
    }
 
+   public int getBufferRecordTickPeriod()
+   {
+      return bufferRecordTickPeriod.get();
+   }
+
    public long getSessionTickToTimeIncrement()
    {
       return sessionTickToTimeIncrement.get();
@@ -626,7 +662,8 @@ public abstract class Session
       private final TopicListener<SessionMode> sessionCurrentModeListener = Session.this::setSessionMode;
       private final TopicListener<Long> sessionTicktoTimeIncrementListener = Session.this::setSessionTickToTimeIncrement;
       private final TopicListener<Boolean> runAtRealTimeRateListener = Session.this::submitRunAtRealTimeRate;
-      private final TopicListener<Double> playbackRealTimeRate = Session.this::submitPlaybackRealTimeRate;
+      private final TopicListener<Double> playbackRealTimeRateListener = Session.this::submitPlaybackRealTimeRate;
+      private final TopicListener<Integer> bufferRecordTickPeriodListener = Session.this::submitBufferRecordTickPeriod;
 
       private final Consumer<YoBufferPropertiesReadOnly> bufferPropertiesListener = createBufferPropertiesListener();
       private final Consumer<SessionProperties> sessionPropertiesListener = createSessionPropertiesListener();
@@ -652,7 +689,8 @@ public abstract class Session
          messager.registerTopicListener(SessionMessagerAPI.SessionCurrentMode, sessionCurrentModeListener);
          messager.registerTopicListener(SessionMessagerAPI.SessionTickToTimeIncrement, sessionTicktoTimeIncrementListener);
          messager.registerTopicListener(SessionMessagerAPI.RunAtRealTimeRate, runAtRealTimeRateListener);
-         messager.registerTopicListener(SessionMessagerAPI.PlaybackRealTimeRate, playbackRealTimeRate);
+         messager.registerTopicListener(SessionMessagerAPI.PlaybackRealTimeRate, playbackRealTimeRateListener);
+         messager.registerTopicListener(SessionMessagerAPI.BufferRecordTickPeriod, bufferRecordTickPeriodListener);
       }
 
       private void detachFromMessager()
@@ -673,7 +711,8 @@ public abstract class Session
          messager.removeTopicListener(SessionMessagerAPI.SessionCurrentMode, sessionCurrentModeListener);
          messager.removeTopicListener(SessionMessagerAPI.SessionTickToTimeIncrement, sessionTicktoTimeIncrementListener);
          messager.removeTopicListener(SessionMessagerAPI.RunAtRealTimeRate, runAtRealTimeRateListener);
-         messager.removeTopicListener(SessionMessagerAPI.PlaybackRealTimeRate, playbackRealTimeRate);
+         messager.removeTopicListener(SessionMessagerAPI.PlaybackRealTimeRate, playbackRealTimeRateListener);
+         messager.removeTopicListener(SessionMessagerAPI.BufferRecordTickPeriod, bufferRecordTickPeriodListener);
       }
 
       private Consumer<YoBufferPropertiesReadOnly> createBufferPropertiesListener()
@@ -698,6 +737,7 @@ public abstract class Session
             messager.submitMessage(SessionMessagerAPI.SessionTickToTimeIncrement, sessionProperties.getSessionTickToTimeIncrement());
             messager.submitMessage(SessionMessagerAPI.PlaybackRealTimeRate, sessionProperties.getPlaybackRealTimeRate());
             messager.submitMessage(SessionMessagerAPI.RunAtRealTimeRate, sessionProperties.isRunAtRealTimeRate());
+            messager.submitMessage(SessionMessagerAPI.BufferRecordTickPeriod, sessionProperties.getBufferRecordTickPeriod());
          };
       }
    }

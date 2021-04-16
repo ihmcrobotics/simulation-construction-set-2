@@ -132,6 +132,11 @@
 	-glyph-name: TACHOMETER;
 }
 
+.buffer-record-tick-period-icon-view {
+	-fx-fill: black;
+	-glyph-name: FILTER;
+}
+
 .close-icon-view {
 	-fx-fill: -default-pale-red;
 	-glyph-name: SIGN_IN;
