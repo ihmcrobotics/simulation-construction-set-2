@@ -25,7 +25,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.stage.Stage;
 import us.ihmc.commons.Conversions;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.SessionAdvancedControlsController;
@@ -59,13 +58,13 @@ public class MainWindowController extends ObservedAnimationTimer
    private SessionAdvancedControlsController sessionAdvancedControlsController;
    @FXML
    private YoChartGroupPanelController yoChartGroupPanelController;
-   private SessionVisualizerToolkit toolkit;
+   private SessionVisualizerToolkit globalToolkit;
    private SessionVisualizerWindowToolkit windowToolkit;
 
-   public void initialize(Stage owner, SessionVisualizerToolkit globalToolkit)
+   public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
-      this.toolkit = globalToolkit;
-      windowToolkit = new SessionVisualizerWindowToolkit(owner, globalToolkit);
+      windowToolkit = toolkit;
+      this.globalToolkit = toolkit.getGlobalToolkit();
       mainWindowMenuBarController.initialize(windowToolkit);
       sessionSimpleControlsController.initialize(windowToolkit);
       sessionAdvancedControlsController.initialize(windowToolkit);
@@ -79,7 +78,7 @@ public class MainWindowController extends ObservedAnimationTimer
       AnchorPane.setRightAnchor(viewportPane, 0.0);
       AnchorPane.setBottomAnchor(viewportPane, 0.0);
       AnchorPane.setLeftAnchor(viewportPane, 0.0);
-      toolkit.getSnapshotManager().registerRecordable(viewportPane);
+      globalToolkit.getSnapshotManager().registerRecordable(viewportPane);
    }
 
    private Property<Boolean> showOverheadPlotterProperty;
@@ -90,10 +89,10 @@ public class MainWindowController extends ObservedAnimationTimer
       Pane pane = new Pane(plotter2DScene);
       plotter2DScene.heightProperty().bind(pane.heightProperty());
       plotter2DScene.widthProperty().bind(pane.widthProperty());
-      plotter2D.getRoot().getChildren().add(toolkit.getYoGraphicFXManager().getRootNode2D());
+      plotter2D.getRoot().getChildren().add(globalToolkit.getYoGraphicFXManager().getRootNode2D());
 
-      JavaFXMessager messager = toolkit.getMessager();
-      showOverheadPlotterProperty = messager.createPropertyInput(toolkit.getTopics().getShowOverheadPlotter(), false);
+      JavaFXMessager messager = globalToolkit.getMessager();
+      showOverheadPlotterProperty = messager.createPropertyInput(globalToolkit.getTopics().getShowOverheadPlotter(), false);
       showOverheadPlotterProperty.addListener((o, oldValue, newValue) ->
       {
          if (newValue)

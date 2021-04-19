@@ -14,6 +14,7 @@ import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.MultiSessionManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.plotter.Plotter2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.CameraTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXApplicationCreator;
@@ -45,7 +46,7 @@ public class SessionVisualizer
       FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.MAIN_WINDOW_URL);
       Parent mainPane = loader.load();
       mainWindowController = loader.getController();
-      mainWindowController.initialize(primaryStage, toolkit);
+      mainWindowController.initialize(new SessionVisualizerWindowToolkit(primaryStage, toolkit));
 
       loader = new FXMLLoader(SessionVisualizerIOTools.SIDE_PANE_URL);
       mainWindowController.setupDrawer((Pane) loader.load());

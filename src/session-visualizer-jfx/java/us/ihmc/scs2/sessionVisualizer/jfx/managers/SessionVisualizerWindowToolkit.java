@@ -10,22 +10,26 @@ public class SessionVisualizerWindowToolkit
    private final Stage window;
    private final SessionVisualizerToolkit globalToolkit;
    private final ChartZoomManager chartZoomManager;
+   private final WindowShortcutManager windowShortcutManager;
 
    public SessionVisualizerWindowToolkit(Stage window, SessionVisualizerToolkit globalToolkit)
    {
       this.window = window;
       this.globalToolkit = globalToolkit;
-      chartZoomManager = new ChartZoomManager(window, globalToolkit.getMessager(), globalToolkit.getTopics());
+      chartZoomManager = new ChartZoomManager(window, getMessager(), getTopics());
+      windowShortcutManager = new WindowShortcutManager(window, getMessager(), getTopics());
    }
 
    public void start()
    {
       chartZoomManager.start();
+      windowShortcutManager.start();
    }
 
    public void stop()
    {
       chartZoomManager.stop();
+      windowShortcutManager.stop();
    }
 
    public Stage getWindow()
