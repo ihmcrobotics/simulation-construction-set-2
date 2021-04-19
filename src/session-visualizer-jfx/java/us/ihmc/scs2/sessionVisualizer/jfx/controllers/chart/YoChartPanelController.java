@@ -658,7 +658,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
       if (isSelected)
          dynamicLineChart.setStyle("-fx-border-color:green; -fx-border-radius:5;");
       else
-         dynamicLineChart.setStyle("-fx-border-color: null;");
+         dynamicLineChart.setStyle(null);
    }
 
    public void handleDragEntered(DragEvent event)
