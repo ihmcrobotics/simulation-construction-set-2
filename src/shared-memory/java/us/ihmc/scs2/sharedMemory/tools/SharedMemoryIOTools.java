@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -23,7 +24,9 @@ import javax.xml.bind.Unmarshaller;
 
 import us.hebi.matlab.mat.format.Mat5;
 import us.hebi.matlab.mat.format.Mat5File;
+import us.hebi.matlab.mat.types.Array;
 import us.hebi.matlab.mat.types.MatFile;
+import us.hebi.matlab.mat.types.MatFile.Entry;
 import us.hebi.matlab.mat.types.Matrix;
 import us.hebi.matlab.mat.types.Struct;
 import us.ihmc.scs2.definition.yoVariable.YoBooleanDefinition;
@@ -224,7 +227,9 @@ public class SharedMemoryIOTools
       exportRegistry(rootRegistry, outputStream, null, null);
    }
 
-   public static void exportRegistry(YoRegistry rootRegistry, OutputStream outputStream, Predicate<YoVariable> variableFilter,
+   public static void exportRegistry(YoRegistry rootRegistry,
+                                     OutputStream outputStream,
+                                     Predicate<YoVariable> variableFilter,
                                      Predicate<YoRegistry> registryFilter)
          throws JAXBException, IOException
    {
@@ -236,7 +241,9 @@ public class SharedMemoryIOTools
       exportDataASCII(buffer, dataOutputStream, null, null);
    }
 
-   public static void exportDataASCII(YoSharedBuffer buffer, OutputStream outputStream, Predicate<YoVariable> variableFilter,
+   public static void exportDataASCII(YoSharedBuffer buffer,
+                                      OutputStream outputStream,
+                                      Predicate<YoVariable> variableFilter,
                                       Predicate<YoRegistry> registryFilter)
    {
       Stream<YoVariableBuffer<?>> yoVariableBufferStream;
@@ -278,7 +285,9 @@ public class SharedMemoryIOTools
       exportDataCSV(buffer, dataOutputStream, null, null);
    }
 
-   public static void exportDataCSV(YoSharedBuffer buffer, OutputStream outputStream, Predicate<YoVariable> variableFilter,
+   public static void exportDataCSV(YoSharedBuffer buffer,
+                                    OutputStream outputStream,
+                                    Predicate<YoVariable> variableFilter,
                                     Predicate<YoRegistry> registryFilter)
    {
       Stream<YoVariableBuffer<?>> yoVariableBufferStream;
@@ -398,7 +407,6 @@ public class SharedMemoryIOTools
       MatFile matFile = Mat5.newMatFile();
       Struct rootStruct = Mat5.newStruct();
       matFile.addArray(rootRegistry.getName(), rootStruct);
-      matFile.addArray("hohohoho", Mat5.newMatrix(60, 1));
 
       yoVariableBufferStream.forEach(yoVariableBuffer ->
       {
@@ -411,7 +419,7 @@ public class SharedMemoryIOTools
          if (yoVariable.getRegistry() != rootRegistry)
          {
             YoNamespace parentNamespace = yoVariable.getNamespace().getParent();
-            
+
             for (int i = 1; i < parentNamespace.size(); i++)
             {
                String subName = parentNamespace.getSubNames().get(i);
@@ -426,7 +434,7 @@ public class SharedMemoryIOTools
                   childStruct = Mat5.newStruct();
                   parentStruct.set(subName, childStruct);
                }
-               
+
                parentStruct = childStruct;
             }
          }
@@ -646,11 +654,88 @@ public class SharedMemoryIOTools
       return buffer;
    }
 
-   public static void importDataMatlab(YoSharedBuffer buffer, File inputFile) throws IOException
+   public static YoSharedBuffer importDataMatlab(File inputFile, YoRegistry root) throws IOException
    {
       Mat5File mat5File = Mat5.readFromFile(inputFile);
 
-//      mat5File.get
+      List<Entry> entries = new ArrayList<>();
+
+      for (Entry entry : mat5File.getEntries())
+         entries.add(entry);
+
+      if (entries.size() == 0)
+         throw new IllegalArgumentException("Empty data structure");
+      if (entries.size() != 1 || !(entries.get(0).getValue() instanceof Struct))
+         throw new IllegalArgumentException("Unexpected data structure");
+
+      Entry entry = entries.get(0);
+      if (!entry.getName().equals(root.getName()))
+         throw new IllegalArgumentException("Registry name mismatch");
+      Struct rootStruct = (Struct) entry.getValue();
+
+      YoSharedBuffer buffer = new YoSharedBuffer(root, 1);
+
+      for (String fieldName : rootStruct.getFieldNames())
+      {
+         Array field = rootStruct.get(fieldName);
+
+         if (field instanceof Matrix)
+         {
+            YoVariable variable = root.findVariable(fieldName);
+            if (variable == null)
+               throw new IllegalArgumentException("Could not find the variable " + fieldName + " in " + root);
+            importMatlabMatrix(variable, (Matrix) field, buffer);
+         }
+
+      }
+   
+      return buffer;
+   }
+
+   private static void importMatlabMatrix(YoVariable variable, Matrix matlabMatrix, YoSharedBuffer buffer)
+   {
+      int size = matlabMatrix.getNumRows();
+      growBufferIfNeeded(buffer, size);
+
+      if (variable instanceof YoBoolean)
+      {
+         YoBooleanBuffer variableBuffer = (YoBooleanBuffer) buffer.getRegistryBuffer().findYoVariableBuffer(variable);
+
+         for (int i = 0; i < size; i++)
+            variableBuffer.getBuffer()[i] = matlabMatrix.getBoolean(i);
+      }
+      else if (variable instanceof YoDouble)
+      {
+         YoDoubleBuffer variableBuffer = (YoDoubleBuffer) buffer.getRegistryBuffer().findYoVariableBuffer(variable);
+
+         for (int i = 0; i < size; i++)
+            variableBuffer.getBuffer()[i] = matlabMatrix.getDouble(i);
+      }
+      else if (variable instanceof YoInteger)
+      {
+         YoIntegerBuffer variableBuffer = (YoIntegerBuffer) buffer.getRegistryBuffer().findYoVariableBuffer(variable);
+
+         for (int i = 0; i < size; i++)
+            variableBuffer.getBuffer()[i] = matlabMatrix.getInt(i);
+      }
+      else if (variable instanceof YoLong)
+      {
+         YoLongBuffer variableBuffer = (YoLongBuffer) buffer.getRegistryBuffer().findYoVariableBuffer(variable);
+
+         for (int i = 0; i < size; i++)
+            variableBuffer.getBuffer()[i] = matlabMatrix.getLong(i);
+      }
+      else if (variable instanceof YoEnum<?>)
+      {
+         YoEnumBuffer<?> variableBuffer = (YoEnumBuffer<?>) buffer.getRegistryBuffer().findYoVariableBuffer(variable);
+
+         for (int i = 0; i < size; i++)
+            variableBuffer.getBuffer()[i] = matlabMatrix.getByte(i);
+      }
+      else
+      {
+         throw new IllegalStateException("Unexpected variable type.");
+      }
    }
 
    private static void growBufferIfNeeded(YoSharedBuffer buffer, int newSize)

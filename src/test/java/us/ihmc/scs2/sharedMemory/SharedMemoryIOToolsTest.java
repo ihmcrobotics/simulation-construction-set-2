@@ -101,12 +101,12 @@ public class SharedMemoryIOToolsTest
 
          YoRegistry importedRoot = SharedMemoryIOTools.importRegistry(new FileInputStream(registryFileName));
          SharedMemoryTestTools.assertYoRegistryEquals(exportedBuffer.getRootRegistry(), importedRoot);
-//         YoSharedBuffer importedBuffer = SharedMemoryIOTools.importDataASCII(new FileInputStream(dataFileName), importedRoot);
-//
-//         SharedMemoryTestTools.assertYoSharedBufferEquals(exportedBuffer, importedBuffer, 0.0);
+         YoSharedBuffer importedBuffer = SharedMemoryIOTools.importDataMatlab(new File(dataFileName), importedRoot);
+
+         SharedMemoryTestTools.assertYoSharedBufferEquals(exportedBuffer, importedBuffer, 0.0);
       }
 
-//      Files.delete(Paths.get(dataFileName));
-//      Files.delete(Paths.get(registryFileName));
+      Files.delete(Paths.get(dataFileName));
+      Files.delete(Paths.get(registryFileName));
    }
 }
