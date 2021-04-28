@@ -41,6 +41,7 @@ public class SessionVisualizerMessagerAPI
    private static final TopicTheme Save = apiFactory.createTopicTheme("save");
    private static final TopicTheme Close = apiFactory.createTopicTheme("close");
    private static final TopicTheme Open = apiFactory.createTopicTheme("open");
+   private static final TopicTheme Name = apiFactory.createTopicTheme("name");
 
    public static final Topic<Object> TakeSnapshot = APIRoot.topic(Snapshot);
    public static final Topic<Object> RegisterRecordable = APIRoot.child(Register).topic(Recordable);
@@ -118,6 +119,7 @@ public class SessionVisualizerMessagerAPI
       public static final Topic<Pair<Window, Integer>> YoChartRequestShift = APIRoot.child(YoChart).child(Shift).topic(Request);
       public static final Topic<Pair<Window, File>> YoChartGroupSaveConfiguration = APIRoot.child(YoChart).child(Group).child(Configuration).topic(Save);
       public static final Topic<Pair<Window, File>> YoChartGroupLoadConfiguration = APIRoot.child(YoChart).child(Group).child(Configuration).topic(Load);
+      public static final Topic<Pair<Window, String>> YoChartGroupName = APIRoot.child(YoChart).child(Group).topic(Name);
    }
 
    public static class YoSliderboard

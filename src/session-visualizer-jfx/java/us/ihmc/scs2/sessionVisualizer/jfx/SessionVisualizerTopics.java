@@ -49,6 +49,7 @@ public class SessionVisualizerTopics
 
    private Topic<Pair<Window, File>> yoChartGroupSaveConfiguration;
    private Topic<Pair<Window, File>> yoChartGroupLoadConfiguration;
+   private Topic<Pair<Window, String>> yoChartGroupName;
 
    private Topic<File> yoSliderboardSaveConfiguration;
    private Topic<File> yoSliderboardLoadConfiguration;
@@ -105,6 +106,7 @@ public class SessionVisualizerTopics
       yoChartRequestShift = SessionVisualizerMessagerAPI.YoChart.YoChartRequestShift;
       yoChartGroupSaveConfiguration = SessionVisualizerMessagerAPI.YoChart.YoChartGroupSaveConfiguration;
       yoChartGroupLoadConfiguration = SessionVisualizerMessagerAPI.YoChart.YoChartGroupLoadConfiguration;
+      yoChartGroupName = SessionVisualizerMessagerAPI.YoChart.YoChartGroupName;
 
       yoSliderboardSaveConfiguration = SessionVisualizerMessagerAPI.YoSliderboard.YoSliderboardSaveConfiguration;
       yoSliderboardLoadConfiguration = SessionVisualizerMessagerAPI.YoSliderboard.YoSliderboardLoadConfiguration;
@@ -262,6 +264,11 @@ public class SessionVisualizerTopics
    public Topic<Pair<Window, File>> getYoChartGroupLoadConfiguration()
    {
       return yoChartGroupLoadConfiguration;
+   }
+
+   public Topic<Pair<Window, String>> getYoChartGroupName()
+   {
+      return yoChartGroupName;
    }
 
    public Topic<Pair<Window, File>> getYoChartGroupSaveConfiguration()

@@ -63,7 +63,7 @@ public class SecondaryWindowController
       VBox.setVgrow(chartGroupPane, Priority.ALWAYS);
       Scene scene = new Scene(mainNode, 1024, 768);
       stage.setScene(scene);
-      stage.setTitle("Chart window");
+      stage.titleProperty().bind(chartGroupController.chartGroupNameProperty());
       stage.addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e ->
       {
          stage.close();

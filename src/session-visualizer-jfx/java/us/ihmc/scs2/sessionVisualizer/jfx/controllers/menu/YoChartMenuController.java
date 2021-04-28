@@ -37,7 +37,11 @@ public class YoChartMenuController
    {
       File result = SessionVisualizerIOTools.yoChartConfigurationSaveFileDialog(owner);
       if (result != null)
+      {
+         messager.submitMessage(topics.getYoChartGroupName(),
+                                new Pair<>(owner, result.getName().replace(SessionVisualizerIOTools.yoChartGroupConfigurationFileExtension, "")));
          messager.submitMessage(topics.getYoChartGroupSaveConfiguration(), new Pair<>(owner, result));
+      }
    }
 
    @FXML
