@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +23,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.ObservableSet;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -107,6 +109,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
    private ChartDataManager chartDataManager;
    private final ObservableList<YoNumberSeries> yoNumberSeriesList = FXCollections.observableArrayList();
    private final ObservableMap<YoVariable, YoVariableChartPackage> charts = FXCollections.observableMap(new LinkedHashMap<>());
+   private final ObservableSet<YoVariable> plottedVariables = FXCollections.observableSet(new HashSet<>());
    private YoBufferPropertiesReadOnly lastBufferProperties = null;
    private AtomicReference<YoBufferPropertiesReadOnly> newBufferProperties;
    private final TopicListener<int[]> keyFrameMarkerListener = newKeyFrames -> updateKeyFrameMarkers(newKeyFrames);
@@ -248,9 +251,15 @@ public class YoChartPanelController extends ObservedAnimationTimer
       charts.addListener((MapChangeListener<YoVariable, YoVariableChartPackage>) change ->
       {
          if (change.wasAdded())
+         {
+            plottedVariables.add(change.getValueAdded().getYoVariable());
             yoNumberSeriesList.add(change.getValueAdded().getSeries());
+         }
          else if (change.wasRemoved())
+         {
+            plottedVariables.remove(change.getValueRemoved().getYoVariable());
             yoNumberSeriesList.remove(change.getValueRemoved().getSeries());
+         }
 
          JavaFXMissingTools.runNFramesLater(1, () -> charts.values().forEach(YoVariableChartPackage::updateLegend));
       });
@@ -707,6 +716,11 @@ public class YoChartPanelController extends ObservedAnimationTimer
 
       Dragboard dragboard = event.getDragboard();
       return DragAndDropTools.retrieveYoCompositesFromDragBoard(dragboard, yoCompositeSearchManager) != null;
+   }
+
+   public ObservableSet<YoVariable> getPlottedVariables()
+   {
+      return plottedVariables;
    }
 
    public Button getCloseButton()

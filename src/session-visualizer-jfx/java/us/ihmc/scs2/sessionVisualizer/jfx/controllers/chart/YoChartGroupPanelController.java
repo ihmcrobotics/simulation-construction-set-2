@@ -4,10 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBContext;
@@ -28,6 +28,11 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
+import javafx.collections.SetChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -63,6 +68,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolki
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ChartGroupTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.StringTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -80,7 +86,7 @@ public class YoChartGroupPanelController
    private final IntegerProperty numberOfRows = new SimpleIntegerProperty(this, "numberOfRows", 0);
    private final IntegerProperty numberOfCols = new SimpleIntegerProperty(this, "numberOfCols", 0);
    private final GridPane gridPane = new GridPane();
-   private final Collection<YoChartPanelController> chartControllers = new ConcurrentLinkedQueue<>();
+   private final ObservableList<YoChartPanelController> chartControllers = FXCollections.observableArrayList();
    private final BooleanProperty isRunning = new SimpleBooleanProperty(this, "isRunning", false);
 
    private final IntegerProperty maximumRowNumberProperty = new SimpleIntegerProperty(this, "maximumRow", 3);
@@ -155,6 +161,37 @@ public class YoChartGroupPanelController
                   chartGroupName.bind(automatedChartGroupName);
                }
             }
+         }
+      });
+
+      ObservableSet<String> allVariableNames = FXCollections.observableSet(new HashSet<>());
+
+      allVariableNames.addListener((SetChangeListener<String>) change ->
+      {
+         if (change.getSet().isEmpty())
+            automatedChartGroupName.set(DEFAULT_NAME);
+         else
+            automatedChartGroupName.set(DEFAULT_NAME + ": " + StringTools.commonSubString(change.getSet()));
+      });
+
+      SetChangeListener<YoVariable> plottedVariableChangeListener = change ->
+      {
+         if (change.wasAdded())
+            allVariableNames.add(change.getElementAdded().getName());
+         if (change.wasRemoved())
+            allVariableNames.remove(change.getElementRemoved().getName());
+      };
+
+      chartControllers.addListener((ListChangeListener<YoChartPanelController>) change ->
+      {
+         while (change.next())
+         {
+            if (change.wasPermutated())
+               continue;
+            if (change.wasAdded())
+               change.getAddedSubList().forEach(controller -> controller.getPlottedVariables().addListener(plottedVariableChangeListener));
+            if (change.wasRemoved())
+               change.getRemoved().forEach(controller -> controller.getPlottedVariables().removeListener(plottedVariableChangeListener));
          }
       });
    }
