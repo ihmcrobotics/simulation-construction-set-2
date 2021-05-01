@@ -133,12 +133,12 @@ public class Tuple2DProperty extends CompositeProperty implements FrameTuple2DRe
 
    public Point2D toPoint2DInWorld()
    {
-      return toWorld(new Point2D(this));
+      return toWorld2D(new Point2D(this));
    }
 
    public Vector2D toVector2DInWorld()
    {
-      return toWorld(new Vector2D(this));
+      return toWorld2D(new Vector2D(this));
    }
 
    @Override
