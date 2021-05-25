@@ -65,7 +65,7 @@ sessionVisualizerJfxDependencies {
    }
    api("us.ihmc:ihmc-graphics-description:0.19.3")
    api("us.ihmc:ihmc-video-codecs:2.1.6")
-   api("us.ihmc:ihmc-robot-data-logger:0.20.8")
+   api("us.ihmc:ihmc-robot-data-logger:0.20.9")
    api("us.ihmc:svgloader:0.0")
    api("us.ihmc:ihmc-javafx-extensions:0.0.3")
 
