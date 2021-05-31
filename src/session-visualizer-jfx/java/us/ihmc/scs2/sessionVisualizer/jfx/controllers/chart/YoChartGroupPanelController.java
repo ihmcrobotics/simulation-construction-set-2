@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBContext;
@@ -169,9 +168,15 @@ public class YoChartGroupPanelController
       allVariableNames.addListener((SetChangeListener<String>) change ->
       {
          if (change.getSet().isEmpty())
+         {
+            // No YoVariable left, resetting the user group name.
             automatedChartGroupName.set(DEFAULT_NAME);
+            userDefinedChartGroupName.set(null);
+         }
          else
+         {
             automatedChartGroupName.set(DEFAULT_NAME + ": " + StringTools.commonSubString(change.getSet()));
+         }
       });
 
       SetChangeListener<YoVariable> plottedVariableChangeListener = change ->
