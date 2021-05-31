@@ -1,7 +1,7 @@
 plugins {
    id("us.ihmc.ihmc-build")
    id("us.ihmc.ihmc-ci") version "7.4"
-   id("us.ihmc.ihmc-cd") version "1.17"
+   id("us.ihmc.ihmc-cd") version "1.20"
 }
 
 ihmc {
@@ -23,12 +23,12 @@ definitionDependencies {
    api("us.ihmc:euclid:0.16.2")
    api("us.ihmc:euclid-shape:0.16.2")
    api("us.ihmc:ihmc-commons:0.30.4")
-   api("us.ihmc:ihmc-yovariables:0.9.8")
-   api("us.ihmc:mecano:0.8.1")
+   api("us.ihmc:ihmc-yovariables:0.9.9")
+   api("us.ihmc:mecano:0.8.2")
 }
 
 sharedMemoryDependencies {
-   api("us.ihmc:ihmc-yovariables:0.9.8")
+   api("us.ihmc:ihmc-yovariables:0.9.9")
 }
 
 sessionDependencies {
@@ -44,7 +44,7 @@ simulationDependencies {
    api(ihmc.sourceSetProject("session"))
    api("us.ihmc:euclid-frame-shape:0.16.2")
    api("us.ihmc:ihmc-messager:0.1.7")
-   api("us.ihmc:mecano-yovariables:0.8.1")
+   api("us.ihmc:mecano-yovariables:0.8.2")
 }
 
 sessionVisualizerDependencies {
@@ -72,7 +72,7 @@ sessionVisualizerJfxDependencies {
    }
    api("us.ihmc:ihmc-graphics-description:0.19.3")
    api("us.ihmc:ihmc-video-codecs:2.1.6")
-   api("us.ihmc:ihmc-robot-data-logger:0.20.7")
+   api("us.ihmc:ihmc-robot-data-logger:0.20.9")
    api("us.ihmc:svgloader:0.0")
    api("us.ihmc:ihmc-javafx-extensions:15-0.0.3")
 
