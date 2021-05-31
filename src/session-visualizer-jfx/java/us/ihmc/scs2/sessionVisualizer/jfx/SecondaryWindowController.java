@@ -42,7 +42,7 @@ public class SecondaryWindowController
    }
 
    private YoChartGroupPanelController chartGroupController = null;
-  
+
    public void setupChartGroup() throws IOException
    {
       Stage stage = toolkit.getWindow();
@@ -63,7 +63,15 @@ public class SecondaryWindowController
       VBox.setVgrow(chartGroupPane, Priority.ALWAYS);
       Scene scene = new Scene(mainNode, 1024, 768);
       stage.setScene(scene);
-      stage.titleProperty().bind(chartGroupController.chartGroupNameProperty());
+      String windowTitlePrefix = "Chart Window";
+      stage.setTitle(windowTitlePrefix);
+      chartGroupController.chartGroupNameProperty().addListener((o, oldValue, newValue) ->
+      {
+         if (newValue == null || newValue.isBlank())
+            stage.setTitle(windowTitlePrefix);
+         else
+            stage.setTitle(windowTitlePrefix + ": " + newValue);
+      });
       stage.addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e ->
       {
          stage.close();

@@ -73,14 +73,12 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoChartGroupPanelController
 {
-   private static final String DEFAULT_NAME = "Chart window";
-
    private SessionVisualizerWindowToolkit toolkit;
    private YoCompositeSearchManager yoCompositeSearchManager;
 
    private final StringProperty chartGroupName = new SimpleStringProperty(this, "chartGroupName", null);
    private final StringProperty userDefinedChartGroupName = new SimpleStringProperty(this, "userDefinedChartGroupName", null);
-   private final StringProperty automatedChartGroupName = new SimpleStringProperty(this, "automatedChartGroupName", DEFAULT_NAME);
+   private final StringProperty automatedChartGroupName = new SimpleStringProperty(this, "automatedChartGroupName", null);
 
    private final IntegerProperty numberOfRows = new SimpleIntegerProperty(this, "numberOfRows", 0);
    private final IntegerProperty numberOfCols = new SimpleIntegerProperty(this, "numberOfCols", 0);
@@ -169,13 +167,13 @@ public class YoChartGroupPanelController
       {
          if (change.getSet().isEmpty())
          {
-            // No YoVariable left, resetting the user group name.
-            automatedChartGroupName.set(DEFAULT_NAME);
+            // No YoVariable left, resetting the user group
+            automatedChartGroupName.set(null);
             userDefinedChartGroupName.set(null);
          }
          else
          {
-            automatedChartGroupName.set(DEFAULT_NAME + ": " + StringTools.commonSubString(change.getSet()));
+            automatedChartGroupName.set(StringTools.commonSubString(change.getSet()));
          }
       });
 
