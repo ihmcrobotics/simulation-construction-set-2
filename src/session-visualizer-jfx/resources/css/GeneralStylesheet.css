@@ -137,6 +137,11 @@
 	-glyph-name: FILTER;
 }
 
+.double-precision-icon-view {
+	-fx-fill: black;
+	-glyph-name: NUMERIC;
+}
+
 .close-icon-view {
 	-fx-fill: -default-pale-red;
 	-glyph-name: SIGN_IN;

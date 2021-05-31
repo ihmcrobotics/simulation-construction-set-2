@@ -42,6 +42,7 @@ public class SessionVisualizerMessagerAPI
    private static final TopicTheme Close = apiFactory.createTopicTheme("close");
    private static final TopicTheme Open = apiFactory.createTopicTheme("open");
    private static final TopicTheme Name = apiFactory.createTopicTheme("name");
+   private static final TopicTheme Precision = apiFactory.createTopicTheme("Precision");
 
    public static final Topic<Object> TakeSnapshot = APIRoot.topic(Snapshot);
    public static final Topic<Object> RegisterRecordable = APIRoot.child(Register).topic(Recordable);
@@ -50,6 +51,7 @@ public class SessionVisualizerMessagerAPI
    public static final Topic<Boolean> ShowOverheadPlotter = APIRoot.child(OverheadPlotter).topic(Show);
    public static final Topic<String> OpenWindowRequest = APIRoot.topic(Open);
    public static final Topic<Boolean> SessionVisualizerCloseRequest = APIRoot.topic(Close);
+   public static final Topic<Integer> ControlsNumberPrecision = APIRoot.child(Controls).topic(Precision); // TODO Not the greatest topic name, nor the best place.
 
    static
    { // Ensure that the KeyFrame is loaded before closing the API.

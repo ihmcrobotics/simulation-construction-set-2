@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import com.jfoenix.controls.JFXButton;
 
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
@@ -106,6 +107,8 @@ public class YoChartPanelController extends ObservedAnimationTimer
 
    private YoCompositeSearchManager yoCompositeSearchManager;
 
+   private Property<Integer> legendPrecision;
+
    private ChartDataManager chartDataManager;
    private final ObservableList<YoNumberSeries> yoNumberSeriesList = FXCollections.observableArrayList();
    private final ObservableMap<YoVariable, YoVariableChartPackage> charts = FXCollections.observableMap(new LinkedHashMap<>());
@@ -134,6 +137,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
       BackgroundExecutorManager backgroundExecutorManager = toolkit.getBackgroundExecutorManager();
 
       newBufferProperties = messager.createInput(topics.getYoBufferCurrentProperties());
+      legendPrecision = messager.createPropertyInput(topics.getControlsNumberPrecision(), 5);
 
       dynamicLineChart = new DynamicLineChart(xAxis, yAxis, backgroundExecutorManager::executeInBackground, toolkit.getChartRenderManager());
       chartMainPane.getChildren().add(0, dynamicLineChart);
@@ -763,7 +767,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
 
       public YoVariableChartPackage(YoVariable yoVariable)
       {
-         series = new YoNumberSeries(yoVariable);
+         series = new YoNumberSeries(yoVariable, legendPrecision);
          chartData = chartDataManager.getYoVariableChartData(callerID, yoVariable);
          dynamicLineChart.addSeries(series);
       }

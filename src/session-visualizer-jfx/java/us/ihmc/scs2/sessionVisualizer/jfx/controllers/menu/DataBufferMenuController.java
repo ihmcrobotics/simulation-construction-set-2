@@ -5,8 +5,10 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 import javafx.beans.property.Property;
 import javafx.fxml.FXML;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
+import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory;
 import javafx.util.converter.IntegerStringConverter;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.session.SessionState;
@@ -24,6 +26,8 @@ public class DataBufferMenuController
    private TextField bufferSizeTextField;
    @FXML
    private TextField bufferRecordTickPeriodTextField;
+   @FXML
+   private Spinner<Integer> numberPrecisionSpinner;
    @FXML
    private MenuItem sizeMenuItem;
 
@@ -95,6 +99,10 @@ public class DataBufferMenuController
       });
 
       messager.bindBidirectional(topics.getBufferRecordTickPeriod(), recordPeriodFormatter.valueProperty(), false);
+
+      IntegerSpinnerValueFactory numberPrecisionSpinnerValueFactory = new IntegerSpinnerValueFactory(1, 30, 3, 1);
+      numberPrecisionSpinner.setValueFactory(numberPrecisionSpinnerValueFactory);
+      messager.bindBidirectional(topics.getControlsNumberPrecision(), numberPrecisionSpinnerValueFactory.valueProperty(), false);
    }
 
    @FXML

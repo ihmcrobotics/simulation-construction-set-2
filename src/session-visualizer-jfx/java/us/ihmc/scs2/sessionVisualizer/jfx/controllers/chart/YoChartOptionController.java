@@ -31,19 +31,17 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
+import javafx.util.converter.DoubleStringConverter;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartDoubleBounds;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartMarker;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.DynamicLineChart.ChartStyle;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.tools.NumberFormatTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.tools.ScientificDoubleStringConverter;
 
 public class YoChartOptionController
 {
    public static final String UNDEFINED = "N/A";
-   public static final int PRECISION = 3;
 
    @FXML
    private VBox mainPane;
@@ -71,8 +69,8 @@ public class YoChartOptionController
 
    private final ObjectProperty<ChartDoubleBounds> actualYBoundsProperty = new SimpleObjectProperty<>(this, "actualYBounds", null);
    private final ObjectProperty<ChartDoubleBounds> manualYBoundsProperty = new SimpleObjectProperty<>(this, "manualYBounds", null);
-   private final TextFormatter<Double> minFormatter = new TextFormatter<>(new ScientificDoubleStringConverter(PRECISION), 0.0);
-   private final TextFormatter<Double> maxFormatter = new TextFormatter<>(new ScientificDoubleStringConverter(PRECISION), 0.0);
+   private final TextFormatter<Double> minFormatter = new TextFormatter<>(new DoubleStringConverter(), 0.0);
+   private final TextFormatter<Double> maxFormatter = new TextFormatter<>(new DoubleStringConverter(), 0.0);
 
    private final ChangeListener<Double> manualMinListener = (o, oldValue, newValue) ->
    {
@@ -285,8 +283,8 @@ public class YoChartOptionController
             minFormatter.setValue(newValue.getLower());
             maxFormatter.setValue(newValue.getUpper());
          }
-         actualRangeMinLabel.setText(NumberFormatTools.doubleToString(newValue.getLower(), PRECISION));
-         actualRangeMaxLabel.setText(NumberFormatTools.doubleToString(newValue.getUpper(), PRECISION));
+         actualRangeMinLabel.setText(Double.toString(newValue.getLower()));
+         actualRangeMaxLabel.setText(Double.toString(newValue.getUpper()));
       });
 
       scalingModeListener.changed(null, null, scalingComboBox.getValue());
