@@ -88,7 +88,8 @@ public class YoPolynomialFX3D extends YoGraphicFX3D
       {
          return;
       }
-      else if (newPolynomialLocal.coefficientsX == null)
+      else if (newPolynomialLocal.coefficientsX == null || newPolynomialLocal.coefficientsX.length == 0 || newPolynomialLocal.coefficientsY.length == 0
+            || newPolynomialLocal.coefficientsZ.length == 0)
       {
          newMeshViews = new MeshView[0];
          return;
@@ -193,6 +194,9 @@ public class YoPolynomialFX3D extends YoGraphicFX3D
 
    private static double[] computeTimePowers(double t, int n)
    {
+      if (n == 0)
+         return new double[0];
+
       double[] timePowers = new double[n];
 
       timePowers[0] = 1.0;
