@@ -250,13 +250,14 @@ public class YoVariableChartData
          dataSet.values[i] = getValueAt(i, lastDataSet, bufferSample);
       }
 
-      dataSet.size = bufferSize;
-
       return updateBounds(bufferProperties, dataSet);
    }
 
    private static DoubleArray updateBounds(YoBufferPropertiesReadOnly bufferProperties, DoubleArray dataSet)
    {
+      if (bufferProperties.getSize() != dataSet.size)
+         return null;
+
       int index = bufferProperties.getInPoint();
       double yCurrent = dataSet.values[index];
       double yMin = yCurrent;
@@ -355,7 +356,7 @@ public class YoVariableChartData
 
    private static class DoubleArray
    {
-      private int size;
+      private final int size;
       private final double[] values;
       private double valueMin, valueMax;
 
