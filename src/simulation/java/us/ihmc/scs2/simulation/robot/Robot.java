@@ -242,7 +242,14 @@ public class Robot implements SimMultiBodySystemBasics, CollidableHolder
          else if (definition instanceof PrismaticJointDefinition)
             return new SimPrismaticJoint((PrismaticJointDefinition) definition, predecessor);
          else if (definition instanceof RevoluteJointDefinition)
-            return new SimRevoluteJoint((RevoluteJointDefinition) definition, predecessor);
+         {
+            RevoluteJointDefinition revoluteJointDefinition = (RevoluteJointDefinition) definition;
+            SimRevoluteJoint simRevoluteJoint = new SimRevoluteJoint(revoluteJointDefinition, predecessor);
+            simRevoluteJoint.setJointLimits(revoluteJointDefinition.getPositionUpperLimit(), revoluteJointDefinition.getPositionLowerLimit());
+            simRevoluteJoint.setVelocityLimits(revoluteJointDefinition.getVelocityLowerLimit(), revoluteJointDefinition.getVelocityLowerLimit());
+            simRevoluteJoint.setEffortLimits(revoluteJointDefinition.getEffortLowerLimit(), revoluteJointDefinition.getEffortUpperLimit());
+            return simRevoluteJoint;
+         }
          else
             throw new UnsupportedOperationException("Unsupported joint definition: " + definition.getClass().getSimpleName());
       }
