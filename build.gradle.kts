@@ -22,12 +22,15 @@ mainDependencies {
 definitionDependencies {
    api("us.ihmc:euclid:0.16.2")
    api("us.ihmc:euclid-shape:0.16.2")
+   api("us.ihmc:euclid-frame:0.16.2")
    api("us.ihmc:ihmc-commons:0.30.4")
    api("us.ihmc:ihmc-yovariables:0.9.9")
    api("us.ihmc:mecano:0.8.2")
 }
 
 sharedMemoryDependencies {
+   api("us.ihmc:euclid:0.16.2")
+   api("us.ihmc:euclid-frame:0.16.2")
    api("us.ihmc:ihmc-yovariables:0.9.9")
 }
 
@@ -42,6 +45,9 @@ simulationDependencies {
    api(ihmc.sourceSetProject("definition"))
    api(ihmc.sourceSetProject("shared-memory"))
    api(ihmc.sourceSetProject("session"))
+   api("us.ihmc:euclid:0.16.2")
+   api("us.ihmc:euclid-shape:0.16.2")
+   api("us.ihmc:euclid-frame:0.16.2")
    api("us.ihmc:euclid-frame-shape:0.16.2")
    api("us.ihmc:ihmc-messager:0.1.7")
    api("us.ihmc:mecano-yovariables:0.8.2")
@@ -69,7 +75,13 @@ sessionVisualizerJfxDependencies {
 
    compile("us.ihmc:ihmc-javafx-toolkit:0.19.3") {
       exclude(group="us.ihmc", module="jassimp")
+      exclude(group="us.ihmc", module="euclid")
+      exclude(group="us.ihmc", module="euclid-shape")
+      exclude(group="us.ihmc", module="euclid-frame")
    }
+   api("us.ihmc:euclid:0.16.2")
+   api("us.ihmc:euclid-shape:0.16.2")
+   api("us.ihmc:euclid-frame:0.16.2")
    api("us.ihmc:ihmc-graphics-description:0.19.3")
    api("us.ihmc:ihmc-video-codecs:2.1.6")
    api("us.ihmc:ihmc-robot-data-logger:0.20.9")
