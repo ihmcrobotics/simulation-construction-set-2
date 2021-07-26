@@ -1,5 +1,6 @@
 package us.ihmc.scs2.sharedMemory;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -144,10 +145,10 @@ public abstract class LinkedYoVariableTest<T extends YoVariable>
          assertThrows(IllegalArgumentException.class, () -> linkedYoVariable.prepareForPull());
 
          linkedYoVariable.requestBufferWindow(properties.getSize(), 1);
-         assertThrows(IllegalArgumentException.class, () -> linkedYoVariable.prepareForPull());
+         assertDoesNotThrow(() -> linkedYoVariable.prepareForPull());
 
          linkedYoVariable.requestBufferWindow(0, properties.getSize() + 1);
-         assertThrows(IllegalArgumentException.class, () -> linkedYoVariable.prepareForPull());
+         assertDoesNotThrow(() -> linkedYoVariable.prepareForPull());
 
       }
 
