@@ -1,7 +1,5 @@
 package us.ihmc.scs2.sharedMemory.tools;
 
-import static us.ihmc.euclid.tools.EuclidCoreTestTools.addPrefixToMessage;
-
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -187,13 +185,13 @@ public class SharedMemoryRandomTools
    public static String nextString(Random random, int minLengthInclusive, int maxLengthInclusive)
    {
       int length = RandomNumbers.nextInt(random, minLengthInclusive, maxLengthInclusive);
-      return RandomStringUtils.randomAscii(length);
+      return RandomStringUtils.random(length, 32, 127, false, false, null, random);
    }
 
    public static String nextAlphanumericString(Random random, int minLengthInclusive, int maxLengthInclusive)
    {
       int length = RandomNumbers.nextInt(random, minLengthInclusive, maxLengthInclusive);
-      return RandomStringUtils.randomAlphanumeric(length);
+      return RandomStringUtils.random(length, 0, 0, true, true, null, random);
    }
 
    public static String nextAvailableVariableName(Random random, int minLengthInclusive, int maxLengthInclusive, YoRegistry registry)
@@ -206,10 +204,26 @@ public class SharedMemoryRandomTools
 
    public static String nextAvailableRegistryName(Random random, int minLengthInclusive, int maxLengthInclusive, YoRegistry registry)
    {
-      Set<String> childrenNames = registry.getChildren().stream().map(YoRegistry::getName).collect(Collectors.toSet());
-      String next = nextAlphanumericString(random, minLengthInclusive, maxLengthInclusive);
-      while (childrenNames.contains(next))
-         next = nextAlphanumericString(random, minLengthInclusive, maxLengthInclusive);
+      return nextAvailableRegistryName(random, null, minLengthInclusive, maxLengthInclusive, registry);
+   }
+
+   public static String nextAvailableRegistryName(Random random, String namePrefix, int minLengthInclusive, int maxLengthInclusive, YoRegistry registry)
+   {
+      Set<String> unavailableNames = registry.getChildren().stream().map(reg -> reg.getName().toLowerCase()).collect(Collectors.toSet());
+
+      {
+         YoRegistry parent = registry;
+         while (!parent.isRoot())
+         {
+            unavailableNames.add(parent.getName().toLowerCase());
+            parent = parent.getParent();
+         }
+         unavailableNames.add(parent.getName().toLowerCase());
+      }
+
+      String next = addPrefixToName(namePrefix, nextAlphanumericString(random, minLengthInclusive, maxLengthInclusive));
+      while (unavailableNames.contains(next.toLowerCase()))
+         next = addPrefixToName(namePrefix, nextAlphanumericString(random, minLengthInclusive, maxLengthInclusive));
       return next;
    }
 
@@ -410,7 +424,7 @@ public class SharedMemoryRandomTools
    public static YoRegistry[] nextYoRegistryChain(Random random, String namePrefix, int maxNumberOfVariablesPerRegistry, int numberOfRegistries)
    {
       YoRegistry root = nextYoRegistry(random,
-                                       addPrefixToMessage(namePrefix, nextAlphanumericString(random, 1, 50)),
+                                       addPrefixToName(namePrefix, nextAlphanumericString(random, 1, 50)),
                                        random.nextInt(maxNumberOfVariablesPerRegistry + 1));
       YoRegistry[] registries = new YoRegistry[numberOfRegistries];
       registries[0] = root;
@@ -419,7 +433,7 @@ public class SharedMemoryRandomTools
       {
          YoRegistry parentRegistry = registries[i - 1];
          YoRegistry next = nextYoRegistry(random,
-                                          addPrefixToMessage(namePrefix, nextAvailableRegistryName(random, 1, 50, parentRegistry)),
+                                          nextAvailableRegistryName(random, namePrefix, 1, 50, parentRegistry),
                                           random.nextInt(maxNumberOfVariablesPerRegistry + 1));
          registries[i] = next;
          parentRegistry.addChild(next);
@@ -437,7 +451,7 @@ public class SharedMemoryRandomTools
    {
       return nextYoRegistryTree(random,
                                 nextYoRegistry(random,
-                                               addPrefixToMessage(namePrefix, nextAlphanumericString(random, 1, 50)),
+                                               addPrefixToName(namePrefix, nextAlphanumericString(random, 1, 50)),
                                                random.nextInt(maxNumberOfVariablesPerRegistry + 1)),
                                 maxNumberOfVariablesPerRegistry,
                                 numberOfRegistries);
@@ -461,12 +475,20 @@ public class SharedMemoryRandomTools
       {
          YoRegistry parentRegistry = registries[random.nextInt(i)];
          YoRegistry next = nextYoRegistry(random,
-                                          addPrefixToMessage(namePrefix, nextAvailableRegistryName(random, 1, 50, parentRegistry)),
+                                          nextAvailableRegistryName(random, namePrefix, 1, 50, parentRegistry),
                                           random.nextInt(maxNumberOfVariablesPerRegistry + 1));
          registries[i] = next;
          parentRegistry.addChild(next);
       }
 
       return registries;
+   }
+
+   public static String addPrefixToName(String namePrefix, String name)
+   {
+      if (namePrefix != null && !namePrefix.isEmpty())
+         return namePrefix + name;
+      else
+         return name;
    }
 }
