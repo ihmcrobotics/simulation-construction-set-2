@@ -121,6 +121,12 @@ public class YoSharedBufferTest
 
          int newSize = random.nextInt(initialProperties.getActiveBufferLength()) + 1;
 
+         if (newSize == newProperties.getSize())
+         {
+            i--;
+            continue;
+         }
+
          assertTrue(yoSharedBuffer.resizeBuffer(newSize));
          assertEquals(newSize, newProperties.getSize());
          assertEquals(0, newProperties.getInPoint());
