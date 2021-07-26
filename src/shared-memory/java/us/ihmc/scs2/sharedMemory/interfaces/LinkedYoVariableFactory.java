@@ -12,7 +12,7 @@ public interface LinkedYoVariableFactory
 
    LinkedYoRegistry newLinkedYoRegistry(YoRegistry registryToLink);
 
-   LinkedYoVariable newLinkedYoVariable(YoVariable variableToLink);
+   LinkedYoVariable<?> newLinkedYoVariable(YoVariable variableToLink);
 
    default LinkedYoDouble newLinkedYoDouble(YoDouble variableToLink)
    {

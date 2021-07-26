@@ -250,7 +250,7 @@ public class YoBCF2000SliderboardWindowController
          yoSliderController.close();
 
       if (sliderboard != null)
-         sliderboard.close();
+         sliderboard.closeAndDispose();
       window.close();
    }
 

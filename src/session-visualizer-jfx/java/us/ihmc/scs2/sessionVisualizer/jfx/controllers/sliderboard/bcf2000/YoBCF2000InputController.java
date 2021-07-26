@@ -11,7 +11,7 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
+import javafx.scene.control.Labeled;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
@@ -36,14 +36,13 @@ public abstract class YoBCF2000InputController
 {
    private static final String HIGHLIGHTED_BORDER = "-fx-border-color:green; -fx-border-radius:5;";
    private static final String HIGHLIGHTED_BACKGROUND = "-fx-background-color: #c5fcee88;";
-   private static final String DEFAULT_BORDER = "-fx-border-color: null;";
-   private static final String DEFAULT_BACKGROUND = "-fx-background-color: null;";
-
+   private static final String DEFAULT_BORDER = null;
+   private static final String DEFAULT_BACKGROUND = null;
 
    private YoCompositeSearchManager yoCompositeSearchManager;
 
    private Region rootPane;
-   private Label yoVariableDropLabel;
+   private Labeled yoVariableDropLabel;
 
    private final SimpleObjectProperty<ContextMenu> contextMenuProperty = new SimpleObjectProperty<>(this, "buttonContextMenu", null);
 
@@ -61,12 +60,12 @@ public abstract class YoBCF2000InputController
    {
    }
 
-   protected void initialize(SessionVisualizerToolkit toolkit, Region rootPane, Label yoVariableDropLabel)
+   protected void initialize(SessionVisualizerToolkit toolkit, Region rootPane, Labeled yoVariableDropLabel)
    {
       initialize(toolkit, rootPane, yoVariableDropLabel, var -> true);
    }
 
-   protected void initialize(SessionVisualizerToolkit toolkit, Region rootPane, Label yoVariableDropLabel, Predicate<YoVariable> filter)
+   protected void initialize(SessionVisualizerToolkit toolkit, Region rootPane, Labeled yoVariableDropLabel, Predicate<YoVariable> filter)
    {
       this.rootPane = rootPane;
       this.yoVariableDropLabel = yoVariableDropLabel;
@@ -78,7 +77,12 @@ public abstract class YoBCF2000InputController
 
       ChangeListener<Object> styleChangeListener = (o, oldValue, newValue) ->
       { // TODO Consider switching to CSS
-         rootPane.setStyle(backgroundStyle.get() + borderStyle.get());
+         String style = null;
+         if (backgroundStyle.get() != null)
+            style = backgroundStyle.get();
+         if (borderStyle.get() != null)
+            style = (style != null ? style + borderStyle.get() : borderStyle.get());
+         rootPane.setStyle(style);
       };
 
       backgroundStyle.addListener(styleChangeListener);
@@ -101,6 +105,8 @@ public abstract class YoBCF2000InputController
       rootPane.setOnDragExited(this::handleDragExited);
       rootPane.setOnMousePressed(this::handleMousePressed);
       rootPane.setOnMouseReleased(this::handleMouseReleased);
+      yoVariableDropLabel.setOnMousePressed(this::handleMousePressed);
+      yoVariableDropLabel.setOnMouseReleased(this::handleMouseReleased);
    }
 
    public abstract void setYoVariableInput(YoVariable yoVariable);

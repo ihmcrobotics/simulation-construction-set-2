@@ -3,7 +3,7 @@
 
  <g>
   <title>SquareCross</title>
-  <rect id="diamond" height="1000" width="1000" y="0" x="0" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <rect id="square" height="1000" width="1000" y="0" x="0" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
   <line stroke="#000" stroke-linecap="null" stroke-linejoin="null" id="cross1" y2="1000" x2="1000" y1="0" x1="0" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" fill="none"/>
   <line stroke="#000" stroke-linecap="null" stroke-linejoin="null" id="cross2" y2="0.0" x2="1000" y1="1000" x1="0" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" fill="none"/>
  </g>

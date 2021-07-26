@@ -1,7 +1,5 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers;
 
-import org.apache.commons.lang3.mutable.MutableBoolean;
-
 import com.jfoenix.controls.JFXButton;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
@@ -12,12 +10,11 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableBooleanValue;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.Node;
-import javafx.scene.control.Slider;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.Region;
+import javafx.stage.Window;
+import javafx.util.Pair;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.session.SessionState;
@@ -30,17 +27,14 @@ public class SessionAdvancedControlsController
    public static final String INACTIVE_MODE = "session-controls-inactive-mode";
    public static final String ACTIVE_MODE = "session-controls-active-mode";
 
+   private Window owner;
    private JavaFXMessager messager;
    private SessionVisualizerTopics topics;
 
    @FXML
-   private VBox mainPane;
-   @FXML
    private FlowPane buttonsContainer;
    @FXML
    private JFXButton previousKeyFrameButton, nextKeyFrameButton;
-   @FXML
-   private Slider bufferIndexSlider;
    @FXML
    private FontAwesomeIconView runningIconView, playbackIconView, pauseIconView;
 
@@ -54,31 +48,10 @@ public class SessionAdvancedControlsController
 
    public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
-      this.messager = toolkit.getMessager();
+      owner = toolkit.getWindow();
+      messager = toolkit.getMessager();
       topics = toolkit.getTopics();
 
-      MutableBoolean updatingIndex = new MutableBoolean(false);
-      MutableBoolean updatingSlider = new MutableBoolean(false);
-      bufferIndexSlider.valueProperty().addListener((o, oldValue, newValue) ->
-      {
-         if (updatingSlider.isFalse())
-         {
-            updatingIndex.setTrue();
-            messager.submitMessage(topics.getYoBufferCurrentIndexRequest(), newValue.intValue());
-            updatingIndex.setFalse();
-         }
-      });
-      messager.registerJavaFXSyncedTopicListener(topics.getYoBufferCurrentProperties(), bufferProperties ->
-      {
-         bufferIndexSlider.setMin(0);
-         bufferIndexSlider.setMax(bufferProperties.getSize());
-         if (updatingIndex.isFalse())
-         {
-            updatingSlider.setTrue();
-            bufferIndexSlider.setValue(bufferProperties.getCurrentIndex());
-            updatingSlider.setFalse();
-         }
-      });
       bufferProperties = messager.createPropertyInput(topics.getYoBufferCurrentProperties());
 
       messager.registerJavaFXSyncedTopicListener(topics.getShowAdvancedControls(), show -> showProperty.set(show));
@@ -161,16 +134,16 @@ public class SessionAdvancedControlsController
 
    public void show(boolean show)
    {
-      ObservableList<Node> children = mainPane.getChildren();
-
+      buttonsContainer.setVisible(show);
       if (show)
       {
-         if (!children.contains(buttonsContainer))
-            children.add(0, buttonsContainer);
+         buttonsContainer.setMinHeight(Region.USE_COMPUTED_SIZE);
+         buttonsContainer.setPrefHeight(Region.USE_COMPUTED_SIZE);
       }
       else
       {
-         children.remove(buttonsContainer);
+         buttonsContainer.setMinHeight(0.0);
+         buttonsContainer.setPrefHeight(0.0);
       }
    }
 
@@ -195,7 +168,7 @@ public class SessionAdvancedControlsController
    @FXML
    private void setInPoint()
    {
-      messager.submitMessage(topics.getYoBufferInPointIndexRequest(), bufferIndexSlider.valueProperty().getValue().intValue());
+      messager.submitMessage(topics.getYoBufferInPointIndexRequest(), bufferProperties.getValue().getCurrentIndex());
    }
 
    @FXML
@@ -227,7 +200,7 @@ public class SessionAdvancedControlsController
    @FXML
    private void setOutPoint()
    {
-      messager.submitMessage(topics.getYoBufferOutPointIndexRequest(), bufferIndexSlider.valueProperty().getValue().intValue());
+      messager.submitMessage(topics.getYoBufferOutPointIndexRequest(), bufferProperties.getValue().getCurrentIndex());
    }
 
    @FXML
@@ -251,13 +224,13 @@ public class SessionAdvancedControlsController
    @FXML
    private void requestZoomInGraphs()
    {
-      messager.submitMessage(topics.getYoChartRequestZoomIn(), true);
+      messager.submitMessage(topics.getYoChartRequestZoomIn(), new Pair<>(owner, true));
    }
 
    @FXML
    private void requestZoomOutGraphs()
    {
-      messager.submitMessage(topics.getYoChartRequestZoomOut(), true);
+      messager.submitMessage(topics.getYoChartRequestZoomOut(), new Pair<>(owner, true));
    }
 
    @FXML

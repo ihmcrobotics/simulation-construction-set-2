@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import us.ihmc.commons.Conversions;
@@ -17,6 +18,7 @@ import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.session.SessionMode;
+import us.ihmc.scs2.session.SessionProperties;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.RobotModelLoader;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.SCS1GraphicConversionTools;
 
@@ -34,6 +36,8 @@ public class RemoteSession extends Session
    private final AtomicLong serverTimestamp = new AtomicLong(-1);
    private final AtomicLong latestDataTimestamp = new AtomicLong(-1);
    private final LoggerStatusUpdater loggerStatusUpdater = new LoggerStatusUpdater();
+
+   private int bufferRecordTickPeriod = 1;
 
    public RemoteSession(YoVariableClientInterface yoVariableClientInterface, LogHandshake handshake, YoVariableHandshakeParser handshakeParser,
                         DebugRegistry debugRegistry)
@@ -57,6 +61,8 @@ public class RemoteSession extends Session
       setSessionTickToTimeIncrement(Conversions.secondsToNanoseconds(handshakeParser.getDt()));
       setSessionModeTask(SessionMode.RUNNING, () ->
       {
+         if (!this.yoVariableClientInterface.isConnected())
+            setSessionMode(SessionMode.PAUSE);
          /* Do nothing, the client thread calls runTick(). */
       });
       addSessionPropertiesListener(properties ->
@@ -79,6 +85,27 @@ public class RemoteSession extends Session
    protected long computeRunTaskPeriod()
    {
       return Conversions.secondsToNanoseconds(0.01);
+   }
+
+   @Override
+   protected long computePlaybackTaskPeriod()
+   {
+      /*
+       * We let the yoVariableClient handle the bufferRecordTickPeriod feature, so we're not setting
+       * updating the corresponding field in Session. Thus, it cannot compute the playback DT properly
+       * without temporarily setting the Session.bufferRecordTickPeriod.
+       */
+      int superBufferRecordTickPeriod = super.getBufferRecordTickPeriod();
+      super.submitBufferRecordTickPeriod(bufferRecordTickPeriod);
+      long playbackTaskPeriod = super.computePlaybackTaskPeriod();
+      super.submitBufferRecordTickPeriod(superBufferRecordTickPeriod);
+      return playbackTaskPeriod;
+   }
+
+   @Override
+   public SessionProperties getSessionProperties()
+   {
+      return new SessionProperties(getActiveMode(), getRunAtRealTimeRate(), getPlaybackRealTimeRate(), getSessionTickToTimeIncrement(), bufferRecordTickPeriod);
    }
 
    public void receivedTimestampOnly(long timestamp)
@@ -129,7 +156,7 @@ public class RemoteSession extends Session
    @Override
    protected void finalizeRunTick()
    {
-      if (Conversions.nanosecondsToMilliseconds(getDelay()) < MAX_DELAY_MILLI)
+      if (Conversions.nanosecondsToMilliseconds(getDelay()) < MAX_DELAY_MILLI * bufferRecordTickPeriod)
       {
          super.finalizeRunTick();
       }
@@ -144,6 +171,17 @@ public class RemoteSession extends Session
    public void receivedCommand(DataServerCommand command, int argument)
    {
       loggerStatusUpdater.updateStatus(command, argument);
+   }
+
+   @Override
+   public void submitBufferRecordTickPeriod(int bufferRecordTickPeriod)
+   {
+      if (bufferRecordTickPeriod == this.bufferRecordTickPeriod)
+         return;
+      this.bufferRecordTickPeriod = bufferRecordTickPeriod;
+      bufferRecordTickPeriod = Math.max(1, bufferRecordTickPeriod);
+      int updateRateInMilliseconds = (int) TimeUnit.NANOSECONDS.toMillis(bufferRecordTickPeriod * getSessionTickToTimeIncrement());
+      yoVariableClientInterface.setVariableUpdateRate(updateRateInMilliseconds);
    }
 
    public void close()

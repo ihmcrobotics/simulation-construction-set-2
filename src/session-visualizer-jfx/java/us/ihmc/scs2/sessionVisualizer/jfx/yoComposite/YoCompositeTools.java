@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -89,7 +89,7 @@ public class YoCompositeTools
 
    public static Map<String, List<YoComposite>> searchYoCompositeLists(YoCompositeCollection collection)
    {
-      Map<String, List<YoComposite>> result = new HashMap<>();
+      Map<String, List<YoComposite>> result = new LinkedHashMap<>();
 
       List<YoComposite> candidates = collection.getYoComposites().stream().filter(yoComposite -> containsInteger(yoComposite.getName(), 0))
                                                .collect(Collectors.toList());
@@ -253,7 +253,7 @@ public class YoCompositeTools
       List<YoVariable> unresolvedCandidates = new ArrayList<>();
 
       // Using list to cover the edge case where 2 variables have the same (ignoring the case).
-      Map<String, List<NamedObjectHolder<YoVariable>>> variableMap = new HashMap<>();
+      Map<String, List<NamedObjectHolder<YoVariable>>> variableMap = new LinkedHashMap<>();
 
       if (useUniqueNames)
       {
@@ -455,7 +455,7 @@ public class YoCompositeTools
                                                        Function<T, String> nameFunction)
    {
       List<NamedObjectHolder<T>> nameObjectHolderList = new ArrayList<>();
-      Map<String, List<NamedObjectHolder<T>>> nameToHolderMap = new HashMap<>();
+      Map<String, List<NamedObjectHolder<T>>> nameToHolderMap = new LinkedHashMap<>();
 
       for (T namedObject : nameObjectCollection)
       {

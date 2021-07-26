@@ -86,8 +86,10 @@ public class YoCompositeSearchPaneController extends ObservedAnimationTimer
       backgroundExecutorManager = toolkit.getBackgroundExecutorManager();
       yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
 
+      Property<Integer> numberPrecision = messager.createPropertyInput(topics.getControlsNumberPrecision(), 3);
+
       this.ownerRegistry = ownerRegistry;
-      yoCompositeListView.setCellFactory(param -> new YoCompositeListCell(yoManager, showUniqueNamesProperty, param));
+      yoCompositeListView.setCellFactory(param -> new YoCompositeListCell(yoManager, showUniqueNamesProperty, numberPrecision, param));
       yoCompositeListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
       searchTextField.textProperty().addListener((ChangeListener<String>) (observable, oldValue, newValue) -> search(newValue));

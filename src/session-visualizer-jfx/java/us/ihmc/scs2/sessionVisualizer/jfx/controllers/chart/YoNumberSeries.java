@@ -2,6 +2,8 @@ package us.ihmc.scs2.sessionVisualizer.jfx.controllers.chart;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javafx.beans.property.Property;
+import javafx.beans.value.ChangeListener;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.NumberSeries;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ChartTools;
 import us.ihmc.yoVariables.listener.YoVariableChangedListener;
@@ -11,20 +13,25 @@ public class YoNumberSeries extends NumberSeries
 {
    private final YoVariable yoVariable;
    private final AtomicBoolean dirty = new AtomicBoolean(true);
-   private final YoVariableChangedListener dirtyListener = v -> dirty.set(true);
+   private final Property<Integer> precision;
+   private final YoVariableChangedListener dirtyYoListener = v -> dirty.set(true);
+   private final ChangeListener<Number> dirtyPropertyListener = (o, oldValue, newValue) -> dirty.set(true);
 
-   public YoNumberSeries(YoVariable yoVariable)
+   public YoNumberSeries(YoVariable yoVariable, Property<Integer> precision)
    {
       super(yoVariable.getName());
 
       this.yoVariable = yoVariable;
-      yoVariable.addListener(dirtyListener);
+      this.precision = precision;
+
+      yoVariable.addListener(dirtyYoListener);
+      precision.addListener(dirtyPropertyListener);
    }
 
    public void updateLegend()
    {
       if (dirty.getAndSet(false))
-         setCurrentValue(ChartTools.defaultYoVariableValueFormatter(yoVariable));
+         setCurrentValue(ChartTools.defaultYoVariableValueFormatter(yoVariable, Math.max(5, precision.getValue())));
    }
 
    public YoVariable getYoVariable()
@@ -34,6 +41,7 @@ public class YoNumberSeries extends NumberSeries
 
    public void close()
    {
-      yoVariable.removeListener(dirtyListener);
+      yoVariable.removeListener(dirtyYoListener);
+      precision.removeListener(dirtyPropertyListener);
    }
 }

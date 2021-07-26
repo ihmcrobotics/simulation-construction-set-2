@@ -10,6 +10,8 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.fxml.FXML;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Window;
+import javafx.util.Pair;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
@@ -18,6 +20,7 @@ import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 
 public class SecondaryWindowControlsController
 {
+   private Window owner;
    private JavaFXMessager messager;
    private SessionVisualizerTopics topics;
 
@@ -38,6 +41,7 @@ public class SecondaryWindowControlsController
 
    public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
+      owner = toolkit.getWindow();
       messager = toolkit.getMessager();
       topics = toolkit.getTopics();
 
@@ -136,13 +140,13 @@ public class SecondaryWindowControlsController
    @FXML
    private void requestZoomInGraphs()
    {
-      messager.submitMessage(topics.getYoChartRequestZoomIn(), true);
+      messager.submitMessage(topics.getYoChartRequestZoomIn(), new Pair<>(owner, true));
    }
 
    @FXML
    private void requestZoomOutGraphs()
    {
-      messager.submitMessage(topics.getYoChartRequestZoomOut(), true);
+      messager.submitMessage(topics.getYoChartRequestZoomOut(), new Pair<>(owner, true));
    }
 
    @FXML

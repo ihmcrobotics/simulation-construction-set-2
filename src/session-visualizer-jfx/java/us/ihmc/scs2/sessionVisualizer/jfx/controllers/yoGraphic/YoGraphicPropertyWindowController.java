@@ -191,7 +191,7 @@ public class YoGraphicPropertyWindowController
       timeline.play();
    }
 
-   public void close()
+   public void closeAndDispose()
    {
       window.close();
    }

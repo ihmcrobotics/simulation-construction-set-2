@@ -4,10 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBContext;
@@ -18,10 +17,21 @@ import javax.xml.bind.Unmarshaller;
 import com.jfoenix.controls.JFXButton;
 
 import javafx.application.Platform;
+import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
+import javafx.collections.SetChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -46,7 +56,6 @@ import us.ihmc.log.LogTools;
 import us.ihmc.messager.TopicListener;
 import us.ihmc.scs2.definition.yoChart.YoChartConfigurationDefinition;
 import us.ihmc.scs2.definition.yoChart.YoChartGroupConfigurationDefinition;
-import us.ihmc.scs2.session.SessionState;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartGroupLayout;
@@ -58,6 +67,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolki
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ChartGroupTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.StringTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -66,10 +76,14 @@ public class YoChartGroupPanelController
    private SessionVisualizerWindowToolkit toolkit;
    private YoCompositeSearchManager yoCompositeSearchManager;
 
+   private final StringProperty chartGroupName = new SimpleStringProperty(this, "chartGroupName", null);
+   private final StringProperty userDefinedChartGroupName = new SimpleStringProperty(this, "userDefinedChartGroupName", null);
+   private final StringProperty automatedChartGroupName = new SimpleStringProperty(this, "automatedChartGroupName", null);
+
    private final IntegerProperty numberOfRows = new SimpleIntegerProperty(this, "numberOfRows", 0);
    private final IntegerProperty numberOfCols = new SimpleIntegerProperty(this, "numberOfCols", 0);
    private final GridPane gridPane = new GridPane();
-   private final Collection<YoChartPanelController> chartControllers = new ConcurrentLinkedQueue<>();
+   private final ObservableList<YoChartPanelController> chartControllers = FXCollections.observableArrayList();
    private final BooleanProperty isRunning = new SimpleBooleanProperty(this, "isRunning", false);
 
    private final IntegerProperty maximumRowNumberProperty = new SimpleIntegerProperty(this, "maximumRow", 3);
@@ -82,10 +96,10 @@ public class YoChartGroupPanelController
 
    private TopicListener<Pair<Window, File>> loadChartGroupConfigurationListener = m -> loadChartGroupConfiguration(m.getKey(), m.getValue());
    private TopicListener<Pair<Window, File>> saveChartGroupConfigurationListener = m -> saveChartGroupConfiguration(m.getKey(), m.getValue());
-   private TopicListener<SessionState> stopSessionListener = state ->
+   private TopicListener<Pair<Window, String>> userDefinedChartGroupNameListener = m ->
    {
-      if (state == SessionState.INACTIVE)
-         clear();
+      if (m.getKey() == toolkit.getWindow())
+         setUserDefinedChartGroupName(m.getValue());
    };
 
    private SessionVisualizerTopics topics;
@@ -107,10 +121,6 @@ public class YoChartGroupPanelController
       topics = toolkit.getTopics();
       messager.submitMessage(topics.getRegisterRecordable(), mainPane);
 
-      messager.registerJavaFXSyncedTopicListener(topics.getYoChartGroupLoadConfiguration(), loadChartGroupConfigurationListener);
-      messager.registerJavaFXSyncedTopicListener(topics.getYoChartGroupSaveConfiguration(), saveChartGroupConfigurationListener);
-      messager.registerJavaFXSyncedTopicListener(topics.getSessionCurrentState(), stopSessionListener);
-
       toolkit.getWindow().iconifiedProperty().addListener((o, oldValue, newValue) ->
       {
          if (newValue != isRunning.get())
@@ -119,6 +129,73 @@ public class YoChartGroupPanelController
             stop();
          else
             start();
+      });
+
+      chartGroupName.bind(automatedChartGroupName);
+
+      userDefinedChartGroupName.addListener(new ChangeListener<String>()
+      {
+         private Observable currentBind = automatedChartGroupName;
+
+         @Override
+         public void changed(ObservableValue<? extends String> o, String oldValue, String newValue)
+         {
+            if (newValue != null)
+            {
+               if (currentBind != userDefinedChartGroupName)
+               {
+                  currentBind = userDefinedChartGroupName;
+                  chartGroupName.unbind();
+                  chartGroupName.bind(userDefinedChartGroupName);
+               }
+            }
+            else if (newValue == null)
+            {
+               if (currentBind != automatedChartGroupName)
+               {
+                  currentBind = automatedChartGroupName;
+                  chartGroupName.unbind();
+                  chartGroupName.bind(automatedChartGroupName);
+               }
+            }
+         }
+      });
+
+      ObservableSet<String> allVariableNames = FXCollections.observableSet(new HashSet<>());
+
+      allVariableNames.addListener((SetChangeListener<String>) change ->
+      {
+         if (change.getSet().isEmpty())
+         {
+            // No YoVariable left, resetting the user group
+            automatedChartGroupName.set(null);
+            userDefinedChartGroupName.set(null);
+         }
+         else
+         {
+            automatedChartGroupName.set(StringTools.commonSubString(change.getSet()));
+         }
+      });
+
+      SetChangeListener<YoVariable> plottedVariableChangeListener = change ->
+      {
+         if (change.wasAdded())
+            allVariableNames.add(change.getElementAdded().getName());
+         if (change.wasRemoved())
+            allVariableNames.remove(change.getElementRemoved().getName());
+      };
+
+      chartControllers.addListener((ListChangeListener<YoChartPanelController>) change ->
+      {
+         while (change.next())
+         {
+            if (change.wasPermutated())
+               continue;
+            if (change.wasAdded())
+               change.getAddedSubList().forEach(controller -> controller.getPlottedVariables().addListener(plottedVariableChangeListener));
+            if (change.wasRemoved())
+               change.getRemoved().forEach(controller -> controller.getPlottedVariables().removeListener(plottedVariableChangeListener));
+         }
       });
    }
 
@@ -131,6 +208,7 @@ public class YoChartGroupPanelController
       }
 
       clear();
+      userDefinedChartGroupName.set(definition.getName());
       numberOfRows.set(definition.getNumberOfRows());
       numberOfCols.set(definition.getNumberOfColumns());
       updateChartLayout();
@@ -146,18 +224,33 @@ public class YoChartGroupPanelController
 
    private void clear()
    {
-      new ArrayList<>(chartControllers).forEach(this::closeChart);
+      new ArrayList<>(chartControllers).forEach(this::closeAndDisposeChart);
       numberOfRows.set(0);
       numberOfCols.set(0);
+   }
+
+   private boolean isMessagerSetup = false;
+
+   public void setupMessager()
+   {
+      if (isMessagerSetup)
+         return;
+      isMessagerSetup = true;
+      messager.registerJavaFXSyncedTopicListener(topics.getYoChartGroupLoadConfiguration(), loadChartGroupConfigurationListener);
+      messager.registerJavaFXSyncedTopicListener(topics.getYoChartGroupSaveConfiguration(), saveChartGroupConfigurationListener);
+      messager.registerTopicListener(topics.getYoChartGroupName(), userDefinedChartGroupNameListener);
    }
 
    public void scheduleMessagerCleanup()
    {
       toolkit.getBackgroundExecutorManager().executeInBackground(() ->
       {
+         if (!isMessagerSetup)
+            return;
+         isMessagerSetup = false;
          messager.removeJavaFXSyncedTopicListener(topics.getYoChartGroupLoadConfiguration(), loadChartGroupConfigurationListener);
          messager.removeJavaFXSyncedTopicListener(topics.getYoChartGroupSaveConfiguration(), saveChartGroupConfigurationListener);
-         messager.removeJavaFXSyncedTopicListener(topics.getSessionCurrentState(), stopSessionListener);
+         messager.removeTopicListener(topics.getYoChartGroupName(), userDefinedChartGroupNameListener);
       });
    }
 
@@ -177,7 +270,7 @@ public class YoChartGroupPanelController
             while (emptyCharts.size() > excess)
                emptyCharts.removeFirst();
 
-            emptyCharts.forEach(this::closeChart);
+            emptyCharts.forEach(this::closeAndDisposeChart);
          }
       }
 
@@ -259,13 +352,13 @@ public class YoChartGroupPanelController
 
    private void handleCloseChart(ActionEvent event, YoChartPanelController chartToClose)
    {
-      closeChart(chartToClose);
+      closeAndDisposeChart(chartToClose);
       event.consume();
    }
 
-   private void closeChart(YoChartPanelController chartToClose)
+   private void closeAndDisposeChart(YoChartPanelController chartToClose)
    {
-      chartToClose.close();
+      chartToClose.closeAndDispose();
       gridPane.getChildren().remove(chartToClose.getMainPane());
       chartControllers.remove(chartToClose);
       removeEmptyRowsAndColumns();
@@ -282,7 +375,7 @@ public class YoChartGroupPanelController
          if (controller.isEmpty())
          {
             chartControllersIterator.remove();
-            closeChart(controller);
+            closeAndDisposeChart(controller);
          }
       }
    }
@@ -347,6 +440,7 @@ public class YoChartGroupPanelController
    public void start()
    {
       isRunning.set(true);
+      setupMessager();
       chartControllers.forEach(YoChartPanelController::start);
    }
 
@@ -356,10 +450,10 @@ public class YoChartGroupPanelController
       chartControllers.forEach(YoChartPanelController::stop);
    }
 
-   public void close()
+   public void closeAndDispose()
    {
       isRunning.set(false);
-      chartControllers.forEach(YoChartPanelController::close);
+      clear();
       scheduleMessagerCleanup();
    }
 
@@ -413,6 +507,16 @@ public class YoChartGroupPanelController
    public IntegerProperty maximumColProperty()
    {
       return maximumColNumberProperty;
+   }
+
+   public void setUserDefinedChartGroupName(String name)
+   {
+      userDefinedChartGroupName.set(name);
+   }
+
+   public ReadOnlyStringProperty chartGroupNameProperty()
+   {
+      return chartGroupName;
    }
 
    private void handleDragEntered(DragEvent event, YoChartPanelController controller)
@@ -584,6 +688,7 @@ public class YoChartGroupPanelController
    public YoChartGroupConfigurationDefinition toYoChartGroupConfigurationDefinition()
    {
       YoChartGroupConfigurationDefinition definition = new YoChartGroupConfigurationDefinition();
+      definition.setName(chartGroupName.get());
       definition.setNumberOfRows(numberOfRows.get());
       definition.setNumberOfColumns(numberOfCols.get());
       definition.setChartConfigurations(chartControllers.stream().map(chart -> chart.toYoChartConfigurationDefinition(getChartIdentifier(chart)))

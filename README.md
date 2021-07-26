@@ -58,10 +58,10 @@ You'll need to clone this repository and at times source dependencies will be re
 
 # External references:
 ## Icons:
-- <img src="src/session-visualizer/resources/icons/valid-icon.png" alt="Valid icon" width="25"/> & <img src="src/session-visualizer/resources/icons/invalid-icon.png" alt="Invalid icon" width="25"/> icons from <a href="https://icons8.com/icons/">Icons8</a>
+- <img src="src/session-visualizer-jfx/resources/icons/valid-icon.png" alt="Valid icon" width="25"/> & <img src="src/session-visualizer-jfx/resources/icons/invalid-icon.png" alt="Invalid icon" width="25"/> icons from <a href="https://icons8.com/icons/">Icons8</a>
 
 ## Skybox:
-- <img src="src/session-visualizer/resources/skybox/cloudy/Front.png" alt="Skybox" width="50"/> default skybox from <a href="https://assetstore.unity.com/packages/2d/textures-materials/sky/farland-skies-cloudy-crown-60004">Cloudy Crown Skybox</a>
+- <img src="src/session-visualizer-jfx/resources/skybox/cloudy/Front.png" alt="Skybox" width="50"/> default skybox from <a href="https://assetstore.unity.com/packages/2d/textures-materials/sky/farland-skies-cloudy-crown-60004">Cloudy Crown Skybox</a>
 
 
 

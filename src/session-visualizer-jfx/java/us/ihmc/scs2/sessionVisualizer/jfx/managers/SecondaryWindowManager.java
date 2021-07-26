@@ -99,13 +99,13 @@ public class SecondaryWindowManager implements Manager
    {
       if (yoCompositeEditor.getValue() != null)
       {
-         yoCompositeEditor.getValue().close();
+         yoCompositeEditor.getValue().closeAndDispose();
          yoCompositeEditor.setValue(null);
       }
 
       if (yoGraphicEditor.getValue() != null)
       {
-         yoGraphicEditor.getValue().close();
+         yoGraphicEditor.getValue().closeAndDispose();
          yoGraphicEditor.setValue(null);
       }
 
@@ -116,7 +116,7 @@ public class SecondaryWindowManager implements Manager
       }
 
       secondaryWindows.forEach(secondaryWindow -> secondaryWindow.fireEvent(new WindowEvent(secondaryWindow, WindowEvent.WINDOW_CLOSE_REQUEST)));
-      secondaryWindowControllers.forEach(SecondaryWindowController::stop);
+      secondaryWindowControllers.forEach(SecondaryWindowController::closeAndDispose);
       secondaryWindowControllers.clear();
    }
 

@@ -3,7 +3,6 @@ package us.ihmc.scs2.sessionVisualizer.jfx.tools;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.scs2.definition.yoChart.ChartDoubleBoundsDefinition;
 import us.ihmc.scs2.definition.yoChart.YoChartGroupModelDefinition;
 import us.ihmc.scs2.definition.yoChart.YoChartIdentifierDefinition;
@@ -71,19 +70,11 @@ public class ChartTools
          return new ChartDoubleBoundsDefinition(bounds.getLower(), bounds.getUpper());
    }
 
-   public static String defaultYoVariableValueFormatter(YoVariable yoVariable)
+   public static String defaultYoVariableValueFormatter(YoVariable yoVariable, int precision)
    {
       if (yoVariable instanceof YoDouble)
-         return NumberFormatTools.doubleToString(yoVariable.getValueAsDouble(), 5);
-      else
-         return ChartTools.getYoVariableValueAsString(yoVariable, EuclidCoreIOTools.getStringFormat(11, 8));
-   }
-
-   public static String getYoVariableValueAsString(YoVariable yoVariable, String format)
-   {
-      if (yoVariable instanceof YoDouble)
-         return String.format(format, ((YoDouble) yoVariable).getValue());
-      if (yoVariable instanceof YoBoolean)
+         return NumberFormatTools.doubleToString(yoVariable.getValueAsDouble(), precision);
+      else if (yoVariable instanceof YoBoolean)
          return Boolean.toString(((YoBoolean) yoVariable).getValue());
       if (yoVariable instanceof YoInteger)
          return Integer.toString(((YoInteger) yoVariable).getValue());

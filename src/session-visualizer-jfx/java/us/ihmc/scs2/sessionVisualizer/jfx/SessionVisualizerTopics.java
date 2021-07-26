@@ -13,6 +13,7 @@ import us.ihmc.scs2.session.YoSharedBufferMessagerAPI;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.search.SearchEngines;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
 import us.ihmc.scs2.sharedMemory.CropBufferRequest;
+import us.ihmc.scs2.sharedMemory.FillBufferRequest;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 
 public class SessionVisualizerTopics
@@ -42,15 +43,18 @@ public class SessionVisualizerTopics
    private Topic<File> yoGraphicLoadRequest;
    private Topic<File> yoGraphicSaveRequest;
 
-   private Topic<Double> yoChartZoomFactor;
-   private Topic<Boolean> yoChartRequestZoomIn, yoChartRequestZoomOut;
-   private Topic<Integer> yoChartRequestShift;
+   private Topic<Pair<Window, Double>> yoChartZoomFactor;
+   private Topic<Pair<Window, Boolean>> yoChartRequestZoomIn, yoChartRequestZoomOut;
+   private Topic<Pair<Window, Integer>> yoChartRequestShift;
 
    private Topic<Pair<Window, File>> yoChartGroupSaveConfiguration;
    private Topic<Pair<Window, File>> yoChartGroupLoadConfiguration;
+   private Topic<Pair<Window, String>> yoChartGroupName;
 
    private Topic<File> yoSliderboardSaveConfiguration;
    private Topic<File> yoSliderboardLoadConfiguration;
+
+   private Topic<Integer> controlsNumberPrecision;
 
    // Session topics
    private Topic<SessionState> sessionCurrentState;
@@ -58,6 +62,7 @@ public class SessionVisualizerTopics
    private Topic<Boolean> runAtRealTimeRate;
    private Topic<Long> sessionTickToTimeIncrement;
    private Topic<Double> playbackRealTimeRate;
+   private Topic<Integer> bufferRecordTickPeriod;
    private Topic<Boolean> remoteSessionControlsRequest;
    private Topic<Boolean> logSessionControlsRequest;
 
@@ -65,6 +70,7 @@ public class SessionVisualizerTopics
    private Topic<Integer> yoBufferIncrementCurrentIndexRequest, yoBufferDecrementCurrentIndexRequest;
    private Topic<Integer> yoBufferInPointIndexRequest, yoBufferOutPointIndexRequest;
    private Topic<CropBufferRequest> yoBufferCropRequest;
+   private Topic<FillBufferRequest> yoBufferFillRequest;
    private Topic<Integer> yoBufferCurrentSizeRequest;
    private Topic<YoBufferPropertiesReadOnly> yoBufferCurrentProperties;
 
@@ -102,15 +108,19 @@ public class SessionVisualizerTopics
       yoChartRequestShift = SessionVisualizerMessagerAPI.YoChart.YoChartRequestShift;
       yoChartGroupSaveConfiguration = SessionVisualizerMessagerAPI.YoChart.YoChartGroupSaveConfiguration;
       yoChartGroupLoadConfiguration = SessionVisualizerMessagerAPI.YoChart.YoChartGroupLoadConfiguration;
+      yoChartGroupName = SessionVisualizerMessagerAPI.YoChart.YoChartGroupName;
 
       yoSliderboardSaveConfiguration = SessionVisualizerMessagerAPI.YoSliderboard.YoSliderboardSaveConfiguration;
       yoSliderboardLoadConfiguration = SessionVisualizerMessagerAPI.YoSliderboard.YoSliderboardLoadConfiguration;
+
+      controlsNumberPrecision = SessionVisualizerMessagerAPI.ControlsNumberPrecision;
 
       sessionCurrentState = SessionMessagerAPI.SessionCurrentState;
       sessionCurrentMode = SessionMessagerAPI.SessionCurrentMode;
       runAtRealTimeRate = SessionMessagerAPI.RunAtRealTimeRate;
       sessionTickToTimeIncrement = SessionMessagerAPI.SessionTickToTimeIncrement;
       playbackRealTimeRate = SessionMessagerAPI.PlaybackRealTimeRate;
+      bufferRecordTickPeriod = SessionMessagerAPI.BufferRecordTickPeriod;
       remoteSessionControlsRequest = SessionVisualizerMessagerAPI.Session.RemoteSessionControlsRequest;
       logSessionControlsRequest = SessionVisualizerMessagerAPI.Session.LogSessionControlsRequest;
 
@@ -120,6 +130,7 @@ public class SessionVisualizerTopics
       yoBufferInPointIndexRequest = YoSharedBufferMessagerAPI.InPointIndexRequest;
       yoBufferOutPointIndexRequest = YoSharedBufferMessagerAPI.OutPointIndexRequest;
       yoBufferCropRequest = YoSharedBufferMessagerAPI.CropRequest;
+      yoBufferFillRequest = YoSharedBufferMessagerAPI.FillRequest;
       yoBufferCurrentSizeRequest = YoSharedBufferMessagerAPI.CurrentBufferSizeRequest;
       yoBufferCurrentProperties = YoSharedBufferMessagerAPI.CurrentBufferProperties;
    }
@@ -234,22 +245,22 @@ public class SessionVisualizerTopics
       return yoGraphicSaveRequest;
    }
 
-   public Topic<Double> getYoChartZoomFactor()
+   public Topic<Pair<Window, Double>> getYoChartZoomFactor()
    {
       return yoChartZoomFactor;
    }
 
-   public Topic<Boolean> getYoChartRequestZoomIn()
+   public Topic<Pair<Window, Boolean>> getYoChartRequestZoomIn()
    {
       return yoChartRequestZoomIn;
    }
 
-   public Topic<Boolean> getYoChartRequestZoomOut()
+   public Topic<Pair<Window, Boolean>> getYoChartRequestZoomOut()
    {
       return yoChartRequestZoomOut;
    }
 
-   public Topic<Integer> getYoChartRequestShift()
+   public Topic<Pair<Window, Integer>> getYoChartRequestShift()
    {
       return yoChartRequestShift;
    }
@@ -257,6 +268,11 @@ public class SessionVisualizerTopics
    public Topic<Pair<Window, File>> getYoChartGroupLoadConfiguration()
    {
       return yoChartGroupLoadConfiguration;
+   }
+
+   public Topic<Pair<Window, String>> getYoChartGroupName()
+   {
+      return yoChartGroupName;
    }
 
    public Topic<Pair<Window, File>> getYoChartGroupSaveConfiguration()
@@ -272,6 +288,11 @@ public class SessionVisualizerTopics
    public Topic<File> getYoSliderboardSaveConfiguration()
    {
       return yoSliderboardSaveConfiguration;
+   }
+
+   public Topic<Integer> getControlsNumberPrecision()
+   {
+      return controlsNumberPrecision;
    }
 
    public Topic<SessionState> getSessionCurrentState()
@@ -297,6 +318,11 @@ public class SessionVisualizerTopics
    public Topic<Double> getPlaybackRealTimeRate()
    {
       return playbackRealTimeRate;
+   }
+
+   public Topic<Integer> getBufferRecordTickPeriod()
+   {
+      return bufferRecordTickPeriod;
    }
 
    public Topic<Boolean> getRemoteSessionControlsRequest()
@@ -337,6 +363,11 @@ public class SessionVisualizerTopics
    public Topic<CropBufferRequest> getYoBufferCropRequest()
    {
       return yoBufferCropRequest;
+   }
+
+   public Topic<FillBufferRequest> getYoBufferFillRequest()
+   {
+      return yoBufferFillRequest;
    }
 
    public Topic<Integer> getYoBufferCurrentSizeRequest()

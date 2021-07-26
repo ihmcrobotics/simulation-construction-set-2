@@ -28,29 +28,23 @@ public class ChartDataManager implements Manager
 
    private Future<?> activeTask;
 
-   private final ChartZoomManager chartZoomManager;
-
    public ChartDataManager(JavaFXMessager messager, SessionVisualizerTopics topics, YoManager yoManager, BackgroundExecutorManager backgroundExecutorManager)
    {
       this.topics = topics;
       this.messager = messager;
       this.yoManager = yoManager;
       this.backgroundExecutorManager = backgroundExecutorManager;
-
-      chartZoomManager = new ChartZoomManager(messager, topics);
    }
 
    @Override
    public void startSession(Session session)
    {
-      chartZoomManager.startSession(session);
       activeTask = backgroundExecutorManager.scheduleTaskInBackground(this::updateData, 0, 100, TimeUnit.MILLISECONDS);
    }
 
    @Override
    public void stopSession()
    {
-      chartZoomManager.stopSession();
       if (activeTask != null)
          activeTask.cancel(true);
       activeTask = null;
@@ -66,7 +60,13 @@ public class ChartDataManager implements Manager
    {
       try
       {
-         chartDataMap.values().removeIf(value -> !value.isCurrentlyInUse());
+         chartDataMap.values().removeIf(value ->
+         {
+            boolean remove = !value.isCurrentlyInUse();
+            if (remove)
+               value.dispose();
+            return remove;
+         });
          chartDataMap.values().forEach(YoVariableChartData::updateData);
       }
       catch (Exception e)
@@ -100,10 +100,5 @@ public class ChartDataManager implements Manager
          linkedVariableMap.put(yoVariable, linkedYoVariable);
       }
       return linkedYoVariable;
-   }
-
-   public ChartZoomManager getChartZoomManager()
-   {
-      return chartZoomManager;
    }
 }

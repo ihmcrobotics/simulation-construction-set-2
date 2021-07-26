@@ -41,6 +41,8 @@ public class SessionVisualizerMessagerAPI
    private static final TopicTheme Save = apiFactory.createTopicTheme("save");
    private static final TopicTheme Close = apiFactory.createTopicTheme("close");
    private static final TopicTheme Open = apiFactory.createTopicTheme("open");
+   private static final TopicTheme Name = apiFactory.createTopicTheme("name");
+   private static final TopicTheme Precision = apiFactory.createTopicTheme("Precision");
 
    public static final Topic<Object> TakeSnapshot = APIRoot.topic(Snapshot);
    public static final Topic<Object> RegisterRecordable = APIRoot.child(Register).topic(Recordable);
@@ -49,6 +51,7 @@ public class SessionVisualizerMessagerAPI
    public static final Topic<Boolean> ShowOverheadPlotter = APIRoot.child(OverheadPlotter).topic(Show);
    public static final Topic<String> OpenWindowRequest = APIRoot.topic(Open);
    public static final Topic<Boolean> SessionVisualizerCloseRequest = APIRoot.topic(Close);
+   public static final Topic<Integer> ControlsNumberPrecision = APIRoot.child(Controls).topic(Precision); // TODO Not the greatest topic name, nor the best place.
 
    static
    { // Ensure that the KeyFrame is loaded before closing the API.
@@ -110,14 +113,15 @@ public class SessionVisualizerMessagerAPI
       private static final CategoryTheme Out = apiFactory.createCategoryTheme("Out");
       private static final CategoryTheme Shift = apiFactory.createCategoryTheme("Shift");
 
-      private static final TypedTopicTheme<Double> Factor = apiFactory.createTypedTopicTheme("Factor");
+      private static final TopicTheme Factor = apiFactory.createTopicTheme("Factor");
 
-      public static final Topic<Double> YoChartZoomFactor = APIRoot.child(YoChart).child(Zoom).topic(Factor);
-      public static final Topic<Boolean> YoChartRequestZoomIn = APIRoot.child(YoChart).child(Zoom).child(In).topic(Request);
-      public static final Topic<Boolean> YoChartRequestZoomOut = APIRoot.child(YoChart).child(Zoom).child(Out).topic(Request);
-      public static final Topic<Integer> YoChartRequestShift = APIRoot.child(YoChart).child(Shift).topic(Request);
+      public static final Topic<Pair<Window, Double>> YoChartZoomFactor = APIRoot.child(YoChart).child(Zoom).topic(Factor);
+      public static final Topic<Pair<Window, Boolean>> YoChartRequestZoomIn = APIRoot.child(YoChart).child(Zoom).child(In).topic(Request);
+      public static final Topic<Pair<Window, Boolean>> YoChartRequestZoomOut = APIRoot.child(YoChart).child(Zoom).child(Out).topic(Request);
+      public static final Topic<Pair<Window, Integer>> YoChartRequestShift = APIRoot.child(YoChart).child(Shift).topic(Request);
       public static final Topic<Pair<Window, File>> YoChartGroupSaveConfiguration = APIRoot.child(YoChart).child(Group).child(Configuration).topic(Save);
       public static final Topic<Pair<Window, File>> YoChartGroupLoadConfiguration = APIRoot.child(YoChart).child(Group).child(Configuration).topic(Load);
+      public static final Topic<Pair<Window, String>> YoChartGroupName = APIRoot.child(YoChart).child(Group).topic(Name);
    }
 
    public static class YoSliderboard

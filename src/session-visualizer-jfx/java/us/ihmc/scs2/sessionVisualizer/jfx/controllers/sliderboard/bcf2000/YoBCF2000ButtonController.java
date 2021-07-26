@@ -1,9 +1,8 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.bcf2000;
 
-import com.jfoenix.controls.JFXToggleButton;
+import com.jfoenix.controls.JFXToggleNode;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.yoSlider.YoButtonDefinition;
@@ -20,9 +19,7 @@ public class YoBCF2000ButtonController extends YoBCF2000InputController
    @FXML
    private VBox rootPane;
    @FXML
-   private JFXToggleButton button;
-   @FXML
-   private Label yoVariableDropLabel;
+   private JFXToggleNode button;
 
    private SliderboardVariable sliderVariable;
 
@@ -33,7 +30,7 @@ public class YoBCF2000ButtonController extends YoBCF2000InputController
    {
       this.sliderVariable = sliderVariable;
       yoManager = toolkit.getYoManager();
-      super.initialize(toolkit, rootPane, yoVariableDropLabel, YoBoolean.class::isInstance);
+      super.initialize(toolkit, rootPane, button, YoBoolean.class::isInstance);
 
       button.setDisable(true);
    }

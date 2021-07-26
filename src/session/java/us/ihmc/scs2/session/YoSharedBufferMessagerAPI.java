@@ -7,6 +7,7 @@ import us.ihmc.messager.MessagerAPIFactory.MessagerAPI;
 import us.ihmc.messager.MessagerAPIFactory.Topic;
 import us.ihmc.messager.MessagerAPIFactory.TypedTopicTheme;
 import us.ihmc.scs2.sharedMemory.CropBufferRequest;
+import us.ihmc.scs2.sharedMemory.FillBufferRequest;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 
 public class YoSharedBufferMessagerAPI
@@ -30,6 +31,7 @@ public class YoSharedBufferMessagerAPI
 
    private static final TypedTopicTheme<Integer> Size = apiFactory.createTypedTopicTheme("Size");
    private static final TypedTopicTheme<CropBufferRequest> Crop = apiFactory.createTypedTopicTheme("Crop");
+   private static final TypedTopicTheme<FillBufferRequest> Fill = apiFactory.createTypedTopicTheme("Fill");
 
    public static final Topic<Integer> CurrentIndexRequest = root.child(Index).topic(Current);
    public static final Topic<Integer> IncrementCurrentIndexRequest = root.child(Index).child(Increment).topic(Current);
@@ -37,6 +39,7 @@ public class YoSharedBufferMessagerAPI
    public static final Topic<Integer> InPointIndexRequest = root.child(Index).topic(InPoint);
    public static final Topic<Integer> OutPointIndexRequest = root.child(Index).topic(OutPoint);
    public static final Topic<CropBufferRequest> CropRequest = root.topic(Crop);
+   public static final Topic<FillBufferRequest> FillRequest = root.topic(Fill);
    public static final Topic<Integer> CurrentBufferSizeRequest = root.topic(Size);
    public static final Topic<YoBufferPropertiesReadOnly> CurrentBufferProperties = root.topic(Properties);
 

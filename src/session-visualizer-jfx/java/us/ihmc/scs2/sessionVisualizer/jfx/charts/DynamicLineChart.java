@@ -1,20 +1,19 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.charts;
 
 import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Side;
 import javafx.scene.chart.InvisibleNumberAxis;
-import javafx.scene.chart.XYChart.Data;
 import us.ihmc.javaFXExtensions.chart.DynamicXYChart;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ChartRenderManager;
 
@@ -28,9 +27,10 @@ public class DynamicLineChart extends DynamicXYChart
    private final ObjectProperty<ChartStyle> chartStyleProperty = new SimpleObjectProperty<>(this, "chartStyle", ChartStyle.RAW);
    private final ObservableList<NumberSeriesLayer> seriesLayers = FXCollections.observableArrayList();
    private final ChangeListener<Object> chartUpdaterListener = (o, oldValue, newValue) -> requestChartLayout();
-   private final ChangeListener<Object> markerUpdaterListener = (o, oldValue, newValue) -> updateMarkers();
-   private final Map<Data<Number, Number>, ChartMarker> markers = new LinkedHashMap<>();
+   private final ObservableList<ChartMarker> markers = FXCollections.observableArrayList();
    private final DynamicChartLegend legend = new DynamicChartLegend();
+
+   private final BooleanProperty updateIndexMarkersVisible = new SimpleBooleanProperty(this, "updateIndexMarkersVisible", false);
 
    private final InvisibleNumberAxis xAxis;
    private final InvisibleNumberAxis yAxis;
@@ -57,6 +57,31 @@ public class DynamicLineChart extends DynamicXYChart
 
       chartStyleProperty.addListener(chartUpdaterListener);
 
+      markers.addListener((ListChangeListener<ChartMarker>) change ->
+      {
+         while (change.next())
+         {
+            if (change.wasAdded())
+            {
+               for (ChartMarker newMarker : change.getAddedSubList())
+               {
+                  plotContent.getChildren().add(newMarker);
+                  newMarker.addListener((o, oldValue, newValue) -> updateMarkers());
+               }
+               updateMarkers();
+            }
+
+            if (change.wasRemoved())
+            {
+               for (ChartMarker oldMarker : change.getRemoved())
+               {
+                  plotContent.getChildren().remove(oldMarker);
+                  oldMarker.destroy();
+               }
+            }
+         }
+      });
+
       setLegend(legend);
    }
 
@@ -69,6 +94,7 @@ public class DynamicLineChart extends DynamicXYChart
       series.dirtyProperty().addListener(chartUpdaterListener);
       NumberSeriesLayer layer = new NumberSeriesLayer(xAxis, yAxis, series, backgroundExecutor, chartRenderManager);
       layer.chartStyleProperty().bind(chartStyleProperty);
+      layer.updateIndexMarkerVisibleProperty().bind(updateIndexMarkersVisible);
       setSeriesDefaultStyleClass(layer, seriesIndex);
       seriesLayers.add(layer);
       legend.getItems().add(layer.getLegendNode());
@@ -83,7 +109,9 @@ public class DynamicLineChart extends DynamicXYChart
       if (containingLayer.isPresent())
       {
          int indexOf = seriesLayers.indexOf(containingLayer.get());
-         seriesLayers.remove(indexOf);
+         NumberSeriesLayer removedLayer = seriesLayers.remove(indexOf);
+         removedLayer.chartStyleProperty().unbind();
+         removedLayer.updateIndexMarkerVisibleProperty().unbind();
          series.negatedProperty().removeListener(chartUpdaterListener);
          series.customYBoundsProperty().removeListener(chartUpdaterListener);
          series.dirtyProperty().removeListener(chartUpdaterListener);
@@ -98,32 +126,14 @@ public class DynamicLineChart extends DynamicXYChart
       }
    }
 
-   public ChartMarker addMarker(Data<Number, Number> markerCoordinates)
+   public void addMarker(ChartMarker marker)
    {
-      Objects.requireNonNull(markerCoordinates, "The marker must not be null.");
-      if (markers.containsKey(markerCoordinates))
-         return markers.get(markerCoordinates);
-
-      ChartMarker marker = new ChartMarker(markerCoordinates);
-      plotContent.getChildren().add(marker.getNode());
-      markers.put(markerCoordinates, marker);
-      marker.addListener(markerUpdaterListener);
-
-      markerUpdaterListener.changed(null, null, null);
-      return marker;
+      markers.add(marker);
    }
 
-   public void removeMarker(Data<Number, Number> markerCoordinates)
+   public void removeMarker(ChartMarker marker)
    {
-      Objects.requireNonNull(markerCoordinates, "The marker must not be null.");
-
-      ChartMarker marker = markers.remove(markerCoordinates);
-
-      if (marker.getNode() != null)
-      {
-         plotContent.getChildren().remove(marker.getNode());
-         marker.destroy();
-      }
+      markers.remove(marker);
    }
 
    private void updateSeriesList(double top, double left, double width, double height)
@@ -143,7 +153,7 @@ public class DynamicLineChart extends DynamicXYChart
 
    private void updateMarkers()
    {
-      markers.values().forEach(marker -> marker.updateMarker(xAxis, yAxis));
+      markers.forEach(marker -> marker.updateMarker(xAxis, yAxis));
    }
 
    @Override
@@ -229,6 +239,15 @@ public class DynamicLineChart extends DynamicXYChart
    public InvisibleNumberAxis getYAxis()
    {
       return yAxis;
+   }
+
+   /**
+    * Property controlling visibility of markers used to indicate up to what index the charts have been
+    * updated.
+    */
+   public BooleanProperty updateIndexMarkersVisible()
+   {
+      return updateIndexMarkersVisible;
    }
 
    public void setChartStyle(ChartStyle style)

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -25,6 +26,7 @@ import us.ihmc.log.LogTools;
 import us.ihmc.messager.MessagerAPIFactory.Topic;
 import us.ihmc.scs2.definition.yoEntry.YoEntryDefinition;
 import us.ihmc.scs2.definition.yoEntry.YoEntryListDefinition;
+import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.search.YoCompositeListCell;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
@@ -47,8 +49,12 @@ public class YoEntryListViewController
 
    public void initialize(SessionVisualizerToolkit toolkit)
    {
+      messager = toolkit.getMessager();
+      SessionVisualizerTopics topics = toolkit.getTopics();
+      Property<Integer> numberPrecision = messager.createPropertyInput(topics.getControlsNumberPrecision(), 3);
+
       yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
-      yoEntryListView.setCellFactory(param -> new YoCompositeListCell(toolkit.getYoManager(), showUniqueNamesProperty, param));
+      yoEntryListView.setCellFactory(param -> new YoCompositeListCell(toolkit.getYoManager(), showUniqueNamesProperty, numberPrecision, param));
       yoEntryListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
       ContextMenuTools.setupContextMenu(yoEntryListView, removeMenuItemFactory(true));
 
@@ -59,8 +65,7 @@ public class YoEntryListViewController
       yoEntryListView.setOnDragDropped(this::handleDragDropped);
       yoEntryListView.setOnMouseReleased(this::handleOnMouseReleased);
 
-      messager = toolkit.getMessager();
-      yoCompositeSelectedTopic = toolkit.getTopics().getYoCompositeSelected();
+      yoCompositeSelectedTopic = topics.getYoCompositeSelected();
       yoCompositeSelected = messager.createInput(yoCompositeSelectedTopic);
 
       yoEntryListView.getSelectionModel().selectedItemProperty().addListener((o, oldValue, newValue) ->

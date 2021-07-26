@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
@@ -14,17 +15,20 @@ import java.util.stream.Collectors;
 import com.jfoenix.controls.JFXButton;
 
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.collections.ObservableSet;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.chart.InvisibleNumberAxis;
-import javafx.scene.chart.XYChart.Data;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -39,6 +43,7 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.text.Text;
+import javafx.util.Pair;
 import us.ihmc.commons.MathTools;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.interfaces.Tuple2DReadOnly;
@@ -48,6 +53,7 @@ import us.ihmc.messager.MessagerAPIFactory.Topic;
 import us.ihmc.messager.TopicListener;
 import us.ihmc.scs2.definition.yoChart.ChartDoubleBoundsDefinition;
 import us.ihmc.scs2.definition.yoChart.YoChartConfigurationDefinition;
+import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.charts.ChartIdentifier;
@@ -82,6 +88,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
    private static final String CURRENT_INDEX_MARKER_STYLECLASS = "chart-current-index-marker";
    private static final String ORIGIN_MARKER_STYLECLASS = "chart-origin-marker";
    private static final String KEYFRAME_MARKER_STYLECLASS = "chart-keyframe-marker";
+   private static final String USER_MARKER_STYLECLASS = "chart-user-marker";
 
    @FXML
    private AnchorPane chartMainPane;
@@ -92,18 +99,22 @@ public class YoChartPanelController extends ObservedAnimationTimer
    private final InvisibleNumberAxis yAxis = new InvisibleNumberAxis();
    private DynamicLineChart dynamicLineChart;
 
-   private final Data<Number, Number> inPointMarker = new Data<>(0, 0.0);
-   private final Data<Number, Number> outPointMarker = new Data<>(0, 0.0);
-   private final Data<Number, Number> bufferIndexMarker = new Data<>(0, 0.0);
-   private final List<Data<Number, Number>> keyFrameMarkers = new ArrayList<>();
+   private final ChartMarker inPointMarker = new ChartMarker(new SimpleDoubleProperty(this, "inPointMarkerCoordinate", 0.0));
+   private final ChartMarker outPointMarker = new ChartMarker(new SimpleDoubleProperty(this, "outPointMarkerCoordinate", 0.0));
+   private final ChartMarker bufferIndexMarker = new ChartMarker(new SimpleDoubleProperty(this, "bufferIndexMarkerCoordinate", 0.0));
+   private final ObservableList<ChartMarker> userMarkers = FXCollections.observableArrayList();
+   private final ObservableList<ChartMarker> keyFrameMarkers = FXCollections.observableArrayList();
 
    private YoCompositeSearchManager yoCompositeSearchManager;
+
+   private Property<Integer> legendPrecision;
 
    private ChartDataManager chartDataManager;
    private final ObservableList<YoNumberSeries> yoNumberSeriesList = FXCollections.observableArrayList();
    private final ObservableMap<YoVariable, YoVariableChartPackage> charts = FXCollections.observableMap(new LinkedHashMap<>());
-   private AtomicReference<YoBufferPropertiesReadOnly> bufferPropertiesForMarkers;
-   private AtomicReference<YoBufferPropertiesReadOnly> bufferPropertiesForScrolling;
+   private final ObservableSet<YoVariable> plottedVariables = FXCollections.observableSet(new HashSet<>());
+   private YoBufferPropertiesReadOnly lastBufferProperties = null;
+   private AtomicReference<YoBufferPropertiesReadOnly> newBufferProperties;
    private final TopicListener<int[]> keyFrameMarkerListener = newKeyFrames -> updateKeyFrameMarkers(newKeyFrames);
    private AtomicReference<List<String>> yoCompositeSelected;
    private Topic<List<String>> yoCompositeSelectedTopic;
@@ -125,8 +136,8 @@ public class YoChartPanelController extends ObservedAnimationTimer
       topics = toolkit.getTopics();
       BackgroundExecutorManager backgroundExecutorManager = toolkit.getBackgroundExecutorManager();
 
-      bufferPropertiesForMarkers = messager.createInput(topics.getYoBufferCurrentProperties());
-      bufferPropertiesForScrolling = messager.createInput(topics.getYoBufferCurrentProperties());
+      newBufferProperties = messager.createInput(topics.getYoBufferCurrentProperties());
+      legendPrecision = messager.createPropertyInput(topics.getControlsNumberPrecision(), 5);
 
       dynamicLineChart = new DynamicLineChart(xAxis, yAxis, backgroundExecutorManager::executeInBackground, toolkit.getChartRenderManager());
       chartMainPane.getChildren().add(0, dynamicLineChart);
@@ -141,24 +152,72 @@ public class YoChartPanelController extends ObservedAnimationTimer
       yAxis.setAutoRanging(true);
       yAxis.setForceZeroInRange(false);
 
-      ChartMarker inPointMarkerNode = dynamicLineChart.addMarker(inPointMarker);
-      inPointMarkerNode.getStyleClass().add(INPOINT_MARKER_STYLECLASS);
-      ChartMarker outPointMarkerNode = dynamicLineChart.addMarker(outPointMarker);
-      outPointMarkerNode.getStyleClass().add(OUTPOINT_MARKER_STYLECLASS);
-      ChartMarker currentIndexMarkerNode = dynamicLineChart.addMarker(bufferIndexMarker);
-      currentIndexMarkerNode.getStyleClass().add(CURRENT_INDEX_MARKER_STYLECLASS);
+      inPointMarker.getStyleClass().add(INPOINT_MARKER_STYLECLASS);
+      outPointMarker.getStyleClass().add(OUTPOINT_MARKER_STYLECLASS);
+      bufferIndexMarker.getStyleClass().add(CURRENT_INDEX_MARKER_STYLECLASS);
+      dynamicLineChart.addMarker(inPointMarker);
+      dynamicLineChart.addMarker(outPointMarker);
+      dynamicLineChart.addMarker(bufferIndexMarker);
 
-      Data<Number, Number> origin = new Data<>(0.0, 0.0);
+      userMarkers.addListener((ListChangeListener<ChartMarker>) change ->
+      {
+         while (change.next())
+         {
+            if (change.wasAdded())
+            {
+               for (ChartMarker newMarker : change.getAddedSubList())
+               {
+                  dynamicLineChart.addMarker(newMarker);
+                  if (!newMarker.getStyleClass().contains(USER_MARKER_STYLECLASS))
+                     newMarker.getStyleClass().add(USER_MARKER_STYLECLASS);
+               }
+            }
+
+            if (change.wasRemoved())
+            {
+               for (ChartMarker oldMarker : change.getRemoved())
+               {
+                  dynamicLineChart.removeMarker(oldMarker);
+               }
+            }
+         }
+      });
+
+      keyFrameMarkers.addListener((ListChangeListener<ChartMarker>) change ->
+      {
+         while (change.next())
+         {
+            if (change.wasAdded())
+            {
+               for (ChartMarker newMarker : change.getAddedSubList())
+               {
+                  dynamicLineChart.addMarker(newMarker);
+                  if (!newMarker.getStyleClass().contains(KEYFRAME_MARKER_STYLECLASS))
+                     newMarker.getStyleClass().add(KEYFRAME_MARKER_STYLECLASS);
+               }
+            }
+
+            if (change.wasRemoved())
+            {
+               for (ChartMarker oldMarker : change.getRemoved())
+               {
+                  dynamicLineChart.removeMarker(oldMarker);
+               }
+            }
+         }
+      });
+
+      ChartMarker originMarker = new ChartMarker(new SimpleDoubleProperty(this, "origin", 0.0));
       ChangeListener<? super ChartStyle> originMarkerUpdater = (o, oldValue, newValue) ->
       {
          if (newValue == ChartStyle.RAW)
          {
-            ChartMarker originMarker = dynamicLineChart.addMarker(origin);
+            dynamicLineChart.addMarker(originMarker);
             originMarker.getStyleClass().add(ORIGIN_MARKER_STYLECLASS);
          }
          else
          {
-            dynamicLineChart.removeMarker(origin);
+            dynamicLineChart.removeMarker(originMarker);
          }
       };
       dynamicLineChart.chartStyleProperty().addListener(originMarkerUpdater);
@@ -196,14 +255,23 @@ public class YoChartPanelController extends ObservedAnimationTimer
       charts.addListener((MapChangeListener<YoVariable, YoVariableChartPackage>) change ->
       {
          if (change.wasAdded())
+         {
+            plottedVariables.add(change.getValueAdded().getYoVariable());
             yoNumberSeriesList.add(change.getValueAdded().getSeries());
+         }
          else if (change.wasRemoved())
+         {
+            plottedVariables.remove(change.getValueRemoved().getYoVariable());
             yoNumberSeriesList.remove(change.getValueRemoved().getSeries());
+         }
 
          JavaFXMissingTools.runNFramesLater(1, () -> charts.values().forEach(YoVariableChartPackage::updateLegend));
       });
 
       messager.registerJavaFXSyncedTopicListener(topics.getCurrentKeyFrames(), keyFrameMarkerListener);
+      // Only show the update markers when the session is running and the chart may be behind.
+      messager.registerJavaFXSyncedTopicListener(topics.getSessionCurrentMode(),
+                                                 m -> dynamicLineChart.updateIndexMarkersVisible().set(m == SessionMode.RUNNING));
       messager.submitMessage(topics.getRequestCurrentKeyFrames(), new Object());
 
       messager = toolkit.getMessager();
@@ -269,7 +337,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
    {
       if (activeChartOptionControllerProperty.get() != null)
       {
-         activeChartOptionControllerProperty.get().setInput(yoNumberSeriesList, dynamicLineChart.chartStyleProperty());
+         activeChartOptionControllerProperty.get().setInput(yoNumberSeriesList, dynamicLineChart.chartStyleProperty(), userMarkers);
          activeChartOptionControllerProperty.get().showWindow();
          return;
       }
@@ -280,7 +348,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
          loader.load();
          YoChartOptionController controller = loader.getController();
          controller.initialize(toolkit);
-         controller.setInput(yoNumberSeriesList, dynamicLineChart.chartStyleProperty());
+         controller.setInput(yoNumberSeriesList, dynamicLineChart.chartStyleProperty(), userMarkers);
          activeChartOptionControllerProperty.set(controller);
          controller.showWindow();
       }
@@ -341,8 +409,10 @@ public class YoChartPanelController extends ObservedAnimationTimer
          chart.close();
    }
 
-   public void close()
+   public void closeAndDispose()
    {
+      stop();
+
       if (activeChartOptionControllerProperty.get() != null)
          activeChartOptionControllerProperty.get().close();
 
@@ -350,10 +420,8 @@ public class YoChartPanelController extends ObservedAnimationTimer
       charts.clear();
       chartsCopy.forEach(YoVariableChartPackage::close);
 
-      messager.removeInput(topics.getYoBufferCurrentProperties(), bufferPropertiesForMarkers);
-      messager.removeInput(topics.getYoBufferCurrentProperties(), bufferPropertiesForScrolling);
+      messager.removeInput(topics.getYoBufferCurrentProperties(), newBufferProperties);
       messager.removeJavaFXSyncedTopicListener(topics.getCurrentKeyFrames(), keyFrameMarkerListener);
-      stop();
    }
 
    public boolean isEmpty()
@@ -363,16 +431,10 @@ public class YoChartPanelController extends ObservedAnimationTimer
 
    private void updateKeyFrameMarkers(int[] newKeyFrames)
    {
-      keyFrameMarkers.forEach(marker -> dynamicLineChart.removeMarker(marker));
       keyFrameMarkers.clear();
 
       for (int keyFrame : newKeyFrames)
-      {
-         Data<Number, Number> marker = new Data<>(keyFrame, 0);
-         keyFrameMarkers.add(marker);
-         ChartMarker keyFrameMarkerNode = dynamicLineChart.addMarker(marker);
-         keyFrameMarkerNode.getStyleClass().add(KEYFRAME_MARKER_STYLECLASS);
-      }
+         keyFrameMarkers.add(new ChartMarker(new SimpleDoubleProperty(this, "keyFrameMarkerCoordinate" + keyFrameMarkers.size(), keyFrame)));
    }
 
    private long legendUpdateLastTime = -1L;
@@ -380,17 +442,19 @@ public class YoChartPanelController extends ObservedAnimationTimer
    @Override
    public void handleImpl(long now)
    {
-      ChartIntegerBounds chartsBounds = chartDataManager.getChartZoomManager().chartBoundsProperty().getValue();
-      YoBufferPropertiesReadOnly bufferProperties = bufferPropertiesForMarkers.getAndSet(null);
+      ChartIntegerBounds chartsBounds = toolkit.getChartZoomManager().chartBoundsProperty().getValue();
+      YoBufferPropertiesReadOnly bufferProperties = newBufferProperties.getAndSet(null);
 
       if (bufferProperties != null)
       {
-         if (bufferProperties.getInPoint() != inPointMarker.getXValue().intValue())
-            inPointMarker.setXValue(bufferProperties.getInPoint());
-         if (bufferProperties.getOutPoint() != outPointMarker.getXValue().intValue())
-            outPointMarker.setXValue(bufferProperties.getOutPoint());
-         if (bufferProperties.getCurrentIndex() != bufferIndexMarker.getXValue().intValue())
-            bufferIndexMarker.setXValue(bufferProperties.getCurrentIndex());
+         lastBufferProperties = bufferProperties;
+
+         if (bufferProperties.getInPoint() != inPointMarker.coordinateProperty().intValue())
+            inPointMarker.setCoordinate(bufferProperties.getInPoint());
+         if (bufferProperties.getOutPoint() != outPointMarker.coordinateProperty().intValue())
+            outPointMarker.setCoordinate(bufferProperties.getOutPoint());
+         if (bufferProperties.getCurrentIndex() != bufferIndexMarker.coordinateProperty().intValue())
+            bufferIndexMarker.setCoordinate(bufferProperties.getCurrentIndex());
          if (chartsBounds == null)
          {
             double scale = 0.001;
@@ -443,7 +507,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
       {
          hideContextMenu();
 
-         if (bufferPropertiesForScrolling.get() != null)
+         if (lastBufferProperties != null)
          {
             Node intersectedNode = event.getPickResult().getIntersectedNode();
 
@@ -474,7 +538,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
             if (lastMouseScreenPosition != null)
             {
                int drag = screenToBufferIndex(lastMouseScreenPosition) - screenToBufferIndex(newMouseScreenPosition);
-               messager.submitMessage(topics.getYoChartRequestShift(), drag);
+               messager.submitMessage(topics.getYoChartRequestShift(), new Pair<>(toolkit.getWindow(), drag));
             }
          }
 
@@ -544,16 +608,16 @@ public class YoChartPanelController extends ObservedAnimationTimer
 
    private int screenToBufferIndex(double screenX, double screenY)
    {
-      if (bufferPropertiesForScrolling.get() == null)
+      if (lastBufferProperties == null)
          return -1;
       double xLocal = xAxis.screenToLocal(screenX, screenY).getX();
       int index = (int) Math.round(xAxis.getValueForDisplay(xLocal));
-      return MathTools.clamp(index, 0, bufferPropertiesForScrolling.get().getSize());
+      return MathTools.clamp(index, 0, lastBufferProperties.getSize());
    }
 
    private void handleScroll(ScrollEvent event)
    {
-      if (bufferPropertiesForScrolling.get() != null)
+      if (lastBufferProperties != null)
       {
          int scrollDelta = event.isControlDown() ? 10 : 1;
          if (event.getDeltaY() == 0.0)
@@ -607,7 +671,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
       if (isSelected)
          dynamicLineChart.setStyle("-fx-border-color:green; -fx-border-radius:5;");
       else
-         dynamicLineChart.setStyle("-fx-border-color: null;");
+         dynamicLineChart.setStyle(null);
    }
 
    public void handleDragEntered(DragEvent event)
@@ -658,6 +722,11 @@ public class YoChartPanelController extends ObservedAnimationTimer
       return DragAndDropTools.retrieveYoCompositesFromDragBoard(dragboard, yoCompositeSearchManager) != null;
    }
 
+   public ObservableSet<YoVariable> getPlottedVariables()
+   {
+      return plottedVariables;
+   }
+
    public Button getCloseButton()
    {
       return closeButton;
@@ -698,7 +767,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
 
       public YoVariableChartPackage(YoVariable yoVariable)
       {
-         series = new YoNumberSeries(yoVariable);
+         series = new YoNumberSeries(yoVariable, legendPrecision);
          chartData = chartDataManager.getYoVariableChartData(callerID, yoVariable);
          dynamicLineChart.addSeries(series);
       }

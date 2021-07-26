@@ -119,6 +119,11 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
       properties.setCurrentIndexUnsafe(0);
    }
 
+   public void fillBuffer(FillBufferRequest request)
+   {
+      registryBuffer.fillBuffer(request.getZeroFill(), request.getFrom(), request.getFilledSize(properties.getSize()));
+   }
+
    /**
     * Resize the buffer. This is typically used to increase its size.
     * <p>
@@ -482,9 +487,9 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
    }
 
    @Override
-   public LinkedYoVariable newLinkedYoVariable(YoVariable variableToLink)
+   public LinkedYoVariable<?> newLinkedYoVariable(YoVariable variableToLink)
    {
-      LinkedYoVariable linkedYoVariable = LinkedYoVariable.newLinkedYoVariable(variableToLink, registryBuffer.findYoVariableBuffer(variableToLink));
+      LinkedYoVariable<?> linkedYoVariable = LinkedYoVariable.newLinkedYoVariable(variableToLink, registryBuffer.findYoVariableBuffer(variableToLink));
       linkedBuffers.add(linkedYoVariable);
       return linkedYoVariable;
    }

@@ -281,6 +281,9 @@ public class VideoDataReader
 
    public WritableImage pollCurrentFrame()
    {
-      return imageBuffer.getCopyForReading().getValue();
+      MutableObject<WritableImage> copyForReading = imageBuffer.getCopyForReading();
+      if (copyForReading == null)
+         return null;
+      return copyForReading.getValue();
    }
 }

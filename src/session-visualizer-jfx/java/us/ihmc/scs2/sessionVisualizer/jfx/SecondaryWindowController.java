@@ -36,13 +36,13 @@ public class SecondaryWindowController
 
       owner.addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e ->
       {
-         stop();
+         closeAndDispose();
          owner.close();
       });
    }
 
    private YoChartGroupPanelController chartGroupController = null;
-  
+
    public void setupChartGroup() throws IOException
    {
       Stage stage = toolkit.getWindow();
@@ -63,11 +63,19 @@ public class SecondaryWindowController
       VBox.setVgrow(chartGroupPane, Priority.ALWAYS);
       Scene scene = new Scene(mainNode, 1024, 768);
       stage.setScene(scene);
-      stage.setTitle("Chart window");
+      String windowTitlePrefix = "Chart Window";
+      stage.setTitle(windowTitlePrefix);
+      chartGroupController.chartGroupNameProperty().addListener((o, oldValue, newValue) ->
+      {
+         if (newValue == null || newValue.isEmpty())
+            stage.setTitle(windowTitlePrefix);
+         else
+            stage.setTitle(windowTitlePrefix + ": " + newValue);
+      });
       stage.addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e ->
       {
          stage.close();
-         chartGroupController.close();
+         chartGroupController.closeAndDispose();
       });
    }
 
@@ -79,11 +87,13 @@ public class SecondaryWindowController
 
    public void start()
    {
+      toolkit.start();
    }
 
-   public void stop()
+   public void closeAndDispose()
    {
-      chartGroupController.close();
+      chartGroupController.closeAndDispose();
       toolkit.getWindow().close();
+      toolkit.stop();
    }
 }

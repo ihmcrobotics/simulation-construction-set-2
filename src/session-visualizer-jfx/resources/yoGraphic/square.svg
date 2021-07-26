@@ -3,6 +3,6 @@
 
  <g>
   <title>Square</title>
-  <rect id="diamond" height="1000" width="1000" y="0" x="0" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
+  <rect id="square" height="1000" width="1000" y="0" x="0" fill-opacity="null" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="none"/>
  </g>
 </svg>

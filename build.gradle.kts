@@ -23,14 +23,14 @@ definitionDependencies {
    api("us.ihmc:euclid:0.16.2")
    api("us.ihmc:euclid-shape:0.16.2")
    api("us.ihmc:ihmc-commons:0.30.4")
-   api("us.ihmc:ihmc-yovariables:0.9.8")
+   api("us.ihmc:ihmc-yovariables:0.9.9")
    api("us.ihmc:euclid:0.16.2")
    api("us.ihmc:euclid-frame:0.16.2")
    api("us.ihmc:mecano:0.8.2")
 }
 
 sharedMemoryDependencies {
-   api("us.ihmc:ihmc-yovariables:0.9.8")
+   api("us.ihmc:ihmc-yovariables:0.9.9")
    api("us.ihmc:euclid:0.16.2")
    api("us.ihmc:euclid-frame:0.16.2")
 }
@@ -84,12 +84,10 @@ sessionVisualizerJfxDependencies {
    api("de.jensd:fontawesomefx:8.9")
    api("com.jfoenix:jfoenix:8.0.10")
    api("org.apache.commons:commons-text:1.9")
-   
-   
+
    api("us.ihmc:euclid:0.16.2")
    api("us.ihmc:euclid-frame:0.16.2")
    api("us.ihmc:euclid-shape:0.16.2")
-
 
    api(fileTree(mapOf("dir" to "src/session-visualizer-jfx/libs/JavaFXModelImporters", "include" to "*.jar")))
 }

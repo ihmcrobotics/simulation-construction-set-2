@@ -10,6 +10,10 @@ import javafx.beans.property.SimpleObjectProperty;
 import us.ihmc.euclid.interfaces.Transformable;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.interfaces.ReferenceFrameHolder;
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple2D.Vector2D;
+import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
+import us.ihmc.euclid.tuple2D.interfaces.Vector2DReadOnly;
 
 public class CompositeProperty implements ReferenceFrameHolder
 {
@@ -44,8 +48,10 @@ public class CompositeProperty implements ReferenceFrameHolder
       this(type, componentIdentifiers, null, componentValueProperties);
    }
 
-   public CompositeProperty(String type, String[] componentIdentifiers, Property<ReferenceFrame> referenceFrameProperty,
-                              DoubleProperty... componentValueProperties)
+   public CompositeProperty(String type,
+                            String[] componentIdentifiers,
+                            Property<ReferenceFrame> referenceFrameProperty,
+                            DoubleProperty... componentValueProperties)
    {
       this(type, componentIdentifiers);
       set(referenceFrameProperty, componentValueProperties);
@@ -126,6 +132,28 @@ public class CompositeProperty implements ReferenceFrameHolder
    public CompositeProperty clone()
    {
       return new CompositeProperty(this);
+   }
+
+   public Point2D toWorld2D(Point2DReadOnly transformable)
+   {
+      Point2D result = new Point2D(transformable);
+
+      if (referenceFrameProperty() == null || getReferenceFrame() == null || getReferenceFrame().isRootFrame())
+         return result;
+
+      getReferenceFrame().getTransformToRoot().transform(result, false);
+      return result;
+   }
+
+   public Vector2D toWorld2D(Vector2DReadOnly transformable)
+   {
+      Vector2D result = new Vector2D(transformable);
+
+      if (referenceFrameProperty() == null || getReferenceFrame() == null || getReferenceFrame().isRootFrame())
+         return result;
+
+      getReferenceFrame().getTransformToRoot().transform(result, false);
+      return result;
    }
 
    public <T extends Transformable> T toWorld(T transformable)

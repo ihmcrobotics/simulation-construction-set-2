@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.geometry.Pos;
@@ -56,11 +57,13 @@ public class YoCompositeListCell extends ListCell<YoComposite>
 
    private YoComposite yoComposite;
    private Labeled yoCompositeNameDisplay = this;
+   private Property<Integer> numberPrecision;
 
-   public YoCompositeListCell(YoManager yoManager, ReadOnlyBooleanProperty showUniqueName, ListView<YoComposite> owner)
+   public YoCompositeListCell(YoManager yoManager, ReadOnlyBooleanProperty showUniqueName, Property<Integer> numberPrecision, ListView<YoComposite> owner)
    {
       this.yoManager = yoManager;
       this.showUniqueName = showUniqueName;
+      this.numberPrecision = numberPrecision;
       this.owner = owner;
       getStyleClass().add("yo-variable-list-cell");
    }
@@ -86,7 +89,7 @@ public class YoCompositeListCell extends ListCell<YoComposite>
       {
          YoVariable yoVariable = YoVariable.class.cast(yoComposite.getYoComponents().get(0));
 
-         Region yoVariableControl = createYoVariableControl(yoVariable, yoManager.getLinkedRootRegistry());
+         Region yoVariableControl = createYoVariableControl(yoVariable, numberPrecision, yoManager.getLinkedRootRegistry());
          setGraphic(yoVariableControl);
          setContentDisplay(ContentDisplay.LEFT);
          setAlignment(Pos.CENTER_LEFT);
@@ -95,7 +98,7 @@ public class YoCompositeListCell extends ListCell<YoComposite>
       }
       else
       {
-         List<Region> yoVariableControls = createYoVariableControls(yoComposite.getYoComponents(), yoManager.getLinkedRootRegistry());
+         List<Region> yoVariableControls = createYoVariableControls(yoComposite.getYoComponents(), numberPrecision, yoManager.getLinkedRootRegistry());
 
          GridPane cellGraphic = new GridPane();
          cellGraphic.setHgap(5.0);
@@ -134,15 +137,15 @@ public class YoCompositeListCell extends ListCell<YoComposite>
          yoCompositeNameDisplay.setText(showUniqueName ? yoComposite.getUniqueName() : yoComposite.getName());
    }
 
-   public static List<Region> createYoVariableControls(Collection<YoVariable> yoVariables, LinkedYoRegistry linkedRegistry)
+   public static List<Region> createYoVariableControls(Collection<YoVariable> yoVariables, Property<Integer> numberPrecision, LinkedYoRegistry linkedRegistry)
    {
-      return yoVariables.stream().map(v -> createYoVariableControl(v, linkedRegistry)).collect(Collectors.toList());
+      return yoVariables.stream().map(v -> createYoVariableControl(v, numberPrecision, linkedRegistry)).collect(Collectors.toList());
    }
 
-   public static Region createYoVariableControl(YoVariable yoVariable, LinkedYoRegistry linkedRegistry)
+   public static Region createYoVariableControl(YoVariable yoVariable, Property<Integer> numberPrecision, LinkedYoRegistry linkedRegistry)
    {
       if (yoVariable instanceof YoDouble)
-         return createYoDoubleControl(new YoDoubleProperty((YoDouble) yoVariable), linkedRegistry);
+         return createYoDoubleControl(new YoDoubleProperty((YoDouble) yoVariable), numberPrecision, linkedRegistry);
       if (yoVariable instanceof YoBoolean)
          return createYoBooleanControl(new YoBooleanProperty((YoBoolean) yoVariable), linkedRegistry);
       if (yoVariable instanceof YoLong)
@@ -154,14 +157,14 @@ public class YoCompositeListCell extends ListCell<YoComposite>
       throw new UnsupportedOperationException("Unhandled YoVariable type: " + yoVariable.getClass().getSimpleName());
    }
 
-   public static Control createYoDoubleControl(YoDoubleProperty yoDoubleProperty, LinkedYoRegistry linkedRegistry)
+   public static Control createYoDoubleControl(YoDoubleProperty yoDoubleProperty, Property<Integer> numberPrecision, LinkedYoRegistry linkedRegistry)
    {
       UnboundedDoubleSpinnerValueFactory valueFactory = new UnboundedDoubleSpinnerValueFactory(Double.NEGATIVE_INFINITY,
                                                                                                Double.POSITIVE_INFINITY,
                                                                                                yoDoubleProperty.getValue(),
                                                                                                DOUBLE_SPINNER_STEP_SIZE);
       DoubleStringConverter rawDoubleStringConverter = new DoubleStringConverter();
-      ScientificDoubleStringConverter scientificDoubleStringConverter = new ScientificDoubleStringConverter(3);
+      ScientificDoubleStringConverter scientificDoubleStringConverter = new ScientificDoubleStringConverter(numberPrecision);
       valueFactory.setConverter(scientificDoubleStringConverter);
       Spinner<Double> spinner = new Spinner<>(valueFactory);
       spinner.setPrefWidth(GRAPHIC_PREF_WIDTH);

@@ -122,9 +122,24 @@
 	-glyph-name: CROP;
 }
 
+.flush-data-buffer-icon-view {
+	-fx-fill: black;
+	-glyph-name: ERASER;
+}
+
 .resize-data-buffer-icon-view {
 	-fx-fill: black;
 	-glyph-name: TACHOMETER;
+}
+
+.buffer-record-tick-period-icon-view {
+	-fx-fill: black;
+	-glyph-name: FILTER;
+}
+
+.double-precision-icon-view {
+	-fx-fill: black;
+	-glyph-name: NUMERIC;
 }
 
 .close-icon-view {
@@ -210,6 +225,11 @@
 
 .chart-origin-marker {
 	-fx-stroke: darkgrey;
+	-fx-stroke-dash-array: 10.0 8.0 10.0 8.0;
+    -marker-type: HORIZONTAL;
+}
+
+.chart-user-marker {
 	-fx-stroke-dash-array: 10.0 8.0 10.0 8.0;
     -marker-type: HORIZONTAL;
 }
@@ -501,4 +521,13 @@
 	-jfx-size: 6;
 	-fx-content-display: TOP;
 	-fx-graphic-text-gap: 0;
+    -fx-effect: dropshadow( three-pass-box , derive(-fx-background, -50.0%) , 2.5, 0.0 , 1.5 , 1.5 );
+    -jfx-toggle-color: -default-pale-red;
+    -jfx-untoggle-color: -default-grey;
+}
+
+.sliderboard-button:selected {
+    -fx-effect: dropshadow( three-pass-box , derive(-fx-background, -50.0%) , -2.5, 0.0 , -1.5 , -1.5 );
+    -jfx-toggle-color: -default-pale-red;
+    -jfx-untoggle-color: -default-grey;
 }
