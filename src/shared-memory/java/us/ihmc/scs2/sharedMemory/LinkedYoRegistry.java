@@ -1,6 +1,5 @@
 package us.ihmc.scs2.sharedMemory;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -19,14 +18,14 @@ public class LinkedYoRegistry extends LinkedBuffer
    private final YoRegistryBuffer yoRegistryBuffer;
 
    private final ReentrantLock lock;
-   private final List<LinkedYoVariable> linkedYoVariables = new ArrayList<>();
+   private final LinkedBufferArray linkedYoVariables = new LinkedBufferArray();
    private final Map<YoVariable, LinkedYoVariable> linkedYoVariableMap = new HashMap<>();
 
-   LinkedYoRegistry(YoRegistry rootRegistry, YoRegistryBuffer YoRegistryBuffer)
+   LinkedYoRegistry(YoRegistry rootRegistry, YoRegistryBuffer yoRegistryBuffer)
    {
       this.rootRegistry = rootRegistry;
-      this.yoRegistryBuffer = YoRegistryBuffer;
-      lock = YoRegistryBuffer.getLock();
+      this.yoRegistryBuffer = yoRegistryBuffer;
+      lock = yoRegistryBuffer.getLock();
       linkConsumerVariables();
    }
 
@@ -118,7 +117,15 @@ public class LinkedYoRegistry extends LinkedBuffer
    @Override
    public void push()
    {
-      linkedYoVariables.forEach(LinkedYoVariable::push);
+      lock.lock();
+      try
+      {
+         linkedYoVariables.push();
+      }
+      finally
+      {
+         lock.unlock();
+      }
    }
 
    /**
@@ -140,12 +147,15 @@ public class LinkedYoRegistry extends LinkedBuffer
    @Override
    public boolean pull()
    {
-      boolean hasNewData = false;
-
-      for (LinkedYoVariable linkedYoVariable : linkedYoVariables)
-         hasNewData |= linkedYoVariable.pull();
-
-      return hasNewData;
+      lock.lock();
+      try
+      {
+         return linkedYoVariables.pull();
+      }
+      finally
+      {
+         lock.unlock();
+      }
    }
 
    /** {@inheritDoc} */
@@ -153,20 +163,15 @@ public class LinkedYoRegistry extends LinkedBuffer
    @Override
    boolean processPush(boolean writeBuffer)
    {
-      boolean hasPushedSomething = false;
-
       lock.lock();
       try
       {
-         for (LinkedYoVariable linkedYoVariable : linkedYoVariables)
-            hasPushedSomething |= linkedYoVariable.processPush(writeBuffer);
+         return linkedYoVariables.processPush(writeBuffer);
       }
       finally
       {
          lock.unlock();
       }
-
-      return hasPushedSomething;
    }
 
    /** {@inheritDoc} */
@@ -177,10 +182,7 @@ public class LinkedYoRegistry extends LinkedBuffer
       lock.lock();
       try
       {
-         for (LinkedYoVariable linkedYoVariable : linkedYoVariables)
-         {
-            linkedYoVariable.flushPush();
-         }
+         linkedYoVariables.flushPush();
       }
       finally
       {
@@ -196,7 +198,7 @@ public class LinkedYoRegistry extends LinkedBuffer
       lock.lock();
       try
       {
-         linkedYoVariables.forEach(LinkedYoVariable::prepareForPull);
+         linkedYoVariables.prepareForPull();
       }
       finally
       {
@@ -209,20 +211,16 @@ public class LinkedYoRegistry extends LinkedBuffer
    @Override
    boolean hasRequestPending()
    {
-      boolean hasRequestPending = false;
-
       lock.lock();
 
       try
       {
-         hasRequestPending = linkedYoVariables.stream().anyMatch(LinkedYoVariable::hasRequestPending);
+         return linkedYoVariables.hasRequestPending();
       }
       finally
       {
          lock.unlock();
       }
-
-      return hasRequestPending;
    }
 
    public YoRegistry getRootRegistry()
