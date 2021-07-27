@@ -1,6 +1,5 @@
 package us.ihmc.scs2.sharedMemory;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +17,7 @@ import us.ihmc.yoVariables.variable.YoVariable;
 public class YoRegistryBuffer
 {
    private final YoRegistry rootRegistry;
-   private final List<YoVariableBuffer<?>> yoVariableBuffers = new ArrayList<>();
+   private final YoVariableBufferList yoVariableBuffers = new YoVariableBufferList();
    private final Map<String, YoVariableBuffer<?>> yoVariableFullnameToBufferMap = new HashMap<>();
    private final YoBufferPropertiesReadOnly properties;
 
@@ -72,15 +71,12 @@ public class YoRegistryBuffer
 
    public void resizeBuffer(int from, int length)
    {
-      yoVariableBuffers.parallelStream().forEach(buffer -> buffer.resizeBuffer(from, length));
+      yoVariableBuffers.resizeBuffer(from, length);
    }
 
    public void fillBuffer(boolean zeroFill, int from, int length)
    {
-      if (length <= 0)
-         return;
-
-      yoVariableBuffers.forEach(buffer -> buffer.fillBuffer(zeroFill, from, length));
+      yoVariableBuffers.fillBuffer(zeroFill, from, length);
    }
 
    public void writeBuffer()
@@ -90,8 +86,7 @@ public class YoRegistryBuffer
 
    public void writeBufferAt(int index)
    {
-      // FIXME Hack to get the writing faster.
-      yoVariableBuffers.parallelStream().forEach(buffer -> buffer.writeBufferAt(index));
+      yoVariableBuffers.writeBufferAt(index);
    }
 
    public void readBuffer()
@@ -101,7 +96,7 @@ public class YoRegistryBuffer
 
    public void readBufferAt(int index)
    {
-      yoVariableBuffers.forEach(buffer -> buffer.readBufferAt(index));
+      yoVariableBuffers.readBufferAt(index);
    }
 
    public List<YoVariableBuffer<?>> getYoVariableBuffers()
