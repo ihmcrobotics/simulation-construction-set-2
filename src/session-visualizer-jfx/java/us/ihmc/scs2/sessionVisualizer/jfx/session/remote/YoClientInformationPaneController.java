@@ -23,6 +23,9 @@ public class YoClientInformationPaneController extends ObservedAnimationTimer im
    @FXML
    private Label cameraLabel;
 
+   private final long refreshPeriod = Conversions.secondsToNanoseconds(0.1);
+   private long lastRefreshTime = -1;
+
    private Supplier<String> delayValueSupplier;
    private Supplier<String> logDurationValueSupplier;
    private Supplier<String> cameraValueSupplier;
@@ -31,6 +34,8 @@ public class YoClientInformationPaneController extends ObservedAnimationTimer im
 
    public void initialize()
    {
+      lastRefreshTime = -1;
+
       delayValueSupplier = () ->
       {
          RemoteSession activeSession = activeSessionProperty.get();
@@ -74,9 +79,13 @@ public class YoClientInformationPaneController extends ObservedAnimationTimer im
    @Override
    public void handleImpl(long now)
    {
+      if (lastRefreshTime != -1 && (now - lastRefreshTime) < refreshPeriod)
+         return;
+
       updateLabel(delayLabel, delayValueSupplier, "N/D");
       updateLabel(logDurationLabel, logDurationValueSupplier, "N/D");
       updateLabel(cameraLabel, cameraValueSupplier, "N/D");
+      lastRefreshTime = now;
    }
 
    @Override
