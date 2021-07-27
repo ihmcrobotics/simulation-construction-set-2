@@ -47,14 +47,15 @@ public class LinkedBufferArray extends LinkedBuffer
    @Override
    public boolean processPush(boolean writeBuffer)
    {
-      boolean hasPushedSomething = false;
-
-      for (int i = 0; i < size; i++)
-      {
-         hasPushedSomething |= linkedBuffers[i].processPush(writeBuffer);
-      }
-
-      return hasPushedSomething;
+      return Arrays.stream(linkedBuffers, 0, size).parallel().filter(buffer -> buffer.processPush(writeBuffer)).findFirst().isPresent();
+//      boolean hasPushedSomething = false;
+//
+//      for (int i = 0; i < size; i++)
+//      {
+//         hasPushedSomething |= linkedBuffers[i].processPush(writeBuffer);
+//      }
+//
+//      return hasPushedSomething;
    }
 
    @Override
@@ -69,10 +70,11 @@ public class LinkedBufferArray extends LinkedBuffer
    @Override
    public void prepareForPull()
    {
-      for (int i = 0; i < size; i++)
-      {
-         linkedBuffers[i].prepareForPull();
-      }
+      Arrays.stream(linkedBuffers, 0, size).parallel().forEach(buffer -> buffer.prepareForPull());
+//      for (int i = 0; i < size; i++)
+//      {
+//         linkedBuffers[i].prepareForPull();
+//      }
    }
 
    @Override
