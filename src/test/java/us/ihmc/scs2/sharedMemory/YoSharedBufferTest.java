@@ -11,9 +11,8 @@ import org.junit.jupiter.api.Test;
 
 import us.ihmc.commons.RandomNumbers;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
-import us.ihmc.scs2.sharedMemory.tools.YoMirroredRegistryTools;
-import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryRandomTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -33,7 +32,7 @@ public class YoSharedBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
+         YoSharedBuffer yoSharedBuffer = SharedMemoryRandomTools.nextYoSharedBuffer(random, 2, 5);
          YoBufferPropertiesReadOnly newProperties = yoSharedBuffer.getProperties();
          YoBufferPropertiesReadOnly initialProperties = newProperties.copy();
 
@@ -53,7 +52,7 @@ public class YoSharedBufferTest
       Random random = new Random(6234);
 
       { // Assert cases the buffer won't resize
-         YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
+         YoSharedBuffer yoSharedBuffer = SharedMemoryRandomTools.nextYoSharedBuffer(random, 2, 5);
 
          assertFalse(yoSharedBuffer.resizeBuffer(0));
          assertFalse(yoSharedBuffer.resizeBuffer(-1));
@@ -62,7 +61,7 @@ public class YoSharedBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       { // Increase the size
-         YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
+         YoSharedBuffer yoSharedBuffer = SharedMemoryRandomTools.nextYoSharedBuffer(random, 2, 5);
          YoBufferPropertiesReadOnly newProperties = yoSharedBuffer.getProperties();
          YoBufferPropertiesReadOnly initialProperties = newProperties.copy();
 
@@ -87,7 +86,7 @@ public class YoSharedBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       { // Decrease the size while remaining greater than the length of the active part of the buffer
-         YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
+         YoSharedBuffer yoSharedBuffer = SharedMemoryRandomTools.nextYoSharedBuffer(random, 2, 5);
          YoBufferPropertiesReadOnly newProperties = yoSharedBuffer.getProperties();
 
          while (newProperties.getActiveBufferLength() == newProperties.getSize())
@@ -116,11 +115,17 @@ public class YoSharedBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       { // Decrease the size to something smaller than the length of the active part of the buffer.
-         YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
+         YoSharedBuffer yoSharedBuffer = SharedMemoryRandomTools.nextYoSharedBuffer(random, 2, 5);
          YoBufferPropertiesReadOnly newProperties = yoSharedBuffer.getProperties();
          YoBufferPropertiesReadOnly initialProperties = newProperties.copy();
 
          int newSize = random.nextInt(initialProperties.getActiveBufferLength()) + 1;
+
+         if (newSize == newProperties.getSize())
+         {
+            i--;
+            continue;
+         }
 
          assertTrue(yoSharedBuffer.resizeBuffer(newSize));
          assertEquals(newSize, newProperties.getSize());
@@ -145,7 +150,7 @@ public class YoSharedBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
+         YoSharedBuffer yoSharedBuffer = SharedMemoryRandomTools.nextYoSharedBuffer(random, 2, 5);
          yoSharedBuffer.readBuffer();
 
          YoBufferPropertiesReadOnly properties = yoSharedBuffer.getProperties();
@@ -168,7 +173,7 @@ public class YoSharedBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
+         YoSharedBuffer yoSharedBuffer = SharedMemoryRandomTools.nextYoSharedBuffer(random, 2, 5);
          yoSharedBuffer.readBuffer();
 
          YoBufferPropertiesReadOnly properties = yoSharedBuffer.getProperties();
@@ -202,7 +207,7 @@ public class YoSharedBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
+         YoSharedBuffer yoSharedBuffer = SharedMemoryRandomTools.nextYoSharedBuffer(random, 2, 5);
          yoSharedBuffer.readBuffer();
 
          YoBufferPropertiesReadOnly properties = yoSharedBuffer.getProperties();
@@ -215,11 +220,11 @@ public class YoSharedBufferTest
             continue;
          }
          YoVariable bufferYoVariable = allBufferYoVariables.get(random.nextInt(allBufferYoVariables.size()));
-         YoRegistry consumerRegistry = YoMirroredRegistryTools.newEmptyCloneRegistry(bufferYoVariable.getRegistry());
+         YoRegistry consumerRegistry = SharedMemoryTools.newEmptyCloneRegistry(bufferYoVariable.getRegistry());
          YoVariable consumerYoVariable = bufferYoVariable.duplicate(consumerRegistry);
-         LinkedYoVariable linkedYoVariable = yoSharedBuffer.newLinkedYoVariable(consumerYoVariable);
+         LinkedYoVariable<?> linkedYoVariable = yoSharedBuffer.newLinkedYoVariable(consumerYoVariable);
 
-         YoRandomTools.randomizeYoVariable(random, consumerYoVariable);
+         SharedMemoryRandomTools.randomizeYoVariable(random, consumerYoVariable);
          linkedYoVariable.push();
 
          boolean writeBuffer = random.nextBoolean();
@@ -241,7 +246,7 @@ public class YoSharedBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
+         YoSharedBuffer yoSharedBuffer = SharedMemoryRandomTools.nextYoSharedBuffer(random, 2, 5);
          yoSharedBuffer.readBuffer();
 
          YoRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
@@ -253,11 +258,11 @@ public class YoSharedBufferTest
             continue;
          }
          YoVariable bufferYoVariable = allBufferYoVariables.get(random.nextInt(allBufferYoVariables.size()));
-         YoRegistry consumerRegistry = YoMirroredRegistryTools.newEmptyCloneRegistry(bufferYoVariable.getRegistry());
+         YoRegistry consumerRegistry = SharedMemoryTools.newEmptyCloneRegistry(bufferYoVariable.getRegistry());
          YoVariable consumerYoVariable = bufferYoVariable.duplicate(consumerRegistry);
-         LinkedYoVariable linkedYoVariable = yoSharedBuffer.newLinkedYoVariable(consumerYoVariable);
+         LinkedYoVariable<?> linkedYoVariable = yoSharedBuffer.newLinkedYoVariable(consumerYoVariable);
 
-         YoRandomTools.randomizeYoVariable(random, consumerYoVariable);
+         SharedMemoryRandomTools.randomizeYoVariable(random, consumerYoVariable);
          linkedYoVariable.push();
 
          yoSharedBuffer.flushLinkedPushRequests();
@@ -273,7 +278,7 @@ public class YoSharedBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
+         YoSharedBuffer yoSharedBuffer = SharedMemoryRandomTools.nextYoSharedBuffer(random, 2, 5);
 
          YoRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
          YoRegistryBuffer registryBuffer = yoSharedBuffer.getRegistryBuffer();
@@ -307,7 +312,7 @@ public class YoSharedBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
+         YoSharedBuffer yoSharedBuffer = SharedMemoryRandomTools.nextYoSharedBuffer(random, 2, 5);
 
          YoRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
          YoRegistryBuffer registryBuffer = yoSharedBuffer.getRegistryBuffer();
@@ -340,7 +345,7 @@ public class YoSharedBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoSharedBuffer yoSharedBuffer = YoBufferRandomTools.nextYoSharedBuffer(random, 2, 5);
+         YoSharedBuffer yoSharedBuffer = SharedMemoryRandomTools.nextYoSharedBuffer(random, 2, 5);
 
          YoRegistry bufferRootRegistry = yoSharedBuffer.getRootRegistry();
 
@@ -356,7 +361,7 @@ public class YoSharedBufferTest
 
          List<YoVariable> allConsumerYoVariables = linkedYoRegistry.getRootRegistry().collectSubtreeVariables();
 
-         allBufferYoVariables.forEach(v -> YoRandomTools.randomizeYoVariable(random, v));
+         allBufferYoVariables.forEach(v -> SharedMemoryRandomTools.randomizeYoVariable(random, v));
          long[] bufferVariableBackedUp = allBufferYoVariables.stream().mapToLong(YoVariable::getValueAsLongBits).toArray();
          yoSharedBuffer.prepareLinkedBuffersForPull();
 

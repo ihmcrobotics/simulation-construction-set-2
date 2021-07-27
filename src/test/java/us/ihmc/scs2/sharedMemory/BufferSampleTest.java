@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import us.ihmc.commons.MathTools;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryRandomTools;
 
 public class BufferSampleTest
 {
@@ -25,7 +25,7 @@ public class BufferSampleTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoBufferProperties bufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
+         YoBufferProperties bufferProperties = SharedMemoryRandomTools.nextYoBufferProperties(random);
          int from = random.nextInt(bufferProperties.getSize());
          int sampleLength = random.nextInt(bufferProperties.getSize() - 1) + 1;
          double[] sample = new double[sampleLength];
@@ -51,7 +51,7 @@ public class BufferSampleTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoBufferPropertiesReadOnly bufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
+         YoBufferPropertiesReadOnly bufferProperties = SharedMemoryRandomTools.nextYoBufferProperties(random);
          int from = random.nextInt(bufferProperties.getSize());
          int sampleLength = random.nextInt(bufferProperties.getSize() - 1) + 1;
 
@@ -70,7 +70,7 @@ public class BufferSampleTest
             bytes[j] = (byte) random.nextInt();
          }
 
-         YoBufferPropertiesReadOnly bufferProperties2 = YoBufferRandomTools.nextYoBufferProperties(random);
+         YoBufferPropertiesReadOnly bufferProperties2 = SharedMemoryRandomTools.nextYoBufferProperties(random);
 
          BufferSample<boolean[]> booleanSample = new BufferSample<>(from, booleans, sampleLength, bufferProperties);
          BufferSample<double[]> doubleSample = new BufferSample<>(from, doubles, sampleLength, bufferProperties);

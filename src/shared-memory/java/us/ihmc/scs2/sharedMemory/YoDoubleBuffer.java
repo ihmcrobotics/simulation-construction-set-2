@@ -1,7 +1,7 @@
 package us.ihmc.scs2.sharedMemory;
 
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.scs2.sharedMemory.tools.BufferTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 import us.ihmc.yoVariables.variable.YoDouble;
 
 public class YoDoubleBuffer extends YoVariableBuffer<YoDouble>
@@ -19,7 +19,7 @@ public class YoDoubleBuffer extends YoVariableBuffer<YoDouble>
    {
       if (from == 0 && length == buffer.length)
          return;
-      buffer = BufferTools.ringArrayCopy(buffer, from, length);
+      buffer = SharedMemoryTools.ringArrayCopy(buffer, from, length);
    }
 
    @Override
@@ -43,13 +43,13 @@ public class YoDoubleBuffer extends YoVariableBuffer<YoDouble>
    @Override
    public BufferSample<double[]> copy(int from, int length, YoBufferPropertiesReadOnly properties)
    {
-      return new BufferSample<>(from, BufferTools.ringArrayCopy(buffer, from, length), length, properties);
+      return new BufferSample<>(from, SharedMemoryTools.ringArrayCopy(buffer, from, length), length, properties);
    }
 
    @Override
    public void fillBuffer(boolean zeroFill, int from, int length)
    {
-      BufferTools.ringArrayFill(buffer, zeroFill ? 0.0 : yoVariable.getValue(), from, length);
+      SharedMemoryTools.ringArrayFill(buffer, zeroFill ? 0.0 : yoVariable.getValue(), from, length);
    }
 
    @Override
@@ -58,7 +58,8 @@ public class YoDoubleBuffer extends YoVariableBuffer<YoDouble>
       return new LinkedYoDouble(variableToLink, this);
    }
 
-   double[] getBuffer()
+   @Override
+   public double[] getBuffer()
    {
       return buffer;
    }

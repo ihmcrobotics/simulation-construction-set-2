@@ -2,7 +2,6 @@ package us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.entry;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -238,7 +237,7 @@ public class YoEntryTabPaneController
       {
          XMLTools.saveYoEntryConfigurationDefinition(new FileOutputStream(file), toYoEntryConfigurationDefinition());
       }
-      catch (FileNotFoundException | JAXBException e)
+      catch (IOException | JAXBException e)
       {
          e.printStackTrace();
       }
@@ -253,7 +252,7 @@ public class YoEntryTabPaneController
          YoEntryListDefinition tabDefinition = tabToControllerMap.get(tabToExport).toYoEntryListDefinition();
          XMLTools.saveYoEntryConfigurationDefinition(new FileOutputStream(file), new YoEntryConfigurationDefinition(tabDefinition));
       }
-      catch (FileNotFoundException | JAXBException e)
+      catch (IOException | JAXBException e)
       {
          e.printStackTrace();
       }
@@ -268,7 +267,7 @@ public class YoEntryTabPaneController
          YoEntryConfigurationDefinition definition = XMLTools.loadYoEntryConfigurationDefinition(new FileInputStream(file));
          setInput(definition);
       }
-      catch (FileNotFoundException | JAXBException e)
+      catch (IOException | JAXBException e)
       {
          e.printStackTrace();
       }
@@ -305,7 +304,7 @@ public class YoEntryTabPaneController
             insertionIndex++;
          }
       }
-      catch (FileNotFoundException | JAXBException e)
+      catch (IOException | JAXBException e)
       {
          e.printStackTrace();
       }

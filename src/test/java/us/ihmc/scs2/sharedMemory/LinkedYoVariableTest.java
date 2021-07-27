@@ -12,9 +12,8 @@ import java.util.Random;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.scs2.sharedMemory.tools.BufferTools;
-import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
-import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryRandomTools;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public abstract class LinkedYoVariableTest<T extends YoVariable>
@@ -34,7 +33,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable>
       for (int i = 0; i < ITERATIONS; i++)
       {
          T linkedVariable = nextYoVariable(random, i);
-         YoVariableBuffer<T> buffer = (YoVariableBuffer<T>) YoBufferRandomTools.nextYoVariableBuffer(random, nextYoVariable(random, i));
+         YoVariableBuffer<T> buffer = (YoVariableBuffer<T>) SharedMemoryRandomTools.nextYoVariableBuffer(random, nextYoVariable(random, i));
          LinkedYoVariable<T> linkedYoVariable = (LinkedYoVariable<T>) LinkedYoVariable.newLinkedYoVariable(linkedVariable, buffer);
 
          // Single prepare-pull happens before user actually grabs an update.
@@ -43,7 +42,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable>
          linkedYoVariable.prepareForPull(); // Called from the buffer manager, internally stores the buffer's variable's value to be pulled later from the user thread.
          assertYoEquals(prePullLinkedValue, linkedVariable);
          assertYoEquals(prePullBufferValue, buffer.getYoVariable());
-         YoRandomTools.randomizeYoVariable(random, buffer.getYoVariable()); // Simulates that the buffer manager is pursuing its changes on the buffer before the user has pulled its update.
+         SharedMemoryRandomTools.randomizeYoVariable(random, buffer.getYoVariable()); // Simulates that the buffer manager is pursuing its changes on the buffer before the user has pulled its update.
          linkedYoVariable.pull(); // The user is actually grabbing an update.
          assertYoEquals(linkedVariable, prePullBufferValue);
 
@@ -55,7 +54,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable>
 
          for (int j = 0; j < random.nextInt(20) + 2; j++)
          {
-            YoRandomTools.randomizeYoVariable(random, buffer.getYoVariable());
+            SharedMemoryRandomTools.randomizeYoVariable(random, buffer.getYoVariable());
             linkedYoVariable.prepareForPull();
             expectedUpdate = copy(buffer.getYoVariable());
          }
@@ -67,7 +66,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable>
          prePullLinkedValue = copy(linkedVariable);
          for (int j = 0; j < random.nextInt(20) + 1; j++)
          {
-            YoRandomTools.randomizeYoVariable(random, buffer.getYoVariable());
+            SharedMemoryRandomTools.randomizeYoVariable(random, buffer.getYoVariable());
             linkedYoVariable.pull();
             assertYoEquals(linkedVariable, prePullLinkedValue);
          }
@@ -83,7 +82,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable>
       for (int i = 0; i < ITERATIONS; i++)
       {
          T linkedVariable = nextYoVariable(random, i);
-         YoVariableBuffer<T> buffer = (YoVariableBuffer<T>) YoBufferRandomTools.nextYoVariableBuffer(random, nextYoVariable(random, i));
+         YoVariableBuffer<T> buffer = (YoVariableBuffer<T>) SharedMemoryRandomTools.nextYoVariableBuffer(random, nextYoVariable(random, i));
          LinkedYoVariable<T> linkedYoVariable = (LinkedYoVariable<T>) LinkedYoVariable.newLinkedYoVariable(linkedVariable, buffer);
 
          // Single push before the before the buffer manager actually applies it.
@@ -92,7 +91,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable>
          linkedYoVariable.push(); // Called from the user to request a modification in the buffer.
          assertYoEquals(prePushLinkedValue, linkedVariable);
          assertYoEquals(prePushBufferValue, buffer.getYoVariable());
-         YoRandomTools.randomizeYoVariable(random, linkedVariable); // Simulates that the user is further modifying his local variable.
+         SharedMemoryRandomTools.randomizeYoVariable(random, linkedVariable); // Simulates that the user is further modifying his local variable.
          linkedYoVariable.processPush(false); // The buffer manager is actually applying the push.
          assertYoEquals(prePushLinkedValue, buffer.getYoVariable());
 
@@ -104,7 +103,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable>
 
          for (int j = 0; j < random.nextInt(20) + 2; j++)
          {
-            YoRandomTools.randomizeYoVariable(random, linkedVariable);
+            SharedMemoryRandomTools.randomizeYoVariable(random, linkedVariable);
             linkedYoVariable.push();
             expectedUpdate = copy(linkedVariable);
          }
@@ -116,7 +115,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable>
          prePushBufferValue = copy(buffer.getYoVariable());
          for (int j = 0; j < random.nextInt(20) + 1; j++)
          {
-            YoRandomTools.randomizeYoVariable(random, linkedVariable);
+            SharedMemoryRandomTools.randomizeYoVariable(random, linkedVariable);
             linkedYoVariable.processPush(false);
             assertYoEquals(prePushBufferValue, buffer.getYoVariable());
          }
@@ -131,7 +130,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable>
 
       { // Test invalid requests throw an exception
          T linkedVariable = nextYoVariable(random, 0);
-         YoVariableBuffer<T> buffer = (YoVariableBuffer<T>) YoBufferRandomTools.nextYoVariableBuffer(random, nextYoVariable(random, 0));
+         YoVariableBuffer<T> buffer = (YoVariableBuffer<T>) SharedMemoryRandomTools.nextYoVariableBuffer(random, nextYoVariable(random, 0));
          LinkedYoVariable<T> linkedYoVariable = (LinkedYoVariable<T>) LinkedYoVariable.newLinkedYoVariable(linkedVariable, buffer);
          YoBufferPropertiesReadOnly properties = buffer.getProperties();
 
@@ -155,7 +154,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable>
       for (int i = 0; i < ITERATIONS; i++)
       {
          T linkedVariable = nextYoVariable(random, i);
-         YoVariableBuffer<T> buffer = (YoVariableBuffer<T>) YoBufferRandomTools.nextYoVariableBuffer(random, nextYoVariable(random, i));
+         YoVariableBuffer<T> buffer = (YoVariableBuffer<T>) SharedMemoryRandomTools.nextYoVariableBuffer(random, nextYoVariable(random, i));
          LinkedYoVariable<T> linkedYoVariable = (LinkedYoVariable<T>) LinkedYoVariable.newLinkedYoVariable(linkedVariable, buffer);
          YoBufferPropertiesReadOnly properties = buffer.getProperties();
 
@@ -215,7 +214,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable>
 
          assertEquals(start, bufferSample.getFrom());
          assertEquals(properties.getOutPoint(), bufferSample.getTo());
-         assertEquals(BufferTools.computeSubLength(start, properties.getOutPoint(), properties.getSize()), bufferSample.getSampleLength());
+         assertEquals(SharedMemoryTools.computeSubLength(start, properties.getOutPoint(), properties.getSize()), bufferSample.getSampleLength());
          assertEquals(buffer.copy(start, bufferSample.getSampleLength(), properties.copy()), bufferSample);
 
          // Request a part of the buffer given the starting point and the length of the sample
@@ -240,7 +239,7 @@ public abstract class LinkedYoVariableTest<T extends YoVariable>
             assertFalse(linkedYoVariable.isRequestedBufferSampleAvailable());
 
             assertEquals(start, bufferSample.getFrom());
-            assertEquals(BufferTools.computeToIndex(start, length, properties.getSize()), bufferSample.getTo());
+            assertEquals(SharedMemoryTools.computeToIndex(start, length, properties.getSize()), bufferSample.getTo());
             assertEquals(length, bufferSample.getSampleLength());
             assertEquals(buffer.copy(start, bufferSample.getSampleLength(), properties.copy()), bufferSample);
          }

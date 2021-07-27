@@ -2,8 +2,8 @@ package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.bcf2000;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -177,7 +177,7 @@ public class YoBCF2000SliderboardWindowController
          YoSliderboardListDefinition definition = XMLTools.loadYoSliderboardListDefinition(new FileInputStream(file));
          setInput(definition);
       }
-      catch (FileNotFoundException | JAXBException e)
+      catch (IOException | JAXBException e)
       {
          e.printStackTrace();
       }
@@ -191,7 +191,7 @@ public class YoBCF2000SliderboardWindowController
       {
          XMLTools.saveYoSliderboardListDefinition(new FileOutputStream(file), toYoSliderboardListDefinition());
       }
-      catch (FileNotFoundException | JAXBException e)
+      catch (IOException | JAXBException e)
       {
          e.printStackTrace();
       }

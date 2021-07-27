@@ -23,9 +23,9 @@ public class YoMirroredRegistryToolsTest
       for (int i = 0; i < ITERATIONS; i++)
       { // Test with single registry
          int numberOfVariables = RandomNumbers.nextInt(random, 0, 100);
-         YoRegistry original = YoRandomTools.nextYoRegistry(random, numberOfVariables);
-         YoRegistry target = new YoRegistry(YoRandomTools.nextAlphanumericString(random, 1, 50));
-         int numberOfYoVariablesCreated = YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(original, target);
+         YoRegistry original = SharedMemoryRandomTools.nextYoRegistry(random, numberOfVariables);
+         YoRegistry target = new YoRegistry(SharedMemoryRandomTools.nextAlphanumericString(random, 1, 50));
+         int numberOfYoVariablesCreated = SharedMemoryTools.duplicateMissingYoVariablesInTarget(original, target);
 
          assertEquals(numberOfVariables, numberOfYoVariablesCreated);
 
@@ -40,9 +40,9 @@ public class YoMirroredRegistryToolsTest
       for (int i = 0; i < ITERATIONS; i++)
       { // Test duplicating entire registry tree
          int numberOfVariables = RandomNumbers.nextInt(random, 0, 100);
-         YoRegistry originalRoot = YoRandomTools.nextYoRegistryTree(random, numberOfVariables, 50)[0];
+         YoRegistry originalRoot = SharedMemoryRandomTools.nextYoRegistryTree(random, numberOfVariables, 50)[0];
          YoRegistry targetRoot = new YoRegistry(originalRoot.getName());
-         int numberOfYoVariablesCreated = YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(originalRoot, targetRoot);
+         int numberOfYoVariablesCreated = SharedMemoryTools.duplicateMissingYoVariablesInTarget(originalRoot, targetRoot);
 
          assertEquals(originalRoot.collectSubtreeVariables().size(), numberOfYoVariablesCreated);
 
@@ -64,14 +64,14 @@ public class YoMirroredRegistryToolsTest
       for (int i = 0; i < ITERATIONS; i++)
       { // Test completing single registry
          int numberOfVariables = RandomNumbers.nextInt(random, 0, 50);
-         YoRegistry original = YoRandomTools.nextYoRegistry(random, numberOfVariables);
-         YoRegistry target = new YoRegistry(YoRandomTools.nextAlphanumericString(random, 1, 50));
-         YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(original, target);
+         YoRegistry original = SharedMemoryRandomTools.nextYoRegistry(random, numberOfVariables);
+         YoRegistry target = new YoRegistry(SharedMemoryRandomTools.nextAlphanumericString(random, 1, 50));
+         SharedMemoryTools.duplicateMissingYoVariablesInTarget(original, target);
 
          int numberOfMissingVariables = RandomNumbers.nextInt(random, 0, 50);
-         YoRandomTools.nextYoVariables(random, numberOfMissingVariables, original);
+         SharedMemoryRandomTools.nextYoVariables(random, numberOfMissingVariables, original);
 
-         int numberOfYoVariablesCreated = YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(original, target);
+         int numberOfYoVariablesCreated = SharedMemoryTools.duplicateMissingYoVariablesInTarget(original, target);
          assertEquals(numberOfMissingVariables, numberOfYoVariablesCreated);
 
          for (YoVariable originalVariable : original.getVariables())
@@ -85,10 +85,10 @@ public class YoMirroredRegistryToolsTest
       for (int i = 0; i < ITERATIONS; i++)
       { // Test completing registry tree
          int numberOfVariables = RandomNumbers.nextInt(random, 0, 50);
-         YoRegistry[] originalRegistries = YoRandomTools.nextYoRegistryTree(random, numberOfVariables, 25);
+         YoRegistry[] originalRegistries = SharedMemoryRandomTools.nextYoRegistryTree(random, numberOfVariables, 25);
          YoRegistry originalRoot = originalRegistries[0];
          YoRegistry targetRoot = new YoRegistry(originalRoot.getName());
-         YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(originalRoot, targetRoot);
+         SharedMemoryTools.duplicateMissingYoVariablesInTarget(originalRoot, targetRoot);
 
          int numberOfMissingVariables = 0;
 
@@ -96,12 +96,12 @@ public class YoMirroredRegistryToolsTest
          {
             int n = RandomNumbers.nextInt(random, 0, 50);
             YoRegistry parent = originalRegistries[random.nextInt(originalRegistries.length)];
-            YoRegistry registry = YoRandomTools.nextYoRegistry(random, YoRandomTools.nextAvailableRegistryName(random, 1, 50, parent), n);
+            YoRegistry registry = SharedMemoryRandomTools.nextYoRegistry(random, SharedMemoryRandomTools.nextAvailableRegistryName(random, 1, 50, parent), n);
             parent.addChild(registry);
             numberOfMissingVariables += n;
          }
 
-         int numberOfYoVariablesCreated = YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(originalRoot, targetRoot);
+         int numberOfYoVariablesCreated = SharedMemoryTools.duplicateMissingYoVariablesInTarget(originalRoot, targetRoot);
          assertEquals(numberOfMissingVariables, numberOfYoVariablesCreated);
 
          for (YoRegistry originalRegistry : originalRoot.collectSubtreeRegistries())

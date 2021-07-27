@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import us.ihmc.commons.RandomNumbers;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryRandomTools;
 
 public class YoBufferPropertiesTest
 {
@@ -41,7 +41,7 @@ public class YoBufferPropertiesTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoBufferProperties original = YoBufferRandomTools.nextYoBufferProperties(random, random.nextInt(1280000));
+         YoBufferProperties original = SharedMemoryRandomTools.nextYoBufferProperties(random, random.nextInt(1280000));
          YoBufferProperties clone = new YoBufferProperties(original);
          assertEquals(original.getInPoint(), clone.getInPoint());
          assertEquals(original.getOutPoint(), clone.getOutPoint());
@@ -295,7 +295,7 @@ public class YoBufferPropertiesTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoBufferProperties original = YoBufferRandomTools.nextYoBufferProperties(random);
+         YoBufferProperties original = SharedMemoryRandomTools.nextYoBufferProperties(random);
          YoBufferProperties clone = new YoBufferProperties(original);
 
          int newIndex = RandomNumbers.nextInt(random, -5000000, 5000000);
@@ -315,7 +315,7 @@ public class YoBufferPropertiesTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoBufferProperties original = YoBufferRandomTools.nextYoBufferProperties(random);
+         YoBufferProperties original = SharedMemoryRandomTools.nextYoBufferProperties(random);
          YoBufferProperties clone = new YoBufferProperties(original);
 
          int newSize = RandomNumbers.nextInt(random, 1, 5000000);
@@ -339,7 +339,7 @@ public class YoBufferPropertiesTest
       {
          int size = random.nextInt(10000) + 1;
 
-         YoBufferProperties actual = YoBufferRandomTools.nextYoBufferProperties(random, size);
+         YoBufferProperties actual = SharedMemoryRandomTools.nextYoBufferProperties(random, size);
          YoBufferProperties expected = new YoBufferProperties(actual);
 
          assertFalse(actual.setInPointIndex(actual.getInPoint()));
@@ -373,7 +373,7 @@ public class YoBufferPropertiesTest
       {
          int size = random.nextInt(10000) + 1;
 
-         YoBufferProperties actual = YoBufferRandomTools.nextYoBufferProperties(random, size);
+         YoBufferProperties actual = SharedMemoryRandomTools.nextYoBufferProperties(random, size);
          YoBufferProperties expected = new YoBufferProperties(actual);
 
          assertFalse(actual.setOutPointIndex(actual.getOutPoint()));
@@ -405,7 +405,7 @@ public class YoBufferPropertiesTest
 
       for (int i = 0; i < ITERATIONS; i++)
       { // Use naive approach to measure the length
-         YoBufferProperties properties = YoBufferRandomTools.nextYoBufferProperties(random);
+         YoBufferProperties properties = SharedMemoryRandomTools.nextYoBufferProperties(random);
 
          int index = properties.getInPoint();
          int expectedLength = 1;
@@ -521,7 +521,7 @@ public class YoBufferPropertiesTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoBufferProperties original = YoBufferRandomTools.nextYoBufferProperties(random);
+         YoBufferProperties original = SharedMemoryRandomTools.nextYoBufferProperties(random);
          YoBufferPropertiesReadOnly copy = original.copy();
 
          assertEquals(original.getInPoint(), copy.getInPoint());

@@ -209,7 +209,7 @@ public class SCSGuiConfiguration
       {
          XMLTools.saveSCSGuiConfigurationDefinition(new FileOutputStream(getMainConfigurationFile()), definition);
       }
-      catch (FileNotFoundException | JAXBException e)
+      catch (JAXBException | IOException e)
       {
          e.printStackTrace();
       }

@@ -8,7 +8,7 @@ import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryRandomTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoInteger;
 
@@ -23,7 +23,7 @@ public class IntegerPushRequestTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoInteger bufferYoInteger = YoRandomTools.nextYoInteger(random, new YoRegistry("Dummy"));
+         YoInteger bufferYoInteger = SharedMemoryRandomTools.nextYoInteger(random, new YoRegistry("Dummy"));
          int valueToPush = random.nextInt();
 
          int currentValue = bufferYoInteger.getValue();
