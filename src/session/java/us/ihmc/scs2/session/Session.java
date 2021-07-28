@@ -340,7 +340,6 @@ public abstract class Session
     */
    public void initializeSession()
    {
-      sharedBuffer.registerMissingBuffers();
    }
 
    protected long computeRunTaskPeriod()

@@ -52,7 +52,6 @@ public class LinkedYoRegistry extends LinkedBuffer
 
       try
       {
-         yoRegistryBuffer.registerMissingBuffers();
          numberOfNewVariables = SharedMemoryTools.duplicateMissingYoVariablesInTarget(bufferRootRegistry, rootRegistry, this::setupNewLinkedYoVariable);
       }
       finally

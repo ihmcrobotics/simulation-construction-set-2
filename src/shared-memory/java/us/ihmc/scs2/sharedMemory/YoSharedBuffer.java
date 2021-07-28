@@ -86,17 +86,6 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
    }
 
    /**
-    * Creates new buffers if needed to ensure that each {@code YoVariable} is backed by one.
-    * <p>
-    * Operation for the buffer manager only.
-    * </p>
-    */
-   public void registerMissingBuffers()
-   {
-      registryBuffer.registerMissingBuffers();
-   }
-
-   /**
     * Consumes a request for cropping the size of the buffers, i.e. resizing the buffers to only keep
     * the part that is in between the {@code from} and {@code to} points as defined in the given
     * {@code request}.

@@ -1,16 +1,15 @@
 package us.ihmc.scs2.sharedMemory;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 import us.ihmc.yoVariables.listener.YoRegistryChangedListener;
-import us.ihmc.yoVariables.registry.YoNamespace;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -27,7 +26,9 @@ public class YoRegistryBuffer
    {
       this.rootRegistry = rootRegistry;
       this.properties = properties;
-      registerMissingBuffers();
+
+      for (YoVariable yoVariable : rootRegistry.collectSubtreeVariables())
+         registerNewYoVariable(yoVariable);
 
       this.rootRegistry.addListener(new YoRegistryChangedListener()
       {
@@ -35,38 +36,43 @@ public class YoRegistryBuffer
          public void changed(Change change)
          {
             if (change.wasVariableAdded())
-               registerNewYoVariable(change.getTargetVariable(), true);
+               registerNewYoVariable(change.getTargetVariable());
+            if (change.wasRegistryAdded())
+               registerNewYoVariables(change.getTargetRegistry().collectSubtreeVariables());
          }
       });
    }
 
-   public void registerMissingBuffers()
+   private void registerNewYoVariables(Collection<? extends YoVariable> yoVariables)
    {
-      List<YoVariable> allYoVariables = rootRegistry.collectSubtreeVariables();
-
-      if (allYoVariables.size() != yoVariableBuffers.size())
+      for (YoVariable yoVariable : yoVariables)
       {
-         for (YoVariable yoVariable : allYoVariables)
-         {
-            registerNewYoVariable(yoVariable, false);
-         }
+         registerNewYoVariable(yoVariable);
       }
    }
 
-   private void registerNewYoVariable(YoVariable yoVariable, boolean printNameCollisionWarning)
+   private void registerNewYoVariable(YoVariable yoVariable)
    {
       String fullName = yoVariable.getFullNameString();
 
       if (yoVariableFullnameToBufferMap.containsKey(fullName))
       {
-         if (printNameCollisionWarning)
-            LogTools.warn("Name collision while trying to register new YoVariable: " + fullName);
+         LogTools.warn("Name collision while trying to register new YoVariable: " + fullName);
          return;
       }
 
       YoVariableBuffer<?> yoVariableBuffer = YoVariableBuffer.newYoVariableBuffer(yoVariable, properties);
-      yoVariableBuffers.add(yoVariableBuffer);
-      yoVariableFullnameToBufferMap.put(fullName, yoVariableBuffer);
+
+      lock.lock();
+      try
+      {
+         yoVariableBuffers.add(yoVariableBuffer);
+         yoVariableFullnameToBufferMap.put(fullName, yoVariableBuffer);
+      }
+      finally
+      {
+         lock.unlock();
+      }
    }
 
    public void resizeBuffer(int from, int length)
@@ -116,14 +122,9 @@ public class YoRegistryBuffer
 
       if (yoVariableBuffer == null)
       {
-         YoNamespace yoVariableNamespace = new YoNamespace(variableFullName);
-         YoRegistry registry = SharedMemoryTools.ensurePathExists(rootRegistry, yoVariableNamespace.getParent());
-         Optional<YoVariable> duplicateOptional = registry.collectSubtreeVariables().stream().filter(v -> v.getFullNameString().equals(variableFullName))
-                                                          .findFirst();
-         YoVariable duplicate;
-         if (duplicateOptional.isPresent())
-            duplicate = duplicateOptional.get();
-         else
+         YoRegistry registry = SharedMemoryTools.ensurePathExists(rootRegistry, yoVariable.getNamespace());
+         YoVariable duplicate = registry.getVariable(yoVariable.getName());
+         if (duplicate == null)
             duplicate = yoVariable.duplicate(registry);
 
          yoVariableBuffer = YoVariableBuffer.newYoVariableBuffer(duplicate, properties);
