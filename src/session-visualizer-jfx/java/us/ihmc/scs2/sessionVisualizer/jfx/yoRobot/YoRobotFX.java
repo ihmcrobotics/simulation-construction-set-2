@@ -107,7 +107,6 @@ public class YoRobotFX
       }
 
       robotLinkedYoRegistry = yoManager.newLinkedYoRegistry(robotRegistry);
-      yoManager.linkNewYoVariables();
    }
 
    public void render()

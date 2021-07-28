@@ -357,7 +357,6 @@ public class YoSharedBufferTest
          }
 
          LinkedYoRegistry linkedYoRegistry = yoSharedBuffer.newLinkedYoRegistry();
-         linkedYoRegistry.linkManagerVariables();
 
          List<YoVariable> allConsumerYoVariables = linkedYoRegistry.getRootRegistry().collectSubtreeVariables();
 
