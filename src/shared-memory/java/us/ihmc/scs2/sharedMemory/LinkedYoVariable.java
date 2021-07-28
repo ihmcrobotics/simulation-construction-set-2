@@ -1,5 +1,7 @@
 package us.ihmc.scs2.sharedMemory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
@@ -17,6 +19,8 @@ public abstract class LinkedYoVariable<T extends YoVariable> extends LinkedBuffe
    protected BufferSampleRequest bufferSampleRequest;
    @SuppressWarnings("rawtypes")
    protected BufferSample bufferSample;
+
+   private final List<PushRequestListener> pushRequestListeners = new ArrayList<>();
 
    @SuppressWarnings({"rawtypes", "unchecked"})
    static LinkedYoVariable newLinkedYoVariable(YoVariable yoVariableToLink, YoVariableBuffer<?> buffer)
@@ -64,9 +68,22 @@ public abstract class LinkedYoVariable<T extends YoVariable> extends LinkedBuffe
    }
 
    @Override
+   void addPushRequestListener(PushRequestListener listener)
+   {
+      pushRequestListeners.add(listener);
+   }
+
+   @Override
+   boolean removePushRequestListener(PushRequestListener listener)
+   {
+      return pushRequestListeners.remove(listener);
+   }
+
+   @Override
    public void push()
    {
       pushRequestToProcess = toPushRequest();
+      pushRequestListeners.forEach(listener -> listener.pushRequested(this));
    }
 
    @Override

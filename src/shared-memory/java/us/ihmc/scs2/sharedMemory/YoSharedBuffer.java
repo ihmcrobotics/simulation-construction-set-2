@@ -74,7 +74,7 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
    private final YoRegistryBuffer registryBuffer;
 
    private final ReentrantLock linkedBuffersLock = new ReentrantLock();
-   private final LinkedBufferArray linkedBuffers = new LinkedBufferArray();
+   private final LinkedBufferArray linkedBuffers = new LinkedBufferArray(false);
    private final ConcurrentLinkedQueue<LinkedBufferProperties> linkedBufferProperties = new ConcurrentLinkedQueue<>();
 
    private final YoBufferProperties properties = new YoBufferProperties();

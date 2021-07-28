@@ -1,14 +1,29 @@
 package us.ihmc.scs2.sharedMemory;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class LinkedBufferArray extends LinkedBuffer
 {
    private int size = 0;
    private LinkedBuffer[] linkedBuffers = new LinkedBuffer[8];
 
-   public LinkedBufferArray()
+   private final Set<LinkedBuffer> linkedBuffersWithPendingPushRequest;
+   private final PushRequestListener listener;
+
+   public LinkedBufferArray(boolean usePushRequestListener)
    {
+      if (usePushRequestListener)
+      {
+         linkedBuffersWithPendingPushRequest = new HashSet<>();
+         listener = target -> this.linkedBuffersWithPendingPushRequest.add(target);
+      }
+      else
+      {
+         linkedBuffersWithPendingPushRequest = null;
+         listener = null;
+      }
    }
 
    public boolean add(LinkedBuffer e)
@@ -16,6 +31,8 @@ public class LinkedBufferArray extends LinkedBuffer
       size++;
       ensureCapacity(size);
       linkedBuffers[size - 1] = e;
+      if (listener != null)
+         e.addPushRequestListener(listener);
       return true;
    }
 
@@ -47,15 +64,25 @@ public class LinkedBufferArray extends LinkedBuffer
    @Override
    public boolean processPush(boolean writeBuffer)
    {
-      return Arrays.stream(linkedBuffers, 0, size).parallel().filter(buffer -> buffer.processPush(writeBuffer)).findFirst().isPresent();
-//      boolean hasPushedSomething = false;
-//
-//      for (int i = 0; i < size; i++)
-//      {
-//         hasPushedSomething |= linkedBuffers[i].processPush(writeBuffer);
-//      }
-//
-//      return hasPushedSomething;
+      if (linkedBuffersWithPendingPushRequest != null)
+      {
+         if (linkedBuffersWithPendingPushRequest.isEmpty())
+            return false;
+         linkedBuffersWithPendingPushRequest.forEach(buffer -> buffer.processPush(writeBuffer));
+         linkedBuffersWithPendingPushRequest.clear();
+         return true;
+      }
+      else
+      {
+         boolean hasPushedSomething = false;
+
+         for (int i = 0; i < size; i++)
+         {
+            hasPushedSomething |= linkedBuffers[i].processPush(writeBuffer);
+         }
+
+         return hasPushedSomething;
+      }
    }
 
    @Override
@@ -71,10 +98,10 @@ public class LinkedBufferArray extends LinkedBuffer
    public void prepareForPull()
    {
       Arrays.stream(linkedBuffers, 0, size).parallel().forEach(buffer -> buffer.prepareForPull());
-//      for (int i = 0; i < size; i++)
-//      {
-//         linkedBuffers[i].prepareForPull();
-//      }
+      //      for (int i = 0; i < size; i++)
+      //      {
+      //         linkedBuffers[i].prepareForPull();
+      //      }
    }
 
    @Override

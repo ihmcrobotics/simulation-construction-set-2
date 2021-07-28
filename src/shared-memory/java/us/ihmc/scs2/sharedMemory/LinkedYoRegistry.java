@@ -17,7 +17,7 @@ public class LinkedYoRegistry extends LinkedBuffer
    private final YoRegistryBuffer yoRegistryBuffer;
 
    private final ReentrantLock lock;
-   private final LinkedBufferArray linkedYoVariables = new LinkedBufferArray();
+   private final LinkedBufferArray linkedYoVariables = new LinkedBufferArray(true);
    private final Map<YoVariable, LinkedYoVariable> linkedYoVariableMap = new HashMap<>();
 
    LinkedYoRegistry(YoRegistry rootRegistry, YoRegistryBuffer yoRegistryBuffer)
