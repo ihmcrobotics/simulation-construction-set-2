@@ -79,7 +79,7 @@ public class YoServerExample
                SharedMemoryRandomTools.randomizeYoVariables(random, secondaryVariables);
                for (YoRegistry secondaryRegistry : secondaryRegistries)
                {
-                  yoServer.update(currentTimestamp, secondaryRegistry);
+                  yoServer.update(currentTimestamp - startTimestamp, secondaryRegistry);
                }
             }
          }
