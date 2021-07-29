@@ -1,12 +1,12 @@
 package us.ihmc.scs2.sharedMemory;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
-import us.ihmc.yoVariables.listener.YoRegistryChangedListener;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -17,8 +17,10 @@ public class LinkedYoRegistry extends LinkedBuffer
    private final YoRegistryBuffer yoRegistryBuffer;
 
    private final ReentrantLock lock;
-   private final LinkedBufferArray linkedYoVariables = new LinkedBufferArray(true);
+   private final LinkedBufferArray linkedYoVariables = new LinkedBufferArray();
    private final Map<YoVariable, LinkedYoVariable> linkedYoVariableMap = new HashMap<>();
+   private final List<PushRequestListener> listeners = new ArrayList<>();
+   private final PushRequestListener pushRequestForwarder = target -> listeners.forEach(listener -> listener.pushRequested(this));
 
    LinkedYoRegistry(YoRegistry rootRegistry, YoRegistryBuffer yoRegistryBuffer)
    {
@@ -30,84 +32,80 @@ public class LinkedYoRegistry extends LinkedBuffer
 
    private void setup()
    {
-      YoRegistry bufferRootRegistry = yoRegistryBuffer.getRootRegistry().findRegistry(rootRegistry.getNamespace());
-      SharedMemoryTools.duplicateMissingYoVariablesInTarget(bufferRootRegistry, rootRegistry, this::setupNewLinkedYoVariable);
-
-      bufferRootRegistry.addListener(new YoRegistryChangedListener()
+      linkedYoVariables.addChangeListener(change ->
       {
-         @Override
-         public void changed(Change change)
+         if (change.getTarget() instanceof LinkedYoVariable)
          {
-            lock.lock();
-            try
-            {
-               if (change.wasVariableAdded())
-               {
-                  YoVariable newBufferVariable = change.getTargetVariable();
-                  YoRegistry registry = SharedMemoryTools.ensurePathExists(rootRegistry, newBufferVariable.getNamespace());
-                  if (registry.getVariable(newBufferVariable.getName()) == null)
-                     newBufferVariable.duplicate(registry);
-                  setupNewLinkedYoVariable(newBufferVariable);
-               }
-
-               if (change.wasRegistryAdded())
-               {
-                  for (YoVariable newBufferVariable : change.getTargetRegistry().collectSubtreeVariables())
-                  {
-                     YoRegistry registry = SharedMemoryTools.ensurePathExists(rootRegistry, newBufferVariable.getNamespace());
-                     if (registry.getVariable(newBufferVariable.getName()) == null)
-                        newBufferVariable.duplicate(registry);
-                     setupNewLinkedYoVariable(newBufferVariable);
-                  }
-               }
-            }
-            finally
-            {
-               lock.unlock();
-            }
+            LinkedYoVariable<?> target = (LinkedYoVariable<?>) change.getTarget();
+            if (change.wasLinkedBufferAdded())
+               linkedYoVariableMap.put(target.getLinkedYoVariable(), target);
+            if (change.wasLinkedBufferRemoved())
+               linkedYoVariableMap.remove(target.getLinkedYoVariable());
          }
       });
 
-      rootRegistry.addListener(new YoRegistryChangedListener()
+      YoRegistry bufferRootRegistry = yoRegistryBuffer.getRootRegistry().findRegistry(rootRegistry.getNamespace());
+      SharedMemoryTools.duplicateMissingYoVariablesInTarget(bufferRootRegistry, rootRegistry);
+
+      bufferRootRegistry.addListener(change ->
       {
-         @Override
-         public void changed(Change change)
+         lock.lock();
+         try
          {
-            lock.lock();
-            try
+            if (change.wasVariableAdded())
             {
-               if (change.wasVariableAdded())
-                  setupNewLinkedYoVariable(change.getTargetVariable());
-               if (change.wasRegistryAdded())
-                  change.getTargetRegistry().collectSubtreeVariables().forEach(var -> setupNewLinkedYoVariable(var));
+               YoVariable newBufferVariable1 = change.getTargetVariable();
+               YoRegistry registry1 = SharedMemoryTools.ensurePathExists(rootRegistry, newBufferVariable1.getNamespace());
+               if (registry1.getVariable(newBufferVariable1.getName()) == null)
+                  newBufferVariable1.duplicate(registry1);
             }
-            finally
+
+            if (change.wasRegistryAdded())
             {
-               lock.unlock();
+               for (YoVariable newBufferVariable2 : change.getTargetRegistry().collectSubtreeVariables())
+               {
+                  YoRegistry registry2 = SharedMemoryTools.ensurePathExists(rootRegistry, newBufferVariable2.getNamespace());
+                  if (registry2.getVariable(newBufferVariable2.getName()) == null)
+                     newBufferVariable2.duplicate(registry2);
+               }
             }
+         }
+         finally
+         {
+            lock.unlock();
+         }
+      });
+
+      rootRegistry.addListener(change ->
+      {
+         lock.lock();
+         try
+         {
+            if (change.wasVariableAdded())
+               yoRegistryBuffer.findOrCreateYoVariableBuffer(change.getTargetVariable());
+            if (change.wasRegistryAdded())
+               change.getTargetRegistry().collectSubtreeVariables().forEach(var -> yoRegistryBuffer.findOrCreateYoVariableBuffer(var));
+         }
+         finally
+         {
+            lock.unlock();
          }
       });
    }
 
-   /**
-    * Creates a new {@code LinkedYoVariable} for the given {@code variableToLink}, ensures a buffer
-    * exists for that variable, and adds the newly create linked variable to {@link #linkedYoVariables}
-    * and {@link #linkedYoVariableMap}.
-    * <p>
-    * This operation requires the consumer and manager threads to be synchronized.
-    * </p>
-    *
-    * @param variableToLink the variable to be linked to the buffer.
-    */
-   private void setupNewLinkedYoVariable(YoVariable variableToLink)
+   public <L extends LinkedYoVariable<T>, T extends YoVariable> L linkYoVariable(T variableToLink)
    {
-      if (linkedYoVariableMap.containsKey(variableToLink))
-         return;
+      LinkedYoVariable linkedYoVariable = linkedYoVariableMap.get(variableToLink);
 
-      YoVariableBuffer yoVariableBuffer = yoRegistryBuffer.findOrCreateYoVariableBuffer(variableToLink);
-      LinkedYoVariable newLinkedYoVariable = yoVariableBuffer.newLinkedYoVariable(variableToLink);
-      linkedYoVariables.add(newLinkedYoVariable);
-      linkedYoVariableMap.put(newLinkedYoVariable.getLinkedYoVariable(), newLinkedYoVariable);
+      if (linkedYoVariable == null)
+      {
+         YoVariableBuffer yoVariableBuffer = yoRegistryBuffer.findYoVariableBuffer(variableToLink);
+         linkedYoVariable = yoVariableBuffer.newLinkedYoVariable(variableToLink);
+         linkedYoVariable.addPushRequestListener(pushRequestForwarder);
+         linkedYoVariables.add(linkedYoVariable);
+      }
+
+      return (L) linkedYoVariable;
    }
 
    /** {@inheritDoc} */
@@ -124,21 +122,6 @@ public class LinkedYoRegistry extends LinkedBuffer
       {
          lock.unlock();
       }
-   }
-
-   /**
-    * Creates request for modifying the buffer when possible on a sub-selection of variables. This is
-    * typically used to push the value of a linked {@code YoVariable} that has been changed in a buffer
-    * consumer thread.
-    * <p>
-    * Operation for the buffer consumers only.
-    * </p>
-    *
-    * @param yoVariablesToPush the variables to push their value to the buffer.
-    */
-   public void push(YoVariable... yoVariablesToPush)
-   {
-      Arrays.asList(yoVariablesToPush).stream().map(linkedYoVariableMap::get).filter(v -> v != null).forEach(LinkedYoVariable::push);
    }
 
    /** {@inheritDoc} */
@@ -186,6 +169,18 @@ public class LinkedYoRegistry extends LinkedBuffer
       {
          lock.unlock();
       }
+   }
+
+   @Override
+   void addPushRequestListener(PushRequestListener listener)
+   {
+      listeners.add(listener);
+   }
+
+   @Override
+   boolean removePushRequestListener(PushRequestListener listener)
+   {
+      return listeners.remove(listener);
    }
 
    /** {@inheritDoc} */

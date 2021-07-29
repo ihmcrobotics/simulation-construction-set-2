@@ -6,6 +6,8 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.BooleanPropertyBase;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
+import us.ihmc.scs2.sharedMemory.LinkedYoBoolean;
+import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoBoolean;
 
@@ -16,6 +18,8 @@ public class YoBooleanProperty extends BooleanPropertyBase implements YoVariable
    private final YoVariableChangedListener propertyUpdater = v -> pullYoBooleanValue();
 
    private SimpleBooleanProperty lastUserInput;
+
+   private LinkedYoBoolean linkedBuffer;
 
    public YoBooleanProperty(YoBoolean yoBoolean)
    {
@@ -30,12 +34,28 @@ public class YoBooleanProperty extends BooleanPropertyBase implements YoVariable
       yoBoolean.addListener(propertyUpdater);
    }
 
+   public void setLinkedBuffer(LinkedYoBoolean linkedBuffer)
+   {
+      if (this.linkedBuffer != null)
+         throw new IllegalOperationException();
+
+      this.linkedBuffer = linkedBuffer;
+      linkedBuffer.addUser(this);
+   }
+
+   @Override
+   public LinkedYoBoolean getLinkedBuffer()
+   {
+      return linkedBuffer;
+   }
+
    @Override
    public void finalize()
    {
       try
       {
          yoBoolean.removeListener(propertyUpdater);
+         linkedBuffer.removeUser(this);
       }
       finally
       {
@@ -51,17 +71,19 @@ public class YoBooleanProperty extends BooleanPropertyBase implements YoVariable
       yoBoolean.set(newValue);
    }
 
+   public void setAndPush(boolean newValue)
+   {
+      set(newValue);
+      if (linkedBuffer != null)
+         linkedBuffer.push();
+   }
+
    private void pullYoBooleanValue()
    {
       super.set(yoBoolean.getValue());
    }
 
    public void bindBooleanProperty(Property<Boolean> property)
-   {
-      bindBooleanProperty(property, null);
-   }
-
-   public void bindBooleanProperty(Property<Boolean> property, Runnable pushValueAction)
    {
       property.setValue(getValue());
 
@@ -84,9 +106,7 @@ public class YoBooleanProperty extends BooleanPropertyBase implements YoVariable
             return;
 
          updatingThis.setTrue();
-         set(newValue);
-         if (pushValueAction != null)
-            pushValueAction.run();
+         setAndPush(newValue);
          updatingThis.setFalse();
       });
    }

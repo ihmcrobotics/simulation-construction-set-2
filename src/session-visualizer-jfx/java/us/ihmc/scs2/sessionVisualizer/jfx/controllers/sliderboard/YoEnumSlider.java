@@ -13,7 +13,9 @@ import javafx.scene.control.Slider;
 import us.ihmc.scs2.definition.yoSlider.YoKnobDefinition;
 import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoEnumAsStringProperty;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
+import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 import us.ihmc.yoVariables.variable.YoEnum;
 
 public class YoEnumSlider implements YoVariableSlider
@@ -21,9 +23,11 @@ public class YoEnumSlider implements YoVariableSlider
    private final YoEnumAsStringProperty<?> yoEnumProperty;
    private final List<Runnable> cleanupTasks = new ArrayList<>();
 
-   public YoEnumSlider(YoEnum<?> yoEnum)
+   @SuppressWarnings({"rawtypes", "unchecked"})
+   public YoEnumSlider(YoEnum<?> yoEnum, LinkedYoRegistry linkedYoRegistry)
    {
       yoEnumProperty = new YoEnumAsStringProperty<>(yoEnum, this);
+      yoEnumProperty.setLinkedBuffer(linkedYoRegistry.linkYoVariable((YoEnum) yoEnum));
    }
 
    @Override
@@ -64,9 +68,12 @@ public class YoEnumSlider implements YoVariableSlider
          if (updating.isTrue())
             return;
 
-         updating.setTrue();
-         yoEnumProperty.set(yoEnumProperty.toEnumString(virtualSlider.valueProperty().getValue().intValue()));
-         updating.setFalse();
+         JavaFXMissingTools.runLater(YoEnumSlider.this.getClass(), () ->
+         {
+            updating.setTrue();
+            yoEnumProperty.setAndPush(yoEnumProperty.toEnumString(virtualSlider.valueProperty().getValue().intValue()));
+            updating.setFalse();
+         });
       };
 
       yoEnumProperty.addListener(sliderUpdater);
@@ -128,9 +135,12 @@ public class YoEnumSlider implements YoVariableSlider
                                                              sliderVariable.getMax(),
                                                              0,
                                                              yoEnumProperty.getYoVariable().getEnumValuesAsString().length - 1);
-         updating.setTrue();
-         yoEnumProperty.set(yoEnumProperty.toEnumString(yoEnumOrdinal));
-         updating.setFalse();
+         JavaFXMissingTools.runLater(YoEnumSlider.this.getClass(), () ->
+         {
+            updating.setTrue();
+            yoEnumProperty.setAndPush(yoEnumProperty.toEnumString(yoEnumOrdinal));
+            updating.setFalse();
+         });
       };
 
       yoEnumProperty.addListener(sliderUpdater);

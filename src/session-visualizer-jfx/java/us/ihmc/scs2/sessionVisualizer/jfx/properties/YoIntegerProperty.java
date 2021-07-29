@@ -6,6 +6,8 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.IntegerPropertyBase;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleIntegerProperty;
+import us.ihmc.scs2.sharedMemory.LinkedYoInteger;
+import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoInteger;
 
@@ -16,6 +18,8 @@ public class YoIntegerProperty extends IntegerPropertyBase implements YoVariable
    private final YoVariableChangedListener propertyUpdater = v -> pullYoIntegerValue();
 
    private SimpleIntegerProperty lastUserInput;
+
+   private LinkedYoInteger linkedBuffer;
 
    public YoIntegerProperty(YoInteger yoInteger)
    {
@@ -30,12 +34,28 @@ public class YoIntegerProperty extends IntegerPropertyBase implements YoVariable
       yoInteger.addListener(propertyUpdater);
    }
 
+   public void setLinkedBuffer(LinkedYoInteger linkedBuffer)
+   {
+      if (this.linkedBuffer != null)
+         throw new IllegalOperationException();
+
+      this.linkedBuffer = linkedBuffer;
+      linkedBuffer.addUser(this);
+   }
+
+   @Override
+   public LinkedYoInteger getLinkedBuffer()
+   {
+      return linkedBuffer;
+   }
+
    @Override
    public void finalize()
    {
       try
       {
          yoInteger.removeListener(propertyUpdater);
+         linkedBuffer.removeUser(this);
       }
       finally
       {
@@ -51,17 +71,19 @@ public class YoIntegerProperty extends IntegerPropertyBase implements YoVariable
       yoInteger.set(newValue);
    }
 
+   public void setAndPush(int newValue)
+   {
+      set(newValue);
+      if (linkedBuffer != null)
+         linkedBuffer.push();
+   }
+
    private void pullYoIntegerValue()
    {
       super.set(yoInteger.getValue());
    }
 
    public void bindIntegerProperty(Property<Integer> property)
-   {
-      bindIntegerProperty(property, null);
-   }
-
-   public void bindIntegerProperty(Property<Integer> property, Runnable pushValueAction)
    {
       property.setValue(getValue());
 
@@ -84,9 +106,7 @@ public class YoIntegerProperty extends IntegerPropertyBase implements YoVariable
             return;
 
          updatingThis.setTrue();
-         set(newValue.intValue());
-         if (pushValueAction != null)
-            pushValueAction.run();
+         setAndPush(newValue.intValue());
          updatingThis.setFalse();
       });
    }

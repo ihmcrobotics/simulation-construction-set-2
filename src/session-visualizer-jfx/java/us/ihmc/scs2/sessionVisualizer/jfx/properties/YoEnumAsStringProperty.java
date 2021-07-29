@@ -9,6 +9,8 @@ import javafx.beans.property.Property;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.StringPropertyBase;
+import us.ihmc.scs2.sharedMemory.LinkedYoEnum;
+import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoEnum;
 
@@ -20,6 +22,8 @@ public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBas
    private final List<String> enumConstants;
 
    private SimpleStringProperty lastUserInput;
+
+   private LinkedYoEnum<E> linkedBuffer;
 
    public YoEnumAsStringProperty(YoEnum<E> yoEnum)
    {
@@ -36,12 +40,28 @@ public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBas
       yoEnum.addListener(propertyUpdater);
    }
 
+   public void setLinkedBuffer(LinkedYoEnum<E> linkedBuffer)
+   {
+      if (this.linkedBuffer != null)
+         throw new IllegalOperationException();
+
+      this.linkedBuffer = linkedBuffer;
+      linkedBuffer.addUser(this);
+   }
+
+   @Override
+   public LinkedYoEnum<E> getLinkedBuffer()
+   {
+      return linkedBuffer;
+   }
+
    @Override
    public void finalize()
    {
       try
       {
          yoEnum.removeListener(propertyUpdater);
+         linkedBuffer.removeUser(this);
       }
       finally
       {
@@ -57,17 +77,19 @@ public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBas
       yoEnum.set(toEnumOrdinal(newValue));
    }
 
+   public void setAndPush(String newValue)
+   {
+      set(newValue);
+      if (linkedBuffer != null)
+         linkedBuffer.push();
+   }
+
    private void pullYoEnumValue()
    {
       super.set(toEnumString(yoEnum.getOrdinal()));
    }
 
    public void bindStringProperty(Property<String> property)
-   {
-      bindStringProperty(property, null);
-   }
-
-   public void bindStringProperty(Property<String> property, Runnable pushValueAction)
    {
       property.setValue(getValue());
 
@@ -90,9 +112,7 @@ public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBas
             return;
 
          updatingThis.setTrue();
-         set(newValue);
-         if (pushValueAction != null)
-            pushValueAction.run();
+         setAndPush(newValue);
          updatingThis.setFalse();
       });
    }

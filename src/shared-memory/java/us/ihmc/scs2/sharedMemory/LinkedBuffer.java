@@ -63,6 +63,11 @@ public abstract class LinkedBuffer
     */
    abstract boolean hasRequestPending();
 
+   boolean isActive()
+   {
+      return true;
+   }
+
    void addPushRequestListener(PushRequestListener listener)
    {
    }

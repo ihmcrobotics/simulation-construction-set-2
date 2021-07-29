@@ -1,5 +1,6 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.search;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,6 +34,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoDoubleProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoEnumAsStringProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoIntegerProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoLongProperty;
+import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoVariableProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ScientificDoubleStringConverter;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
@@ -59,6 +61,8 @@ public class YoCompositeListCell extends ListCell<YoComposite>
    private Labeled yoCompositeNameDisplay = this;
    private Property<Integer> numberPrecision;
 
+   private List<YoVariableProperty<?, ?>> yoVariableProperties = new ArrayList<>();
+
    public YoCompositeListCell(YoManager yoManager, ReadOnlyBooleanProperty showUniqueName, Property<Integer> numberPrecision, ListView<YoComposite> owner)
    {
       this.yoManager = yoManager;
@@ -73,6 +77,10 @@ public class YoCompositeListCell extends ListCell<YoComposite>
    {
       this.yoComposite = yoComposite;
       super.updateItem(yoComposite, empty);
+
+      // Cleanup the properties: remove listeners and disable linked buffer
+      yoVariableProperties.forEach(property -> property.finalize());
+      yoVariableProperties.clear();
 
       prefWidthProperty().bind(owner.widthProperty().subtract(15.0));
       setMinWidth(100.0);
@@ -137,28 +145,33 @@ public class YoCompositeListCell extends ListCell<YoComposite>
          yoCompositeNameDisplay.setText(showUniqueName ? yoComposite.getUniqueName() : yoComposite.getName());
    }
 
-   public static List<Region> createYoVariableControls(Collection<YoVariable> yoVariables, Property<Integer> numberPrecision, LinkedYoRegistry linkedRegistry)
+   public List<Region> createYoVariableControls(Collection<YoVariable> yoVariables, Property<Integer> numberPrecision, LinkedYoRegistry linkedRegistry)
    {
       return yoVariables.stream().map(v -> createYoVariableControl(v, numberPrecision, linkedRegistry)).collect(Collectors.toList());
    }
 
-   public static Region createYoVariableControl(YoVariable yoVariable, Property<Integer> numberPrecision, LinkedYoRegistry linkedRegistry)
+   @SuppressWarnings({"unchecked", "rawtypes"})
+   public Region createYoVariableControl(YoVariable yoVariable, Property<Integer> numberPrecision, LinkedYoRegistry linkedRegistry)
    {
       if (yoVariable instanceof YoDouble)
-         return createYoDoubleControl(new YoDoubleProperty((YoDouble) yoVariable), numberPrecision, linkedRegistry);
+         return createYoDoubleControl((YoDouble) yoVariable, numberPrecision, linkedRegistry);
       if (yoVariable instanceof YoBoolean)
-         return createYoBooleanControl(new YoBooleanProperty((YoBoolean) yoVariable), linkedRegistry);
+         return createYoBooleanControl((YoBoolean) yoVariable, linkedRegistry);
       if (yoVariable instanceof YoLong)
-         return createYoLongControl(new YoLongProperty((YoLong) yoVariable), linkedRegistry);
+         return createYoLongControl((YoLong) yoVariable, linkedRegistry);
       if (yoVariable instanceof YoInteger)
-         return createYoIntegerControl(new YoIntegerProperty((YoInteger) yoVariable), linkedRegistry);
+         return createYoIntegerControl((YoInteger) yoVariable, linkedRegistry);
       if (yoVariable instanceof YoEnum)
-         return createYoEnumControl(new YoEnumAsStringProperty<>((YoEnum<?>) yoVariable), linkedRegistry);
+         return createYoEnumControl((YoEnum) yoVariable, linkedRegistry);
       throw new UnsupportedOperationException("Unhandled YoVariable type: " + yoVariable.getClass().getSimpleName());
    }
 
-   public static Control createYoDoubleControl(YoDoubleProperty yoDoubleProperty, Property<Integer> numberPrecision, LinkedYoRegistry linkedRegistry)
+   public Control createYoDoubleControl(YoDouble yoDouble, Property<Integer> numberPrecision, LinkedYoRegistry linkedRegistry)
    {
+      YoDoubleProperty yoDoubleProperty = new YoDoubleProperty(yoDouble);
+      yoDoubleProperty.setLinkedBuffer(linkedRegistry.linkYoVariable(yoDouble));
+      yoVariableProperties.add(yoDoubleProperty);
+
       UnboundedDoubleSpinnerValueFactory valueFactory = new UnboundedDoubleSpinnerValueFactory(Double.NEGATIVE_INFINITY,
                                                                                                Double.POSITIVE_INFINITY,
                                                                                                yoDoubleProperty.getValue(),
@@ -173,7 +186,7 @@ public class YoCompositeListCell extends ListCell<YoComposite>
       {
          valueFactory.setConverter(newValue ? rawDoubleStringConverter : scientificDoubleStringConverter);
       });
-      yoDoubleProperty.bindDoubleProperty(spinner.getValueFactory().valueProperty(), () -> linkedRegistry.push(yoDoubleProperty.getYoVariable()));
+      yoDoubleProperty.bindDoubleProperty(spinner.getValueFactory().valueProperty());
 
       Tooltip tooltip = new Tooltip();
       tooltip.textProperty().bind(spinner.valueProperty().asString());
@@ -182,24 +195,32 @@ public class YoCompositeListCell extends ListCell<YoComposite>
       return spinner;
    }
 
-   public static Region createYoBooleanControl(YoBooleanProperty yoBooleanProperty, LinkedYoRegistry linkedRegistry)
+   public Region createYoBooleanControl(YoBoolean yoBoolean, LinkedYoRegistry linkedRegistry)
    {
+      YoBooleanProperty yoBooleanProperty = new YoBooleanProperty(yoBoolean);
+      yoBooleanProperty.setLinkedBuffer(linkedRegistry.linkYoVariable(yoBoolean));
+      yoVariableProperties.add(yoBooleanProperty);
+
       CheckBox checkBox = new CheckBox();
       HBox root = new HBox(checkBox);
       root.setPrefWidth(GRAPHIC_PREF_WIDTH);
       root.alignmentProperty().set(Pos.CENTER_LEFT);
       checkBox.setSelected(yoBooleanProperty.getValue());
-      yoBooleanProperty.bindBooleanProperty(checkBox.selectedProperty(), () -> linkedRegistry.push(yoBooleanProperty.getYoVariable()));
+      yoBooleanProperty.bindBooleanProperty(checkBox.selectedProperty());
 
       return root;
    }
 
-   public static Control createYoLongControl(YoLongProperty yoLongProperty, LinkedYoRegistry linkedRegistry)
+   public Control createYoLongControl(YoLong yoLong, LinkedYoRegistry linkedRegistry)
    {
+      YoLongProperty yoLongProperty = new YoLongProperty(yoLong);
+      yoLongProperty.setLinkedBuffer(linkedRegistry.linkYoVariable(yoLong));
+      yoVariableProperties.add(yoLongProperty);
+
       Spinner<Long> spinner = new Spinner<>(new LongSpinnerValueFactory(Long.MIN_VALUE, Long.MAX_VALUE, yoLongProperty.getValue(), 1L));
       spinner.setPrefWidth(GRAPHIC_PREF_WIDTH);
       spinner.setEditable(true);
-      yoLongProperty.bindLongProperty(spinner.getValueFactory().valueProperty(), () -> linkedRegistry.push(yoLongProperty.getYoVariable()));
+      yoLongProperty.bindLongProperty(spinner.getValueFactory().valueProperty());
 
       Tooltip tooltip = new Tooltip();
       tooltip.textProperty().bind(spinner.valueProperty().asString());
@@ -208,12 +229,16 @@ public class YoCompositeListCell extends ListCell<YoComposite>
       return spinner;
    }
 
-   public static Control createYoIntegerControl(YoIntegerProperty yoIntegerProperty, LinkedYoRegistry linkedRegistry)
+   public Control createYoIntegerControl(YoInteger yoInteger, LinkedYoRegistry linkedRegistry)
    {
+      YoIntegerProperty yoIntegerProperty = new YoIntegerProperty(yoInteger);
+      yoIntegerProperty.setLinkedBuffer(linkedRegistry.linkYoVariable(yoInteger));
+      yoVariableProperties.add(yoIntegerProperty);
+
       Spinner<Integer> spinner = new Spinner<>(Integer.MIN_VALUE, Integer.MAX_VALUE, yoIntegerProperty.getValue(), 1);
       spinner.setPrefWidth(GRAPHIC_PREF_WIDTH);
       spinner.setEditable(true);
-      yoIntegerProperty.bindIntegerProperty(spinner.getValueFactory().valueProperty(), () -> linkedRegistry.push(yoIntegerProperty.getYoVariable()));
+      yoIntegerProperty.bindIntegerProperty(spinner.getValueFactory().valueProperty());
 
       Tooltip tooltip = new Tooltip();
       tooltip.textProperty().bind(spinner.valueProperty().asString());
@@ -222,13 +247,17 @@ public class YoCompositeListCell extends ListCell<YoComposite>
       return spinner;
    }
 
-   public static <E extends Enum<E>> Control createYoEnumControl(YoEnumAsStringProperty<E> yoEnumProperty, LinkedYoRegistry linkedRegistry)
+   public <E extends Enum<E>> Control createYoEnumControl(YoEnum<E> yoEnum, LinkedYoRegistry linkedRegistry)
    {
+      YoEnumAsStringProperty<E> yoEnumProperty = new YoEnumAsStringProperty<>(yoEnum);
+      yoEnumProperty.setLinkedBuffer(linkedRegistry.linkYoVariable(yoEnum));
+      yoVariableProperties.add(yoEnumProperty);
+
       ComboBox<String> comboBox = new ComboBox<>(FXCollections.observableArrayList(yoEnumProperty.getYoVariable().getEnumValuesAsString()));
       comboBox.setValue(yoEnumProperty.getValue());
       comboBox.setPrefWidth(GRAPHIC_PREF_WIDTH);
       comboBox.setEditable(false);
-      yoEnumProperty.bindStringProperty(comboBox.valueProperty(), () -> linkedRegistry.push(yoEnumProperty.getYoVariable()));
+      yoEnumProperty.bindStringProperty(comboBox.valueProperty());
 
       Tooltip tooltip = new Tooltip();
       tooltip.textProperty().bind(comboBox.valueProperty());

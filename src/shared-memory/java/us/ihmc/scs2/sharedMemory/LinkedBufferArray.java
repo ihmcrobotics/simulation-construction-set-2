@@ -1,7 +1,9 @@
 package us.ihmc.scs2.sharedMemory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class LinkedBufferArray extends LinkedBuffer
@@ -9,20 +11,21 @@ public class LinkedBufferArray extends LinkedBuffer
    private int size = 0;
    private LinkedBuffer[] linkedBuffers = new LinkedBuffer[8];
 
-   private final Set<LinkedBuffer> linkedBuffersWithPendingPushRequest;
-   private final PushRequestListener listener;
+   private final Set<LinkedBuffer> linkedBuffersWithPendingPushRequest = new HashSet<>();
+   private final PushRequestListener listener = target -> this.linkedBuffersWithPendingPushRequest.add(target);
 
-   public LinkedBufferArray(boolean usePushRequestListener)
+   private final List<LinkedBufferChangeListener> changeListeners = new ArrayList<>();
+
+   public LinkedBufferArray()
    {
-      if (usePushRequestListener)
+   }
+
+   public void cleanupInactiveLinkedBuffers()
+   {
+      for (int i = size - 1; i >= 0; i--)
       {
-         linkedBuffersWithPendingPushRequest = new HashSet<>();
-         listener = target -> this.linkedBuffersWithPendingPushRequest.add(target);
-      }
-      else
-      {
-         linkedBuffersWithPendingPushRequest = null;
-         listener = null;
+         if (!linkedBuffers[i].isActive())
+            remove(i);
       }
    }
 
@@ -31,14 +34,58 @@ public class LinkedBufferArray extends LinkedBuffer
       size++;
       ensureCapacity(size);
       linkedBuffers[size - 1] = e;
-      if (listener != null)
-         e.addPushRequestListener(listener);
+      e.addPushRequestListener(listener);
+      Change change = new Change(true, false, e);
+      changeListeners.forEach(listener -> listener.onChange(change));
       return true;
+   }
+
+   public boolean remove(LinkedBuffer e)
+   {
+      int index = indexOf(e);
+      if (index == -1)
+         return false;
+      remove(index);
+      return true;
+   }
+
+   public LinkedBuffer remove(int index)
+   {
+      LinkedBuffer removedLinkedBuffer = linkedBuffers[index];
+      linkedBuffers[index].removePushRequestListener(listener);
+      linkedBuffers[index] = linkedBuffers[size - 1];
+      size--;
+      Change change = new Change(false, true, removedLinkedBuffer);
+      changeListeners.forEach(listener -> listener.onChange(change));
+      return removedLinkedBuffer;
+   }
+
+   public int indexOf(LinkedBuffer e)
+   {
+      if (e != null)
+      {
+         for (int i = 0; i < size; i++)
+         {
+            if (e.equals(linkedBuffers[i]))
+               return i;
+         }
+      }
+      return -1;
    }
 
    public int size()
    {
       return size;
+   }
+
+   public void addChangeListener(LinkedBufferChangeListener listener)
+   {
+      changeListeners.add(listener);
+   }
+
+   public boolean removeChangeListener(LinkedBufferChangeListener listener)
+   {
+      return changeListeners.remove(listener);
    }
 
    @Override
@@ -64,25 +111,11 @@ public class LinkedBufferArray extends LinkedBuffer
    @Override
    public boolean processPush(boolean writeBuffer)
    {
-      if (linkedBuffersWithPendingPushRequest != null)
-      {
-         if (linkedBuffersWithPendingPushRequest.isEmpty())
-            return false;
-         linkedBuffersWithPendingPushRequest.forEach(buffer -> buffer.processPush(writeBuffer));
-         linkedBuffersWithPendingPushRequest.clear();
-         return true;
-      }
-      else
-      {
-         boolean hasPushedSomething = false;
-
-         for (int i = 0; i < size; i++)
-         {
-            hasPushedSomething |= linkedBuffers[i].processPush(writeBuffer);
-         }
-
-         return hasPushedSomething;
-      }
+      if (linkedBuffersWithPendingPushRequest.isEmpty())
+         return false;
+      linkedBuffersWithPendingPushRequest.forEach(buffer -> buffer.processPush(writeBuffer));
+      linkedBuffersWithPendingPushRequest.clear();
+      return true;
    }
 
    @Override
@@ -97,11 +130,13 @@ public class LinkedBufferArray extends LinkedBuffer
    @Override
    public void prepareForPull()
    {
-      Arrays.stream(linkedBuffers, 0, size).parallel().forEach(buffer -> buffer.prepareForPull());
-      //      for (int i = 0; i < size; i++)
-      //      {
-      //         linkedBuffers[i].prepareForPull();
-      //      }
+      for (int i = size - 1; i >= 0; i--)
+      {
+         if (!linkedBuffers[i].isActive())
+            remove(i);
+         else
+            linkedBuffers[i].prepareForPull();
+      }
    }
 
    @Override
@@ -137,5 +172,39 @@ public class LinkedBufferArray extends LinkedBuffer
       if (minCapacity < 0) // overflow
          throw new OutOfMemoryError();
       return (minCapacity > MAX_ARRAY_SIZE) ? Integer.MAX_VALUE : MAX_ARRAY_SIZE;
+   }
+
+   public static interface LinkedBufferChangeListener
+   {
+      void onChange(Change change);
+   }
+
+   public static class Change
+   {
+      private final boolean wasLinkedBufferAdded;
+      private final boolean wasLinkedBufferRemoved;
+      private final LinkedBuffer target;
+
+      private Change(boolean wasLinkedBufferAdded, boolean wasLinkedBufferRemoved, LinkedBuffer target)
+      {
+         this.wasLinkedBufferAdded = wasLinkedBufferAdded;
+         this.wasLinkedBufferRemoved = wasLinkedBufferRemoved;
+         this.target = target;
+      }
+
+      public boolean wasLinkedBufferAdded()
+      {
+         return wasLinkedBufferAdded;
+      }
+
+      public boolean wasLinkedBufferRemoved()
+      {
+         return wasLinkedBufferRemoved;
+      }
+
+      public LinkedBuffer getTarget()
+      {
+         return target;
+      }
    }
 }
