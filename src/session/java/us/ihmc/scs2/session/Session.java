@@ -34,6 +34,7 @@ public abstract class Session
 
    protected final YoRegistry rootRegistry = new YoRegistry(ROOT_REGISTRY_NAME);
    protected final YoRegistry sessionRegistry = new YoRegistry(getClass().getSimpleName());
+   private final JVMStatisticsGenerator jvmStatisticsGenerator = new JVMStatisticsGenerator(sessionRegistry);
 
    protected final YoRegistry runRegistry = new YoRegistry("runStatistics");
    private final YoTimer runActualDT = new YoTimer("runActualDT", TimeUnit.MILLISECONDS, runRegistry);
@@ -377,6 +378,8 @@ public abstract class Session
          e.printStackTrace();
          caughtException = true;
       }
+
+      jvmStatisticsGenerator.update();
 
       runFinalizeTimer.start();
       finalizeRunTick();
