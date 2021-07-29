@@ -120,8 +120,13 @@ public class YoVariableChartData
       messager.removeTopicListener(topics.getYoBufferCurrentProperties(), propertiesListener);
    }
 
+   public boolean updateVariableData()
+   {
+      return linkedYoVariable.pull();
+   }
+
    @SuppressWarnings("rawtypes")
-   public void updateData()
+   public void updateBufferData()
    {
       // Always prepare new data
       BufferSample newRawData = linkedYoVariable.pollRequestedBufferSample();

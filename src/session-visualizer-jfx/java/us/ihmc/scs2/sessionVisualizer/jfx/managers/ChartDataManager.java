@@ -70,7 +70,7 @@ public class ChartDataManager implements Manager
             }
             return remove;
          });
-         chartDataMap.values().forEach(YoVariableChartData::updateData);
+         chartDataMap.values().forEach(YoVariableChartData::updateBufferData);
       }
       catch (Exception e)
       {
