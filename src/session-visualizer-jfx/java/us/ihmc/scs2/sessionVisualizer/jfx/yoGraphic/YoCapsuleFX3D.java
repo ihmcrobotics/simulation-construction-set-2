@@ -180,6 +180,16 @@ public class YoCapsuleFX3D extends YoGraphicFX3D
    }
 
    @Override
+   public void clear()
+   {
+      center = null;
+      axis = null;
+      length = null;
+      radius = null;
+      color = null;
+   }
+
+   @Override
    public YoCapsuleFX3D clone()
    {
       YoCapsuleFX3D clone = new YoCapsuleFX3D();

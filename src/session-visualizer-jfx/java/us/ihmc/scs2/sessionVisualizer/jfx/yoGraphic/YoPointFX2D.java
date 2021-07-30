@@ -98,6 +98,17 @@ public class YoPointFX2D extends YoGraphicFX2D
    }
 
    @Override
+   public void clear()
+   {
+      position = null;
+      size = null;
+      fillColor = null;
+      strokeColor = null;
+      strokeWidth = null;
+      graphicResource = null;
+   }
+
+   @Override
    public YoPointFX2D clone()
    {
       YoPointFX2D clone = new YoPointFX2D();

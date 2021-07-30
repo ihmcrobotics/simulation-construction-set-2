@@ -73,7 +73,6 @@ public class YoGraphicPropertyWindowController
    private Button saveChangesButton, revertChangesButton;
 
    private CheckBoxTreeItem<YoGraphicFXItem> rootItem;
-   private CheckBoxTreeItem<YoGraphicFXItem> oldRootItem;
 
    private SessionVisualizerToolkit toolkit;
    private SessionVisualizerTopics topics;
@@ -82,6 +81,7 @@ public class YoGraphicPropertyWindowController
    private final Map<YoGraphicFXItem, YoGraphicFXCreatorController<YoGraphicFX>> cachedEditors = new HashMap<>();
    private final ObjectProperty<ContextMenu> activeContexMenu = new SimpleObjectProperty<>(this, "activeContextMenu", null);
    private YoGroupFX rootGroup;
+   private YoGroupFX sessionRootGroup;
    private Stage window;
 
    public void initialize(SessionVisualizerToolkit toolkit)
@@ -90,6 +90,7 @@ public class YoGraphicPropertyWindowController
       topics = toolkit.getTopics();
       messager = toolkit.getMessager();
       rootGroup = toolkit.getYoGraphicFXRootGroup();
+      sessionRootGroup = toolkit.getYoGraphicFXSessionRootGroup();
 
       initializeTreeViewAutoRefreshListener(rootGroup);
 
@@ -231,7 +232,7 @@ public class YoGraphicPropertyWindowController
    {
       unloadEditor();
       rootGroup.updateVisiblePropertyRecursively();
-      oldRootItem = rootItem;
+      CheckBoxTreeItem<YoGraphicFXItem> oldRootItem = rootItem;
       rootItem = new CheckBoxTreeItem<>(rootGroup);
       rootItem.setExpanded(true);
       bindVisibilityProperty(rootItem);
@@ -514,7 +515,10 @@ public class YoGraphicPropertyWindowController
                return;
          }
 
-         yoGraphicFXItem.detachFromParent();
+         yoGraphicFXItem.clear();
+
+         if (yoGraphicFXItem != sessionRootGroup)
+            yoGraphicFXItem.detachFromParent();
       }
 
       cachedEditors.remove(selectedItem.getValue());

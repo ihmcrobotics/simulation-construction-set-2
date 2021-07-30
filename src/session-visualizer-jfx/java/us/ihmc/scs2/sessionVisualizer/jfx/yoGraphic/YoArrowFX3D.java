@@ -144,6 +144,18 @@ public class YoArrowFX3D extends YoGraphicFX3D
    }
 
    @Override
+   public void clear()
+   {
+      origin = null;
+      direction = null;
+      bodyLength = null;
+      bodyRadius = null;
+      headLength = null;
+      headRadius = null;
+      color = null;
+   }
+
+   @Override
    public YoArrowFX3D clone()
    {
       YoArrowFX3D clone = new YoArrowFX3D();

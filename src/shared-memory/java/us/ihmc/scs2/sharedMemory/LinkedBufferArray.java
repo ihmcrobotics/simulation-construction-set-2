@@ -55,6 +55,7 @@ public class LinkedBufferArray extends LinkedBuffer
       linkedBuffers[index].removePushRequestListener(listener);
       linkedBuffers[index] = linkedBuffers[size - 1];
       size--;
+      linkedBuffers[size] = null;
       Change change = new Change(false, true, removedLinkedBuffer);
       changeListeners.forEach(listener -> listener.onChange(change));
       return removedLinkedBuffer;

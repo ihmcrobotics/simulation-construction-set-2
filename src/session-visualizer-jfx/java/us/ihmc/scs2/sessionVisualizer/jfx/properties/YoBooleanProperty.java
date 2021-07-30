@@ -1,5 +1,7 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.properties;
 
+import java.lang.ref.WeakReference;
+
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import javafx.beans.property.BooleanProperty;
@@ -10,12 +12,13 @@ import us.ihmc.scs2.sharedMemory.LinkedYoBoolean;
 import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoBooleanProperty extends BooleanPropertyBase implements YoVariableProperty<YoBoolean, Boolean>
 {
    private final YoBoolean yoBoolean;
    private final Object bean;
-   private final YoVariableChangedListener propertyUpdater = v -> pullYoBooleanValue();
+   private final YoVariableChangedListener propertyUpdater = new YoBooleanPropertyUpdater(this);
 
    private SimpleBooleanProperty lastUserInput;
 
@@ -34,13 +37,16 @@ public class YoBooleanProperty extends BooleanPropertyBase implements YoVariable
       yoBoolean.addListener(propertyUpdater);
    }
 
+   private Object userObject;
+
    public void setLinkedBuffer(LinkedYoBoolean linkedBuffer)
    {
       if (this.linkedBuffer != null)
          throw new IllegalOperationException();
 
       this.linkedBuffer = linkedBuffer;
-      linkedBuffer.addUser(this);
+      userObject = new Object();
+      linkedBuffer.addUser(userObject);
    }
 
    @Override
@@ -55,7 +61,7 @@ public class YoBooleanProperty extends BooleanPropertyBase implements YoVariable
       try
       {
          yoBoolean.removeListener(propertyUpdater);
-         linkedBuffer.removeUser(this);
+         linkedBuffer.removeUser(userObject);
       }
       finally
       {
@@ -135,5 +141,23 @@ public class YoBooleanProperty extends BooleanPropertyBase implements YoVariable
    public String getName()
    {
       return yoBoolean.getName();
+   }
+
+   private static class YoBooleanPropertyUpdater implements YoVariableChangedListener
+   {
+      private final WeakReference<YoBooleanProperty> propertyRef;
+
+      public YoBooleanPropertyUpdater(YoBooleanProperty property)
+      {
+         propertyRef = new WeakReference<>(property);
+      }
+
+      @Override
+      public void changed(YoVariable source)
+      {
+         YoBooleanProperty property = propertyRef.get();
+         if (property != null)
+            property.pullYoBooleanValue();
+      }
    }
 }

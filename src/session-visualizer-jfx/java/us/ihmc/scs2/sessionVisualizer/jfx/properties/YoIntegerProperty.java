@@ -1,5 +1,7 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.properties;
 
+import java.lang.ref.WeakReference;
+
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import javafx.beans.property.IntegerProperty;
@@ -10,12 +12,13 @@ import us.ihmc.scs2.sharedMemory.LinkedYoInteger;
 import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoInteger;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoIntegerProperty extends IntegerPropertyBase implements YoVariableProperty<YoInteger, Number>
 {
    private final YoInteger yoInteger;
    private final Object bean;
-   private final YoVariableChangedListener propertyUpdater = v -> pullYoIntegerValue();
+   private final YoVariableChangedListener propertyUpdater = new YoIntegerPropertyUpdater(this);
 
    private SimpleIntegerProperty lastUserInput;
 
@@ -34,13 +37,16 @@ public class YoIntegerProperty extends IntegerPropertyBase implements YoVariable
       yoInteger.addListener(propertyUpdater);
    }
 
+   private Object userObject;
+
    public void setLinkedBuffer(LinkedYoInteger linkedBuffer)
    {
       if (this.linkedBuffer != null)
          throw new IllegalOperationException();
 
       this.linkedBuffer = linkedBuffer;
-      linkedBuffer.addUser(this);
+      userObject = new Object();
+      linkedBuffer.addUser(userObject);
    }
 
    @Override
@@ -55,7 +61,7 @@ public class YoIntegerProperty extends IntegerPropertyBase implements YoVariable
       try
       {
          yoInteger.removeListener(propertyUpdater);
-         linkedBuffer.removeUser(this);
+         linkedBuffer.removeUser(userObject);
       }
       finally
       {
@@ -135,5 +141,23 @@ public class YoIntegerProperty extends IntegerPropertyBase implements YoVariable
    public String getName()
    {
       return yoInteger.getName();
+   }
+
+   private static class YoIntegerPropertyUpdater implements YoVariableChangedListener
+   {
+      private final WeakReference<YoIntegerProperty> propertyRef;
+
+      public YoIntegerPropertyUpdater(YoIntegerProperty property)
+      {
+         propertyRef = new WeakReference<>(property);
+      }
+
+      @Override
+      public void changed(YoVariable source)
+      {
+         YoIntegerProperty property = propertyRef.get();
+         if (property != null)
+            property.pullYoIntegerValue();
+      }
    }
 }

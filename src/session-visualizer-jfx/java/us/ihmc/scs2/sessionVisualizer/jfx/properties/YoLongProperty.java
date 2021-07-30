@@ -1,5 +1,7 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.properties;
 
+import java.lang.ref.WeakReference;
+
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import javafx.beans.property.LongProperty;
@@ -10,12 +12,13 @@ import us.ihmc.scs2.sharedMemory.LinkedYoLong;
 import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoLong;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoLongProperty extends LongPropertyBase implements YoVariableProperty<YoLong, Number>
 {
    private final YoLong yoLong;
    private final Object bean;
-   private final YoVariableChangedListener propertyUpdater = v -> pullYoLongValue();
+   private final YoVariableChangedListener propertyUpdater = new YoLongPropertyUpdater(this);
 
    private SimpleLongProperty lastUserInput;
 
@@ -33,6 +36,8 @@ public class YoLongProperty extends LongPropertyBase implements YoVariableProper
       pullYoLongValue();
       yoLong.addListener(propertyUpdater);
    }
+
+   private Object userObject;
 
    public void setLinkedBuffer(LinkedYoLong linkedBuffer)
    {
@@ -55,7 +60,7 @@ public class YoLongProperty extends LongPropertyBase implements YoVariableProper
       try
       {
          yoLong.removeListener(propertyUpdater);
-         linkedBuffer.removeUser(this);
+         linkedBuffer.removeUser(userObject);
       }
       finally
       {
@@ -135,5 +140,23 @@ public class YoLongProperty extends LongPropertyBase implements YoVariableProper
    public String getName()
    {
       return yoLong.getName();
+   }
+
+   private static class YoLongPropertyUpdater implements YoVariableChangedListener
+   {
+      private final WeakReference<YoLongProperty> propertyRef;
+
+      public YoLongPropertyUpdater(YoLongProperty property)
+      {
+         propertyRef = new WeakReference<>(property);
+      }
+
+      @Override
+      public void changed(YoVariable source)
+      {
+         YoLongProperty property = propertyRef.get();
+         if (property != null)
+            property.pullYoLongValue();
+      }
    }
 }

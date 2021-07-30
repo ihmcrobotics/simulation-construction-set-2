@@ -188,6 +188,11 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       return yoGraphicFXManager.getRootGroup();
    }
 
+   public YoGroupFX getYoGraphicFXSessionRootGroup()
+   {
+      return yoGraphicFXManager.getSessionRootGroup();
+   }
+
    public YoRobotFXManager getYoRobotFXManager()
    {
       return yoRobotFXManager;

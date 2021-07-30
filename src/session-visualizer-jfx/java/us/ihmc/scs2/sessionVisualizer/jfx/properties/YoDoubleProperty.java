@@ -1,5 +1,7 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.properties;
 
+import java.lang.ref.WeakReference;
+
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import javafx.beans.property.DoubleProperty;
@@ -10,12 +12,13 @@ import us.ihmc.scs2.sharedMemory.LinkedYoDouble;
 import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoDoubleProperty extends DoublePropertyBase implements YoVariableProperty<YoDouble, Number>
 {
    private final YoDouble yoDouble;
    private final Object bean;
-   private final YoVariableChangedListener propertyUpdater = v -> pullYoDoubleValue();
+   private final YoVariableChangedListener propertyUpdater = new YoDoublePropertyUpdater(this);
 
    private SimpleDoubleProperty lastUserInput;
 
@@ -34,13 +37,16 @@ public class YoDoubleProperty extends DoublePropertyBase implements YoVariablePr
       yoDouble.addListener(propertyUpdater);
    }
 
+   private Object userObject;
+
    public void setLinkedBuffer(LinkedYoDouble linkedBuffer)
    {
       if (this.linkedBuffer != null)
          throw new IllegalOperationException();
 
       this.linkedBuffer = linkedBuffer;
-      linkedBuffer.addUser(this);
+      userObject = new Object();
+      linkedBuffer.addUser(userObject);
    }
 
    @Override
@@ -55,7 +61,7 @@ public class YoDoubleProperty extends DoublePropertyBase implements YoVariablePr
       try
       {
          yoDouble.removeListener(propertyUpdater);
-         linkedBuffer.removeUser(this);
+         linkedBuffer.removeUser(userObject);
       }
       finally
       {
@@ -135,5 +141,23 @@ public class YoDoubleProperty extends DoublePropertyBase implements YoVariablePr
    public String getName()
    {
       return yoDouble.getName();
+   }
+
+   private static class YoDoublePropertyUpdater implements YoVariableChangedListener
+   {
+      private final WeakReference<YoDoubleProperty> propertyRef;
+
+      public YoDoublePropertyUpdater(YoDoubleProperty property)
+      {
+         propertyRef = new WeakReference<>(property);
+      }
+
+      @Override
+      public void changed(YoVariable source)
+      {
+         YoDoubleProperty property = propertyRef.get();
+         if (property != null)
+            property.pullYoDoubleValue();
+      }
    }
 }

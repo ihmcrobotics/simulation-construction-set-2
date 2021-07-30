@@ -1,5 +1,6 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.properties;
 
+import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.List;
 
@@ -13,12 +14,13 @@ import us.ihmc.scs2.sharedMemory.LinkedYoEnum;
 import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoEnum;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBase implements YoVariableProperty<YoEnum<E>, String>
 {
    private final YoEnum<E> yoEnum;
    private final Object bean;
-   private final YoVariableChangedListener propertyUpdater = v -> pullYoEnumValue();
+   private final YoVariableChangedListener propertyUpdater = new YoEnumPropertyUpdater(this);
    private final List<String> enumConstants;
 
    private SimpleStringProperty lastUserInput;
@@ -40,13 +42,16 @@ public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBas
       yoEnum.addListener(propertyUpdater);
    }
 
+   private Object userObject;
+
    public void setLinkedBuffer(LinkedYoEnum<E> linkedBuffer)
    {
       if (this.linkedBuffer != null)
          throw new IllegalOperationException();
 
       this.linkedBuffer = linkedBuffer;
-      linkedBuffer.addUser(this);
+      userObject = new Object();
+      linkedBuffer.addUser(userObject);
    }
 
    @Override
@@ -61,7 +66,7 @@ public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBas
       try
       {
          yoEnum.removeListener(propertyUpdater);
-         linkedBuffer.removeUser(this);
+         linkedBuffer.removeUser(userObject);
       }
       finally
       {
@@ -160,5 +165,23 @@ public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBas
    public String getName()
    {
       return yoEnum.getName();
+   }
+
+   private static class YoEnumPropertyUpdater implements YoVariableChangedListener
+   {
+      private final WeakReference<YoEnumAsStringProperty<?>> propertyRef;
+
+      public YoEnumPropertyUpdater(YoEnumAsStringProperty<?> property)
+      {
+         propertyRef = new WeakReference<>(property);
+      }
+
+      @Override
+      public void changed(YoVariable source)
+      {
+         YoEnumAsStringProperty<?> property = propertyRef.get();
+         if (property != null)
+            property.pullYoEnumValue();
+      }
    }
 }

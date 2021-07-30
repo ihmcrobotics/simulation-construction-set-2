@@ -84,6 +84,14 @@ public class YoPointFX3D extends YoGraphicFX3D
    }
 
    @Override
+   public void clear()
+   {
+      position = null;
+      size = null;
+      color = null;
+   }
+
+   @Override
    public YoPointFX3D clone()
    {
       YoPointFX3D clone = new YoPointFX3D();

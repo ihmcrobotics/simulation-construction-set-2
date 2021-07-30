@@ -168,7 +168,7 @@ public class YoCompositeListCell extends ListCell<YoComposite>
 
    public Control createYoDoubleControl(YoDouble yoDouble, Property<Integer> numberPrecision, LinkedYoRegistry linkedRegistry)
    {
-      YoDoubleProperty yoDoubleProperty = new YoDoubleProperty(yoDouble);
+      YoDoubleProperty yoDoubleProperty = new YoDoubleProperty(yoDouble, this);
       yoDoubleProperty.setLinkedBuffer(linkedRegistry.linkYoVariable(yoDouble));
       yoVariableProperties.add(yoDoubleProperty);
 
@@ -197,7 +197,7 @@ public class YoCompositeListCell extends ListCell<YoComposite>
 
    public Region createYoBooleanControl(YoBoolean yoBoolean, LinkedYoRegistry linkedRegistry)
    {
-      YoBooleanProperty yoBooleanProperty = new YoBooleanProperty(yoBoolean);
+      YoBooleanProperty yoBooleanProperty = new YoBooleanProperty(yoBoolean, this);
       yoBooleanProperty.setLinkedBuffer(linkedRegistry.linkYoVariable(yoBoolean));
       yoVariableProperties.add(yoBooleanProperty);
 
@@ -213,7 +213,7 @@ public class YoCompositeListCell extends ListCell<YoComposite>
 
    public Control createYoLongControl(YoLong yoLong, LinkedYoRegistry linkedRegistry)
    {
-      YoLongProperty yoLongProperty = new YoLongProperty(yoLong);
+      YoLongProperty yoLongProperty = new YoLongProperty(yoLong, this);
       yoLongProperty.setLinkedBuffer(linkedRegistry.linkYoVariable(yoLong));
       yoVariableProperties.add(yoLongProperty);
 
@@ -231,7 +231,7 @@ public class YoCompositeListCell extends ListCell<YoComposite>
 
    public Control createYoIntegerControl(YoInteger yoInteger, LinkedYoRegistry linkedRegistry)
    {
-      YoIntegerProperty yoIntegerProperty = new YoIntegerProperty(yoInteger);
+      YoIntegerProperty yoIntegerProperty = new YoIntegerProperty(yoInteger, this);
       yoIntegerProperty.setLinkedBuffer(linkedRegistry.linkYoVariable(yoInteger));
       yoVariableProperties.add(yoIntegerProperty);
 
@@ -249,7 +249,7 @@ public class YoCompositeListCell extends ListCell<YoComposite>
 
    public <E extends Enum<E>> Control createYoEnumControl(YoEnum<E> yoEnum, LinkedYoRegistry linkedRegistry)
    {
-      YoEnumAsStringProperty<E> yoEnumProperty = new YoEnumAsStringProperty<>(yoEnum);
+      YoEnumAsStringProperty<E> yoEnumProperty = new YoEnumAsStringProperty<>(yoEnum, this);
       yoEnumProperty.setLinkedBuffer(linkedRegistry.linkYoVariable(yoEnum));
       yoVariableProperties.add(yoEnumProperty);
 

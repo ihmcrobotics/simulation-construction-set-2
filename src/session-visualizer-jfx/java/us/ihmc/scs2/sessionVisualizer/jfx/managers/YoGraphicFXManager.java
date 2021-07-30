@@ -40,7 +40,10 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
    // TODO Not sure if that belongs here.
    private final YoGraphicFXResourceManager yoGraphicFXResourceManager = new YoGraphicFXResourceManager();
 
-   public YoGraphicFXManager(JavaFXMessager messager, SessionVisualizerTopics topics, YoManager yoManager, BackgroundExecutorManager backgroundExecutorManager,
+   public YoGraphicFXManager(JavaFXMessager messager,
+                             SessionVisualizerTopics topics,
+                             YoManager yoManager,
+                             BackgroundExecutorManager backgroundExecutorManager,
                              ReferenceFrameManager referenceFrameManager)
    {
       this.messager = messager;
@@ -194,6 +197,11 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
    public YoGroupFX getRootGroup()
    {
       return root;
+   }
+
+   public YoGroupFX getSessionRootGroup()
+   {
+      return sessionRoot;
    }
 
    public Node getRootNode2D()

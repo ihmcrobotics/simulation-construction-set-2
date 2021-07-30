@@ -179,6 +179,9 @@ public class YoGroupFX implements YoGraphicFXItem
 
    public void clear()
    {
+      children.forEach(child -> child.clear());
+      yoGraphicFX2DSet.forEach(graphic -> graphic.clear());
+      yoGraphicFX3DSet.forEach(graphic -> graphic.clear());
       children.clear();
       yoGraphicFX2DSet.clear();
       yoGraphicFX3DSet.clear();

@@ -50,7 +50,7 @@ public class YoManager extends ObservedAnimationTimer implements Manager
 
       updatingYoVariables = true;
       rootRegistryHashCodeProperty.set(YoVariableTools.hashCode(rootRegistry));
-      rootRegistryDatabase = new YoVariableDatabase(rootRegistry);
+      rootRegistryDatabase = new YoVariableDatabase(rootRegistry, linkedRootRegistry);
       updatingYoVariables = false;
       LogTools.info("UI linked YoVariables created");
       start();
