@@ -359,6 +359,8 @@ public class YoSharedBufferTest
          LinkedYoRegistry linkedYoRegistry = yoSharedBuffer.newLinkedYoRegistry();
 
          List<YoVariable> allConsumerYoVariables = linkedYoRegistry.getRootRegistry().collectSubtreeVariables();
+         // Need to manually indicate that all YoVariable should be linked and add a user to the links so they don't get thrown away
+         allConsumerYoVariables.forEach(var -> linkedYoRegistry.linkYoVariable(var).addUser(this));
 
          allBufferYoVariables.forEach(v -> SharedMemoryRandomTools.randomizeYoVariable(random, v));
          long[] bufferVariableBackedUp = allBufferYoVariables.stream().mapToLong(YoVariable::getValueAsLongBits).toArray();
