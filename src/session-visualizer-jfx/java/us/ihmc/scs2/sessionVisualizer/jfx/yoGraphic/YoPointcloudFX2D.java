@@ -154,6 +154,18 @@ public class YoPointcloudFX2D extends YoGraphicFX2D
    }
 
    @Override
+   public void clear()
+   {
+      pointcloudNode.getChildren().clear();
+      points.clear();
+      points = null;
+      numberOfPoints = null;
+      size = null;
+      graphicResource = null;
+      translates.clear();
+   }
+
+   @Override
    public YoGraphicFX clone()
    {
       YoPointcloudFX2D clone = new YoPointcloudFX2D();

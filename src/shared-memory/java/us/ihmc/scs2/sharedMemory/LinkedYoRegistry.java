@@ -1,12 +1,10 @@
 package us.ihmc.scs2.sharedMemory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
@@ -19,98 +17,95 @@ public class LinkedYoRegistry extends LinkedBuffer
    private final YoRegistryBuffer yoRegistryBuffer;
 
    private final ReentrantLock lock;
-   private final List<LinkedYoVariable> linkedYoVariables = new ArrayList<>();
+   private final LinkedBufferArray linkedYoVariables = new LinkedBufferArray();
    private final Map<YoVariable, LinkedYoVariable> linkedYoVariableMap = new HashMap<>();
+   private final List<PushRequestListener> listeners = new ArrayList<>();
+   private final PushRequestListener pushRequestForwarder = target -> listeners.forEach(listener -> listener.pushRequested(this));
 
-   LinkedYoRegistry(YoRegistry rootRegistry, YoRegistryBuffer YoRegistryBuffer)
+   LinkedYoRegistry(YoRegistry rootRegistry, YoRegistryBuffer yoRegistryBuffer)
    {
       this.rootRegistry = rootRegistry;
-      this.yoRegistryBuffer = YoRegistryBuffer;
-      lock = YoRegistryBuffer.getLock();
-      linkConsumerVariables();
+      this.yoRegistryBuffer = yoRegistryBuffer;
+      lock = yoRegistryBuffer.getLock();
+      setup();
    }
 
-   /**
-    * Blocking operation that registers all {@code YoVariable}s declared in the buffer as linked
-    * variables in this linked registry.
-    * <p>
-    * The newly created linked variables can then be used to perform read/write operations with the
-    * buffer.
-    * </p>
-    * <p>
-    * Operation for the buffer consumers only.
-    * </p>
-    *
-    * @return the number of {@code YoVariable}s that were created.
-    */
-   public int linkManagerVariables()
+   private void setup()
    {
+      linkedYoVariables.addChangeListener(change ->
+      {
+         if (change.getTarget() instanceof LinkedYoVariable)
+         {
+            LinkedYoVariable<?> target = (LinkedYoVariable<?>) change.getTarget();
+            if (change.wasLinkedBufferAdded())
+               linkedYoVariableMap.put(target.getLinkedYoVariable(), target);
+            if (change.wasLinkedBufferRemoved())
+               linkedYoVariableMap.remove(target.getLinkedYoVariable());
+         }
+      });
+
       YoRegistry bufferRootRegistry = yoRegistryBuffer.getRootRegistry().findRegistry(rootRegistry.getNamespace());
+      SharedMemoryTools.duplicateMissingYoVariablesInTarget(bufferRootRegistry, rootRegistry);
 
-      int numberOfNewVariables = 0;
-
-      lock.lock();
-
-      try
+      bufferRootRegistry.addListener(change ->
       {
-         yoRegistryBuffer.registerMissingBuffers();
-         numberOfNewVariables = SharedMemoryTools.duplicateMissingYoVariablesInTarget(bufferRootRegistry, rootRegistry, this::setupNewLinkedYoVariable);
-      }
-      finally
-      {
-         lock.unlock();
-      }
+         lock.lock();
+         try
+         {
+            if (change.wasVariableAdded())
+            {
+               YoVariable newBufferVariable1 = change.getTargetVariable();
+               YoRegistry registry1 = SharedMemoryTools.ensurePathExists(rootRegistry, newBufferVariable1.getNamespace());
+               if (registry1.getVariable(newBufferVariable1.getName()) == null)
+                  newBufferVariable1.duplicate(registry1);
+            }
 
-      return numberOfNewVariables;
+            if (change.wasRegistryAdded())
+            {
+               for (YoVariable newBufferVariable2 : change.getTargetRegistry().collectSubtreeVariables())
+               {
+                  YoRegistry registry2 = SharedMemoryTools.ensurePathExists(rootRegistry, newBufferVariable2.getNamespace());
+                  if (registry2.getVariable(newBufferVariable2.getName()) == null)
+                     newBufferVariable2.duplicate(registry2);
+               }
+            }
+         }
+         finally
+         {
+            lock.unlock();
+         }
+      });
+
+      rootRegistry.addListener(change ->
+      {
+         lock.lock();
+         try
+         {
+            if (change.wasVariableAdded())
+               yoRegistryBuffer.findOrCreateYoVariableBuffer(change.getTargetVariable());
+            if (change.wasRegistryAdded())
+               change.getTargetRegistry().collectSubtreeVariables().forEach(var -> yoRegistryBuffer.findOrCreateYoVariableBuffer(var));
+         }
+         finally
+         {
+            lock.unlock();
+         }
+      });
    }
 
-   /**
-    * Blocking operation that pushes locally created {@code YoVariable}s to the buffer so they get a
-    * buffer attributed.
-    * <p>
-    * The variables can then be used to perform read/write operations with the buffer.
-    * </p>
-    * <p>
-    * Operation for the buffer consumers only.
-    * </p>
-    */
-   public void linkConsumerVariables()
+   public <L extends LinkedYoVariable<T>, T extends YoVariable> L linkYoVariable(T variableToLink)
    {
-      List<YoVariable> allYoVariables = rootRegistry.collectSubtreeVariables();
+      LinkedYoVariable linkedYoVariable = linkedYoVariableMap.get(variableToLink);
 
-      if (allYoVariables.size() == linkedYoVariables.size())
-         return;
-
-      List<YoVariable> variablesMissingLink = allYoVariables.stream().filter(v -> !linkedYoVariableMap.containsKey(v)).collect(Collectors.toList());
-
-      lock.lock();
-
-      try
+      if (linkedYoVariable == null)
       {
-         variablesMissingLink.forEach(this::setupNewLinkedYoVariable);
+         YoVariableBuffer yoVariableBuffer = yoRegistryBuffer.findYoVariableBuffer(variableToLink);
+         linkedYoVariable = yoVariableBuffer.newLinkedYoVariable(variableToLink);
+         linkedYoVariable.addPushRequestListener(pushRequestForwarder);
+         linkedYoVariables.add(linkedYoVariable);
       }
-      finally
-      {
-         lock.unlock();
-      }
-   }
 
-   /**
-    * Creates a new {@code LinkedYoVariable} for the given {@code variableToLink}, ensures a buffer
-    * exists for that variable, and adds the newly create linked variable to {@link #linkedYoVariables}
-    * and {@link #linkedYoVariableMap}.
-    * <p>
-    * This operation requires the consumer and manager threads to be synchronized.
-    * </p>
-    *
-    * @param variableToLink the variable to be linked to the buffer.
-    */
-   private void setupNewLinkedYoVariable(YoVariable variableToLink)
-   {
-      YoVariableBuffer yoVariableBuffer = yoRegistryBuffer.findOrCreateYoVariableBuffer(variableToLink);
-      LinkedYoVariable newLinkedYoVariable = yoVariableBuffer.newLinkedYoVariable(variableToLink);
-      linkedYoVariables.add(newLinkedYoVariable);
-      linkedYoVariableMap.put(newLinkedYoVariable.getLinkedYoVariable(), newLinkedYoVariable);
+      return (L) linkedYoVariable;
    }
 
    /** {@inheritDoc} */
@@ -118,34 +113,30 @@ public class LinkedYoRegistry extends LinkedBuffer
    @Override
    public void push()
    {
-      linkedYoVariables.forEach(LinkedYoVariable::push);
-   }
-
-   /**
-    * Creates request for modifying the buffer when possible on a sub-selection of variables. This is
-    * typically used to push the value of a linked {@code YoVariable} that has been changed in a buffer
-    * consumer thread.
-    * <p>
-    * Operation for the buffer consumers only.
-    * </p>
-    *
-    * @param yoVariablesToPush the variables to push their value to the buffer.
-    */
-   public void push(YoVariable... yoVariablesToPush)
-   {
-      Arrays.asList(yoVariablesToPush).stream().map(linkedYoVariableMap::get).filter(v -> v != null).forEach(LinkedYoVariable::push);
+      lock.lock();
+      try
+      {
+         linkedYoVariables.push();
+      }
+      finally
+      {
+         lock.unlock();
+      }
    }
 
    /** {@inheritDoc} */
    @Override
    public boolean pull()
    {
-      boolean hasNewData = false;
-
-      for (LinkedYoVariable linkedYoVariable : linkedYoVariables)
-         hasNewData |= linkedYoVariable.pull();
-
-      return hasNewData;
+      lock.lock();
+      try
+      {
+         return linkedYoVariables.pull();
+      }
+      finally
+      {
+         lock.unlock();
+      }
    }
 
    /** {@inheritDoc} */
@@ -153,20 +144,15 @@ public class LinkedYoRegistry extends LinkedBuffer
    @Override
    boolean processPush(boolean writeBuffer)
    {
-      boolean hasPushedSomething = false;
-
       lock.lock();
       try
       {
-         for (LinkedYoVariable linkedYoVariable : linkedYoVariables)
-            hasPushedSomething |= linkedYoVariable.processPush(writeBuffer);
+         return linkedYoVariables.processPush(writeBuffer);
       }
       finally
       {
          lock.unlock();
       }
-
-      return hasPushedSomething;
    }
 
    /** {@inheritDoc} */
@@ -177,15 +163,24 @@ public class LinkedYoRegistry extends LinkedBuffer
       lock.lock();
       try
       {
-         for (LinkedYoVariable linkedYoVariable : linkedYoVariables)
-         {
-            linkedYoVariable.flushPush();
-         }
+         linkedYoVariables.flushPush();
       }
       finally
       {
          lock.unlock();
       }
+   }
+
+   @Override
+   void addPushRequestListener(PushRequestListener listener)
+   {
+      listeners.add(listener);
+   }
+
+   @Override
+   boolean removePushRequestListener(PushRequestListener listener)
+   {
+      return listeners.remove(listener);
    }
 
    /** {@inheritDoc} */
@@ -196,7 +191,7 @@ public class LinkedYoRegistry extends LinkedBuffer
       lock.lock();
       try
       {
-         linkedYoVariables.forEach(LinkedYoVariable::prepareForPull);
+         linkedYoVariables.prepareForPull();
       }
       finally
       {
@@ -209,20 +204,16 @@ public class LinkedYoRegistry extends LinkedBuffer
    @Override
    boolean hasRequestPending()
    {
-      boolean hasRequestPending = false;
-
       lock.lock();
 
       try
       {
-         hasRequestPending = linkedYoVariables.stream().anyMatch(LinkedYoVariable::hasRequestPending);
+         return linkedYoVariables.hasRequestPending();
       }
       finally
       {
          lock.unlock();
       }
-
-      return hasRequestPending;
    }
 
    public YoRegistry getRootRegistry()

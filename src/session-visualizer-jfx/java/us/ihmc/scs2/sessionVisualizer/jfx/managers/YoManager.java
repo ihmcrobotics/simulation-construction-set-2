@@ -49,10 +49,8 @@ public class YoManager extends ObservedAnimationTimer implements Manager
       linkedBufferProperties = linkedYoVariableFactory.newLinkedBufferProperties();
 
       updatingYoVariables = true;
-      linkedRootRegistry.linkConsumerVariables();
-      linkedRootRegistry.linkManagerVariables();
       rootRegistryHashCodeProperty.set(YoVariableTools.hashCode(rootRegistry));
-      rootRegistryDatabase = new YoVariableDatabase(rootRegistry);
+      rootRegistryDatabase = new YoVariableDatabase(rootRegistry, linkedRootRegistry);
       updatingYoVariables = false;
       LogTools.info("UI linked YoVariables created");
       start();
@@ -83,22 +81,6 @@ public class YoManager extends ObservedAnimationTimer implements Manager
    public LinkedYoVariable<?> newLinkedYoVariable(YoVariable yoVariable)
    {
       return linkedYoVariableFactory.newLinkedYoVariable(yoVariable);
-   }
-
-   public void linkNewYoVariables()
-   {
-      updatingYoVariables = true;
-      linkedRootRegistry.linkConsumerVariables();
-      rootRegistryHashCodeProperty.set(YoVariableTools.hashCode(rootRegistry));
-      updatingYoVariables = false;
-   }
-
-   public void pullMissingYoVariables()
-   {
-      updatingYoVariables = true;
-      linkedRootRegistry.linkManagerVariables();
-      rootRegistryHashCodeProperty.set(YoVariableTools.hashCode(rootRegistry));
-      updatingYoVariables = false;
    }
 
    public YoRegistry getRootRegistry()

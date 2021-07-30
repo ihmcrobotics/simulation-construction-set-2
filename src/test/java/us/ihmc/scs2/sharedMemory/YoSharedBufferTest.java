@@ -11,8 +11,8 @@ import org.junit.jupiter.api.Test;
 
 import us.ihmc.commons.RandomNumbers;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 import us.ihmc.scs2.sharedMemory.tools.SharedMemoryRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -357,9 +357,10 @@ public class YoSharedBufferTest
          }
 
          LinkedYoRegistry linkedYoRegistry = yoSharedBuffer.newLinkedYoRegistry();
-         linkedYoRegistry.linkManagerVariables();
 
          List<YoVariable> allConsumerYoVariables = linkedYoRegistry.getRootRegistry().collectSubtreeVariables();
+         // Need to manually indicate that all YoVariable should be linked and add a user to the links so they don't get thrown away
+         allConsumerYoVariables.forEach(var -> linkedYoRegistry.linkYoVariable(var).addUser(this));
 
          allBufferYoVariables.forEach(v -> SharedMemoryRandomTools.randomizeYoVariable(random, v));
          long[] bufferVariableBackedUp = allBufferYoVariables.stream().mapToLong(YoVariable::getValueAsLongBits).toArray();

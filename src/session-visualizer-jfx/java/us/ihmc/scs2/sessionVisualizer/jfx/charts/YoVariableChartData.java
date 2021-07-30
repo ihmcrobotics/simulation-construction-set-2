@@ -62,6 +62,7 @@ public class YoVariableChartData
       this.messager = messager;
       this.topics = topics;
       this.linkedYoVariable = linkedYoVariable;
+      linkedYoVariable.addUser(this);
       currentSessionMode = messager.createInput(topics.getSessionCurrentMode(), SessionMode.PAUSE);
 
       if (linkedYoVariable instanceof LinkedYoBoolean)
@@ -112,14 +113,20 @@ public class YoVariableChartData
 
    public void dispose()
    {
+      linkedYoVariable.removeUser(this);
       messager.removeInput(topics.getSessionCurrentMode(), currentSessionMode);
       messager.removeTopicListener(topics.getYoBufferCropRequest(), cropRequestListener);
       messager.removeTopicListener(topics.getYoBufferFillRequest(), fillRequestListener);
       messager.removeTopicListener(topics.getYoBufferCurrentProperties(), propertiesListener);
    }
 
+   public boolean updateVariableData()
+   {
+      return linkedYoVariable.pull();
+   }
+
    @SuppressWarnings("rawtypes")
-   public void updateData()
+   public void updateBufferData()
    {
       // Always prepare new data
       BufferSample newRawData = linkedYoVariable.pollRequestedBufferSample();

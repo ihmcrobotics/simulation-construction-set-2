@@ -71,10 +71,10 @@ public class YoBCF2000ButtonController extends YoBCF2000InputController
       {
          button.setDisable(false);
 
-         yoBooleanSlider = (YoBooleanSlider) YoVariableSlider.newYoVariableSlider(yoVariable, () -> yoManager.getLinkedRootRegistry().push(yoVariable));
+         yoBooleanSlider = (YoBooleanSlider) YoVariableSlider.newYoVariableSlider(yoVariable, yoManager.getLinkedRootRegistry());
          if (sliderVariable != null)
             yoBooleanSlider.bindSliderVariable(sliderVariable);
-         yoBooleanSlider.getYoBooleanProperty().bindBooleanProperty(button.selectedProperty(), () -> yoManager.getLinkedRootRegistry().push(yoVariable));
+         yoBooleanSlider.getYoBooleanProperty().bindBooleanProperty(button.selectedProperty());
 
          setupYoVariableSlider(yoBooleanSlider);
       }

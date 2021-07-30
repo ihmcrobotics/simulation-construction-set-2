@@ -33,6 +33,24 @@ public abstract class Session
    public static final String ROOT_REGISTRY_NAME = "root";
 
    protected final YoRegistry rootRegistry = new YoRegistry(ROOT_REGISTRY_NAME);
+   protected final YoRegistry sessionRegistry = new YoRegistry(getClass().getSimpleName());
+   private final JVMStatisticsGenerator jvmStatisticsGenerator = new JVMStatisticsGenerator(sessionRegistry);
+
+   protected final YoRegistry runRegistry = new YoRegistry("runStatistics");
+   private final YoTimer runActualDT = new YoTimer("runActualDT", TimeUnit.MILLISECONDS, runRegistry);
+   private final YoTimer runTimer = new YoTimer("runTimer", TimeUnit.MILLISECONDS, runRegistry);
+   private final YoTimer runInitializeTimer = new YoTimer("runInitializeTimer", TimeUnit.MILLISECONDS, runRegistry);
+   private final YoTimer runSpecificTimer = new YoTimer("runSpecificTimer", TimeUnit.MILLISECONDS, runRegistry);
+   private final YoTimer runFinalizeTimer = new YoTimer("runFinalizeTimer", TimeUnit.MILLISECONDS, runRegistry);
+
+   protected final YoRegistry playbackRegistry = new YoRegistry("playbackStatistics");
+   private final YoTimer playbackActualDT = new YoTimer("playbackActualDT", TimeUnit.MILLISECONDS, playbackRegistry);
+   private final YoTimer playbackTimer = new YoTimer("playbackTimer", TimeUnit.MILLISECONDS, playbackRegistry);
+
+   protected final YoRegistry pauseRegistry = new YoRegistry("pauseStatistics");
+   private final YoTimer pauseActualDT = new YoTimer("pauseActualDT", TimeUnit.MILLISECONDS, pauseRegistry);
+   private final YoTimer pauseTimer = new YoTimer("pauseTimer", TimeUnit.MILLISECONDS, pauseRegistry);
+
    protected final YoSharedBuffer sharedBuffer = new YoSharedBuffer(rootRegistry, 8192);
 
    private final AtomicReference<SessionMode> activeMode = new AtomicReference<>(SessionMode.PAUSE);
@@ -79,6 +97,11 @@ public abstract class Session
 
    public Session()
    {
+      rootRegistry.addChild(sessionRegistry);
+      sessionRegistry.addChild(runRegistry);
+      sessionRegistry.addChild(playbackRegistry);
+      sessionRegistry.addChild(pauseRegistry);
+
       sessionModeToTaskMap.put(SessionMode.RUNNING, this::runTick);
       sessionModeToTaskMap.put(SessionMode.PLAYBACK, this::playbackTick);
       sessionModeToTaskMap.put(SessionMode.PAUSE, this::pauseTick);
@@ -267,6 +290,10 @@ public abstract class Session
       if (activeScheduledFuture != null)
          activeScheduledFuture.cancel(false);
 
+      runActualDT.reset();
+      playbackActualDT.reset();
+      pauseActualDT.reset();
+
       activeScheduledFuture = executorService.scheduleAtFixedRate(sessionModeToTaskMap.get(activeMode.get()),
                                                                   0,
                                                                   computeThreadPeriod(activeMode.get()),
@@ -314,7 +341,6 @@ public abstract class Session
     */
    public void initializeSession()
    {
-      sharedBuffer.registerMissingBuffers();
    }
 
    protected long computeRunTaskPeriod()
@@ -326,18 +352,25 @@ public abstract class Session
 
    public void runTick()
    {
+      runTimer.start();
+      runActualDT.update();
+
       if (!sessionInitialized)
       {
          initializeSession();
          sessionInitialized = true;
       }
 
+      runInitializeTimer.start();
       initializeRunTick();
+      runInitializeTimer.stop();
 
       boolean caughtException;
       try
       {
+         runSpecificTimer.start();
          doSpecificRunTick();
+         runSpecificTimer.stop();
          caughtException = false;
       }
       catch (Exception e)
@@ -346,7 +379,13 @@ public abstract class Session
          caughtException = true;
       }
 
+      jvmStatisticsGenerator.update();
+
+      runFinalizeTimer.start();
       finalizeRunTick();
+      runFinalizeTimer.stop();
+
+      runTimer.stop();
 
       if (caughtException)
          setSessionMode(SessionMode.PAUSE);
@@ -370,22 +409,33 @@ public abstract class Session
 
    protected abstract void doSpecificRunTick();
 
+   // TODO Remove when optimized
+   private final YoTimer bufferWrite = new YoTimer("bufferWriteTimer", TimeUnit.MILLISECONDS, runRegistry);
+   private final YoTimer bufferPull = new YoTimer("bufferPullTimer", TimeUnit.MILLISECONDS, runRegistry);
+   private final YoTimer bufferRequests = new YoTimer("bufferRequestsTimer", TimeUnit.MILLISECONDS, runRegistry);
+
    protected void finalizeRunTick()
    {
       if (nextBufferRecordTickCounter <= 0)
       {
+         bufferWrite.start();
          sharedBuffer.writeBuffer();
+         bufferWrite.stop();
 
          long currentTimestamp = System.nanoTime();
 
+         bufferPull.start();
          if (currentTimestamp - lastPublishedBufferTimestamp > desiredBufferPublishPeriod.get())
          {
             sharedBuffer.prepareLinkedBuffersForPull();
             lastPublishedBufferTimestamp = currentTimestamp;
          }
+         bufferPull.stop();
 
+         bufferRequests.start();
          processBufferRequests(false);
          publishBufferProperties(sharedBuffer.getProperties());
+         bufferRequests.stop();
 
          nextBufferRecordTickCounter = Math.max(1, bufferRecordTickPeriod.get());
       }
@@ -411,6 +461,9 @@ public abstract class Session
 
    public void playbackTick()
    {
+      playbackTimer.start();
+      playbackActualDT.update();
+
       if (!sessionInitialized)
       {
          initializeSession();
@@ -433,6 +486,8 @@ public abstract class Session
       }
 
       finalizePlaybackTick();
+
+      playbackTimer.stop();
 
       if (caughtException)
          setSessionMode(SessionMode.PAUSE);
@@ -471,6 +526,9 @@ public abstract class Session
 
    public void pauseTick()
    {
+      pauseTimer.start();
+      pauseActualDT.update();
+
       if (!sessionInitialized)
       {
          initializeSession();
@@ -481,6 +539,8 @@ public abstract class Session
       boolean shouldPublishBuffer = initializePauseTick();
       shouldPublishBuffer |= doSpecificPauseTick();
       finalizePauseTick(shouldPublishBuffer);
+
+      pauseTimer.stop();
    }
 
    protected boolean initializePauseTick()

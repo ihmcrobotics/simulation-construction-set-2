@@ -1,5 +1,6 @@
 package us.ihmc.scs2.sharedMemory.tools;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -394,6 +395,22 @@ public class SharedMemoryRandomTools
    public static void randomizeYoEnum(Random random, YoEnum<?> yoEnum)
    {
       yoEnum.set(nextOrdinal(random, yoEnum));
+   }
+
+   public static void randomizeYoVariables(Random random, YoVariable... yoVariables)
+   {
+      for (YoVariable yoVariable : yoVariables)
+      {
+         randomizeYoVariable(random, yoVariable);
+      }
+   }
+
+   public static void randomizeYoVariables(Random random, Collection<? extends YoVariable> yoVariables)
+   {
+      for (YoVariable yoVariable : yoVariables)
+      {
+         randomizeYoVariable(random, yoVariable);
+      }
    }
 
    public static int nextOrdinal(Random random, YoEnum<?> yoEnum)

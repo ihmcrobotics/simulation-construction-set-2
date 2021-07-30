@@ -1,21 +1,28 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.properties;
 
+import java.lang.ref.WeakReference;
+
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.LongPropertyBase;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleLongProperty;
+import us.ihmc.scs2.sharedMemory.LinkedYoLong;
+import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoLong;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoLongProperty extends LongPropertyBase implements YoVariableProperty<YoLong, Number>
 {
    private final YoLong yoLong;
    private final Object bean;
-   private final YoVariableChangedListener propertyUpdater = v -> pullYoLongValue();
+   private final YoVariableChangedListener propertyUpdater = new YoLongPropertyUpdater(this);
 
    private SimpleLongProperty lastUserInput;
+
+   private LinkedYoLong linkedBuffer;
 
    public YoLongProperty(YoLong yoLong)
    {
@@ -30,12 +37,30 @@ public class YoLongProperty extends LongPropertyBase implements YoVariableProper
       yoLong.addListener(propertyUpdater);
    }
 
+   private Object userObject;
+
+   public void setLinkedBuffer(LinkedYoLong linkedBuffer)
+   {
+      if (this.linkedBuffer != null)
+         throw new IllegalOperationException();
+
+      this.linkedBuffer = linkedBuffer;
+      linkedBuffer.addUser(this);
+   }
+
+   @Override
+   public LinkedYoLong getLinkedBuffer()
+   {
+      return linkedBuffer;
+   }
+
    @Override
    public void finalize()
    {
       try
       {
          yoLong.removeListener(propertyUpdater);
+         linkedBuffer.removeUser(userObject);
       }
       finally
       {
@@ -51,17 +76,19 @@ public class YoLongProperty extends LongPropertyBase implements YoVariableProper
       yoLong.set(newValue);
    }
 
+   public void setAndPush(long newValue)
+   {
+      set(newValue);
+      if (linkedBuffer != null)
+         linkedBuffer.push();
+   }
+
    private void pullYoLongValue()
    {
       super.set(yoLong.getValue());
    }
 
    public void bindLongProperty(Property<Long> property)
-   {
-      bindLongProperty(property, null);
-   }
-
-   public void bindLongProperty(Property<Long> property, Runnable pushValueAction)
    {
       property.setValue(getValue());
 
@@ -84,9 +111,7 @@ public class YoLongProperty extends LongPropertyBase implements YoVariableProper
             return;
 
          updatingThis.setTrue();
-         set(newValue.longValue());
-         if (pushValueAction != null)
-            pushValueAction.run();
+         setAndPush(newValue.longValue());
          updatingThis.setFalse();
       });
    }
@@ -115,5 +140,23 @@ public class YoLongProperty extends LongPropertyBase implements YoVariableProper
    public String getName()
    {
       return yoLong.getName();
+   }
+
+   private static class YoLongPropertyUpdater implements YoVariableChangedListener
+   {
+      private final WeakReference<YoLongProperty> propertyRef;
+
+      public YoLongPropertyUpdater(YoLongProperty property)
+      {
+         propertyRef = new WeakReference<>(property);
+      }
+
+      @Override
+      public void changed(YoVariable source)
+      {
+         YoLongProperty property = propertyRef.get();
+         if (property != null)
+            property.pullYoLongValue();
+      }
    }
 }

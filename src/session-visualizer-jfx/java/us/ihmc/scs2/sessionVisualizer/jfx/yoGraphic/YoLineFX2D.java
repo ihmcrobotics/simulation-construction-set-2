@@ -74,6 +74,17 @@ public class YoLineFX2D extends YoGraphicFX2D
    }
 
    @Override
+   public void clear()
+   {
+      origin = null;
+      direction = null;
+      destination = null;
+      fillColor = null;
+      strokeColor = null;
+      strokeWidth = null;
+   }
+
+   @Override
    public YoGraphicFX clone()
    {
       YoLineFX2D clone = new YoLineFX2D();

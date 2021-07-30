@@ -13,19 +13,20 @@ import javafx.scene.control.Slider;
 import us.ihmc.scs2.definition.yoSlider.YoKnobDefinition;
 import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoBooleanProperty;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
+import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 
 public class YoBooleanSlider implements YoVariableSlider
 {
    private final YoBooleanProperty yoBooleanProperty;
    private final List<Runnable> cleanupTasks = new ArrayList<>();
-   private final Runnable pushValueAction;
 
-   public YoBooleanSlider(YoBoolean yoBoolean, Runnable pushValueAction)
+   public YoBooleanSlider(YoBoolean yoBoolean, LinkedYoRegistry linkedYoRegistry)
    {
-      this.pushValueAction = pushValueAction;
       yoBooleanProperty = new YoBooleanProperty(yoBoolean, this);
+      yoBooleanProperty.setLinkedBuffer(linkedYoRegistry.linkYoVariable(yoBoolean));
    }
 
    @Override
@@ -78,10 +79,12 @@ public class YoBooleanSlider implements YoVariableSlider
          if (currentSliderValue == yoBooleanProperty.get())
             return;
 
-         updating.setTrue();
-         yoBooleanProperty.set(currentSliderValue);
-         pushValueAction.run();
-         updating.setFalse();
+         JavaFXMissingTools.runLater(YoBooleanSlider.this.getClass(), () ->
+         {
+            updating.setTrue();
+            yoBooleanProperty.setAndPush(currentSliderValue);
+            updating.setFalse();
+         });
       };
 
       yoBooleanProperty.addListener(sliderUpdater);
@@ -146,10 +149,13 @@ public class YoBooleanSlider implements YoVariableSlider
             return;
 
          boolean yoBooleanValue = SliderboardVariable.intToBoolean(newValue.intValue(), sliderVariable.getMin(), sliderVariable.getMax());
-         updating.setTrue();
-         yoBooleanProperty.set(yoBooleanValue);
-         pushValueAction.run();
-         updating.setFalse();
+
+         JavaFXMissingTools.runLater(YoBooleanSlider.this.getClass(), () ->
+         {
+            updating.setTrue();
+            yoBooleanProperty.setAndPush(yoBooleanValue);
+            updating.setFalse();
+         });
       };
 
       yoBooleanProperty.addListener(sliderUpdater);

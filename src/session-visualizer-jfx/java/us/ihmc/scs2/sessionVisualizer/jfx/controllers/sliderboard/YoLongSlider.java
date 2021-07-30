@@ -17,7 +17,9 @@ import javafx.util.converter.LongStringConverter;
 import us.ihmc.scs2.definition.yoSlider.YoKnobDefinition;
 import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoLongProperty;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
+import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 import us.ihmc.yoVariables.variable.YoLong;
 
 public class YoLongSlider implements YoVariableSlider
@@ -26,12 +28,11 @@ public class YoLongSlider implements YoVariableSlider
    private final LongProperty minProperty = new SimpleLongProperty(this, "min", 0);
    private final LongProperty maxProperty = new SimpleLongProperty(this, "max", 1);
    private final List<Runnable> cleanupTasks = new ArrayList<>();
-   private final Runnable pushValueAction;
 
-   public YoLongSlider(YoLong yoLong, Runnable pushValueAction)
+   public YoLongSlider(YoLong yoLong, LinkedYoRegistry linkedYoRegistry)
    {
-      this.pushValueAction = pushValueAction;
       yoLongProperty = new YoLongProperty(yoLong, this);
+      yoLongProperty.setLinkedBuffer(linkedYoRegistry.linkYoVariable(yoLong));
    }
 
    @Override
@@ -101,10 +102,12 @@ public class YoLongSlider implements YoVariableSlider
          if (updating.isTrue())
             return;
 
-         updating.setTrue();
-         yoLongProperty.set(virtualSlider.valueProperty().getValue().longValue());
-         pushValueAction.run();
-         updating.setFalse();
+         JavaFXMissingTools.runLater(YoLongSlider.this.getClass(), () ->
+         {
+            updating.setTrue();
+            yoLongProperty.setAndPush(virtualSlider.valueProperty().getValue().longValue());
+            updating.setFalse();
+         });
       };
 
       yoLongProperty.addListener(sliderUpdater);
@@ -185,10 +188,12 @@ public class YoLongSlider implements YoVariableSlider
                                                           sliderVariable.getMax(),
                                                           minProperty.get(),
                                                           maxProperty.get());
-         updating.setTrue();
-         yoLongProperty.set(yoLongValue);
-         pushValueAction.run();
-         updating.setFalse();
+         JavaFXMissingTools.runLater(YoLongSlider.this.getClass(), () ->
+         {
+            updating.setTrue();
+            yoLongProperty.setAndPush(yoLongValue);
+            updating.setFalse();
+         });
       };
 
       yoLongProperty.addListener(sliderUpdater);

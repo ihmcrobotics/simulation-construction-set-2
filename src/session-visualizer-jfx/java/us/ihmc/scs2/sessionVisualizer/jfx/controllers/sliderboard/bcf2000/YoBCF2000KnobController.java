@@ -85,7 +85,7 @@ public class YoBCF2000KnobController extends YoBCF2000InputController
       {
          spinner.setDisable(false);
 
-         yoVariableSlider = YoVariableSlider.newYoVariableSlider(yoVariable, () -> yoManager.getLinkedRootRegistry().push(yoVariable));
+         yoVariableSlider = YoVariableSlider.newYoVariableSlider(yoVariable, yoManager.getLinkedRootRegistry());
          yoVariableSlider.bindMinTextField(knobMinTextField);
          yoVariableSlider.bindMaxTextField(knobMaxTextField);
          if (sliderVariable != null)

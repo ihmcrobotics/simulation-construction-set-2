@@ -19,6 +19,7 @@ import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoDoubleProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
+import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
 public class YoDoubleSlider implements YoVariableSlider
@@ -27,12 +28,11 @@ public class YoDoubleSlider implements YoVariableSlider
    private final DoubleProperty minProperty = new SimpleDoubleProperty(this, "min", 0.0);
    private final DoubleProperty maxProperty = new SimpleDoubleProperty(this, "max", 1.0);
    private final List<Runnable> cleanupTasks = new ArrayList<>();
-   private final Runnable pushValueAction;
 
-   public YoDoubleSlider(YoDouble yoDouble, Runnable pushValueAction)
+   public YoDoubleSlider(YoDouble yoDouble, LinkedYoRegistry linkedYoRegistry)
    {
-      this.pushValueAction = pushValueAction;
       yoDoubleProperty = new YoDoubleProperty(yoDouble, this);
+      yoDoubleProperty.setLinkedBuffer(linkedYoRegistry.linkYoVariable(yoDouble));
    }
 
    @Override
@@ -106,8 +106,7 @@ public class YoDoubleSlider implements YoVariableSlider
          JavaFXMissingTools.runLater(YoDoubleSlider.this.getClass(), () ->
          {
             updating.setTrue();
-            yoDoubleProperty.set(virtualSlider.valueProperty().get());
-            pushValueAction.run();
+            yoDoubleProperty.setAndPush(virtualSlider.valueProperty().get());
             updating.setFalse();
          });
       };
@@ -185,16 +184,15 @@ public class YoDoubleSlider implements YoVariableSlider
          if (updating.isTrue())
             return;
 
+         double yoDoubleValue = SliderboardVariable.intToDouble(newValue.intValue(),
+                                                                sliderVariable.getMin(),
+                                                                sliderVariable.getMax(),
+                                                                minProperty.get(),
+                                                                maxProperty.get());
          JavaFXMissingTools.runLater(YoDoubleSlider.this.getClass(), () ->
          {
-            double yoDoubleValue = SliderboardVariable.intToDouble(newValue.intValue(),
-                                                                   sliderVariable.getMin(),
-                                                                   sliderVariable.getMax(),
-                                                                   minProperty.get(),
-                                                                   maxProperty.get());
             updating.setTrue();
-            yoDoubleProperty.set(yoDoubleValue);
-            pushValueAction.run();
+            yoDoubleProperty.setAndPush(yoDoubleValue);
             updating.setFalse();
          });
       };

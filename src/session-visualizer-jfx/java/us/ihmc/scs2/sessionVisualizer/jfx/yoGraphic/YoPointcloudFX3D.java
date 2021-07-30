@@ -152,6 +152,16 @@ public class YoPointcloudFX3D extends YoGraphicFX3D
    }
 
    @Override
+   public void clear()
+   {
+      points = null;
+      numberOfPoints = null;
+      size = null;
+      graphicResource = null;
+      color = null;
+   }
+
+   @Override
    public YoGraphicFX clone()
    {
       YoPointcloudFX3D clone = new YoPointcloudFX3D();

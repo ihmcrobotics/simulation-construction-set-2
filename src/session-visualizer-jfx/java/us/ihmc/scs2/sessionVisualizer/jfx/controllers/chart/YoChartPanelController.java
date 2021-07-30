@@ -774,6 +774,7 @@ public class YoChartPanelController extends ObservedAnimationTimer
 
       public void updateLegend()
       {
+         chartData.updateVariableData();
          series.updateLegend();
       }
 

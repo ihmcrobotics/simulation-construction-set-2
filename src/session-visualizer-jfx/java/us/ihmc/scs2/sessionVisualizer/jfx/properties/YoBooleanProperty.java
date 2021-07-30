@@ -1,21 +1,28 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.properties;
 
+import java.lang.ref.WeakReference;
+
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.BooleanPropertyBase;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
+import us.ihmc.scs2.sharedMemory.LinkedYoBoolean;
+import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoBooleanProperty extends BooleanPropertyBase implements YoVariableProperty<YoBoolean, Boolean>
 {
    private final YoBoolean yoBoolean;
    private final Object bean;
-   private final YoVariableChangedListener propertyUpdater = v -> pullYoBooleanValue();
+   private final YoVariableChangedListener propertyUpdater = new YoBooleanPropertyUpdater(this);
 
    private SimpleBooleanProperty lastUserInput;
+
+   private LinkedYoBoolean linkedBuffer;
 
    public YoBooleanProperty(YoBoolean yoBoolean)
    {
@@ -30,12 +37,31 @@ public class YoBooleanProperty extends BooleanPropertyBase implements YoVariable
       yoBoolean.addListener(propertyUpdater);
    }
 
+   private Object userObject;
+
+   public void setLinkedBuffer(LinkedYoBoolean linkedBuffer)
+   {
+      if (this.linkedBuffer != null)
+         throw new IllegalOperationException();
+
+      this.linkedBuffer = linkedBuffer;
+      userObject = new Object();
+      linkedBuffer.addUser(userObject);
+   }
+
+   @Override
+   public LinkedYoBoolean getLinkedBuffer()
+   {
+      return linkedBuffer;
+   }
+
    @Override
    public void finalize()
    {
       try
       {
          yoBoolean.removeListener(propertyUpdater);
+         linkedBuffer.removeUser(userObject);
       }
       finally
       {
@@ -51,17 +77,19 @@ public class YoBooleanProperty extends BooleanPropertyBase implements YoVariable
       yoBoolean.set(newValue);
    }
 
+   public void setAndPush(boolean newValue)
+   {
+      set(newValue);
+      if (linkedBuffer != null)
+         linkedBuffer.push();
+   }
+
    private void pullYoBooleanValue()
    {
       super.set(yoBoolean.getValue());
    }
 
    public void bindBooleanProperty(Property<Boolean> property)
-   {
-      bindBooleanProperty(property, null);
-   }
-
-   public void bindBooleanProperty(Property<Boolean> property, Runnable pushValueAction)
    {
       property.setValue(getValue());
 
@@ -84,9 +112,7 @@ public class YoBooleanProperty extends BooleanPropertyBase implements YoVariable
             return;
 
          updatingThis.setTrue();
-         set(newValue);
-         if (pushValueAction != null)
-            pushValueAction.run();
+         setAndPush(newValue);
          updatingThis.setFalse();
       });
    }
@@ -115,5 +141,23 @@ public class YoBooleanProperty extends BooleanPropertyBase implements YoVariable
    public String getName()
    {
       return yoBoolean.getName();
+   }
+
+   private static class YoBooleanPropertyUpdater implements YoVariableChangedListener
+   {
+      private final WeakReference<YoBooleanProperty> propertyRef;
+
+      public YoBooleanPropertyUpdater(YoBooleanProperty property)
+      {
+         propertyRef = new WeakReference<>(property);
+      }
+
+      @Override
+      public void changed(YoVariable source)
+      {
+         YoBooleanProperty property = propertyRef.get();
+         if (property != null)
+            property.pullYoBooleanValue();
+      }
    }
 }

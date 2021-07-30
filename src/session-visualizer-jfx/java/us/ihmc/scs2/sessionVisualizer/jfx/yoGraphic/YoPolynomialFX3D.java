@@ -253,6 +253,21 @@ public class YoPolynomialFX3D extends YoGraphicFX3D
    }
 
    @Override
+   public void clear()
+   {
+      coefficientsX = null;
+      coefficientsY = null;
+      coefficientsZ = null;
+      numberOfCoefficientsX = null;
+      numberOfCoefficientsY = null;
+      numberOfCoefficientsZ = null;
+      startTime = null;
+      endTime = null;
+      size = null;
+      color = null;
+   }
+
+   @Override
    public YoGraphicFX clone()
    {
       YoPolynomialFX3D clone = new YoPolynomialFX3D();

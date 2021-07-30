@@ -1,6 +1,7 @@
 package us.ihmc.scs2.sharedMemory;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.ReentrantLock;
 
 import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
@@ -72,7 +73,8 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
 {
    private final YoRegistryBuffer registryBuffer;
 
-   private final ConcurrentLinkedQueue<LinkedBuffer> linkedBuffers = new ConcurrentLinkedQueue<>();
+   private final ReentrantLock linkedBuffersLock = new ReentrantLock();
+   private final LinkedBufferArray linkedBuffers = new LinkedBufferArray();
    private final ConcurrentLinkedQueue<LinkedBufferProperties> linkedBufferProperties = new ConcurrentLinkedQueue<>();
 
    private final YoBufferProperties properties = new YoBufferProperties();
@@ -81,17 +83,6 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
    {
       properties.setSize(initialBufferSize);
       registryBuffer = new YoRegistryBuffer(rootRegistry, properties);
-   }
-
-   /**
-    * Creates new buffers if needed to ensure that each {@code YoVariable} is backed by one.
-    * <p>
-    * Operation for the buffer manager only.
-    * </p>
-    */
-   public void registerMissingBuffers()
-   {
-      registryBuffer.registerMissingBuffers();
    }
 
    /**
@@ -269,12 +260,15 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
     */
    public boolean processLinkedPushRequests(boolean writeBuffer)
    {
-      boolean hasPushedSomething = false;
-
-      for (LinkedBuffer linkedBuffer : linkedBuffers)
-         hasPushedSomething |= linkedBuffer.processPush(writeBuffer);
-
-      return hasPushedSomething;
+      linkedBuffersLock.lock();
+      try
+      {
+         return linkedBuffers.processPush(writeBuffer);
+      }
+      finally
+      {
+         linkedBuffersLock.unlock();
+      }
    }
 
    /**
@@ -285,8 +279,15 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
     */
    public void flushLinkedPushRequests()
    {
-      for (LinkedBuffer linkedBuffer : linkedBuffers)
-         linkedBuffer.flushPush();
+      linkedBuffersLock.lock();
+      try
+      {
+         linkedBuffers.flushPush();
+      }
+      finally
+      {
+         linkedBuffersLock.unlock();
+      }
    }
 
    /**
@@ -322,7 +323,16 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
    public void prepareLinkedBuffersForPull()
    {
       // FIXME hack to get the publish method faster.
-      linkedBuffers.parallelStream().forEach(LinkedBuffer::prepareForPull);
+      linkedBuffersLock.lock();
+      try
+      {
+         linkedBuffers.prepareForPull();
+      }
+      finally
+      {
+         linkedBuffersLock.unlock();
+      }
+
       linkedBufferProperties.forEach(LinkedBufferProperties::prepareForPull);
    }
 
@@ -340,7 +350,15 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
     */
    public boolean hasRequestPending()
    {
-      return linkedBuffers.stream().anyMatch(LinkedBuffer::hasRequestPending);
+      linkedBuffersLock.lock();
+      try
+      {
+         return linkedBuffers.hasRequestPending();
+      }
+      finally
+      {
+         linkedBuffersLock.unlock();
+      }
    }
 
    /**
@@ -466,7 +484,15 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
    public LinkedYoRegistry newLinkedYoRegistry(YoRegistry registryToLink)
    {
       LinkedYoRegistry linkedYoRegistry = registryBuffer.newLinkedYoRegistry(registryToLink);
-      linkedBuffers.add(linkedYoRegistry);
+      linkedBuffersLock.lock();
+      try
+      {
+         linkedBuffers.add(linkedYoRegistry);
+      }
+      finally
+      {
+         linkedBuffersLock.unlock();
+      }
       return linkedYoRegistry;
    }
 
@@ -474,7 +500,15 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
    public LinkedYoRegistry newLinkedYoRegistry()
    {
       LinkedYoRegistry linkedYoRegistry = registryBuffer.newLinkedYoRegistry();
-      linkedBuffers.add(linkedYoRegistry);
+      linkedBuffersLock.lock();
+      try
+      {
+         linkedBuffers.add(linkedYoRegistry);
+      }
+      finally
+      {
+         linkedBuffersLock.unlock();
+      }
       return linkedYoRegistry;
    }
 
@@ -490,7 +524,15 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
    public LinkedYoVariable<?> newLinkedYoVariable(YoVariable variableToLink)
    {
       LinkedYoVariable<?> linkedYoVariable = LinkedYoVariable.newLinkedYoVariable(variableToLink, registryBuffer.findYoVariableBuffer(variableToLink));
-      linkedBuffers.add(linkedYoVariable);
+      linkedBuffersLock.lock();
+      try
+      {
+         linkedBuffers.add(linkedYoVariable);
+      }
+      finally
+      {
+         linkedBuffersLock.unlock();
+      }
       return linkedYoVariable;
    }
 }

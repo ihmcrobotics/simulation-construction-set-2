@@ -35,6 +35,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.QuaternionProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple2DProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple3DProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YawPitchRollProperty;
+import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.tools.YoGeometryNameTools;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -157,7 +158,9 @@ public class CompositePropertyTools
             yoDouble = yoVariableDatabase.searchSimilar(field, 0.90, YoDouble.class);
          }
          Objects.requireNonNull(yoDouble, "Could not find the YoVariable: " + field);
-         return new YoDoubleProperty(yoDouble);
+         YoDoubleProperty yoDoubleProperty = new YoDoubleProperty(yoDouble);
+         yoDoubleProperty.setLinkedBuffer(yoVariableDatabase.linkedRootRegistry.linkYoVariable(yoDouble));
+         return yoDoubleProperty;
       }
    }
 
@@ -180,7 +183,9 @@ public class CompositePropertyTools
             yoInteger = yoVariableDatabase.searchSimilar(field, 0.90, YoInteger.class);
          }
          Objects.requireNonNull(yoInteger, "Could not find the YoVariable: " + field);
-         return new YoIntegerProperty(yoInteger);
+         YoIntegerProperty yoIntegerProperty = new YoIntegerProperty(yoInteger);
+         yoIntegerProperty.setLinkedBuffer(yoVariableDatabase.linkedRootRegistry.linkYoVariable(yoInteger));
+         return yoIntegerProperty;
       }
    }
 
@@ -339,6 +344,7 @@ public class CompositePropertyTools
    public static class YoVariableDatabase
    {
       private final YoRegistry rootRegistry;
+      private final LinkedYoRegistry linkedRootRegistry;
       private List<YoVariable> allYoVariables;
 
       private final Map<String, YoVariable> previousSearchResults = new HashMap<>();
@@ -346,9 +352,10 @@ public class CompositePropertyTools
 
       private final SimilarityScore<Double> seachEngine;
 
-      public YoVariableDatabase(YoRegistry rootRegistry)
+      public YoVariableDatabase(YoRegistry rootRegistry, LinkedYoRegistry linkedRootRegistry)
       {
          this.rootRegistry = rootRegistry;
+         this.linkedRootRegistry = linkedRootRegistry;
          seachEngine = new SimilarityScore<Double>()
          {
             SimilarityScore<Integer> caseSensitiveSearchEngine = new LongestCommonSubsequence();
