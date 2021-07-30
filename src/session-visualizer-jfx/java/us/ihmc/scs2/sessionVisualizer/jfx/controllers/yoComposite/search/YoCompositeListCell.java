@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import javafx.beans.property.Property;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
@@ -253,7 +254,10 @@ public class YoCompositeListCell extends ListCell<YoComposite>
       yoEnumProperty.setLinkedBuffer(linkedRegistry.linkYoVariable(yoEnum));
       yoVariableProperties.add(yoEnumProperty);
 
-      ComboBox<String> comboBox = new ComboBox<>(FXCollections.observableArrayList(yoEnumProperty.getYoVariable().getEnumValuesAsString()));
+      ObservableList<String> items = FXCollections.observableArrayList(yoEnumProperty.getYoVariable().getEnumValuesAsString());
+      if (yoEnumProperty.getYoVariable().isNullAllowed())
+         items.add(YoEnum.NULL_VALUE_STRING);
+      ComboBox<String> comboBox = new ComboBox<>(items);
       comboBox.setValue(yoEnumProperty.getValue());
       comboBox.setPrefWidth(GRAPHIC_PREF_WIDTH);
       comboBox.setEditable(false);

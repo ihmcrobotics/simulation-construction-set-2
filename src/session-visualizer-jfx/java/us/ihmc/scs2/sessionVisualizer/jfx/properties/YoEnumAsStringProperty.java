@@ -124,7 +124,7 @@ public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBas
 
    public int toEnumOrdinal(String newValue)
    {
-      if (newValue == null)
+      if (newValue == null || newValue.equals(YoEnum.NULL_VALUE_STRING))
          return YoEnum.NULL_VALUE;
 
       int indexOf = enumConstants.indexOf(newValue);
