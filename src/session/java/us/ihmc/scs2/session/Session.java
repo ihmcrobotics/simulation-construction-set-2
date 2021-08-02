@@ -536,23 +536,23 @@ public abstract class Session
          sessionInitialized = true;
       }
 
-      boolean shouldPublishBuffer = initializePauseTick();
-      shouldPublishBuffer |= doSpecificPauseTick();
-      finalizePauseTick(shouldPublishBuffer);
+      boolean shouldReadBuffer = initializePauseTick();
+      shouldReadBuffer |= doSpecificPauseTick();
+      finalizePauseTick(shouldReadBuffer);
 
       pauseTimer.stop();
    }
 
    protected boolean initializePauseTick()
    {
-      boolean shouldPublish = firstPauseTick;
+      boolean shouldReadBuffer = firstPauseTick;
       firstPauseTick = false;
-      shouldPublish |= sharedBuffer.processLinkedPushRequests(true);
-      shouldPublish |= processBufferRequests(true);
-      if (!shouldPublish)
-         shouldPublish = sharedBuffer.hasRequestPending();
+      shouldReadBuffer |= sharedBuffer.processLinkedPushRequests(true);
+      shouldReadBuffer |= processBufferRequests(true);
+      if (!shouldReadBuffer)
+         shouldReadBuffer = sharedBuffer.hasRequestPending();
 
-      return shouldPublish;
+      return shouldReadBuffer;
    }
 
    protected boolean doSpecificPauseTick()
@@ -560,13 +560,11 @@ public abstract class Session
       return false;
    }
 
-   protected void finalizePauseTick(boolean shouldPublishBuffer)
+   protected void finalizePauseTick(boolean shouldReadBuffer)
    {
-      if (shouldPublishBuffer)
-      {
+      if (shouldReadBuffer)
          sharedBuffer.readBuffer();
-         sharedBuffer.prepareLinkedBuffersForPull();
-      }
+      sharedBuffer.prepareLinkedBuffersForPull();
       publishBufferProperties(sharedBuffer.getProperties());
    }
 
