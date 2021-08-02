@@ -19,6 +19,12 @@ public class BufferedJavaFXMessager extends SharedMemoryJavaFXMessager
    }
 
    @SuppressWarnings("unchecked")
+   public <T> T getLastValue(Topic<T> topic)
+   {
+      return (T) internalBuffer.get(topic).get();
+   }
+
+   @SuppressWarnings("unchecked")
    @Override
    public <T> AtomicReference<T> createInput(Topic<T> topic, T defaultValue)
    {

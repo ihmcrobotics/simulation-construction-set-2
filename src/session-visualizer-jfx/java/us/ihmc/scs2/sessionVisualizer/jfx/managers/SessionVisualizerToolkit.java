@@ -4,7 +4,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.stage.Stage;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.log.LogTools;
 import us.ihmc.messager.MessagerAPIFactory;
 import us.ihmc.scs2.session.Session;
@@ -20,7 +19,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
 
 public class SessionVisualizerToolkit extends ObservedAnimationTimer
 {
-   private final JavaFXMessager messager;
+   private final BufferedJavaFXMessager messager;
    private final SessionVisualizerTopics topics = new SessionVisualizerTopics();
 
    private final YoManager yoManager = new YoManager();
@@ -158,7 +157,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       }
    }
 
-   public JavaFXMessager getMessager()
+   public BufferedJavaFXMessager getMessager()
    {
       return messager;
    }

@@ -165,6 +165,16 @@ public class SCSGuiConfiguration
       definition.setBufferSize(bufferSize);
    }
 
+   public void setRecordTickPeriod(int recordTickPeriod)
+   {
+      definition.setRecordTickPeriod(recordTickPeriod);
+   }
+
+   public void setNumberPrecision(int numberPrecision)
+   {
+      definition.setNumberPrecision(numberPrecision);
+   }
+
    public void setShowOverheadPlotter(boolean showOverheadPlotter)
    {
       definition.setShowOverheadPlotter(showOverheadPlotter);
@@ -250,6 +260,16 @@ public class SCSGuiConfiguration
       return definition != null && definition.getBufferSize() > 0;
    }
 
+   public boolean hasRecordTickPeriod()
+   {
+      return definition != null && definition.getRecordTickPeriod() > 0;
+   }
+
+   public boolean hasNumberPrecision()
+   {
+      return definition != null && definition.getNumberPrecision() > 1;
+   }
+
    public boolean hasMainWindowConfiguration()
    {
       return definition != null && definition.getMainWindowConfiguration() != null;
@@ -308,6 +328,16 @@ public class SCSGuiConfiguration
    public int getBufferSize()
    {
       return definition.getBufferSize();
+   }
+
+   public int getRecordTickPeriod()
+   {
+      return definition.getRecordTickPeriod();
+   }
+
+   public int getNumberPrecision()
+   {
+      return definition.getNumberPrecision();
    }
 
    public boolean getShowOverheadPlotter()

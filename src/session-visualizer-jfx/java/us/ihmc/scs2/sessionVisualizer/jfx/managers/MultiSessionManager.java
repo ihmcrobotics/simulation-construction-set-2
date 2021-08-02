@@ -24,6 +24,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.session.SessionControlsController;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.SessionInfoController;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.log.LogSessionManagerController;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.remote.RemoteSessionManagerController;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.BufferedJavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
 
@@ -208,6 +209,10 @@ public class MultiSessionManager
 
       if (configuration.hasBufferSize())
          messager.submitMessage(topics.getYoBufferCurrentSizeRequest(), configuration.getBufferSize());
+      if (configuration.hasRecordTickPeriod())
+         messager.submitMessage(topics.getBufferRecordTickPeriod(), configuration.getRecordTickPeriod());
+      if (configuration.hasNumberPrecision())
+         messager.submitMessage(topics.getControlsNumberPrecision(), configuration.getNumberPrecision());
       messager.submitMessage(topics.getShowOverheadPlotter(), configuration.getShowOverheadPlotter());
       messager.submitMessage(topics.getShowAdvancedControls(), configuration.getShowAdvancedControls());
       if (configuration.hasYoSliderboardConfiguration())
@@ -228,8 +233,17 @@ public class MultiSessionManager
       toolkit.getWindowManager().saveSessionConfiguration(configuration);
       configuration.setMainStage(toolkit.getMainWindow());
 
+      SessionVisualizerTopics topics = toolkit.getTopics();
+      BufferedJavaFXMessager messager = toolkit.getMessager();
+
       int currentBufferSize = toolkit.getYoManager().getBufferSize();
       configuration.setBufferSize(currentBufferSize);
+      Integer bufferRecordTickPeriod = messager.getLastValue(topics.getBufferRecordTickPeriod());
+      if (bufferRecordTickPeriod != null)
+         configuration.setRecordTickPeriod(bufferRecordTickPeriod);
+      Integer numberPrecision = messager.getLastValue(topics.getControlsNumberPrecision());
+      if (numberPrecision != null)
+         configuration.setNumberPrecision(numberPrecision);
       configuration.setShowOverheadPlotter(mainWindowController.showOverheadPlotterProperty().getValue());
       configuration.setShowAdvancedControls(mainWindowController.showAdvancedControlsProperty().get());
 
