@@ -196,7 +196,16 @@ public class YoVariableDatabase
          }
       }
 
-      // 5- Used knowledge from past general searches to make guesses at what we could be looking for.
+      // 5- Brute force search for the YoVariable name and see what we get
+      List<T> exactMatches = rootRegistry.findVariables(variableName).stream().filter(type::isInstance).map(type::cast).collect(Collectors.toList());
+      if (exactMatches.size() == 1)
+      { // We have exactly 1 matching variable, let's assume it is the good one.
+         LogTools.info("Found single exact name match for query: " + fullnameToSearch + ", result: " + exactMatches.get(0).getFullNameString());
+         previousSearchResults.put(fullnameToSearch, exactMatches.get(0));
+         return exactMatches.get(0);
+      }
+
+      // 6- Used knowledge from past general searches to make guesses at what we could be looking for.
       for (Entry<String, String> entry : fromSearchToBestSubname.entrySet())
       {
          String bestSubname = entry.getKey();
@@ -214,7 +223,7 @@ public class YoVariableDatabase
          }
       }
 
-      // 6- General search for similar variables. Expensive search that scores all variables against our fullname, if the score is good we assume it is what we were looking for.
+      // 7- General search for similar variables. Expensive search that scores all variables against our fullname, if the score is good we assume it is what we were looking for.
       List<T> correctTypeVariables = (List<T>) allTypedYoVariables.computeIfAbsent(type,
                                                                                    typeLocal -> allYoVariables.stream().filter(type::isInstance).map(type::cast)
                                                                                                               .collect(Collectors.toList()));
