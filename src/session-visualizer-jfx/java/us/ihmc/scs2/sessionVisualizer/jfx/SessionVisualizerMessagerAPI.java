@@ -49,7 +49,7 @@ public class SessionVisualizerMessagerAPI
    public static final Topic<Object> ForgetRecordable = APIRoot.child(Forget).topic(Recordable);
    public static final Topic<Boolean> ShowAdvancedControls = APIRoot.child(Controls).child(Advanced).topic(Show);
    public static final Topic<Boolean> ShowOverheadPlotter = APIRoot.child(OverheadPlotter).topic(Show);
-   public static final Topic<String> OpenWindowRequest = APIRoot.topic(Open);
+   public static final Topic<Pair<String, Object>> OpenWindowRequest = APIRoot.topic(Open);
    public static final Topic<Boolean> SessionVisualizerCloseRequest = APIRoot.topic(Close);
    public static final Topic<Integer> ControlsNumberPrecision = APIRoot.child(Controls).topic(Precision); // TODO Not the greatest topic name, nor the best place.
 

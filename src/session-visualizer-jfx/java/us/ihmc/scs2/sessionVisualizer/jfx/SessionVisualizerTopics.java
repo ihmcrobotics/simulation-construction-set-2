@@ -24,7 +24,7 @@ public class SessionVisualizerTopics
    private Topic<Object> forgetRecordable;
    private Topic<Boolean> showAdvancedControls;
    private Topic<Boolean> showOverheadPlotter;
-   private Topic<String> openWindowRequest;
+   private Topic<Pair<String, Object>> openWindowRequest;
    private Topic<Boolean> sessionVisualizerCloseRequest;
 
    private Topic<Object> toggleKeyFrame, requestCurrentKeyFrames;
@@ -160,7 +160,7 @@ public class SessionVisualizerTopics
       return showOverheadPlotter;
    }
 
-   public Topic<String> getOpenWindowRequest()
+   public Topic<Pair<String, Object>> getOpenWindowRequest()
    {
       return openWindowRequest;
    }
