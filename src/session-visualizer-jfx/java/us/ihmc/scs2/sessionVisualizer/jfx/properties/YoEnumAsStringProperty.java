@@ -11,7 +11,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.StringPropertyBase;
 import us.ihmc.scs2.sharedMemory.LinkedYoEnum;
-import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -47,11 +46,15 @@ public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBas
    public void setLinkedBuffer(LinkedYoEnum<E> linkedBuffer)
    {
       if (this.linkedBuffer != null)
-         throw new IllegalOperationException();
+         this.linkedBuffer.removeUser(userObject);
 
       this.linkedBuffer = linkedBuffer;
-      userObject = new Object();
-      linkedBuffer.addUser(userObject);
+
+      if (userObject == null)
+         userObject = new Object();
+
+      if (linkedBuffer != null)
+         linkedBuffer.addUser(userObject);
    }
 
    @Override
@@ -66,7 +69,8 @@ public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBas
       try
       {
          yoEnum.removeListener(propertyUpdater);
-         linkedBuffer.removeUser(userObject);
+         if (linkedBuffer != null)
+            linkedBuffer.removeUser(userObject);
       }
       finally
       {

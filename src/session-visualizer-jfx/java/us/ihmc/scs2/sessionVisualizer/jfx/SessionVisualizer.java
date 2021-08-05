@@ -5,7 +5,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import us.ihmc.javaFXToolkit.cameraControllers.FocusBasedCameraMouseEventHandler;
 import us.ihmc.javaFXToolkit.scenes.View3DFactory;
@@ -34,8 +33,6 @@ public class SessionVisualizer
    private SessionVisualizerToolkit toolkit;
    private MultiSessionManager multiSessionManager;
 
-   private SidePaneController sidePaneController;
-
    private final Plotter2D plotter2D = new Plotter2D();
    private MainWindowController mainWindowController;
 
@@ -48,10 +45,6 @@ public class SessionVisualizer
       mainWindowController = loader.getController();
       mainWindowController.initialize(new SessionVisualizerWindowToolkit(primaryStage, toolkit));
 
-      loader = new FXMLLoader(SessionVisualizerIOTools.SIDE_PANE_URL);
-      mainWindowController.setupDrawer((Pane) loader.load());
-      sidePaneController = loader.getController();
-
       View3DFactory view3dFactory = View3DFactory.createSubscene();
       view3dFactory.addDefaultLighting();
       view3dFactory.addNodeToView(toolkit.getYoRobotFXManager().getRootNode());
@@ -62,8 +55,6 @@ public class SessionVisualizer
       toolkit.getEnvironmentManager().addWorldCoordinateSystem(0.3);
       toolkit.getEnvironmentManager().addSkybox(view3dFactory.getSubScene());
       toolkit.getMessager().registerJavaFXSyncedTopicListener(toolkit.getTopics().getSessionVisualizerCloseRequest(), m -> stop());
-
-      sidePaneController.initialize(toolkit);
 
       mainWindowController.setupPlotter2D(plotter2D);
 
@@ -77,10 +68,9 @@ public class SessionVisualizer
       Scene mainScene = new Scene(mainPane, 1024, 768);
       toolkit.getSnapshotManager().registerRecordable(mainScene);
       primaryStage.setScene(mainScene);
-      multiSessionManager = new MultiSessionManager(toolkit, mainWindowController, sidePaneController);
+      multiSessionManager = new MultiSessionManager(toolkit, mainWindowController);
 
       mainWindowController.start();
-      sidePaneController.start();
       toolkit.start();
       primaryStage.show();
    }
@@ -108,7 +98,6 @@ public class SessionVisualizer
          stopSession();
          multiSessionManager.shutdown();
          mainWindowController.stop();
-         sidePaneController.stop();
          toolkit.stop();
          Platform.exit();
          System.exit(0);

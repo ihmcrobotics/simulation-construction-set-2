@@ -19,7 +19,6 @@ import us.ihmc.scs2.sessionVisualizer.jfx.MainWindowController;
 import us.ihmc.scs2.sessionVisualizer.jfx.SCSGuiConfiguration;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
-import us.ihmc.scs2.sessionVisualizer.jfx.SidePaneController;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.SessionControlsController;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.SessionInfoController;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.log.LogSessionManagerController;
@@ -32,17 +31,15 @@ public class MultiSessionManager
 {
    private final SessionVisualizerToolkit toolkit;
    private final MainWindowController mainWindowController;
-   private final SidePaneController sidePaneController; // TODO Only here to trigger events when start/close a session, should be done via the messager.
 
    private final Map<Class<? extends SessionControlsController>, SessionControlsController> inactiveControllerMap = new HashMap<>();
    private final ObjectProperty<SessionControlsController> activeController = new SimpleObjectProperty<>(this, "activeSessionControls", null);
    private final ObjectProperty<Session> activeSession = new SimpleObjectProperty<>(this, "activeSession", null);
 
-   public MultiSessionManager(SessionVisualizerToolkit toolkit, MainWindowController mainWindowController, SidePaneController sidePaneController)
+   public MultiSessionManager(SessionVisualizerToolkit toolkit, MainWindowController mainWindowController)
    {
       this.toolkit = toolkit;
       this.mainWindowController = mainWindowController;
-      this.sidePaneController = sidePaneController;
 
       activeSession.addListener((o, oldValue, newValue) ->
       {
@@ -192,7 +189,8 @@ public class MultiSessionManager
       {
          JavaFXMissingTools.runLaterWhen(getClass(),
                                          () -> toolkit.getYoCompositeSearchManager().isSessionLoaded(),
-                                         () -> sidePaneController.getYoEntryTabPaneController().load(configuration.getYoEntryConfigurationFile()));
+                                         () -> mainWindowController.getSidePaneController().getYoEntryTabPaneController()
+                                                                   .load(configuration.getYoEntryConfigurationFile()));
       }
 
       if (configuration.hasMainYoChartGroupConfiguration())
@@ -227,7 +225,7 @@ public class MultiSessionManager
       if (XMLTools.isYoGraphicContextReady())
          toolkit.getYoGraphicFXManager().saveYoGraphicToFile(configuration.getYoGraphicsConfigurationFile());
       toolkit.getYoCompositeSearchManager().saveYoCompositePatternToFile(configuration.getYoCompositeConfigurationFile());
-      sidePaneController.getYoEntryTabPaneController().exportAllTabs(configuration.getYoEntryConfigurationFile());
+      mainWindowController.getSidePaneController().getYoEntryTabPaneController().exportAllTabs(configuration.getYoEntryConfigurationFile());
       mainWindowController.getYoChartGroupPanelController().saveChartGroupConfiguration(toolkit.getMainWindow(),
                                                                                         configuration.getMainYoChartGroupConfigurationFile());
       toolkit.getWindowManager().saveSessionConfiguration(configuration);

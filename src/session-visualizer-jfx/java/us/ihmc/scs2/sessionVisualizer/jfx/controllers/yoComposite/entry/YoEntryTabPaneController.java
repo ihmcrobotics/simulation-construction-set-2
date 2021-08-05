@@ -94,6 +94,17 @@ public class YoEntryTabPaneController
          }
       });
 
+      // By disabling the entry tabs, we unlink YoVariables reducing the cost of a run tick for the Session
+      yoEntryTabPane.getSelectionModel().selectedItemProperty().addListener((o, oldValue, newValue) ->
+      {
+         for (Tab tab : yoEntryTabPane.getTabs())
+         {
+            Node content = tab.getContent();
+            if (content != null)
+               content.setDisable(tab != newValue);
+         }
+      });
+
       toolkit.getMessager().registerJavaFXSyncedTopicListener(toolkit.getTopics().getSessionCurrentState(), state ->
       {
          if (state == SessionState.INACTIVE)

@@ -1,5 +1,6 @@
 package us.ihmc.scs2.sessionVisualizer.jfx;
 
+import java.io.IOException;
 import java.time.Duration;
 
 import com.jfoenix.controls.JFXDrawer;
@@ -11,6 +12,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.SubScene;
@@ -58,6 +60,9 @@ public class MainWindowController extends ObservedAnimationTimer
    private SessionAdvancedControlsController sessionAdvancedControlsController;
    @FXML
    private YoChartGroupPanelController yoChartGroupPanelController;
+
+   private SidePaneController sidePaneController;
+
    private SessionVisualizerToolkit globalToolkit;
    private SessionVisualizerWindowToolkit windowToolkit;
 
@@ -69,6 +74,18 @@ public class MainWindowController extends ObservedAnimationTimer
       sessionSimpleControlsController.initialize(windowToolkit);
       sessionAdvancedControlsController.initialize(windowToolkit);
       yoChartGroupPanelController.initialize(windowToolkit);
+
+      try
+      {
+         FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.SIDE_PANE_URL);
+         setupDrawer((Pane) loader.load());
+         sidePaneController = loader.getController();
+         sidePaneController.initialize(toolkit.getGlobalToolkit());
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+      }
    }
 
    public void setupViewport3D(Pane viewportPane)
@@ -142,12 +159,36 @@ public class MainWindowController extends ObservedAnimationTimer
       toolDrawer.setResizableOnDrag(true);
       toolDrawer.setContent(remove);
 
+      // By disabling the side pane, we unlink YoVariables (in search tabs) reducing the cost of a run tick for the Session
+      hBox.setVisible(toolDrawer.isOpened());
+      hBox.setDisable(!toolDrawer.isOpened());
+      toolDrawer.addEventHandler(JFXDrawerEvent.ANY, e ->
+      {
+         if (e.getEventType() == JFXDrawerEvent.CLOSED)
+         {
+            hBox.setVisible(false);
+            hBox.setDisable(true);
+         }
+         if (e.getEventType() == JFXDrawerEvent.OPENING || e.getEventType() == JFXDrawerEvent.OPENED)
+         {
+            hBox.setVisible(true);
+            hBox.setDisable(false);
+         }
+      });
+
       hamburger.setOnMouseClicked(e ->
       {
          if (toolDrawer.isClosed() || toolDrawer.isClosing())
+         {
             toolDrawer.open();
+            // The event handler is not clean visually, need something that kicks in earlier.
+            hBox.setVisible(true);
+            hBox.setDisable(false);
+         }
          else
+         {
             toolDrawer.close();
+         }
       });
 
       HamburgerSlideCloseTransition transition = new HamburgerSlideCloseTransition(hamburger);
@@ -219,11 +260,13 @@ public class MainWindowController extends ObservedAnimationTimer
    public void startSession()
    {
       yoChartGroupPanelController.start();
+      sidePaneController.start();
    }
 
    public void stopSession()
    {
       yoChartGroupPanelController.closeAndDispose();
+      sidePaneController.stop();
    }
 
    public AnchorPane getMainPane()
@@ -244,6 +287,11 @@ public class MainWindowController extends ObservedAnimationTimer
    public YoChartGroupPanelController getYoChartGroupPanelController()
    {
       return yoChartGroupPanelController;
+   }
+
+   public SidePaneController getSidePaneController()
+   {
+      return sidePaneController;
    }
 
    public Property<Boolean> showOverheadPlotterProperty()

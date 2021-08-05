@@ -170,7 +170,8 @@ public class YoCompositeListCell extends ListCell<YoComposite>
    public Control createYoDoubleControl(YoDouble yoDouble, Property<Integer> numberPrecision, LinkedYoRegistry linkedRegistry)
    {
       YoDoubleProperty yoDoubleProperty = new YoDoubleProperty(yoDouble, this);
-      yoDoubleProperty.setLinkedBuffer(linkedRegistry.linkYoVariable(yoDouble));
+      yoDoubleProperty.setLinkedBuffer(isDisabled() ? null : linkedRegistry.linkYoVariable(yoDouble));
+      disabledProperty().addListener((o, oldValue, newValue) -> yoDoubleProperty.setLinkedBuffer(newValue ? null : linkedRegistry.linkYoVariable(yoDouble)));
       yoVariableProperties.add(yoDoubleProperty);
 
       UnboundedDoubleSpinnerValueFactory valueFactory = new UnboundedDoubleSpinnerValueFactory(Double.NEGATIVE_INFINITY,
@@ -199,7 +200,8 @@ public class YoCompositeListCell extends ListCell<YoComposite>
    public Region createYoBooleanControl(YoBoolean yoBoolean, LinkedYoRegistry linkedRegistry)
    {
       YoBooleanProperty yoBooleanProperty = new YoBooleanProperty(yoBoolean, this);
-      yoBooleanProperty.setLinkedBuffer(linkedRegistry.linkYoVariable(yoBoolean));
+      yoBooleanProperty.setLinkedBuffer(isDisabled() ? null : linkedRegistry.linkYoVariable(yoBoolean));
+      disabledProperty().addListener((o, oldValue, newValue) -> yoBooleanProperty.setLinkedBuffer(newValue ? null : linkedRegistry.linkYoVariable(yoBoolean)));
       yoVariableProperties.add(yoBooleanProperty);
 
       CheckBox checkBox = new CheckBox();
@@ -215,7 +217,8 @@ public class YoCompositeListCell extends ListCell<YoComposite>
    public Control createYoLongControl(YoLong yoLong, LinkedYoRegistry linkedRegistry)
    {
       YoLongProperty yoLongProperty = new YoLongProperty(yoLong, this);
-      yoLongProperty.setLinkedBuffer(linkedRegistry.linkYoVariable(yoLong));
+      yoLongProperty.setLinkedBuffer(isDisabled() ? null : linkedRegistry.linkYoVariable(yoLong));
+      disabledProperty().addListener((o, oldValue, newValue) -> yoLongProperty.setLinkedBuffer(newValue ? null : linkedRegistry.linkYoVariable(yoLong)));
       yoVariableProperties.add(yoLongProperty);
 
       Spinner<Long> spinner = new Spinner<>(new LongSpinnerValueFactory(Long.MIN_VALUE, Long.MAX_VALUE, yoLongProperty.getValue(), 1L));
@@ -233,7 +236,8 @@ public class YoCompositeListCell extends ListCell<YoComposite>
    public Control createYoIntegerControl(YoInteger yoInteger, LinkedYoRegistry linkedRegistry)
    {
       YoIntegerProperty yoIntegerProperty = new YoIntegerProperty(yoInteger, this);
-      yoIntegerProperty.setLinkedBuffer(linkedRegistry.linkYoVariable(yoInteger));
+      yoIntegerProperty.setLinkedBuffer(isDisabled() ? null : linkedRegistry.linkYoVariable(yoInteger));
+      disabledProperty().addListener((o, oldValue, newValue) -> yoIntegerProperty.setLinkedBuffer(newValue ? null : linkedRegistry.linkYoVariable(yoInteger)));
       yoVariableProperties.add(yoIntegerProperty);
 
       Spinner<Integer> spinner = new Spinner<>(Integer.MIN_VALUE, Integer.MAX_VALUE, yoIntegerProperty.getValue(), 1);
@@ -251,7 +255,8 @@ public class YoCompositeListCell extends ListCell<YoComposite>
    public <E extends Enum<E>> Control createYoEnumControl(YoEnum<E> yoEnum, LinkedYoRegistry linkedRegistry)
    {
       YoEnumAsStringProperty<E> yoEnumProperty = new YoEnumAsStringProperty<>(yoEnum, this);
-      yoEnumProperty.setLinkedBuffer(linkedRegistry.linkYoVariable(yoEnum));
+      yoEnumProperty.setLinkedBuffer(isDisabled() ? null : linkedRegistry.linkYoVariable(yoEnum));
+      disabledProperty().addListener((o, oldValue, newValue) -> yoEnumProperty.setLinkedBuffer(newValue ? null : linkedRegistry.linkYoVariable(yoEnum)));
       yoVariableProperties.add(yoEnumProperty);
 
       ObservableList<String> items = FXCollections.observableArrayList(yoEnumProperty.getYoVariable().getEnumValuesAsString());

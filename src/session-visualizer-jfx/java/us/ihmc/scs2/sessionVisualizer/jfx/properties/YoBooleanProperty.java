@@ -9,7 +9,6 @@ import javafx.beans.property.BooleanPropertyBase;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import us.ihmc.scs2.sharedMemory.LinkedYoBoolean;
-import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -42,11 +41,15 @@ public class YoBooleanProperty extends BooleanPropertyBase implements YoVariable
    public void setLinkedBuffer(LinkedYoBoolean linkedBuffer)
    {
       if (this.linkedBuffer != null)
-         throw new IllegalOperationException();
+         this.linkedBuffer.removeUser(userObject);
 
       this.linkedBuffer = linkedBuffer;
-      userObject = new Object();
-      linkedBuffer.addUser(userObject);
+
+      if (userObject == null)
+         userObject = new Object();
+
+      if (linkedBuffer != null)
+         linkedBuffer.addUser(userObject);
    }
 
    @Override
@@ -61,7 +64,8 @@ public class YoBooleanProperty extends BooleanPropertyBase implements YoVariable
       try
       {
          yoBoolean.removeListener(propertyUpdater);
-         linkedBuffer.removeUser(userObject);
+         if (linkedBuffer != null)
+            linkedBuffer.removeUser(userObject);
       }
       finally
       {

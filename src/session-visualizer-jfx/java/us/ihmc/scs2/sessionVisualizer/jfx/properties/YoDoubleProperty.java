@@ -9,7 +9,6 @@ import javafx.beans.property.DoublePropertyBase;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleDoubleProperty;
 import us.ihmc.scs2.sharedMemory.LinkedYoDouble;
-import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -42,11 +41,15 @@ public class YoDoubleProperty extends DoublePropertyBase implements YoVariablePr
    public void setLinkedBuffer(LinkedYoDouble linkedBuffer)
    {
       if (this.linkedBuffer != null)
-         throw new IllegalOperationException();
+         this.linkedBuffer.removeUser(userObject);
 
       this.linkedBuffer = linkedBuffer;
-      userObject = new Object();
-      linkedBuffer.addUser(userObject);
+
+      if (userObject == null)
+         userObject = new Object();
+
+      if (linkedBuffer != null)
+         linkedBuffer.addUser(userObject);
    }
 
    @Override
@@ -61,7 +64,8 @@ public class YoDoubleProperty extends DoublePropertyBase implements YoVariablePr
       try
       {
          yoDouble.removeListener(propertyUpdater);
-         linkedBuffer.removeUser(userObject);
+         if (linkedBuffer != null)
+            linkedBuffer.removeUser(userObject);
       }
       finally
       {

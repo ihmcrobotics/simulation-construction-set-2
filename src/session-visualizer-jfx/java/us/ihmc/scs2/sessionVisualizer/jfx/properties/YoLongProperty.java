@@ -9,7 +9,6 @@ import javafx.beans.property.LongPropertyBase;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleLongProperty;
 import us.ihmc.scs2.sharedMemory.LinkedYoLong;
-import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoLong;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -42,10 +41,15 @@ public class YoLongProperty extends LongPropertyBase implements YoVariableProper
    public void setLinkedBuffer(LinkedYoLong linkedBuffer)
    {
       if (this.linkedBuffer != null)
-         throw new IllegalOperationException();
+         this.linkedBuffer.removeUser(userObject);
 
       this.linkedBuffer = linkedBuffer;
-      linkedBuffer.addUser(this);
+
+      if (userObject == null)
+         userObject = new Object();
+
+      if (linkedBuffer != null)
+         linkedBuffer.addUser(userObject);
    }
 
    @Override
@@ -60,7 +64,8 @@ public class YoLongProperty extends LongPropertyBase implements YoVariableProper
       try
       {
          yoLong.removeListener(propertyUpdater);
-         linkedBuffer.removeUser(userObject);
+         if (linkedBuffer != null)
+            linkedBuffer.removeUser(userObject);
       }
       finally
       {
