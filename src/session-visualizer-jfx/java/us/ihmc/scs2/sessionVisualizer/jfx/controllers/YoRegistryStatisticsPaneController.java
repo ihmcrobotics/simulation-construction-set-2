@@ -10,6 +10,8 @@ import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -40,9 +42,9 @@ public class YoRegistryStatisticsPaneController
    public void initialize(SessionVisualizerToolkit toolkit)
    {
       JFXTreeTableColumn<YoRegistryInfo, String> nameCol;
-      JFXTreeTableColumn<YoRegistryInfo, String> nVarsShallowCol;
-      JFXTreeTableColumn<YoRegistryInfo, String> nVarsDeepCol;
-      JFXTreeTableColumn<YoRegistryInfo, String> nChildShallowCol;
+      JFXTreeTableColumn<YoRegistryInfo, Integer> nVarsShallowCol;
+      JFXTreeTableColumn<YoRegistryInfo, Integer> nVarsDeepCol;
+      JFXTreeTableColumn<YoRegistryInfo, Integer> nChildShallowCol;
 
       nameCol = createColumn("Registry", 300, 200, 800, YoRegistryInfo::getName);
       nVarsShallowCol = createColumn("Number of\nvariables\n(shallow)", 100, YoRegistryInfo::getNumberOfVariablesShallow);
@@ -93,18 +95,20 @@ public class YoRegistryStatisticsPaneController
       parentTreeItem.getChildren().add(treeItem);
    }
 
-   private JFXTreeTableColumn<YoRegistryInfo, String> createColumn(String name, double prefWidth, Function<YoRegistryInfo, StringProperty> fieldProvider)
+   private <T> JFXTreeTableColumn<YoRegistryInfo, T> createColumn(String name,
+                                                                           double prefWidth,
+                                                                           Function<YoRegistryInfo, Property<T>> fieldProvider)
    {
       return createColumn(name, prefWidth, prefWidth, prefWidth, fieldProvider);
    }
 
-   private JFXTreeTableColumn<YoRegistryInfo, String> createColumn(String name,
-                                                                   double prefWidth,
-                                                                   double minWidth,
-                                                                   double maxWidth,
-                                                                   Function<YoRegistryInfo, StringProperty> fieldProvider)
+   private <T> JFXTreeTableColumn<YoRegistryInfo, T> createColumn(String name,
+                                                                           double prefWidth,
+                                                                           double minWidth,
+                                                                           double maxWidth,
+                                                                           Function<YoRegistryInfo, Property<T>> fieldProvider)
    {
-      JFXTreeTableColumn<YoRegistryInfo, String> column = new JFXTreeTableColumn<>(name);
+      JFXTreeTableColumn<YoRegistryInfo, T> column = new JFXTreeTableColumn<>(name);
       column.setPrefWidth(prefWidth);
       column.setMinWidth(minWidth);
       column.setMaxWidth(maxWidth);
@@ -118,16 +122,16 @@ public class YoRegistryStatisticsPaneController
    private static class YoRegistryInfo extends RecursiveTreeObject<YoRegistryInfo>
    {
       private final StringProperty name = new SimpleStringProperty(this, "registryName", null);
-      private final StringProperty numberOfVariablesShallow = new SimpleStringProperty(this, "numberOfVariablesShallow", null);
-      private final StringProperty numberOfVariablesDeep = new SimpleStringProperty(this, "numberOfVariablesDeep", null);
-      private final StringProperty numberOfChildrenShallow = new SimpleStringProperty(this, "numberOfChildrenShallow", null);
+      private final Property<Integer> numberOfVariablesShallow = new SimpleObjectProperty<>(this, "numberOfVariablesShallow", -1);
+      private final Property<Integer> numberOfVariablesDeep = new SimpleObjectProperty<>(this, "numberOfVariablesDeep", -1);
+      private final Property<Integer> numberOfChildrenShallow = new SimpleObjectProperty<>(this, "numberOfChildrenShallow", -1);
 
       public YoRegistryInfo(YoRegistry registry)
       {
          name.set(registry.getName());
-         numberOfVariablesShallow.set(Integer.toString(registry.getNumberOfVariables()));
-         numberOfVariablesDeep.set(Integer.toString(registry.getNumberOfVariablesDeep()));
-         numberOfChildrenShallow.set(Integer.toString(registry.getChildren().size()));
+         numberOfVariablesShallow.setValue(registry.getNumberOfVariables());
+         numberOfVariablesDeep.setValue(registry.getNumberOfVariablesDeep());
+         numberOfChildrenShallow.setValue(registry.getChildren().size());
       }
 
       public StringProperty getName()
@@ -135,17 +139,17 @@ public class YoRegistryStatisticsPaneController
          return name;
       }
 
-      public StringProperty getNumberOfVariablesShallow()
+      public Property<Integer> getNumberOfVariablesShallow()
       {
          return numberOfVariablesShallow;
       }
 
-      public StringProperty getNumberOfVariablesDeep()
+      public Property<Integer> getNumberOfVariablesDeep()
       {
          return numberOfVariablesDeep;
       }
 
-      public StringProperty getNumberOfChildrenShallow()
+      public Property<Integer> getNumberOfChildrenShallow()
       {
          return numberOfChildrenShallow;
       }
