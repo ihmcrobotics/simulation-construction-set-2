@@ -175,7 +175,11 @@ public class YoGraphicPropertyWindowController
          if (e.getCode() == KeyCode.ESCAPE)
             window.close();
       });
-      toolkit.getMainWindow().addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> window.close());
+      toolkit.getMainWindow().addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e ->
+      {
+         if (!e.isConsumed())
+            window.close();
+      });
       window.setTitle("YoGraphic properties");
       window.setScene(new Scene(mainAnchorPane));
       window.initOwner(toolkit.getMainWindow());

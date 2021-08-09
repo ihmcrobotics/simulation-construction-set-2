@@ -45,9 +45,9 @@ public class SnapshotManager
       messager.registerTopicListener(topics.getRegisterRecordable(), this::registerRecordable);
       messager.registerTopicListener(topics.getForgetRecordable(), this::forgetRecordable);
 
-      primaryStage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, (EventHandler<? super WindowEvent>) event ->
+      primaryStage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, e ->
       {
-         if (snapshotSelectionWindowProperty.get() != null)
+         if (!e.isConsumed() && snapshotSelectionWindowProperty.get() != null)
             snapshotSelectionWindowProperty.get().close();
       });
    }

@@ -255,7 +255,11 @@ public class RemoteSessionManagerController implements SessionControlsController
       stage.setScene(new Scene(mainPane));
       stage.setTitle("Active remote sessions");
       stage.getIcons().add(SessionVisualizerIOTools.REMOTE_SESSION_IMAGE);
-      toolkit.getMainWindow().addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, e -> shutdown());
+      toolkit.getMainWindow().addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, e ->
+      {
+         if (!e.isConsumed())
+            shutdown();
+      });
       stage.show();
    }
 
@@ -409,7 +413,10 @@ public class RemoteSessionManagerController implements SessionControlsController
       return createColumn(name, prefWidth, prefWidth, prefWidth, fieldProvider);
    }
 
-   private JFXTreeTableColumn<SessionInfo, String> createColumn(String name, double prefWidth, double minWidth, double maxWidth,
+   private JFXTreeTableColumn<SessionInfo, String> createColumn(String name,
+                                                                double prefWidth,
+                                                                double minWidth,
+                                                                double maxWidth,
                                                                 Function<SessionInfo, StringProperty> fieldProvider)
    {
       JFXTreeTableColumn<SessionInfo, String> column = new JFXTreeTableColumn<>(name);

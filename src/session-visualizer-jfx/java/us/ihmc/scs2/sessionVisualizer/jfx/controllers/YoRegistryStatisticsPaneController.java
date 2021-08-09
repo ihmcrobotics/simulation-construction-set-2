@@ -69,7 +69,11 @@ public class YoRegistryStatisticsPaneController
             close();
       });
 
-      toolkit.getMainWindow().addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> close());
+      toolkit.getMainWindow().addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e ->
+      {
+         if (!e.isConsumed())
+            close();
+      });
       window.setTitle("YoRegistry statistics");
       window.getIcons().add(SessionVisualizerIOTools.SCS_ICON_IMAGE);
       window.setScene(new Scene(mainAnchorPane));
@@ -95,18 +99,16 @@ public class YoRegistryStatisticsPaneController
       parentTreeItem.getChildren().add(treeItem);
    }
 
-   private <T> JFXTreeTableColumn<YoRegistryInfo, T> createColumn(String name,
-                                                                           double prefWidth,
-                                                                           Function<YoRegistryInfo, Property<T>> fieldProvider)
+   private <T> JFXTreeTableColumn<YoRegistryInfo, T> createColumn(String name, double prefWidth, Function<YoRegistryInfo, Property<T>> fieldProvider)
    {
       return createColumn(name, prefWidth, prefWidth, prefWidth, fieldProvider);
    }
 
    private <T> JFXTreeTableColumn<YoRegistryInfo, T> createColumn(String name,
-                                                                           double prefWidth,
-                                                                           double minWidth,
-                                                                           double maxWidth,
-                                                                           Function<YoRegistryInfo, Property<T>> fieldProvider)
+                                                                  double prefWidth,
+                                                                  double minWidth,
+                                                                  double maxWidth,
+                                                                  Function<YoRegistryInfo, Property<T>> fieldProvider)
    {
       JFXTreeTableColumn<YoRegistryInfo, T> column = new JFXTreeTableColumn<>(name);
       column.setPrefWidth(prefWidth);

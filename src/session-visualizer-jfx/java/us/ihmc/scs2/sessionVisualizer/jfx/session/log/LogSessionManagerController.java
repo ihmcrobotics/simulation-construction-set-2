@@ -263,7 +263,11 @@ public class LogSessionManagerController implements SessionControlsController
       stage.setScene(new Scene(mainPane));
       stage.setTitle("Log session controls");
       stage.getIcons().add(SessionVisualizerIOTools.LOG_SESSION_IMAGE);
-      toolkit.getMainWindow().addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, e -> shutdown());
+      toolkit.getMainWindow().addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, e ->
+      {
+         if (!e.isConsumed())
+            shutdown();
+      });
       stage.show();
    }
 

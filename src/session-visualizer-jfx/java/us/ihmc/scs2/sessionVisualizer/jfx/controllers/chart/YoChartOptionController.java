@@ -104,7 +104,8 @@ public class YoChartOptionController
          manualYBoundsProperty.set(new ChartDoubleBounds(manualYBoundsProperty.get().getLower(), newValue.doubleValue()));
    };
 
-   private final ChangeListener<ChartDoubleBounds> customBoundsUpdater = (o, oldValue,
+   private final ChangeListener<ChartDoubleBounds> customBoundsUpdater = (o,
+                                                                          oldValue,
                                                                           newValue) -> yoNumberSeriesList.forEach(series -> series.setCustomYBounds(newValue));
 
    private final ChangeListener<ChartScalingMode> scalingModeListener = (o, oldValue, newValue) ->
@@ -201,7 +202,11 @@ public class YoChartOptionController
          if (e.getCode() == KeyCode.ESCAPE)
             window.close();
       });
-      toolkit.getWindow().addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e -> window.close());
+      toolkit.getWindow().addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e ->
+      {
+         if (!e.isConsumed())
+            window.close();
+      });
       window.setTitle("YoChart properties");
       Scene scene = new Scene(mainPane);
       masterSettingsPane.expandedProperty().addListener((o, oldValue, newValue) -> resizeWindow());
@@ -226,7 +231,9 @@ public class YoChartOptionController
       window.close();
    }
 
-   public void setInput(ObservableList<YoNumberSeries> yoNumberSeriesList, ObjectProperty<ChartStyle> chartStyleProperty, ObservableList<ChartMarker> userMarkers)
+   public void setInput(ObservableList<YoNumberSeries> yoNumberSeriesList,
+                        ObjectProperty<ChartStyle> chartStyleProperty,
+                        ObservableList<ChartMarker> userMarkers)
    {
       this.yoNumberSeriesList = yoNumberSeriesList;
       this.chartStyleProperty = chartStyleProperty;

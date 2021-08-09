@@ -203,7 +203,11 @@ public class SecondaryWindowManager implements Manager
          controller.initialize(toolkit, stage);
          controller.setupChartGroup();
          secondaryWindowControllers.add(controller);
-         stage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, e -> secondaryWindowControllers.remove(controller));
+         stage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, e ->
+         {
+            if (!e.isConsumed())
+               secondaryWindowControllers.remove(controller);
+         });
          controller.start();
          stage.show();
          return stage;
