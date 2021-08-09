@@ -331,10 +331,10 @@ public class RemoteSessionManagerController implements SessionControlsController
          {
             client.start(DEFAULT_TIMEOUT, selectedItem.getValue().getConnection());
          }
-         catch (IOException e)
+         catch (Throwable e)
          {
             e.printStackTrace();
-            JavaFXMissingTools.runLater(getClass(), () -> sessionInProgressProperty.set(false));
+            JavaFXMissingTools.runLater(getClass(), () -> unloadSession());
          }
       });
    }
@@ -350,7 +350,14 @@ public class RemoteSessionManagerController implements SessionControlsController
       if (!sessionInProgressProperty.get())
          return;
       sessionFactory.unloadSession();
-      client.stop();
+      try
+      {
+         client.stop();
+      }
+      catch (RuntimeException e)
+      {
+         // Just be silent about it, it's possible that there's no session ongoing in the case of a crash in startSession()
+      }
       setIsLoading(false);
       sessionInProgressProperty.set(false);
    }
