@@ -8,8 +8,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.zip.ZipEntry;
 
-import com.jfoenix.controls.JFXAlert;
-
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXMLLoader;
@@ -53,9 +51,12 @@ public class MultiSessionManager
       {
          JavaFXMissingTools.runAndWait(getClass(), () ->
          {
-            Alert alert = new Alert(AlertType.CONFIRMATION, "Do you want to save the default configuration?", ButtonType.YES, ButtonType.NO);
-            Optional<ButtonType> result = alert.showAndWait();
-            stopSession(result.isPresent() && result.get() == ButtonType.OK);
+            if (toolkit.hasActiveSession())
+            {
+               Alert alert = new Alert(AlertType.CONFIRMATION, "Do you want to save the default configuration?", ButtonType.YES, ButtonType.NO);
+               Optional<ButtonType> result = alert.showAndWait();
+               stopSession(result.isPresent() && result.get() == ButtonType.OK);
+            }
          });
 
          if (newValue != null)
