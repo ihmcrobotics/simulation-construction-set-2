@@ -56,6 +56,9 @@ public class SessionVisualizerTopics
 
    private Topic<Integer> controlsNumberPrecision;
 
+   private Topic<File> sessionVisualizerConfigurationLoadRequest;
+   private Topic<File> sessionVisualizerConfigurationSaveRequest;
+
    // Session topics
    private Topic<SessionState> sessionCurrentState;
    private Topic<SessionMode> sessionCurrentMode;
@@ -114,6 +117,9 @@ public class SessionVisualizerTopics
       yoSliderboardLoadConfiguration = SessionVisualizerMessagerAPI.YoSliderboard.YoSliderboardLoadConfiguration;
 
       controlsNumberPrecision = SessionVisualizerMessagerAPI.ControlsNumberPrecision;
+
+      sessionVisualizerConfigurationLoadRequest = SessionVisualizerMessagerAPI.SessionVisualizerConfigurationLoadRequest;
+      sessionVisualizerConfigurationSaveRequest = SessionVisualizerMessagerAPI.SessionVisualizerConfigurationSaveRequest;
 
       sessionCurrentState = SessionMessagerAPI.SessionCurrentState;
       sessionCurrentMode = SessionMessagerAPI.SessionCurrentMode;
@@ -293,6 +299,16 @@ public class SessionVisualizerTopics
    public Topic<Integer> getControlsNumberPrecision()
    {
       return controlsNumberPrecision;
+   }
+
+   public Topic<File> getSessionVisualizerConfigurationLoadRequest()
+   {
+      return sessionVisualizerConfigurationLoadRequest;
+   }
+
+   public Topic<File> getSessionVisualizerConfigurationSaveRequest()
+   {
+      return sessionVisualizerConfigurationSaveRequest;
    }
 
    public Topic<SessionState> getSessionCurrentState()

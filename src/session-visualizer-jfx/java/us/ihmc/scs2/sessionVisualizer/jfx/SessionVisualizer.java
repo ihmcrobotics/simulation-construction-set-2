@@ -1,9 +1,14 @@
 package us.ihmc.scs2.sessionVisualizer.jfx;
 
+import java.util.Optional;
+
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import us.ihmc.javaFXToolkit.cameraControllers.FocusBasedCameraMouseEventHandler;
@@ -85,17 +90,28 @@ public class SessionVisualizer
       multiSessionManager.startSession(session, sessionLoadedCallback);
    }
 
-   public void stopSession()
-   {
-      multiSessionManager.stopSession();
-   }
-
    public void stop()
    {
+      boolean saveConfiguration = false;
+
+      if (toolkit.hasActiveSession())
+      {
+         Alert alert = new Alert(AlertType.CONFIRMATION, "Do you want to save the default configuration?", ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
+
+         Optional<ButtonType> result = alert.showAndWait();
+         if (result.isEmpty())
+            return;
+
+         if (result.get() == ButtonType.CANCEL)
+            return;
+
+         saveConfiguration = result.get() == ButtonType.YES;
+      }
+
       LogTools.info("Simulation GUI is going down.");
       try
       {
-         stopSession();
+         multiSessionManager.stopSession(saveConfiguration);
          multiSessionManager.shutdown();
          mainWindowController.stop();
          toolkit.stop();

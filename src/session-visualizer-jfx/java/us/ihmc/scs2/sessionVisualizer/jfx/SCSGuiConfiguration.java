@@ -1,7 +1,7 @@
 package us.ihmc.scs2.sessionVisualizer.jfx;
 
 import static us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools.SCS2_CONFIGURATION_DEFAULT_PATH;
-import static us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools.scsConfigurationFileExtension;
+import static us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools.*;
 import static us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools.yoChartGroupConfigurationFileExtension;
 import static us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools.yoCompositeConfigurationFileExtension;
 import static us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools.yoEntryConfigurationFileExtension;
@@ -33,10 +33,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
 
 public class SCSGuiConfiguration
 {
-   private final String robotName;
-   private final String simulationName;
-
-   private final String configurationName;
+   private final Path configurationFolderPath;
 
    private final String mainConfigurationFilename;
    private String yoGraphicsFilename;
@@ -82,13 +79,53 @@ public class SCSGuiConfiguration
       }
    }
 
+   public static SCSGuiConfiguration saverToDirectory(String robotName, String simulationName, File configurationDirectory)
+   {
+      try
+      {
+         return new SCSGuiConfiguration(configurationDirectory.toPath(), robotName + "-" + simulationName, false);
+      }
+      catch (Exception e)
+      {
+         e.printStackTrace();
+         return null;
+      }
+   }
+
+   public static SCSGuiConfiguration loaderFromDirectory(String robotName, String simulationName, File configurationDirectory)
+   {
+      try
+      {
+         return new SCSGuiConfiguration(configurationDirectory.toPath(), robotName + "-" + simulationName, true);
+      }
+      catch (Exception e)
+      {
+         e.printStackTrace();
+         return null;
+      }
+   }
+
    private SCSGuiConfiguration(String robotName, String simulationName, boolean isLoading) throws IOException, JAXBException
    {
-      this.robotName = robotName;
-      this.simulationName = simulationName;
-      configurationName = robotName + "-" + simulationName;
+      this(Paths.get(SCS2_CONFIGURATION_DEFAULT_PATH.toString(), robotName, simulationName), robotName + "-" + simulationName, isLoading);
+   }
 
-      mainConfigurationFilename = toFilename("Main", scsConfigurationFileExtension);
+   private SCSGuiConfiguration(Path configurationFolderPath, String configurationName, boolean isLoading) throws IOException, JAXBException
+   {
+      this.configurationFolderPath = configurationFolderPath;
+
+      if (isLoading)
+      { // TODO This is backward compatibility, the name extension changed
+         if (toPath(toFilename("Main", scsConfigurationFileExtension)).toFile().exists())
+            mainConfigurationFilename = toFilename("Main", scsConfigurationFileExtension);
+         else
+            mainConfigurationFilename = toFilename("Main", scsMainConfigurationFileExtension);
+      }
+      else
+      {
+         mainConfigurationFilename = toFilename("Main", scsMainConfigurationFileExtension);
+      }
+
       mainConfigurationPath = toPath(mainConfigurationFilename);
 
       if (isLoading)
@@ -378,17 +415,7 @@ public class SCSGuiConfiguration
       if (filename == null)
          return null;
       else
-         return Paths.get(SCS2_CONFIGURATION_DEFAULT_PATH.toString(), robotName, simulationName, filename);
-   }
-
-   public String getRobotName()
-   {
-      return robotName;
-   }
-
-   public String getSimulationName()
-   {
-      return simulationName;
+         return configurationFolderPath.resolve(filename);
    }
 
    public static WindowConfigurationDefinition toWindowConfigurationDefinition(Stage stage)
