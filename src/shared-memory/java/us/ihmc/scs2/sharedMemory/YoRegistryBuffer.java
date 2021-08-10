@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
-import us.ihmc.log.LogTools;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 import us.ihmc.yoVariables.listener.YoRegistryChangedListener;
@@ -56,10 +55,7 @@ public class YoRegistryBuffer
       String fullName = yoVariable.getFullNameString();
 
       if (yoVariableFullnameToBufferMap.containsKey(fullName))
-      {
-         LogTools.warn("Name collision while trying to register new YoVariable: " + fullName);
          return;
-      }
 
       YoVariableBuffer<?> yoVariableBuffer = YoVariableBuffer.newYoVariableBuffer(yoVariable, properties);
 

@@ -50,7 +50,11 @@ public class EnvironmentManager implements Manager
       JavaFXMissingTools.runLaterIfNeeded(getClass(), () ->
       {
          for (TerrainObjectDefinition definition : terrainObjectDefinitions)
-            terrainObjectGraphics.getChildren().add(JavaFXVisualTools.collectNodes(definition.getVisualDefinitions()));
+         {
+            Node nodes = JavaFXVisualTools.collectNodes(definition.getVisualDefinitions());
+            if (nodes != null)
+               terrainObjectGraphics.getChildren().add(nodes);
+         }
       });
    }
 
