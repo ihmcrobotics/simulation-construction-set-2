@@ -23,6 +23,7 @@ import us.ihmc.euclid.shape.convexPolytope.interfaces.ConvexPolytope3DReadOnly;
 import us.ihmc.euclid.shape.convexPolytope.interfaces.Face3DReadOnly;
 import us.ihmc.euclid.shape.convexPolytope.interfaces.HalfEdge3DReadOnly;
 import us.ihmc.euclid.shape.convexPolytope.interfaces.Vertex3DReadOnly;
+import us.ihmc.euclid.shape.primitives.Box3D;
 import us.ihmc.euclid.shape.primitives.Ramp3D;
 import us.ihmc.euclid.shape.primitives.interfaces.BoxPolytope3DView;
 import us.ihmc.euclid.tools.EuclidCoreTools;
@@ -58,7 +59,6 @@ import us.ihmc.scs2.definition.geometry.Tetrahedron3DDefinition;
 import us.ihmc.scs2.definition.geometry.Torus3DDefinition;
 import us.ihmc.scs2.definition.geometry.TriangleMesh3DDefinition;
 import us.ihmc.scs2.definition.geometry.TruncatedCone3DDefinition;
-import us.ihmc.scs2.simulation.shapes.STPBox3D;
 
 /**
  * This class provides factories to create generic meshes, i.e. {@code TriangleMesh3DDefinition}, to
@@ -3060,7 +3060,7 @@ public class TriangleMesh3DFactories
    public static TriangleMesh3DDefinition[] toSTPBox3DMeshes(RigidBodyTransformReadOnly pose, double sizeX, double sizeY, double sizeZ, double smallRadius,
                                                              double largeRadius, boolean highlightLimits)
    {
-      STPBox3D stpBox3D = new STPBox3D(sizeX, sizeY, sizeZ);
+      Box3D stpBox3D = new Box3D(sizeX, sizeY, sizeZ);
       if (pose != null)
          stpBox3D.getPose().set(pose);
       BoxPolytope3DView boxPolytope = stpBox3D.asConvexPolytope();

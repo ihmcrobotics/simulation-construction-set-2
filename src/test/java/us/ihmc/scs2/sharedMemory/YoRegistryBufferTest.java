@@ -12,10 +12,8 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
-import us.ihmc.scs2.sharedMemory.tools.YoMirroredRegistryTools;
-import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
-import us.ihmc.scs2.sharedMemory.YoRegistryBuffer;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -35,9 +33,9 @@ public class YoRegistryBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoRegistry[] allRegistries = YoRandomTools.nextYoRegistryTree(random, 10, 15);
+         YoRegistry[] allRegistries = SharedMemoryRandomTools.nextYoRegistryTree(random, 10, 15);
          YoRegistry rootRegistry = allRegistries[0];
-         YoBufferProperties bufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
+         YoBufferProperties bufferProperties = SharedMemoryRandomTools.nextYoBufferProperties(random);
          YoRegistryBuffer YoRegistryBuffer = new YoRegistryBuffer(rootRegistry, bufferProperties);
 
          assertTrue(rootRegistry == YoRegistryBuffer.getRootRegistry());
@@ -60,23 +58,22 @@ public class YoRegistryBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoRegistry[] allRegistries = YoRandomTools.nextYoRegistryTree(random, 5, 5);
+         YoRegistry[] allRegistries = SharedMemoryRandomTools.nextYoRegistryTree(random, 5, 5);
          YoRegistry rootRegistry = allRegistries[0];
-         YoBufferProperties bufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
-         YoRegistryBuffer YoRegistryBuffer = new YoRegistryBuffer(rootRegistry, bufferProperties);
+         YoBufferProperties bufferProperties = SharedMemoryRandomTools.nextYoBufferProperties(random);
+         YoRegistryBuffer yoRegistryBuffer = new YoRegistryBuffer(rootRegistry, bufferProperties);
 
          for (int j = 0; j < allRegistries.length; j++)
          {
             YoRegistry yoRegistry = allRegistries[j];
-            YoRandomTools.nextYoRegistryTree(random, yoRegistry, "new" + j, 5, 5);
+            SharedMemoryRandomTools.nextYoRegistryTree(random, yoRegistry, "new" + j, 5, 5);
          }
 
-         YoRegistryBuffer.registerMissingBuffers();
          List<YoVariable> allYoVariables = rootRegistry.collectSubtreeVariables();
 
          for (YoVariable yoVariable : allYoVariables)
          {
-            YoVariableBuffer<?> yoVariableBuffer = YoRegistryBuffer.findYoVariableBuffer(yoVariable);
+            YoVariableBuffer<?> yoVariableBuffer = yoRegistryBuffer.findYoVariableBuffer(yoVariable);
             assertNotNull(yoVariableBuffer);
             assertTrue(yoVariable == yoVariableBuffer.getYoVariable());
          }
@@ -90,11 +87,11 @@ public class YoRegistryBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoRegistry[] allRegistries = YoRandomTools.nextYoRegistryTree(random, 2, 2);
+         YoRegistry[] allRegistries = SharedMemoryRandomTools.nextYoRegistryTree(random, 2, 2);
          YoRegistry rootRegistry = allRegistries[0];
-         YoBufferProperties bufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
+         YoBufferProperties bufferProperties = SharedMemoryRandomTools.nextYoBufferProperties(random);
          YoRegistryBuffer YoRegistryBuffer = new YoRegistryBuffer(rootRegistry, bufferProperties);
-         YoBufferRandomTools.randomizeYoRegistryBuffer(random, YoRegistryBuffer);
+         SharedMemoryRandomTools.randomizeYoRegistryBuffer(random, YoRegistryBuffer);
 
          List<YoVariable> allYoVariables = rootRegistry.collectSubtreeVariables();
          List<YoVariableBuffer<?>> allYoVariableBuffers = new ArrayList<>();
@@ -129,16 +126,16 @@ public class YoRegistryBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoRegistry[] allRegistries = YoRandomTools.nextYoRegistryTree(random, 5, 5);
+         YoRegistry[] allRegistries = SharedMemoryRandomTools.nextYoRegistryTree(random, 5, 5);
          YoRegistry rootRegistry = allRegistries[0];
-         YoBufferProperties bufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
+         YoBufferProperties bufferProperties = SharedMemoryRandomTools.nextYoBufferProperties(random);
          YoRegistryBuffer YoRegistryBuffer = new YoRegistryBuffer(rootRegistry, bufferProperties);
 
          List<YoVariable> allYoVariables = rootRegistry.collectSubtreeVariables();
 
          for (int j = 0; j < 10; j++)
          {
-            allYoVariables.forEach(v -> YoRandomTools.randomizeYoVariable(random, v));
+            allYoVariables.forEach(v -> SharedMemoryRandomTools.randomizeYoVariable(random, v));
             YoRegistryBuffer.writeBuffer();
             for (YoVariable yoVariable : allYoVariables)
             {
@@ -155,9 +152,9 @@ public class YoRegistryBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoRegistry[] allRegistries = YoRandomTools.nextYoRegistryTree(random, 5, 5);
+         YoRegistry[] allRegistries = SharedMemoryRandomTools.nextYoRegistryTree(random, 5, 5);
          YoRegistry rootRegistry = allRegistries[0];
-         YoBufferProperties bufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
+         YoBufferProperties bufferProperties = SharedMemoryRandomTools.nextYoBufferProperties(random);
          YoRegistryBuffer YoRegistryBuffer = new YoRegistryBuffer(rootRegistry, bufferProperties);
 
          List<YoVariable> allYoVariables = rootRegistry.collectSubtreeVariables();
@@ -182,18 +179,18 @@ public class YoRegistryBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoRegistry[] allRegistries = YoRandomTools.nextYoRegistryTree(random, 5, 5);
+         YoRegistry[] allRegistries = SharedMemoryRandomTools.nextYoRegistryTree(random, 5, 5);
          YoRegistry rootRegistry = allRegistries[0];
-         YoBufferProperties bufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
+         YoBufferProperties bufferProperties = SharedMemoryRandomTools.nextYoBufferProperties(random);
          YoRegistryBuffer YoRegistryBuffer = new YoRegistryBuffer(rootRegistry, bufferProperties);
 
          // Create a mirror of the registries
          YoRegistry rootMirrorRegistry = new YoRegistry(rootRegistry.getName());
-         YoMirroredRegistryTools.duplicateMissingYoVariablesInTarget(rootRegistry, rootMirrorRegistry);
+         SharedMemoryTools.duplicateMissingYoVariablesInTarget(rootRegistry, rootMirrorRegistry);
 
          // Add a YoVariable to one of the existing registries
          YoRegistry YoRegistry = rootMirrorRegistry.collectSubtreeRegistries().get(random.nextInt(allRegistries.length - 1));
-         YoVariable newYoVariable = YoRandomTools.nextYoVariable(random, YoRegistry);
+         YoVariable newYoVariable = SharedMemoryRandomTools.nextYoVariable(random, YoRegistry);
          assertNull(YoRegistryBuffer.findYoVariableBuffer(newYoVariable));
          assertNull(rootRegistry.findVariable(newYoVariable.getFullNameString()));
          YoVariableBuffer<?> newBuffer = YoRegistryBuffer.findOrCreateYoVariableBuffer(newYoVariable);
@@ -207,13 +204,13 @@ public class YoRegistryBufferTest
 
          for (int j = 0; j < random.nextInt(10) + 1; j++)
          {
-            YoRegistry newChild = new YoRegistry(YoRandomTools.nextAvailableRegistryName(random, 10, 20, YoRegistry));
+            YoRegistry newChild = new YoRegistry(SharedMemoryRandomTools.nextAvailableRegistryName(random, 10, 20, YoRegistry));
             YoRegistry.addChild(newChild);
             newRegistries.add(newChild);
             YoRegistry = newChild;
          }
 
-         newYoVariable = YoRandomTools.nextYoVariable(random, YoRegistry);
+         newYoVariable = SharedMemoryRandomTools.nextYoVariable(random, YoRegistry);
          assertNull(YoRegistryBuffer.findYoVariableBuffer(newYoVariable));
          assertNull(rootRegistry.findVariable(newYoVariable.getFullNameString()));
          newBuffer = YoRegistryBuffer.findOrCreateYoVariableBuffer(newYoVariable);
@@ -232,18 +229,13 @@ public class YoRegistryBufferTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoRegistry[] allRegistries = YoRandomTools.nextYoRegistryTree(random, 5, 5);
+         YoRegistry[] allRegistries = SharedMemoryRandomTools.nextYoRegistryTree(random, 5, 5);
          YoRegistry rootRegistry = allRegistries[0];
-         YoBufferProperties bufferProperties = YoBufferRandomTools.nextYoBufferProperties(random);
-         YoRegistryBuffer YoRegistryBuffer = new YoRegistryBuffer(rootRegistry, bufferProperties);
+         YoBufferProperties bufferProperties = SharedMemoryRandomTools.nextYoBufferProperties(random);
+         YoRegistryBuffer yoRegistryBuffer = new YoRegistryBuffer(rootRegistry, bufferProperties);
 
-         LinkedYoRegistry linkedRootRegistry = YoRegistryBuffer.newLinkedYoRegistry();
+         LinkedYoRegistry linkedRootRegistry = yoRegistryBuffer.newLinkedYoRegistry();
          assertEquals(rootRegistry.getName(), linkedRootRegistry.getRootRegistry().getName());
-         assertEquals(1, linkedRootRegistry.getRootRegistry().collectSubtreeRegistries().size());
-         assertEquals(0, linkedRootRegistry.getRootRegistry().collectSubtreeVariables().size());
-
-         // Need to populate variables and registries.
-         linkedRootRegistry.linkManagerVariables();
 
          for (YoRegistry registry : allRegistries)
          {
@@ -254,12 +246,10 @@ public class YoRegistryBufferTest
          }
 
          YoRegistry subTreeRootRegistry = allRegistries[random.nextInt(allRegistries.length)];
-         YoRegistry linkedSubTreeRootRegistry = YoMirroredRegistryTools.newEmptyCloneRegistry(subTreeRootRegistry);
+         YoRegistry linkedSubTreeRootRegistry = SharedMemoryTools.newEmptyCloneRegistry(subTreeRootRegistry);
 
-         LinkedYoRegistry linkedSubTreeRegistry = YoRegistryBuffer.newLinkedYoRegistry(linkedSubTreeRootRegistry);
+         LinkedYoRegistry linkedSubTreeRegistry = yoRegistryBuffer.newLinkedYoRegistry(linkedSubTreeRootRegistry);
          assertTrue(linkedSubTreeRootRegistry == linkedSubTreeRegistry.getRootRegistry());
-
-         linkedSubTreeRegistry.linkManagerVariables();
 
          for (YoRegistry registry : subTreeRootRegistry.collectSubtreeRegistries())
          {

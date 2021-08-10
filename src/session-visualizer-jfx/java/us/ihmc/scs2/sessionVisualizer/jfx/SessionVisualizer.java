@@ -1,12 +1,17 @@
 package us.ihmc.scs2.sessionVisualizer.jfx;
 
+import java.util.Optional;
+
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import us.ihmc.javaFXToolkit.cameraControllers.FocusBasedCameraMouseEventHandler;
 import us.ihmc.javaFXToolkit.scenes.View3DFactory;
 import us.ihmc.log.LogTools;
@@ -34,23 +39,22 @@ public class SessionVisualizer
    private SessionVisualizerToolkit toolkit;
    private MultiSessionManager multiSessionManager;
 
-   private SidePaneController sidePaneController;
-
    private final Plotter2D plotter2D = new Plotter2D();
    private MainWindowController mainWindowController;
 
    public SessionVisualizer(Stage primaryStage) throws Exception
    {
+      // Configuring listener first so this is the first one getting called. Allows to cancel the close request.
+      primaryStage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, this::stop);
+      primaryStage.getIcons().add(SessionVisualizerIOTools.SCS_ICON_IMAGE);
+      primaryStage.setTitle(NO_ACTIVE_SESSION_TITLE);
+
       toolkit = new SessionVisualizerToolkit(primaryStage);
 
       FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.MAIN_WINDOW_URL);
       Parent mainPane = loader.load();
       mainWindowController = loader.getController();
       mainWindowController.initialize(new SessionVisualizerWindowToolkit(primaryStage, toolkit));
-
-      loader = new FXMLLoader(SessionVisualizerIOTools.SIDE_PANE_URL);
-      mainWindowController.setupDrawer((Pane) loader.load());
-      sidePaneController = loader.getController();
 
       View3DFactory view3dFactory = View3DFactory.createSubscene();
       view3dFactory.addDefaultLighting();
@@ -63,24 +67,17 @@ public class SessionVisualizer
       toolkit.getEnvironmentManager().addSkybox(view3dFactory.getSubScene());
       toolkit.getMessager().registerJavaFXSyncedTopicListener(toolkit.getTopics().getSessionVisualizerCloseRequest(), m -> stop());
 
-      sidePaneController.initialize(toolkit);
-
       mainWindowController.setupPlotter2D(plotter2D);
 
       view3dFactory.addNodeToView(toolkit.getYoGraphicFXManager().getRootNode3D());
       mainWindowController.setupViewport3D(view3dFactory.getSubSceneWrappedInsidePane());
 
-      primaryStage.setOnCloseRequest(e -> stop());
-      primaryStage.getIcons().add(SessionVisualizerIOTools.SCS_ICON_IMAGE);
-      primaryStage.setTitle(NO_ACTIVE_SESSION_TITLE);
-
       Scene mainScene = new Scene(mainPane, 1024, 768);
       toolkit.getSnapshotManager().registerRecordable(mainScene);
       primaryStage.setScene(mainScene);
-      multiSessionManager = new MultiSessionManager(toolkit, mainWindowController, sidePaneController);
+      multiSessionManager = new MultiSessionManager(toolkit, mainWindowController);
 
       mainWindowController.start();
-      sidePaneController.start();
       toolkit.start();
       primaryStage.show();
    }
@@ -95,20 +92,43 @@ public class SessionVisualizer
       multiSessionManager.startSession(session, sessionLoadedCallback);
    }
 
-   public void stopSession()
-   {
-      multiSessionManager.stopSession();
-   }
-
    public void stop()
    {
+      stop(null);
+   }
+
+   public void stop(WindowEvent event)
+   {
+      boolean saveConfiguration = false;
+
+      if (toolkit.hasActiveSession())
+      {
+         Alert alert = new Alert(AlertType.CONFIRMATION, "Do you want to save the default configuration?", ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
+
+         Optional<ButtonType> result = alert.showAndWait();
+         if (!result.isPresent())
+         {
+            if (event != null)
+               event.consume();
+            return;
+         }
+
+         if (result.get() == ButtonType.CANCEL)
+         {
+            if (event != null)
+               event.consume();
+            return;
+         }
+
+         saveConfiguration = result.get() == ButtonType.YES;
+      }
+
       LogTools.info("Simulation GUI is going down.");
       try
       {
-         stopSession();
+         multiSessionManager.stopSession(saveConfiguration);
          multiSessionManager.shutdown();
          mainWindowController.stop();
-         sidePaneController.stop();
          toolkit.stop();
          Platform.exit();
          System.exit(0);

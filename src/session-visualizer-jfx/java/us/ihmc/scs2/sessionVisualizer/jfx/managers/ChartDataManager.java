@@ -64,10 +64,13 @@ public class ChartDataManager implements Manager
          {
             boolean remove = !value.isCurrentlyInUse();
             if (remove)
+            {
                value.dispose();
+               linkedVariableMap.remove(value.getYoVariable());
+            }
             return remove;
          });
-         chartDataMap.values().forEach(YoVariableChartData::updateData);
+         chartDataMap.values().forEach(YoVariableChartData::updateBufferData);
       }
       catch (Exception e)
       {

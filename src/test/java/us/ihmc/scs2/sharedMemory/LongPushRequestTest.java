@@ -8,7 +8,7 @@ import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryRandomTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoLong;
 
@@ -23,7 +23,7 @@ public class LongPushRequestTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoLong bufferYoLong = YoRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
+         YoLong bufferYoLong = SharedMemoryRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
          long valueToPush = random.nextLong();
 
          long currentValue = bufferYoLong.getValue();

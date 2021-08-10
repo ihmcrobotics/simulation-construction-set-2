@@ -7,24 +7,28 @@ import javafx.scene.control.Slider;
 import us.ihmc.scs2.definition.yoSlider.YoKnobDefinition;
 import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
+import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.yoVariables.variable.YoInteger;
 import us.ihmc.yoVariables.variable.YoLong;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public interface YoVariableSlider
 {
-   public static YoVariableSlider newYoVariableSlider(YoVariable yoVariable, Runnable pushValueAction)
+   public static YoVariableSlider newYoVariableSlider(YoVariable yoVariable, LinkedYoRegistry linkedYoRegistry)
    {
       if (yoVariable instanceof YoDouble)
-         return new YoDoubleSlider((YoDouble) yoVariable, pushValueAction);
+         return new YoDoubleSlider((YoDouble) yoVariable, linkedYoRegistry);
       if (yoVariable instanceof YoBoolean)
-         return new YoBooleanSlider((YoBoolean) yoVariable, pushValueAction);
+         return new YoBooleanSlider((YoBoolean) yoVariable, linkedYoRegistry);
       if (yoVariable instanceof YoInteger)
-         return new YoIntegerSlider((YoInteger) yoVariable, pushValueAction);
+         return new YoIntegerSlider((YoInteger) yoVariable, linkedYoRegistry);
       if (yoVariable instanceof YoLong)
-         return new YoLongSlider((YoLong) yoVariable, pushValueAction);
+         return new YoLongSlider((YoLong) yoVariable, linkedYoRegistry);
+      if (yoVariable instanceof YoEnum)
+         return new YoEnumSlider((YoEnum<?>) yoVariable, linkedYoRegistry);
       throw new IllegalStateException("Unexpected YoVariable type: " + yoVariable);
    }
 

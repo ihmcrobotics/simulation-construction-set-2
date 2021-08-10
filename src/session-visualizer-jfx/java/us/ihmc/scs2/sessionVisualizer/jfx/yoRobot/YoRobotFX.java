@@ -21,9 +21,11 @@ import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.FrameNode;
 import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.JavaFXRigidBody;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
-import us.ihmc.scs2.sharedMemory.tools.YoMirroredRegistryTools;
+import us.ihmc.scs2.sharedMemory.LinkedYoVariable;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 import us.ihmc.scs2.simulation.SimulationSession;
 import us.ihmc.yoVariables.registry.YoRegistry;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoRobotFX
 {
@@ -46,7 +48,7 @@ public class YoRobotFX
       this.robotDefinition = robotDefinition;
 
       // FIXME This is britle any change to the registry structure of the active Session will break this robot visualization 
-      robotRegistry = YoMirroredRegistryTools.newRegistryFromNamespace(SimulationSession.ROOT_REGISTRY_NAME, robotDefinition.getName());
+      robotRegistry = SharedMemoryTools.newRegistryFromNamespace(SimulationSession.ROOT_REGISTRY_NAME, robotDefinition.getName());
    }
 
    public void loadRobot(Executor graphicLoader)
@@ -107,7 +109,11 @@ public class YoRobotFX
       }
 
       robotLinkedYoRegistry = yoManager.newLinkedYoRegistry(robotRegistry);
-      yoManager.linkNewYoVariables();
+      robotRegistry.getVariables().forEach(var ->
+      {
+         LinkedYoVariable<YoVariable> linkYoVariable = robotLinkedYoRegistry.linkYoVariable(var);
+         linkYoVariable.addUser(this);
+      });
    }
 
    public void render()

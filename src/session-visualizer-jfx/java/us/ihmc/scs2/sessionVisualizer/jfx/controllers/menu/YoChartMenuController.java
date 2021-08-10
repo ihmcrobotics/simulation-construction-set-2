@@ -47,6 +47,6 @@ public class YoChartMenuController
    @FXML
    public void newChartWindow()
    {
-      messager.submitMessage(topics.getOpenWindowRequest(), SecondaryWindowManager.SECONDARY_CHART_WINDOW_TYPE);
+      messager.submitMessage(topics.getOpenWindowRequest(), new Pair<>(SecondaryWindowManager.SECONDARY_CHART_WINDOW_TYPE, null));
    }
 }

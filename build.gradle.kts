@@ -29,9 +29,11 @@ definitionDependencies {
 }
 
 sharedMemoryDependencies {
+   api(ihmc.sourceSetProject("definition"))
    api("us.ihmc:euclid:0.16.2")
    api("us.ihmc:euclid-frame:0.16.2")
    api("us.ihmc:ihmc-yovariables:0.9.9")
+   api("us.hebi.matlab.mat:mfl-core:0.5.7")
 }
 
 sessionDependencies {
@@ -54,7 +56,6 @@ simulationDependencies {
 }
 
 sessionVisualizerDependencies {
-   api(ihmc.sourceSetProject("simulation"))
    api(ihmc.sourceSetProject("definition"))
    
    var javaFXVersion = "15.0.1"

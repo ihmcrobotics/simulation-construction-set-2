@@ -17,7 +17,9 @@ import javafx.util.converter.IntegerStringConverter;
 import us.ihmc.scs2.definition.yoSlider.YoKnobDefinition;
 import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoIntegerProperty;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
+import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 import us.ihmc.yoVariables.variable.YoInteger;
 
 public class YoIntegerSlider implements YoVariableSlider
@@ -26,12 +28,11 @@ public class YoIntegerSlider implements YoVariableSlider
    private final IntegerProperty minProperty = new SimpleIntegerProperty(this, "min", 0);
    private final IntegerProperty maxProperty = new SimpleIntegerProperty(this, "max", 1);
    private final List<Runnable> cleanupTasks = new ArrayList<>();
-   private final Runnable pushValueAction;
 
-   public YoIntegerSlider(YoInteger yoInteger, Runnable pushValueAction)
+   public YoIntegerSlider(YoInteger yoInteger, LinkedYoRegistry linkedYoRegistry)
    {
-      this.pushValueAction = pushValueAction;
       yoIntegerProperty = new YoIntegerProperty(yoInteger, this);
+      yoIntegerProperty.setLinkedBuffer(linkedYoRegistry.linkYoVariable(yoInteger));
    }
 
    @Override
@@ -101,10 +102,12 @@ public class YoIntegerSlider implements YoVariableSlider
          if (updating.isTrue())
             return;
 
-         updating.setTrue();
-         yoIntegerProperty.set(virtualSlider.valueProperty().getValue().intValue());
-         pushValueAction.run();
-         updating.setFalse();
+         JavaFXMissingTools.runLater(YoIntegerSlider.this.getClass(), () ->
+         {
+            updating.setTrue();
+            yoIntegerProperty.setAndPush(virtualSlider.valueProperty().getValue().intValue());
+            updating.setFalse();
+         });
       };
 
       yoIntegerProperty.addListener(sliderUpdater);
@@ -185,10 +188,12 @@ public class YoIntegerSlider implements YoVariableSlider
                                                               sliderVariable.getMax(),
                                                               minProperty.get(),
                                                               maxProperty.get());
-         updating.setTrue();
-         yoIntegerProperty.set(yoIntegerValue);
-         pushValueAction.run();
-         updating.setFalse();
+         JavaFXMissingTools.runLater(YoIntegerSlider.this.getClass(), () ->
+         {
+            updating.setTrue();
+            yoIntegerProperty.setAndPush(yoIntegerValue);
+            updating.setFalse();
+         });
       };
 
       yoIntegerProperty.addListener(sliderUpdater);

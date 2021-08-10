@@ -1,13 +1,19 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.managers;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.zip.ZipEntry;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.util.Pair;
@@ -19,11 +25,11 @@ import us.ihmc.scs2.sessionVisualizer.jfx.MainWindowController;
 import us.ihmc.scs2.sessionVisualizer.jfx.SCSGuiConfiguration;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
-import us.ihmc.scs2.sessionVisualizer.jfx.SidePaneController;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.SessionControlsController;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.SessionInfoController;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.log.LogSessionManagerController;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.remote.RemoteSessionManagerController;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.BufferedJavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
 
@@ -31,21 +37,27 @@ public class MultiSessionManager
 {
    private final SessionVisualizerToolkit toolkit;
    private final MainWindowController mainWindowController;
-   private final SidePaneController sidePaneController; // TODO Only here to trigger events when start/close a session, should be done via the messager.
 
    private final Map<Class<? extends SessionControlsController>, SessionControlsController> inactiveControllerMap = new HashMap<>();
    private final ObjectProperty<SessionControlsController> activeController = new SimpleObjectProperty<>(this, "activeSessionControls", null);
    private final ObjectProperty<Session> activeSession = new SimpleObjectProperty<>(this, "activeSession", null);
 
-   public MultiSessionManager(SessionVisualizerToolkit toolkit, MainWindowController mainWindowController, SidePaneController sidePaneController)
+   public MultiSessionManager(SessionVisualizerToolkit toolkit, MainWindowController mainWindowController)
    {
       this.toolkit = toolkit;
       this.mainWindowController = mainWindowController;
-      this.sidePaneController = sidePaneController;
 
       activeSession.addListener((o, oldValue, newValue) ->
       {
-         JavaFXMissingTools.runAndWait(getClass(), () -> stopSession());
+         JavaFXMissingTools.runAndWait(getClass(), () ->
+         {
+            if (toolkit.hasActiveSession())
+            {
+               Alert alert = new Alert(AlertType.CONFIRMATION, "Do you want to save the default configuration?", ButtonType.YES, ButtonType.NO);
+               Optional<ButtonType> result = alert.showAndWait();
+               stopSession(result.isPresent() && result.get() == ButtonType.OK);
+            }
+         });
 
          if (newValue != null)
             startSession(newValue, () -> activeController.get().notifySessionLoaded());
@@ -55,6 +67,8 @@ public class MultiSessionManager
       JavaFXMessager messager = toolkit.getMessager();
       messager.registerJavaFXSyncedTopicListener(topics.getRemoteSessionControlsRequest(), m -> openRemoteSessionControls());
       messager.registerJavaFXSyncedTopicListener(topics.getLogSessionControlsRequest(), m -> openLogSessionControls());
+      messager.registerJavaFXSyncedTopicListener(topics.getSessionVisualizerConfigurationLoadRequest(), m -> loadSessionConfiguration(m));
+      messager.registerJavaFXSyncedTopicListener(topics.getSessionVisualizerConfigurationSaveRequest(), m -> saveSessionConfiguration(m));
    }
 
    public void startSession(Session session, Runnable sessionLoadedCallback)
@@ -72,12 +86,13 @@ public class MultiSessionManager
       });
    }
 
-   public void stopSession()
+   public void stopSession(boolean saveConfiguration)
    {
       if (!toolkit.hasActiveSession())
          return;
 
-      saveSessionConfiguration();
+      if (saveConfiguration)
+         saveSessionConfiguration();
       toolkit.stopSession();
       mainWindowController.stopSession();
       inactiveControllerMap.values().forEach(SessionControlsController::unloadSession);
@@ -162,25 +177,26 @@ public class MultiSessionManager
 
    public void loadSessionConfiguration(Session session)
    {
-      JavaFXMessager messager = toolkit.getMessager();
-
       if (session.getRobotDefinitions().isEmpty())
-      {
          robotName = "UnknownRobot";
-      }
       else
-      {
          robotName = EuclidCoreIOTools.getCollectionString("-", session.getRobotDefinitions(), RobotDefinition::getName);
-      }
 
       sessionName = session.getSessionName();
 
       SCSGuiConfiguration configuration = SCSGuiConfiguration.defaultLoader(robotName, sessionName);
 
+      loadSessionConfiguration(configuration);
+   }
+
+   private void loadSessionConfiguration(SCSGuiConfiguration configuration)
+   {
       if (!configuration.exists())
          return;
 
+      JavaFXMessager messager = toolkit.getMessager();
       SessionVisualizerTopics topics = toolkit.getTopics();
+
       if (configuration.hasYoGraphicsConfiguration())
          messager.submitMessage(topics.getYoGraphicLoadRequest(), configuration.getYoGraphicsConfigurationFile());
 
@@ -191,7 +207,8 @@ public class MultiSessionManager
       {
          JavaFXMissingTools.runLaterWhen(getClass(),
                                          () -> toolkit.getYoCompositeSearchManager().isSessionLoaded(),
-                                         () -> sidePaneController.getYoEntryTabPaneController().load(configuration.getYoEntryConfigurationFile()));
+                                         () -> mainWindowController.getSidePaneController().getYoEntryTabPaneController()
+                                                                   .load(configuration.getYoEntryConfigurationFile()));
       }
 
       if (configuration.hasMainYoChartGroupConfiguration())
@@ -208,32 +225,97 @@ public class MultiSessionManager
 
       if (configuration.hasBufferSize())
          messager.submitMessage(topics.getYoBufferCurrentSizeRequest(), configuration.getBufferSize());
+      if (configuration.hasRecordTickPeriod())
+         messager.submitMessage(topics.getBufferRecordTickPeriod(), configuration.getRecordTickPeriod());
+      if (configuration.hasNumberPrecision())
+         messager.submitMessage(topics.getControlsNumberPrecision(), configuration.getNumberPrecision());
       messager.submitMessage(topics.getShowOverheadPlotter(), configuration.getShowOverheadPlotter());
       messager.submitMessage(topics.getShowAdvancedControls(), configuration.getShowAdvancedControls());
       if (configuration.hasYoSliderboardConfiguration())
          messager.submitMessage(topics.getYoSliderboardLoadConfiguration(), configuration.getYoSliderboardConfigurationFile());
    }
 
+   public void loadSessionConfiguration(File configurationFile)
+   {
+      if (!configurationFile.exists() || !configurationFile.isFile())
+         return;
+
+      try
+      {
+         File unzippedConfiguration = SessionVisualizerIOTools.getTemporaryDirectory("configuration");
+         SessionVisualizerIOTools.unzipFile(configurationFile, unzippedConfiguration);
+         loadSessionConfiguration(SCSGuiConfiguration.loaderFromDirectory(robotName, sessionName, unzippedConfiguration));
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+      }
+   }
+
+   public static File newFile(File destinationDir, ZipEntry zipEntry) throws IOException
+   {
+      File destFile = new File(destinationDir, zipEntry.getName());
+
+      String destDirPath = destinationDir.getCanonicalPath();
+      String destFilePath = destFile.getCanonicalPath();
+
+      if (!destFilePath.startsWith(destDirPath + File.separator))
+      {
+         throw new IOException("Entry is outside of the target dir: " + zipEntry.getName());
+      }
+
+      return destFile;
+   }
+
    public void saveSessionConfiguration()
    {
       SCSGuiConfiguration configuration = SCSGuiConfiguration.defaultSaver(robotName, sessionName);
+      // Cleanup files with old extensions.
+      SessionVisualizerIOTools.emptyDirectory(configuration.getMainConfigurationFile().getParentFile());
+      saveSessionConfiguration(configuration);
+   }
 
+   private void saveSessionConfiguration(SCSGuiConfiguration configuration)
+   {
       // Can't use the messager as the JavaFX is going down which prevents to save properly.
       if (XMLTools.isYoGraphicContextReady())
          toolkit.getYoGraphicFXManager().saveYoGraphicToFile(configuration.getYoGraphicsConfigurationFile());
       toolkit.getYoCompositeSearchManager().saveYoCompositePatternToFile(configuration.getYoCompositeConfigurationFile());
-      sidePaneController.getYoEntryTabPaneController().exportAllTabs(configuration.getYoEntryConfigurationFile());
+      mainWindowController.getSidePaneController().getYoEntryTabPaneController().exportAllTabs(configuration.getYoEntryConfigurationFile());
       mainWindowController.getYoChartGroupPanelController().saveChartGroupConfiguration(toolkit.getMainWindow(),
                                                                                         configuration.getMainYoChartGroupConfigurationFile());
       toolkit.getWindowManager().saveSessionConfiguration(configuration);
       configuration.setMainStage(toolkit.getMainWindow());
 
+      SessionVisualizerTopics topics = toolkit.getTopics();
+      BufferedJavaFXMessager messager = toolkit.getMessager();
+
       int currentBufferSize = toolkit.getYoManager().getBufferSize();
       configuration.setBufferSize(currentBufferSize);
+      Integer bufferRecordTickPeriod = messager.getLastValue(topics.getBufferRecordTickPeriod());
+      if (bufferRecordTickPeriod != null)
+         configuration.setRecordTickPeriod(bufferRecordTickPeriod);
+      Integer numberPrecision = messager.getLastValue(topics.getControlsNumberPrecision());
+      if (numberPrecision != null)
+         configuration.setNumberPrecision(numberPrecision);
       configuration.setShowOverheadPlotter(mainWindowController.showOverheadPlotterProperty().getValue());
       configuration.setShowAdvancedControls(mainWindowController.showAdvancedControlsProperty().get());
 
       configuration.writeConfiguration();
+   }
+
+   public void saveSessionConfiguration(File destinationFile)
+   {
+      try
+      {
+         File intermediate = SessionVisualizerIOTools.getTemporaryDirectory("configuration");
+         saveSessionConfiguration(SCSGuiConfiguration.saverToDirectory(robotName, sessionName, intermediate));
+         SessionVisualizerIOTools.zipFile(intermediate, destinationFile);
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+      }
    }
 
    public void shutdown()

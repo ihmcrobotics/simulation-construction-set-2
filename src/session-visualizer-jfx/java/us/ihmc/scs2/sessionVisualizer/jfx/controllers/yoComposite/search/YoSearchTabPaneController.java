@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
@@ -53,6 +54,17 @@ public class YoSearchTabPaneController
          catch (RuntimeException e)
          {
             LogTools.error("Registry not found: " + newRequest);
+         }
+      });
+
+      // By disabling the search tabs, we unlink YoVariables reducing the cost of a run tick for the Session
+      yoSearchTabPane.getSelectionModel().selectedItemProperty().addListener((o, oldValue, newValue) ->
+      {
+         for (Tab tab : yoSearchTabPane.getTabs())
+         {
+            Node content = tab.getContent();
+            if (content != null)
+               content.setDisable(tab != newValue);
          }
       });
    }

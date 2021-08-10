@@ -75,6 +75,16 @@ public class YoPolygonFX2D extends YoGraphicFX2D
    }
 
    @Override
+   public void clear()
+   {
+      vertices = null;
+      numberOfVertices = null;
+      fillColor = null;
+      strokeColor = null;
+      strokeWidth = null;
+   }
+
+   @Override
    public YoPolygonFX2D clone()
    {
       YoPolygonFX2D clone = new YoPolygonFX2D();

@@ -190,6 +190,17 @@ public class YoPolygonExtrudedFX3D extends YoGraphicFX3D
    }
 
    @Override
+   public void clear()
+   {
+      position = null;
+      orientation = null;
+      vertices = null;
+      numberOfVertices = null;
+      thickness = null;
+      color = null;
+   }
+
+   @Override
    public YoPolygonExtrudedFX3D clone()
    {
       YoPolygonExtrudedFX3D clone = new YoPolygonExtrudedFX3D();

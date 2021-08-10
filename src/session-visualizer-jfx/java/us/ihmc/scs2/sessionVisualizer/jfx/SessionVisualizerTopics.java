@@ -24,7 +24,7 @@ public class SessionVisualizerTopics
    private Topic<Object> forgetRecordable;
    private Topic<Boolean> showAdvancedControls;
    private Topic<Boolean> showOverheadPlotter;
-   private Topic<String> openWindowRequest;
+   private Topic<Pair<String, Object>> openWindowRequest;
    private Topic<Boolean> sessionVisualizerCloseRequest;
 
    private Topic<Object> toggleKeyFrame, requestCurrentKeyFrames;
@@ -55,6 +55,9 @@ public class SessionVisualizerTopics
    private Topic<File> yoSliderboardLoadConfiguration;
 
    private Topic<Integer> controlsNumberPrecision;
+
+   private Topic<File> sessionVisualizerConfigurationLoadRequest;
+   private Topic<File> sessionVisualizerConfigurationSaveRequest;
 
    // Session topics
    private Topic<SessionState> sessionCurrentState;
@@ -115,6 +118,9 @@ public class SessionVisualizerTopics
 
       controlsNumberPrecision = SessionVisualizerMessagerAPI.ControlsNumberPrecision;
 
+      sessionVisualizerConfigurationLoadRequest = SessionVisualizerMessagerAPI.SessionVisualizerConfigurationLoadRequest;
+      sessionVisualizerConfigurationSaveRequest = SessionVisualizerMessagerAPI.SessionVisualizerConfigurationSaveRequest;
+
       sessionCurrentState = SessionMessagerAPI.SessionCurrentState;
       sessionCurrentMode = SessionMessagerAPI.SessionCurrentMode;
       runAtRealTimeRate = SessionMessagerAPI.RunAtRealTimeRate;
@@ -160,7 +166,7 @@ public class SessionVisualizerTopics
       return showOverheadPlotter;
    }
 
-   public Topic<String> getOpenWindowRequest()
+   public Topic<Pair<String, Object>> getOpenWindowRequest()
    {
       return openWindowRequest;
    }
@@ -293,6 +299,16 @@ public class SessionVisualizerTopics
    public Topic<Integer> getControlsNumberPrecision()
    {
       return controlsNumberPrecision;
+   }
+
+   public Topic<File> getSessionVisualizerConfigurationLoadRequest()
+   {
+      return sessionVisualizerConfigurationLoadRequest;
+   }
+
+   public Topic<File> getSessionVisualizerConfigurationSaveRequest()
+   {
+      return sessionVisualizerConfigurationSaveRequest;
    }
 
    public Topic<SessionState> getSessionCurrentState()

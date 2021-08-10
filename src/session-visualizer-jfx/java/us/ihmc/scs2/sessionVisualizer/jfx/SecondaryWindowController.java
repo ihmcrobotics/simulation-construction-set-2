@@ -36,6 +36,8 @@ public class SecondaryWindowController
 
       owner.addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e ->
       {
+         if (e.isConsumed())
+            return;
          closeAndDispose();
          owner.close();
       });
@@ -74,6 +76,8 @@ public class SecondaryWindowController
       });
       stage.addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, e ->
       {
+         if (e.isConsumed())
+            return;
          stage.close();
          chartGroupController.closeAndDispose();
       });

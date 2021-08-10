@@ -4,11 +4,12 @@ import java.io.File;
 
 import javafx.fxml.FXML;
 import javafx.stage.Stage;
+import javafx.util.Pair;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SecondaryWindowManager;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 
 public class YoCompositeMenuController
 {
@@ -26,7 +27,7 @@ public class YoCompositeMenuController
    @FXML
    public void openYoCompositePatternEditor()
    {
-      messager.submitMessage(topics.getOpenWindowRequest(), SecondaryWindowManager.COMPOSITE_PATTERN_EDITOR_WINDOW_TYPE);
+      messager.submitMessage(topics.getOpenWindowRequest(), new Pair<>(SecondaryWindowManager.COMPOSITE_PATTERN_EDITOR_WINDOW_TYPE, null));
    }
 
    @FXML

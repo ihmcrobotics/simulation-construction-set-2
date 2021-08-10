@@ -8,7 +8,7 @@ import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryRandomTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 
@@ -23,7 +23,7 @@ public class BooleanPushRequestTest
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoBoolean bufferYoBoolean = YoRandomTools.nextYoBoolean(random, new YoRegistry("Dummy"));
+         YoBoolean bufferYoBoolean = SharedMemoryRandomTools.nextYoBoolean(random, new YoRegistry("Dummy"));
          boolean valueToPush = random.nextBoolean();
 
          boolean currentValue = bufferYoBoolean.getValue();

@@ -23,7 +23,7 @@ import us.ihmc.scs2.sharedMemory.LinkedYoInteger;
 import us.ihmc.scs2.sharedMemory.LinkedYoLong;
 import us.ihmc.scs2.sharedMemory.LinkedYoVariable;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.scs2.sharedMemory.tools.BufferTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoVariableChartData
@@ -62,6 +62,7 @@ public class YoVariableChartData
       this.messager = messager;
       this.topics = topics;
       this.linkedYoVariable = linkedYoVariable;
+      linkedYoVariable.addUser(this);
       currentSessionMode = messager.createInput(topics.getSessionCurrentMode(), SessionMode.PAUSE);
 
       if (linkedYoVariable instanceof LinkedYoBoolean)
@@ -112,14 +113,20 @@ public class YoVariableChartData
 
    public void dispose()
    {
+      linkedYoVariable.removeUser(this);
       messager.removeInput(topics.getSessionCurrentMode(), currentSessionMode);
       messager.removeTopicListener(topics.getYoBufferCropRequest(), cropRequestListener);
       messager.removeTopicListener(topics.getYoBufferFillRequest(), fillRequestListener);
       messager.removeTopicListener(topics.getYoBufferCurrentProperties(), propertiesListener);
    }
 
+   public boolean updateVariableData()
+   {
+      return linkedYoVariable.pull();
+   }
+
    @SuppressWarnings("rawtypes")
-   public void updateData()
+   public void updateBufferData()
    {
       // Always prepare new data
       BufferSample newRawData = linkedYoVariable.pollRequestedBufferSample();
@@ -265,7 +272,7 @@ public class YoVariableChartData
 
       for (int i = 1; i < bufferProperties.getActiveBufferLength(); i++)
       {
-         index = BufferTools.increment(index, 1, bufferProperties.getSize());
+         index = SharedMemoryTools.increment(index, 1, bufferProperties.getSize());
          yCurrent = dataSet.values[index];
          yMin = Math.min(yMin, yCurrent);
          yMax = Math.max(yMax, yCurrent);
@@ -371,7 +378,7 @@ public class YoVariableChartData
    {
       int from = yoVariableBuffer.getFrom();
       YoBufferPropertiesReadOnly bufferProperties = yoVariableBuffer.getBufferProperties();
-      double[] sample = BufferTools.toDoubleArray((boolean[]) yoVariableBuffer.getSample());
+      double[] sample = SharedMemoryTools.toDoubleArray((boolean[]) yoVariableBuffer.getSample());
       int sampleLength = yoVariableBuffer.getSampleLength();
       return new BufferSample<>(from, sample, sampleLength, bufferProperties);
    }
@@ -380,7 +387,7 @@ public class YoVariableChartData
    {
       int from = yoVariableBuffer.getFrom();
       YoBufferPropertiesReadOnly bufferProperties = yoVariableBuffer.getBufferProperties();
-      double[] sample = BufferTools.toDoubleArray((byte[]) yoVariableBuffer.getSample());
+      double[] sample = SharedMemoryTools.toDoubleArray((byte[]) yoVariableBuffer.getSample());
       int sampleLength = yoVariableBuffer.getSampleLength();
       return new BufferSample<>(from, sample, sampleLength, bufferProperties);
    }
@@ -389,7 +396,7 @@ public class YoVariableChartData
    {
       int from = yoVariableBuffer.getFrom();
       YoBufferPropertiesReadOnly bufferProperties = yoVariableBuffer.getBufferProperties();
-      double[] sample = BufferTools.toDoubleArray((int[]) yoVariableBuffer.getSample());
+      double[] sample = SharedMemoryTools.toDoubleArray((int[]) yoVariableBuffer.getSample());
       int sampleLength = yoVariableBuffer.getSampleLength();
       return new BufferSample<>(from, sample, sampleLength, bufferProperties);
    }
@@ -398,7 +405,7 @@ public class YoVariableChartData
    {
       int from = yoVariableBuffer.getFrom();
       YoBufferPropertiesReadOnly bufferProperties = yoVariableBuffer.getBufferProperties();
-      double[] sample = BufferTools.toDoubleArray((long[]) yoVariableBuffer.getSample());
+      double[] sample = SharedMemoryTools.toDoubleArray((long[]) yoVariableBuffer.getSample());
       int sampleLength = yoVariableBuffer.getSampleLength();
       return new BufferSample<>(from, sample, sampleLength, bufferProperties);
    }

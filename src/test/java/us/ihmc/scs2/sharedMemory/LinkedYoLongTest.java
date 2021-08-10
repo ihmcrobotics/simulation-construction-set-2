@@ -7,8 +7,7 @@ import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.scs2.sharedMemory.tools.YoBufferRandomTools;
-import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryRandomTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoLong;
 
@@ -25,7 +24,7 @@ public class LinkedYoLongTest extends LinkedYoVariableTest<YoLong>
    @Override
    YoLong nextYoVariable(Random random, int iteration)
    {
-      return YoRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
+      return SharedMemoryRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
    }
 
    @Test
@@ -35,8 +34,8 @@ public class LinkedYoLongTest extends LinkedYoVariableTest<YoLong>
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoLong linkedVariable = YoRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
-         YoLongBuffer buffer = YoBufferRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
+         YoLong linkedVariable = SharedMemoryRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
+         YoLongBuffer buffer = SharedMemoryRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
          LinkedYoLong linkedYoLong = new LinkedYoLong(linkedVariable, buffer);
 
          assertTrue(linkedVariable == linkedYoLong.getLinkedYoVariable());
@@ -45,8 +44,8 @@ public class LinkedYoLongTest extends LinkedYoVariableTest<YoLong>
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoLong linkedVariable = YoRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
-         YoLongBuffer buffer = YoBufferRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
+         YoLong linkedVariable = SharedMemoryRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
+         YoLongBuffer buffer = SharedMemoryRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
          LinkedYoLong linkedYoLong = (LinkedYoLong) LinkedYoVariable.newLinkedYoVariable(linkedVariable, buffer);
 
          assertTrue(linkedVariable == linkedYoLong.getLinkedYoVariable());
@@ -61,8 +60,8 @@ public class LinkedYoLongTest extends LinkedYoVariableTest<YoLong>
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoLong linkedVariable = YoRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
-         YoLongBuffer buffer = YoBufferRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
+         YoLong linkedVariable = SharedMemoryRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
+         YoLongBuffer buffer = SharedMemoryRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
          LinkedYoLong linkedYoLong = new LinkedYoLong(linkedVariable, buffer);
 
          LongPullRequest pullRequest = linkedYoLong.toPullRequest();
@@ -81,8 +80,8 @@ public class LinkedYoLongTest extends LinkedYoVariableTest<YoLong>
 
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoLong linkedVariable = YoRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
-         YoLongBuffer buffer = YoBufferRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
+         YoLong linkedVariable = SharedMemoryRandomTools.nextYoLong(random, new YoRegistry("Dummy"));
+         YoLongBuffer buffer = SharedMemoryRandomTools.nextYoLongBuffer(random, new YoRegistry("Dummy"));
          LinkedYoLong linkedYoLong = new LinkedYoLong(linkedVariable, buffer);
 
          LongPushRequest pullRequest = linkedYoLong.toPushRequest();

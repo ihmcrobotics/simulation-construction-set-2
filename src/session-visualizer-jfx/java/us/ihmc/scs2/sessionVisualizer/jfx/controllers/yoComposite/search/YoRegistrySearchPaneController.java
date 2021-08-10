@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -19,12 +20,15 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.util.Pair;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.session.SessionState;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.BackgroundExecutorManager;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.SecondaryWindowManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.ContextMenuTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.TreeViewTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.YoVariableTools;
@@ -63,12 +67,26 @@ public class YoRegistrySearchPaneController extends ObservedAnimationTimer
       backgroundExecutorManager = toolkit.getBackgroundExecutorManager();
       registryTreeView.setCellFactory(param -> new YoRegistryTreeCell());
       registryTreeView.setRoot(defaultRootItem);
+      JavaFXMessager messager = toolkit.getMessager();
+      SessionVisualizerTopics topics = toolkit.getTopics();
+
+      ContextMenuTools.setupContextMenu(registryTreeView, treeView ->
+      {
+         MenuItem openStatisticsMenuItem = new MenuItem("Open statistics...");
+         openStatisticsMenuItem.setOnAction(e ->
+         {
+            TreeItem<YoRegistry> selectedRegistry = treeView.getSelectionModel().getSelectedItem();
+            if (selectedRegistry == null)
+               return;
+            messager.submitMessage(topics.getOpenWindowRequest(),
+                                   new Pair<>(SecondaryWindowManager.REGISTRY_STATISTICS_WINDOW_TYPE, selectedRegistry.getValue().getNamespace().toString()));
+         });
+         return openStatisticsMenuItem;
+      });
       yoManager.rootRegistryHashCodeProperty().addListener((o, oldValue, newValue) -> refreshRootRegistry = true);
 
       searchTextField.textProperty().addListener((ChangeListener<String>) (observable, oldValue, newValue) -> search(newValue));
 
-      JavaFXMessager messager = toolkit.getMessager();
-      SessionVisualizerTopics topics = toolkit.getTopics();
       activeSearchEngine = messager.createInput(topics.getYoSearchEngine(), SearchEngines.DEFAULT);
 
       messager.registerJavaFXSyncedTopicListener(topics.getSessionCurrentState(), state ->

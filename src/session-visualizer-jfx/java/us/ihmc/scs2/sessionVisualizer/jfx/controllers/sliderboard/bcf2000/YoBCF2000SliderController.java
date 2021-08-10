@@ -85,7 +85,7 @@ public class YoBCF2000SliderController extends YoBCF2000InputController
       {
          slider.setDisable(false);
 
-         yoVariableSlider = YoVariableSlider.newYoVariableSlider(yoVariable, () -> yoManager.getLinkedRootRegistry().push(yoVariable));
+         yoVariableSlider = YoVariableSlider.newYoVariableSlider(yoVariable, yoManager.getLinkedRootRegistry());
          yoVariableSlider.bindMinTextField(sliderMinTextField);
          yoVariableSlider.bindMaxTextField(sliderMaxTextField);
          if (sliderVariable != null)

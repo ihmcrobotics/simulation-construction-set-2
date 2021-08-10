@@ -38,8 +38,11 @@ public class RemoteSession extends Session
    private final LoggerStatusUpdater loggerStatusUpdater = new LoggerStatusUpdater();
 
    private int bufferRecordTickPeriod = 1;
+   private boolean initializeServerUpdateRate = true;
 
-   public RemoteSession(YoVariableClientInterface yoVariableClientInterface, LogHandshake handshake, YoVariableHandshakeParser handshakeParser,
+   public RemoteSession(YoVariableClientInterface yoVariableClientInterface,
+                        LogHandshake handshake,
+                        YoVariableHandshakeParser handshakeParser,
                         DebugRegistry debugRegistry)
    {
       this.yoVariableClientInterface = yoVariableClientInterface;
@@ -117,6 +120,14 @@ public class RemoteSession extends Session
    {
       if (!hasSessionStarted() || getActiveMode() != SessionMode.RUNNING)
          return;
+
+      if (initializeServerUpdateRate)
+      {
+         updateServerUpdateRate();
+         initializeServerUpdateRate = false;
+         return;
+      }
+
       latestDataTimestamp.set(timestamp);
       runTick();
    }
@@ -130,7 +141,8 @@ public class RemoteSession extends Session
 
       try
       {
-         yoVariableClientInterface.reconnect();
+         if (yoVariableClientInterface.reconnect())
+            updateServerUpdateRate();
       }
       catch (IOException e)
       {
@@ -143,6 +155,7 @@ public class RemoteSession extends Session
       if (!yoVariableClientInterface.isConnected())
          return;
 
+      initializeServerUpdateRate = true;
       yoVariableClientInterface.disconnect();
    }
 
@@ -178,8 +191,12 @@ public class RemoteSession extends Session
    {
       if (bufferRecordTickPeriod == this.bufferRecordTickPeriod)
          return;
-      this.bufferRecordTickPeriod = bufferRecordTickPeriod;
-      bufferRecordTickPeriod = Math.max(1, bufferRecordTickPeriod);
+      this.bufferRecordTickPeriod = Math.max(1, bufferRecordTickPeriod);
+      updateServerUpdateRate();
+   }
+
+   private void updateServerUpdateRate()
+   {
       int updateRateInMilliseconds = (int) TimeUnit.NANOSECONDS.toMillis(bufferRecordTickPeriod * getSessionTickToTimeIncrement());
       yoVariableClientInterface.setVariableUpdateRate(updateRateInMilliseconds);
    }

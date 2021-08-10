@@ -1,21 +1,27 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.properties;
 
+import java.lang.ref.WeakReference;
+
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.IntegerPropertyBase;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleIntegerProperty;
+import us.ihmc.scs2.sharedMemory.LinkedYoInteger;
 import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoInteger;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoIntegerProperty extends IntegerPropertyBase implements YoVariableProperty<YoInteger, Number>
 {
    private final YoInteger yoInteger;
    private final Object bean;
-   private final YoVariableChangedListener propertyUpdater = v -> pullYoIntegerValue();
+   private final YoVariableChangedListener propertyUpdater = new YoIntegerPropertyUpdater(this);
 
    private SimpleIntegerProperty lastUserInput;
+
+   private LinkedYoInteger linkedBuffer;
 
    public YoIntegerProperty(YoInteger yoInteger)
    {
@@ -30,12 +36,36 @@ public class YoIntegerProperty extends IntegerPropertyBase implements YoVariable
       yoInteger.addListener(propertyUpdater);
    }
 
+   private Object userObject;
+
+   public void setLinkedBuffer(LinkedYoInteger linkedBuffer)
+   {
+      if (this.linkedBuffer != null)
+         this.linkedBuffer.removeUser(userObject);
+
+      this.linkedBuffer = linkedBuffer;
+
+      if (userObject == null)
+         userObject = new Object();
+
+      if (linkedBuffer != null)
+         linkedBuffer.addUser(userObject);
+   }
+
+   @Override
+   public LinkedYoInteger getLinkedBuffer()
+   {
+      return linkedBuffer;
+   }
+
    @Override
    public void finalize()
    {
       try
       {
          yoInteger.removeListener(propertyUpdater);
+         if (linkedBuffer != null)
+            linkedBuffer.removeUser(userObject);
       }
       finally
       {
@@ -51,17 +81,19 @@ public class YoIntegerProperty extends IntegerPropertyBase implements YoVariable
       yoInteger.set(newValue);
    }
 
+   public void setAndPush(int newValue)
+   {
+      set(newValue);
+      if (linkedBuffer != null)
+         linkedBuffer.push();
+   }
+
    private void pullYoIntegerValue()
    {
       super.set(yoInteger.getValue());
    }
 
    public void bindIntegerProperty(Property<Integer> property)
-   {
-      bindIntegerProperty(property, null);
-   }
-
-   public void bindIntegerProperty(Property<Integer> property, Runnable pushValueAction)
    {
       property.setValue(getValue());
 
@@ -84,9 +116,7 @@ public class YoIntegerProperty extends IntegerPropertyBase implements YoVariable
             return;
 
          updatingThis.setTrue();
-         set(newValue.intValue());
-         if (pushValueAction != null)
-            pushValueAction.run();
+         setAndPush(newValue.intValue());
          updatingThis.setFalse();
       });
    }
@@ -115,5 +145,23 @@ public class YoIntegerProperty extends IntegerPropertyBase implements YoVariable
    public String getName()
    {
       return yoInteger.getName();
+   }
+
+   private static class YoIntegerPropertyUpdater implements YoVariableChangedListener
+   {
+      private final WeakReference<YoIntegerProperty> propertyRef;
+
+      public YoIntegerPropertyUpdater(YoIntegerProperty property)
+      {
+         propertyRef = new WeakReference<>(property);
+      }
+
+      @Override
+      public void changed(YoVariable source)
+      {
+         YoIntegerProperty property = propertyRef.get();
+         if (property != null)
+            property.pullYoIntegerValue();
+      }
    }
 }

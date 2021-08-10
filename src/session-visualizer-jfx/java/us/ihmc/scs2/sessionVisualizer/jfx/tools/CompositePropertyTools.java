@@ -1,16 +1,9 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.tools;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.apache.commons.text.similarity.LongestCommonSubsequence;
-import org.apache.commons.text.similarity.SimilarityScore;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
@@ -35,11 +28,8 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.QuaternionProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple2DProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple3DProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YawPitchRollProperty;
-import us.ihmc.yoVariables.registry.YoRegistry;
-import us.ihmc.yoVariables.tools.YoGeometryNameTools;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoInteger;
-import us.ihmc.yoVariables.variable.YoVariable;
 
 public class CompositePropertyTools
 {
@@ -157,7 +147,9 @@ public class CompositePropertyTools
             yoDouble = yoVariableDatabase.searchSimilar(field, 0.90, YoDouble.class);
          }
          Objects.requireNonNull(yoDouble, "Could not find the YoVariable: " + field);
-         return new YoDoubleProperty(yoDouble);
+         YoDoubleProperty yoDoubleProperty = new YoDoubleProperty(yoDouble);
+         yoDoubleProperty.setLinkedBuffer(yoVariableDatabase.linkYoVariable(yoDouble));
+         return yoDoubleProperty;
       }
    }
 
@@ -180,7 +172,9 @@ public class CompositePropertyTools
             yoInteger = yoVariableDatabase.searchSimilar(field, 0.90, YoInteger.class);
          }
          Objects.requireNonNull(yoInteger, "Could not find the YoVariable: " + field);
-         return new YoIntegerProperty(yoInteger);
+         YoIntegerProperty yoIntegerProperty = new YoIntegerProperty(yoInteger);
+         yoIntegerProperty.setLinkedBuffer(yoVariableDatabase.linkYoVariable(yoInteger));
+         return yoIntegerProperty;
       }
    }
 
@@ -333,101 +327,6 @@ public class CompositePropertyTools
       catch (NumberFormatException e)
       {
          return false;
-      }
-   }
-
-   public static class YoVariableDatabase
-   {
-      private final YoRegistry rootRegistry;
-      private List<YoVariable> allYoVariables;
-
-      private final Map<String, YoVariable> previousSearchResults = new HashMap<>();
-      private final Map<String, String> fromSearchToBestSubname = new HashMap<>();
-
-      private final SimilarityScore<Double> seachEngine;
-
-      public YoVariableDatabase(YoRegistry rootRegistry)
-      {
-         this.rootRegistry = rootRegistry;
-         seachEngine = new SimilarityScore<Double>()
-         {
-            SimilarityScore<Integer> caseSensitiveSearchEngine = new LongestCommonSubsequence();
-
-            @Override
-            public Double apply(CharSequence left, CharSequence right)
-            {
-               return caseSensitiveSearchEngine.apply(left.toString().toLowerCase(), right.toString().toLowerCase()).doubleValue()
-                     / Math.max(left.length(), right.length());
-            }
-         };
-      }
-
-      public YoVariable searchExact(String fullnameToSearch)
-      {
-         return rootRegistry.findVariable(fullnameToSearch);
-      }
-
-      public YoVariable searchSimilar(String fullnameToSearch, double minScore)
-      {
-         return searchSimilar(fullnameToSearch, minScore, YoVariable.class);
-      }
-
-      @SuppressWarnings("unchecked")
-      public <T extends YoVariable> T searchSimilar(String fullnameToSearch, double minScore, Class<? extends T> type)
-      {
-         if (previousSearchResults.containsKey(fullnameToSearch))
-            return type.cast(previousSearchResults.get(fullnameToSearch));
-
-         for (Entry<String, String> entry : fromSearchToBestSubname.entrySet())
-         {
-            String bestSubname = entry.getKey();
-            String searchSubname = entry.getValue();
-            if (fullnameToSearch.contains(searchSubname))
-            {
-               YoVariable candidate = rootRegistry.findVariable(fullnameToSearch.replace(searchSubname, bestSubname));
-
-               if (candidate != null && type.isInstance(candidate))
-               {
-                  LogTools.info("Search for: " + fullnameToSearch + ", found: " + candidate.getFullNameString());
-                  previousSearchResults.put(fullnameToSearch, candidate);
-                  return type.cast(candidate);
-               }
-            }
-         }
-
-         if (allYoVariables == null)
-            allYoVariables = rootRegistry.collectSubtreeVariables();
-
-         List<T> correctTypeVariables;
-         if (!YoVariable.class.equals(type))
-            correctTypeVariables = allYoVariables.stream().filter(type::isInstance).map(type::cast).collect(Collectors.toList());
-         else
-            correctTypeVariables = (List<T>) allYoVariables;
-
-         List<Number> score = new ArrayList<>();
-         List<T> searchResult = YoVariableTools.search(correctTypeVariables, YoVariable::getFullNameString, fullnameToSearch, seachEngine, 1, score);
-
-         if (searchResult != null)
-         {
-            T bestYoVariable = searchResult.get(0);
-            String bestFullname = bestYoVariable.getFullNameString();
-            String commonPrefix = YoGeometryNameTools.getCommonPrefix(fullnameToSearch, bestFullname);
-            String commonSuffix = YoGeometryNameTools.getCommonSuffix(fullnameToSearch, bestFullname);
-            String searchSubname = fullnameToSearch.substring(commonPrefix.length(), fullnameToSearch.length() - commonSuffix.length());
-            String bestSubname = bestFullname.substring(commonPrefix.length(), bestFullname.length() - commonSuffix.length());
-
-            LogTools.info("Score: " + score.get(0) + ", difference: [" + searchSubname + ", " + bestSubname + "], field: " + fullnameToSearch + ", result: "
-                  + bestFullname);
-
-            if (score.get(0).doubleValue() >= minScore)
-            {
-               fromSearchToBestSubname.put(bestSubname, searchSubname);
-               previousSearchResults.put(fullnameToSearch, bestYoVariable);
-               return bestYoVariable;
-            }
-         }
-
-         return null;
       }
    }
 }

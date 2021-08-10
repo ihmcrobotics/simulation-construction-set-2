@@ -47,6 +47,8 @@ public interface YoGraphicFXItem
 
    void detachFromParent();
 
+   void clear();
+
    YoGraphicFXItem clone();
 
    default String getFullname()

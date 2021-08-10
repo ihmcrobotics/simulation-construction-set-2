@@ -223,6 +223,18 @@ public class YoCoordinateSystemFX3D extends YoGraphicFX3D
    }
 
    @Override
+   public void clear()
+   {
+      position = null;
+      orientation = null;
+      bodyLength = null;
+      bodyRadius = null;
+      headLength = null;
+      headRadius = null;
+      color = null;
+   }
+
+   @Override
    public YoCoordinateSystemFX3D clone()
    {
       YoCoordinateSystemFX3D clone = new YoCoordinateSystemFX3D();

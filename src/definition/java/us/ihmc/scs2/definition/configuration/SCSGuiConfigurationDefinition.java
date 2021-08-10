@@ -16,6 +16,8 @@ public class SCSGuiConfigurationDefinition
    private List<String> secondaryYoChartGroupConfigurationsFilenames;
 
    private int bufferSize = -1;
+   private int recordTickPeriod = -1;
+   private int numberPrecision = -1;
    private boolean showOverheadPlotter = false;
    private boolean showAdvancedControls = false;
    private WindowConfigurationDefinition mainWindowConfiguration;
@@ -59,6 +61,16 @@ public class SCSGuiConfigurationDefinition
    public void setBufferSize(int bufferSize)
    {
       this.bufferSize = bufferSize;
+   }
+
+   public void setRecordTickPeriod(int recordTickPeriod)
+   {
+      this.recordTickPeriod = recordTickPeriod;
+   }
+
+   public void setNumberPrecision(int numberPrecision)
+   {
+      this.numberPrecision = numberPrecision;
    }
 
    public void setShowOverheadPlotter(boolean showOverheadPlotter)
@@ -121,6 +133,16 @@ public class SCSGuiConfigurationDefinition
       return bufferSize;
    }
 
+   public int getRecordTickPeriod()
+   {
+      return recordTickPeriod;
+   }
+
+   public int getNumberPrecision()
+   {
+      return numberPrecision;
+   }
+
    public boolean isShowOverheadPlotter()
    {
       return showOverheadPlotter;
@@ -173,6 +195,10 @@ public class SCSGuiConfigurationDefinition
             return false;
          if (bufferSize != other.bufferSize)
             return false;
+         if (recordTickPeriod != other.recordTickPeriod)
+            return false;
+         if (numberPrecision != other.numberPrecision)
+            return false;
          if (showOverheadPlotter != other.showOverheadPlotter)
             return false;
          if (showAdvancedControls != other.showAdvancedControls)
@@ -196,8 +222,8 @@ public class SCSGuiConfigurationDefinition
       return "name: " + name + "\nyoGraphics: " + yoGraphicsFilename + "\nyoCompositePatternList: " + yoCompositePatternListFilename
             + "\nyoEntryConfiguration: " + yoEntryConfigurationFilename + "\nyoSliderboardConfiguration: " + yoSliderboardConfigurationFilename
             + "\nmainYoChartGroupConfiguration: " + mainYoChartGroupConfigurationFilename + "\nsecondaryYoChartGroupConfigurations: "
-            + secondaryYoChartGroupConfigurationsFilenames + "\nbufferSize: " + bufferSize + "\nshowOverheadPlotter: " + showOverheadPlotter
-            + "\nshowAdvancedControls: " + showAdvancedControls + "\nmainWindowConfiguration: " + mainWindowConfiguration + "\nsecondaryWindowConfigurations: "
-            + secondaryWindowConfigurations;
+            + secondaryYoChartGroupConfigurationsFilenames + "\nbufferSize: " + bufferSize + "\nrecordTickPeriod: " + recordTickPeriod + "\nnumberPrecision: "
+            + numberPrecision + "\nshowOverheadPlotter: " + showOverheadPlotter + "\nshowAdvancedControls: " + showAdvancedControls
+            + "\nmainWindowConfiguration: " + mainWindowConfiguration + "\nsecondaryWindowConfigurations: " + secondaryWindowConfigurations;
    }
 }

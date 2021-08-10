@@ -41,6 +41,15 @@ public class YoBoxFX3D extends YoGraphicFX3D
    }
 
    @Override
+   public void clear()
+   {
+      position = null;
+      orientation = null;
+      size = null;
+      color = null;
+   }
+
+   @Override
    public YoGraphicFX clone()
    {
       YoBoxFX3D clone = new YoBoxFX3D();

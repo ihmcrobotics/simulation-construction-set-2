@@ -1,5 +1,6 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.properties;
 
+import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.List;
 
@@ -9,17 +10,21 @@ import javafx.beans.property.Property;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.property.StringPropertyBase;
+import us.ihmc.scs2.sharedMemory.LinkedYoEnum;
 import us.ihmc.yoVariables.listener.YoVariableChangedListener;
 import us.ihmc.yoVariables.variable.YoEnum;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBase implements YoVariableProperty<YoEnum<E>, String>
 {
    private final YoEnum<E> yoEnum;
    private final Object bean;
-   private final YoVariableChangedListener propertyUpdater = v -> pullYoEnumValue();
+   private final YoVariableChangedListener propertyUpdater = new YoEnumPropertyUpdater(this);
    private final List<String> enumConstants;
 
    private SimpleStringProperty lastUserInput;
+
+   private LinkedYoEnum<E> linkedBuffer;
 
    public YoEnumAsStringProperty(YoEnum<E> yoEnum)
    {
@@ -36,12 +41,36 @@ public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBas
       yoEnum.addListener(propertyUpdater);
    }
 
+   private Object userObject;
+
+   public void setLinkedBuffer(LinkedYoEnum<E> linkedBuffer)
+   {
+      if (this.linkedBuffer != null)
+         this.linkedBuffer.removeUser(userObject);
+
+      this.linkedBuffer = linkedBuffer;
+
+      if (userObject == null)
+         userObject = new Object();
+
+      if (linkedBuffer != null)
+         linkedBuffer.addUser(userObject);
+   }
+
+   @Override
+   public LinkedYoEnum<E> getLinkedBuffer()
+   {
+      return linkedBuffer;
+   }
+
    @Override
    public void finalize()
    {
       try
       {
          yoEnum.removeListener(propertyUpdater);
+         if (linkedBuffer != null)
+            linkedBuffer.removeUser(userObject);
       }
       finally
       {
@@ -57,17 +86,19 @@ public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBas
       yoEnum.set(toEnumOrdinal(newValue));
    }
 
+   public void setAndPush(String newValue)
+   {
+      set(newValue);
+      if (linkedBuffer != null)
+         linkedBuffer.push();
+   }
+
    private void pullYoEnumValue()
    {
       super.set(toEnumString(yoEnum.getOrdinal()));
    }
 
    public void bindStringProperty(Property<String> property)
-   {
-      bindStringProperty(property, null);
-   }
-
-   public void bindStringProperty(Property<String> property, Runnable pushValueAction)
    {
       property.setValue(getValue());
 
@@ -90,16 +121,14 @@ public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBas
             return;
 
          updatingThis.setTrue();
-         set(newValue);
-         if (pushValueAction != null)
-            pushValueAction.run();
+         setAndPush(newValue);
          updatingThis.setFalse();
       });
    }
 
    public int toEnumOrdinal(String newValue)
    {
-      if (newValue == null)
+      if (newValue == null || newValue.equals(YoEnum.NULL_VALUE_STRING))
          return YoEnum.NULL_VALUE;
 
       int indexOf = enumConstants.indexOf(newValue);
@@ -140,5 +169,23 @@ public class YoEnumAsStringProperty<E extends Enum<E>> extends StringPropertyBas
    public String getName()
    {
       return yoEnum.getName();
+   }
+
+   private static class YoEnumPropertyUpdater implements YoVariableChangedListener
+   {
+      private final WeakReference<YoEnumAsStringProperty<?>> propertyRef;
+
+      public YoEnumPropertyUpdater(YoEnumAsStringProperty<?> property)
+      {
+         propertyRef = new WeakReference<>(property);
+      }
+
+      @Override
+      public void changed(YoVariable source)
+      {
+         YoEnumAsStringProperty<?> property = propertyRef.get();
+         if (property != null)
+            property.pullYoEnumValue();
+      }
    }
 }

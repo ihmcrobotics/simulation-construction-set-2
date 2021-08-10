@@ -107,7 +107,7 @@ public class RemoteSessionManagerController implements SessionControlsController
       JFXTreeTableColumn<SessionInfo, String> hostNameColumn = createColumn("HostName", 175.0, 100.0, 250.0, SessionInfo::getHostName);
       JFXTreeTableColumn<SessionInfo, String> sessionNameColumn = createColumn("SessionName", 250.0, 200.0, 500.0, SessionInfo::getSessionName);
 
-      rootSession = new RecursiveTreeItem<>(FXCollections.observableArrayList(), RecursiveTreeObject<SessionInfo>::getChildren);
+      rootSession = new RecursiveTreeItem<>(FXCollections.observableArrayList(), RecursiveTreeObject::getChildren);
 
       sessionTreeTableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
       sessionTreeTableView.setRoot(rootSession);
@@ -255,7 +255,11 @@ public class RemoteSessionManagerController implements SessionControlsController
       stage.setScene(new Scene(mainPane));
       stage.setTitle("Active remote sessions");
       stage.getIcons().add(SessionVisualizerIOTools.REMOTE_SESSION_IMAGE);
-      toolkit.getMainWindow().addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, e -> shutdown());
+      toolkit.getMainWindow().addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, e ->
+      {
+         if (!e.isConsumed())
+            shutdown();
+      });
       stage.show();
    }
 
@@ -327,10 +331,10 @@ public class RemoteSessionManagerController implements SessionControlsController
          {
             client.start(DEFAULT_TIMEOUT, selectedItem.getValue().getConnection());
          }
-         catch (IOException e)
+         catch (Throwable e)
          {
             e.printStackTrace();
-            JavaFXMissingTools.runLater(getClass(), () -> sessionInProgressProperty.set(false));
+            JavaFXMissingTools.runLater(getClass(), () -> unloadSession());
          }
       });
    }
@@ -346,7 +350,14 @@ public class RemoteSessionManagerController implements SessionControlsController
       if (!sessionInProgressProperty.get())
          return;
       sessionFactory.unloadSession();
-      client.stop();
+      try
+      {
+         client.stop();
+      }
+      catch (RuntimeException e)
+      {
+         // Just be silent about it, it's possible that there's no session ongoing in the case of a crash in startSession()
+      }
       setIsLoading(false);
       sessionInProgressProperty.set(false);
    }
@@ -409,7 +420,10 @@ public class RemoteSessionManagerController implements SessionControlsController
       return createColumn(name, prefWidth, prefWidth, prefWidth, fieldProvider);
    }
 
-   private JFXTreeTableColumn<SessionInfo, String> createColumn(String name, double prefWidth, double minWidth, double maxWidth,
+   private JFXTreeTableColumn<SessionInfo, String> createColumn(String name,
+                                                                double prefWidth,
+                                                                double minWidth,
+                                                                double maxWidth,
                                                                 Function<SessionInfo, StringProperty> fieldProvider)
    {
       JFXTreeTableColumn<SessionInfo, String> column = new JFXTreeTableColumn<>(name);

@@ -6,7 +6,7 @@ import java.util.Random;
 
 import org.junit.jupiter.api.Test;
 
-import us.ihmc.scs2.sharedMemory.tools.YoRandomTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryRandomTools;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoEnum;
 
@@ -21,7 +21,7 @@ public class EnumPullRequestTest
       
       for (int i = 0; i < ITERATIONS; i++)
       {
-         YoEnum<?> variableToUpdate = YoRandomTools.nextYoEnum(random, new YoRegistry("Dummy"));
+         YoEnum<?> variableToUpdate = SharedMemoryRandomTools.nextYoEnum(random, new YoRegistry("Dummy"));
          int initialValue = variableToUpdate.getOrdinal();
          int valueToPull = random.nextInt(variableToUpdate.getEnumSize());
          EnumPullRequest<?> pullRequest = new EnumPullRequest<>(variableToUpdate, valueToPull);

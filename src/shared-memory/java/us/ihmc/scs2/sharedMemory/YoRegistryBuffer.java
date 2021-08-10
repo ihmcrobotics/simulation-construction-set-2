@@ -1,23 +1,22 @@
 package us.ihmc.scs2.sharedMemory;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
 
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 import us.ihmc.yoVariables.listener.YoRegistryChangedListener;
-import us.ihmc.yoVariables.registry.YoNamespace;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoRegistryBuffer
 {
    private final YoRegistry rootRegistry;
-   private final List<YoVariableBuffer<?>> yoVariableBuffers = new ArrayList<>();
+   private final YoVariableBufferList yoVariableBuffers = new YoVariableBufferList();
    private final Map<String, YoVariableBuffer<?>> yoVariableFullnameToBufferMap = new HashMap<>();
    private final YoBufferPropertiesReadOnly properties;
 
@@ -27,7 +26,9 @@ public class YoRegistryBuffer
    {
       this.rootRegistry = rootRegistry;
       this.properties = properties;
-      registerMissingBuffers();
+
+      for (YoVariable yoVariable : rootRegistry.collectSubtreeVariables())
+         registerNewYoVariable(yoVariable);
 
       this.rootRegistry.addListener(new YoRegistryChangedListener()
       {
@@ -35,51 +36,53 @@ public class YoRegistryBuffer
          public void changed(Change change)
          {
             if (change.wasVariableAdded())
-               registerNewYoVariable(change.getTargetVariable(), true);
+               registerNewYoVariable(change.getTargetVariable());
+            if (change.wasRegistryAdded())
+               registerNewYoVariables(change.getTargetRegistry().collectSubtreeVariables());
          }
       });
    }
 
-   public void registerMissingBuffers()
+   private void registerNewYoVariables(Collection<? extends YoVariable> yoVariables)
    {
-      List<YoVariable> allYoVariables = rootRegistry.collectSubtreeVariables();
-
-      if (allYoVariables.size() != yoVariableBuffers.size())
+      for (YoVariable yoVariable : yoVariables)
       {
-         for (YoVariable yoVariable : allYoVariables)
-         {
-            registerNewYoVariable(yoVariable, false);
-         }
+         registerNewYoVariable(yoVariable);
       }
    }
 
-   private void registerNewYoVariable(YoVariable yoVariable, boolean printNameCollisionWarning)
+   private void registerNewYoVariable(YoVariable yoVariable)
    {
       String fullName = yoVariable.getFullNameString();
 
       if (yoVariableFullnameToBufferMap.containsKey(fullName))
       {
-         if (printNameCollisionWarning)
-            LogTools.warn("Name collision while trying to register new YoVariable: " + fullName);
+         LogTools.warn("Name collision while trying to register new YoVariable: " + fullName);
          return;
       }
 
       YoVariableBuffer<?> yoVariableBuffer = YoVariableBuffer.newYoVariableBuffer(yoVariable, properties);
-      yoVariableBuffers.add(yoVariableBuffer);
-      yoVariableFullnameToBufferMap.put(fullName, yoVariableBuffer);
+
+      lock.lock();
+      try
+      {
+         yoVariableBuffers.add(yoVariableBuffer);
+         yoVariableFullnameToBufferMap.put(fullName, yoVariableBuffer);
+      }
+      finally
+      {
+         lock.unlock();
+      }
    }
 
    public void resizeBuffer(int from, int length)
    {
-      yoVariableBuffers.parallelStream().forEach(buffer -> buffer.resizeBuffer(from, length));
+      yoVariableBuffers.resizeBuffer(from, length);
    }
 
    public void fillBuffer(boolean zeroFill, int from, int length)
    {
-      if (length <= 0)
-         return;
-
-      yoVariableBuffers.forEach(buffer -> buffer.fillBuffer(zeroFill, from, length));
+      yoVariableBuffers.fillBuffer(zeroFill, from, length);
    }
 
    public void writeBuffer()
@@ -89,8 +92,7 @@ public class YoRegistryBuffer
 
    public void writeBufferAt(int index)
    {
-      // FIXME Hack to get the writing faster.
-      yoVariableBuffers.parallelStream().forEach(buffer -> buffer.writeBufferAt(index));
+      yoVariableBuffers.writeBufferAt(index);
    }
 
    public void readBuffer()
@@ -100,29 +102,29 @@ public class YoRegistryBuffer
 
    public void readBufferAt(int index)
    {
-      yoVariableBuffers.forEach(buffer -> buffer.readBufferAt(index));
+      yoVariableBuffers.readBufferAt(index);
    }
 
-   YoVariableBuffer<?> findYoVariableBuffer(YoVariable yoVariable)
+   public List<YoVariableBuffer<?>> getYoVariableBuffers()
+   {
+      return yoVariableBuffers;
+   }
+
+   public YoVariableBuffer<?> findYoVariableBuffer(YoVariable yoVariable)
    {
       return yoVariableFullnameToBufferMap.get(yoVariable.getFullNameString());
    }
 
-   YoVariableBuffer<?> findOrCreateYoVariableBuffer(YoVariable yoVariable)
+   public YoVariableBuffer<?> findOrCreateYoVariableBuffer(YoVariable yoVariable)
    {
       String variableFullName = yoVariable.getFullNameString();
       YoVariableBuffer<?> yoVariableBuffer = yoVariableFullnameToBufferMap.get(variableFullName);
 
       if (yoVariableBuffer == null)
       {
-         YoNamespace yoVariableNamespace = new YoNamespace(variableFullName);
-         YoRegistry registry = ensurePathExists(rootRegistry, yoVariableNamespace.getParent());
-         Optional<YoVariable> duplicateOptional = registry.collectSubtreeVariables().stream().filter(v -> v.getFullNameString().equals(variableFullName))
-                                                          .findFirst();
-         YoVariable duplicate;
-         if (duplicateOptional.isPresent())
-            duplicate = duplicateOptional.get();
-         else
+         YoRegistry registry = SharedMemoryTools.ensurePathExists(rootRegistry, yoVariable.getNamespace());
+         YoVariable duplicate = registry.getVariable(yoVariable.getName());
+         if (duplicate == null)
             duplicate = yoVariable.duplicate(registry);
 
          yoVariableBuffer = YoVariableBuffer.newYoVariableBuffer(duplicate, properties);
@@ -131,29 +133,6 @@ public class YoRegistryBuffer
       }
 
       return yoVariableBuffer;
-   }
-
-   private static YoRegistry ensurePathExists(YoRegistry rootRegistry, YoNamespace registryNamespace)
-   {
-      if (!rootRegistry.getName().equals(registryNamespace.getRootName()))
-         return null;
-
-      List<String> subNames = registryNamespace.getSubNames();
-      YoRegistry currentRegistry = rootRegistry;
-
-      for (String subName : subNames.subList(1, subNames.size()))
-      {
-         YoRegistry childRegistry = currentRegistry.getChildren().stream().filter(r -> r.getName().equals(subName)).findFirst().orElse(null);
-         if (childRegistry == null)
-         {
-            childRegistry = new YoRegistry(subName);
-            currentRegistry.addChild(childRegistry);
-         }
-
-         currentRegistry = childRegistry;
-      }
-
-      return currentRegistry;
    }
 
    LinkedYoRegistry newLinkedYoRegistry(YoRegistry registryToLink)

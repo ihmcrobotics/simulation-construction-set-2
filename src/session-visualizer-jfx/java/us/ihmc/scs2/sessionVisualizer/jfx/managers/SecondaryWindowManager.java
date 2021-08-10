@@ -21,10 +21,13 @@ import us.ihmc.scs2.sessionVisualizer.jfx.SCSGuiConfiguration;
 import us.ihmc.scs2.sessionVisualizer.jfx.SecondaryWindowController;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
+import us.ihmc.scs2.sessionVisualizer.jfx.controllers.YoRegistryStatisticsPaneController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.bcf2000.YoBCF2000SliderboardWindowController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.pattern.YoCompositePatternPropertyWindowController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicPropertyWindowController;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
+import us.ihmc.yoVariables.registry.YoNamespace;
+import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class SecondaryWindowManager implements Manager
 {
@@ -32,12 +35,14 @@ public class SecondaryWindowManager implements Manager
    public static final String COMPOSITE_PATTERN_EDITOR_WINDOW_TYPE = "YoCompositeEditorWindow";
    public static final String GRAPHIC_EDITOR_WINDOW_TYPE = "YoGraphicEditorWindow";
    public static final String BCF2000_SLIDERBOARD_WINDOW_TYPE = "BC2000EditorWindow";
+   public static final String REGISTRY_STATISTICS_WINDOW_TYPE = "YoRegistryStatisticsWindow";
 
    private final SessionVisualizerToolkit toolkit;
 
    private final Property<YoCompositePatternPropertyWindowController> yoCompositeEditor = new SimpleObjectProperty<>(this, "yoCompositeEditor", null);
    private final Property<YoGraphicPropertyWindowController> yoGraphicEditor = new SimpleObjectProperty<>(this, "yoGraphicEditor", null);
    private final Property<YoBCF2000SliderboardWindowController> bcf2000Sliderboard = new SimpleObjectProperty<>(this, "bcf2000Sliderboard", null);
+   private final Property<YoRegistryStatisticsPaneController> yoRegistryStatistics = new SimpleObjectProperty<>(this, "yoRegistryStatistics", null);
    private final List<Stage> secondaryWindows = new ArrayList<>();
    private final List<SecondaryWindowController> secondaryWindowControllers = new ArrayList<>();
    private final JavaFXMessager messager;
@@ -115,13 +120,24 @@ public class SecondaryWindowManager implements Manager
          bcf2000Sliderboard.setValue(null);
       }
 
+      if (yoRegistryStatistics.getValue() != null)
+      {
+         yoRegistryStatistics.getValue().close();
+         yoRegistryStatistics.setValue(null);
+      }
+
       secondaryWindows.forEach(secondaryWindow -> secondaryWindow.fireEvent(new WindowEvent(secondaryWindow, WindowEvent.WINDOW_CLOSE_REQUEST)));
       secondaryWindowControllers.forEach(SecondaryWindowController::closeAndDispose);
       secondaryWindowControllers.clear();
    }
 
-   public void openWindow(String windowType)
+   public void openWindow(Pair<String, Object> request)
    {
+      if (request == null)
+         return;
+
+      String windowType = request.getKey();
+
       if (windowType == null || windowType.isEmpty())
          return;
 
@@ -139,6 +155,8 @@ public class SecondaryWindowManager implements Manager
          case BCF2000_SLIDERBOARD_WINDOW_TYPE:
             openBCF2000SliderboardWindow();
             return;
+         case REGISTRY_STATISTICS_WINDOW_TYPE:
+            openRegistryStatisticsWindow((String) request.getValue());
          default:
             LogTools.error("Unexpected value: " + windowType);
       }
@@ -185,7 +203,11 @@ public class SecondaryWindowManager implements Manager
          controller.initialize(toolkit, stage);
          controller.setupChartGroup();
          secondaryWindowControllers.add(controller);
-         stage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, e -> secondaryWindowControllers.remove(controller));
+         stage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, e ->
+         {
+            if (!e.isConsumed())
+               secondaryWindowControllers.remove(controller);
+         });
          controller.start();
          stage.show();
          return stage;
@@ -315,6 +337,40 @@ public class SecondaryWindowManager implements Manager
       catch (IOException e)
       {
          e.printStackTrace();
+      }
+   }
+
+   public void openRegistryStatisticsWindow(String registryFullname)
+   {
+      YoRegistry registry = toolkit.getYoManager().getRootRegistry().findRegistry(new YoNamespace(registryFullname));
+
+      if (registry == null)
+      {
+         LogTools.error("Could not find a registry from the name: {}", registryFullname);
+         return;
+      }
+
+      if (yoRegistryStatistics.getValue() != null)
+      {
+         yoRegistryStatistics.getValue().setInput(registry);
+         yoRegistryStatistics.getValue().showWindow();
+      }
+      else
+      {
+         try
+         {
+            FXMLLoader fxmlLoader = new FXMLLoader(SessionVisualizerIOTools.YO_REGISTRY_STATISTICS_URL);
+            fxmlLoader.load();
+            YoRegistryStatisticsPaneController controller = fxmlLoader.getController();
+            controller.initialize(toolkit);
+            controller.setInput(registry);
+            yoRegistryStatistics.setValue(controller);
+            controller.showWindow();
+         }
+         catch (IOException e)
+         {
+            e.printStackTrace();
+         }
       }
    }
 }

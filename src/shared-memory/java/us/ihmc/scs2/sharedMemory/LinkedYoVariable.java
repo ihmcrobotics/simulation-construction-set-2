@@ -1,10 +1,19 @@
 package us.ihmc.scs2.sharedMemory;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
-import us.ihmc.scs2.sharedMemory.tools.BufferTools;
-import us.ihmc.yoVariables.variable.*;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
+import us.ihmc.yoVariables.variable.YoBoolean;
+import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoEnum;
+import us.ihmc.yoVariables.variable.YoInteger;
+import us.ihmc.yoVariables.variable.YoLong;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public abstract class LinkedYoVariable<T extends YoVariable> extends LinkedBuffer
 {
@@ -17,6 +26,9 @@ public abstract class LinkedYoVariable<T extends YoVariable> extends LinkedBuffe
    protected BufferSampleRequest bufferSampleRequest;
    @SuppressWarnings("rawtypes")
    protected BufferSample bufferSample;
+
+   private final List<PushRequestListener> pushRequestListeners = new ArrayList<>();
+   private final Set<Object> users = new HashSet<>();
 
    @SuppressWarnings({"rawtypes", "unchecked"})
    static LinkedYoVariable newLinkedYoVariable(YoVariable yoVariableToLink, YoVariableBuffer<?> buffer)
@@ -64,9 +76,22 @@ public abstract class LinkedYoVariable<T extends YoVariable> extends LinkedBuffe
    }
 
    @Override
+   void addPushRequestListener(PushRequestListener listener)
+   {
+      pushRequestListeners.add(listener);
+   }
+
+   @Override
+   boolean removePushRequestListener(PushRequestListener listener)
+   {
+      return pushRequestListeners.remove(listener);
+   }
+
+   @Override
    public void push()
    {
       pushRequestToProcess = toPushRequest();
+      pushRequestListeners.forEach(listener -> listener.pushRequested(this));
    }
 
    @Override
@@ -127,7 +152,7 @@ public abstract class LinkedYoVariable<T extends YoVariable> extends LinkedBuffe
          }
          else if (from >= 0)
          {
-            length = BufferTools.computeSubLength(from, properties.getOutPoint(), properties.getSize());
+            length = SharedMemoryTools.computeSubLength(from, properties.getOutPoint(), properties.getSize());
          }
       }
       else if (length == -2 && from == -1)
@@ -190,5 +215,21 @@ public abstract class LinkedYoVariable<T extends YoVariable> extends LinkedBuffe
    YoVariableBuffer<T> getBuffer()
    {
       return buffer;
+   }
+
+   public void addUser(Object user)
+   {
+      users.add(user);
+   }
+
+   public boolean removeUser(Object user)
+   {
+      return users.remove(user);
+   }
+
+   @Override
+   public boolean isActive()
+   {
+      return !users.isEmpty();
    }
 }
