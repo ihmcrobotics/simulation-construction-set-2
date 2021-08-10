@@ -11,7 +11,6 @@ import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.session.SessionState;
 import us.ihmc.scs2.session.YoSharedBufferMessagerAPI;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.search.SearchEngines;
-import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
 import us.ihmc.scs2.sharedMemory.CropBufferRequest;
 import us.ihmc.scs2.sharedMemory.FillBufferRequest;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
@@ -38,8 +37,6 @@ public class SessionVisualizerTopics
    private Topic<List<String>> yoCompositeSelected;
    private Topic<Boolean> yoCompositeRefreshAll;
 
-   private Topic<Boolean> yoGraphicRootGroupRequest;
-   private Topic<YoGroupFX> yoGraphicRootGroupData;
    private Topic<File> yoGraphicLoadRequest;
    private Topic<File> yoGraphicSaveRequest;
 
@@ -100,8 +97,6 @@ public class SessionVisualizerTopics
       yoCompositeSelected = SessionVisualizerMessagerAPI.YoSearch.YoCompositePatternSelected;
       yoCompositeRefreshAll = SessionVisualizerMessagerAPI.YoSearch.YoCompositeRefreshAll;
 
-      yoGraphicRootGroupRequest = SessionVisualizerMessagerAPI.YoGraphic.YoGraphicRootGroupRequest;
-      yoGraphicRootGroupData = SessionVisualizerMessagerAPI.YoGraphic.YoGraphicRootGroupData;
       yoGraphicLoadRequest = SessionVisualizerMessagerAPI.YoGraphic.YoGraphicLoadRequest;
       yoGraphicSaveRequest = SessionVisualizerMessagerAPI.YoGraphic.YoGraphicSaveRequest;
 
@@ -229,16 +224,6 @@ public class SessionVisualizerTopics
    public Topic<Boolean> getYoCompositeRefreshAll()
    {
       return yoCompositeRefreshAll;
-   }
-
-   public Topic<Boolean> getYoGraphicRootGroupRequest()
-   {
-      return yoGraphicRootGroupRequest;
-   }
-
-   public Topic<YoGroupFX> getYoGraphicRootGroupData()
-   {
-      return yoGraphicRootGroupData;
    }
 
    public Topic<File> getYoGraphicLoadRequest()

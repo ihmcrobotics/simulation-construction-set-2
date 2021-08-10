@@ -13,7 +13,6 @@ import us.ihmc.messager.MessagerAPIFactory.Topic;
 import us.ihmc.messager.MessagerAPIFactory.TopicTheme;
 import us.ihmc.messager.MessagerAPIFactory.TypedTopicTheme;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.search.SearchEngines;
-import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
 
 public class SessionVisualizerMessagerAPI
 {
@@ -33,7 +32,6 @@ public class SessionVisualizerMessagerAPI
    private static final TopicTheme Previous = apiFactory.createTopicTheme("Previous");
    private static final TopicTheme Snapshot = apiFactory.createTopicTheme("Snapshot");
    private static final TopicTheme Recordable = apiFactory.createTypedTopicTheme("Recordable");
-   private static final TopicTheme Data = apiFactory.createTypedTopicTheme("Data");
    private static final TopicTheme Request = apiFactory.createTopicTheme("Request");
    private static final TypedTopicTheme<Integer> Size = apiFactory.createTypedTopicTheme("Size");
    private static final TypedTopicTheme<Boolean> Show = apiFactory.createTypedTopicTheme("Show");
@@ -99,10 +97,7 @@ public class SessionVisualizerMessagerAPI
    public static class YoGraphic
    {
       private static final CategoryTheme YoGraphic = apiFactory.createCategoryTheme("YoGraphic");
-      private static final CategoryTheme Root = apiFactory.createCategoryTheme("Root");
 
-      public static final Topic<Boolean> YoGraphicRootGroupRequest = APIRoot.child(YoGraphic).child(Root).child(Group).topic(Request);
-      public static final Topic<YoGroupFX> YoGraphicRootGroupData = APIRoot.child(YoGraphic).child(Root).child(Group).topic(Data);
       public static final Topic<File> YoGraphicSaveRequest = APIRoot.child(YoGraphic).topic(Save);
       public static final Topic<File> YoGraphicLoadRequest = APIRoot.child(YoGraphic).topic(Load);
    }

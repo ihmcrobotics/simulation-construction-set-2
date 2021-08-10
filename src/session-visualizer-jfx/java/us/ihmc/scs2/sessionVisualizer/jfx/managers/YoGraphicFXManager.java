@@ -30,8 +30,6 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
    private final YoGroupFX root = YoGroupFX.createGUIRoot();
    private final YoGroupFX sessionRoot = new YoGroupFX(SESSION_GRAPHICS);
 
-   private final JavaFXMessager messager;
-   private final SessionVisualizerTopics topics;
    private final YoManager yoManager;
    private final BackgroundExecutorManager backgroundExecutorManager;
    private final ReferenceFrameManager referenceFrameManager;
@@ -46,13 +44,10 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
                              BackgroundExecutorManager backgroundExecutorManager,
                              ReferenceFrameManager referenceFrameManager)
    {
-      this.messager = messager;
-      this.topics = topics;
       this.yoManager = yoManager;
       this.backgroundExecutorManager = backgroundExecutorManager;
       this.referenceFrameManager = referenceFrameManager;
 
-      messager.registerJavaFXSyncedTopicListener(topics.getYoGraphicRootGroupRequest(), this::processRootGroupRequest);
       messager.registerJavaFXSyncedTopicListener(topics.getYoGraphicLoadRequest(), this::loadYoGraphicFromFile);
       messager.registerJavaFXSyncedTopicListener(topics.getYoGraphicSaveRequest(), this::saveYoGraphicToFile);
    }
@@ -111,11 +106,6 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
    public boolean isSessionLoaded()
    {
       return true;
-   }
-
-   private void processRootGroupRequest(Boolean request)
-   {
-      messager.submitMessage(topics.getYoGraphicRootGroupData(), root);
    }
 
    private void loadYoGraphicFromFile(File file)
