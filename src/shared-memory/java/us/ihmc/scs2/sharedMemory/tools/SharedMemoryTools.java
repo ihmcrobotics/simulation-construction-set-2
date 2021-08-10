@@ -456,15 +456,15 @@ public class SharedMemoryTools
       {
          rootRegistry = new YoRegistry(registryNamespace.getRootName());
       }
-      else if (!rootRegistry.getName().equals(registryNamespace.getRootName()))
+      else if (!registryNamespace.startsWith(rootRegistry.getNamespace()))
       {
          return null;
       }
 
-      List<String> subNames = registryNamespace.getSubNames();
+      List<String> subNames = registryNamespace.removeStart(rootRegistry.getNamespace()).getSubNames();
       YoRegistry currentRegistry = rootRegistry;
 
-      for (String subName : subNames.subList(1, subNames.size()))
+      for (String subName : subNames)
       {
          YoRegistry childRegistry = currentRegistry.getChildren().stream().filter(r -> r.getName().equals(subName)).findFirst().orElse(null);
          if (childRegistry == null)
