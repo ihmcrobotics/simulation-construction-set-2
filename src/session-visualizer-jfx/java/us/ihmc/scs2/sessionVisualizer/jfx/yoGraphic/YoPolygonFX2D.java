@@ -5,6 +5,7 @@ import java.util.List;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Node;
 import javafx.scene.shape.Polygon;
 import us.ihmc.euclid.tuple2D.Point2D;
@@ -72,6 +73,11 @@ public class YoPolygonFX2D extends YoGraphicFX2D
    public void setNumberOfVertices(IntegerProperty numberOfVertices)
    {
       this.numberOfVertices = numberOfVertices;
+   }
+
+   public void setNumberOfVertices(int numberOfVertices)
+   {
+      setNumberOfVertices(new SimpleIntegerProperty(numberOfVertices));
    }
 
    @Override

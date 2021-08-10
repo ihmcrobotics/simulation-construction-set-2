@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.paint.PhongMaterial;
@@ -17,8 +18,8 @@ import javafx.scene.shape.MeshView;
 import us.ihmc.euclid.tools.EuclidCoreTools;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.graphicsDescription.SegmentedLine3DMeshDataGenerator;
-import us.ihmc.javaFXToolkit.graphics.JavaFXMeshDataInterpreter;
+import us.ihmc.scs2.sessionVisualizer.SegmentedLine3DTriangleMeshFactory;
+import us.ihmc.scs2.sessionVisualizer.jfx.definition.JavaFXTriangleMesh3DDefinitionInterpreter;
 
 public class YoPolynomialFX3D extends YoGraphicFX3D
 {
@@ -113,9 +114,10 @@ public class YoPolynomialFX3D extends YoGraphicFX3D
          computeAt(time, positions[i]::setZ, velocities[i]::setZ, newPolynomialLocal.coefficientsZ);
       }
 
-      SegmentedLine3DMeshDataGenerator meshGenerator = new SegmentedLine3DMeshDataGenerator(timeResolution, numberOfDivisions, newPolynomialLocal.size);
+      SegmentedLine3DTriangleMeshFactory meshGenerator = new SegmentedLine3DTriangleMeshFactory(timeResolution, numberOfDivisions, newPolynomialLocal.size);
       meshGenerator.compute(positions, velocities);
-      Mesh[] meshes = Stream.of(meshGenerator.getMeshDataHolders()).map(JavaFXMeshDataInterpreter::interpretMeshData).toArray(Mesh[]::new);
+      Mesh[] meshes = Stream.of(meshGenerator.getTriangleMesh3DDefinitions()).map(JavaFXTriangleMesh3DDefinitionInterpreter::interpretDefinition)
+                            .toArray(Mesh[]::new);
 
       MeshView[] meshViews = new MeshView[meshes.length];
 
@@ -227,9 +229,19 @@ public class YoPolynomialFX3D extends YoGraphicFX3D
       this.numberOfCoefficientsX = numberOfCoefficientsX;
    }
 
+   public void setNumberOfCoefficientsX(int numberOfCoefficientsX)
+   {
+      setNumberOfCoefficientsX(new SimpleIntegerProperty(numberOfCoefficientsX));
+   }
+
    public void setNumberOfCoefficientsY(IntegerProperty numberOfCoefficientsY)
    {
       this.numberOfCoefficientsY = numberOfCoefficientsY;
+   }
+
+   public void setNumberOfCoefficientsY(int numberOfCoefficientsY)
+   {
+      setNumberOfCoefficientsY(new SimpleIntegerProperty(numberOfCoefficientsY));
    }
 
    public void setNumberOfCoefficientsZ(IntegerProperty numberOfCoefficientsZ)
@@ -237,9 +249,19 @@ public class YoPolynomialFX3D extends YoGraphicFX3D
       this.numberOfCoefficientsZ = numberOfCoefficientsZ;
    }
 
+   public void setNumberOfCoefficientsZ(int numberOfCoefficientsZ)
+   {
+      setNumberOfCoefficientsZ(new SimpleIntegerProperty(numberOfCoefficientsZ));
+   }
+
    public void setStartTime(DoubleProperty startTime)
    {
       this.startTime = startTime;
+   }
+
+   public void setStartTime(double startTime)
+   {
+      setStartTime(new SimpleDoubleProperty(startTime));
    }
 
    public void setEndTime(DoubleProperty endTime)
@@ -247,9 +269,29 @@ public class YoPolynomialFX3D extends YoGraphicFX3D
       this.endTime = endTime;
    }
 
+   public void setEndTime(double endTime)
+   {
+      setEndTime(new SimpleDoubleProperty(endTime));
+   }
+
    public void setSize(DoubleProperty size)
    {
       this.size = size;
+   }
+
+   public void setSize(double size)
+   {
+      setSize(new SimpleDoubleProperty(size));
+   }
+
+   public void setTimeResolution(int timeResolution)
+   {
+      this.timeResolution = timeResolution;
+   }
+
+   public void setNumberOfDivisions(int numberOfDivisions)
+   {
+      this.numberOfDivisions = numberOfDivisions;
    }
 
    @Override

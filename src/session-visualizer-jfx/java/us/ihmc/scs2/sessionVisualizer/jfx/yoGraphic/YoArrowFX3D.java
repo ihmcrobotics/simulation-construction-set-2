@@ -13,10 +13,10 @@ import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
 import us.ihmc.euclid.axisAngle.AxisAngle;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
-import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.javaFXToolkit.JavaFXTools;
-import us.ihmc.javaFXToolkit.shapes.JavaFXMeshBuilder;
+import us.ihmc.scs2.definition.geometry.Cone3DDefinition;
+import us.ihmc.scs2.sessionVisualizer.jfx.definition.JavaFXTriangleMesh3DDefinitionInterpreter;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple3DProperty;
 
 public class YoArrowFX3D extends YoGraphicFX3D
@@ -32,7 +32,7 @@ public class YoArrowFX3D extends YoGraphicFX3D
 
    private final PhongMaterial material = new PhongMaterial();
    private final Cylinder body = new Cylinder(1.0, 1.0);
-   private final MeshView head = new MeshView();
+   private final MeshView head = new MeshView(JavaFXTriangleMesh3DDefinitionInterpreter.interpretDefinition(new Cone3DDefinition(1.0, 1.0)));
    private final Group arrow = new Group(body, head);
    private final Affine arrowAffine = new Affine();
    private final Scale headScale = new Scale();
@@ -48,10 +48,6 @@ public class YoArrowFX3D extends YoGraphicFX3D
       bodyAffineToZUp.appendTranslation(0.0, 0.0, 0.5);
       bodyAffineToZUp.append(new Rotate(90.0, Rotate.X_AXIS));
       body.getTransforms().add(bodyAffineToZUp);
-
-      JavaFXMeshBuilder meshBuilder = new JavaFXMeshBuilder();
-      meshBuilder.addCone(1.0, 1.0, new Point3D());
-      head.setMesh(meshBuilder.generateMesh());
       head.getTransforms().addAll(new Translate(0.0, 0.0, 1.0), headScale);
 
       arrow.getTransforms().addAll(arrowAffine);

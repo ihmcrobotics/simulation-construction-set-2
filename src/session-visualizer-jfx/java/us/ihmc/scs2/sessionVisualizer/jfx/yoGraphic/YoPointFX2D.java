@@ -30,11 +30,12 @@ public class YoPointFX2D extends YoGraphicFX2D
    private final ObjectProperty<Paint> fillProperty = new SimpleObjectProperty<>(this, "fillProperty", null);
    private final ObjectProperty<Paint> strokeProperty = new SimpleObjectProperty<>(this, "strokeProperty", Color.BLACK);
    private final DoubleProperty strokeWidthProperty = new SimpleDoubleProperty(this, "strokeWidthProperty", 0.0);
-   private YoGraphicFXResource graphicResource = YoGraphicFXResourceManager.DEFAULT_POINT2D_GRAPHIC_RESOURCE;
+   private YoGraphicFXResource graphicResource;
 
    public YoPointFX2D()
    {
       pointNode.getTransforms().addAll(translate, scale);
+      setGraphicResource(YoGraphicFXResourceManager.DEFAULT_POINT2D_GRAPHIC_RESOURCE);
    }
 
    public void setGraphicResource(YoGraphicFXResource graphicResource)

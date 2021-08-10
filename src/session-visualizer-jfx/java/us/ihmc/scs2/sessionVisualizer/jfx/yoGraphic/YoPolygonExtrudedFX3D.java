@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Node;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Mesh;
@@ -184,9 +185,19 @@ public class YoPolygonExtrudedFX3D extends YoGraphicFX3D
       this.numberOfVertices = numberOfVertices;
    }
 
+   public void setNumberOfVertices(int numberOfVertices)
+   {
+      setNumberOfVertices(new SimpleIntegerProperty(numberOfVertices));
+   }
+
    public void setThickness(DoubleProperty thickness)
    {
       this.thickness = thickness;
+   }
+
+   public void setThickness(double thickness)
+   {
+      setThickness(new SimpleDoubleProperty(thickness));
    }
 
    @Override
