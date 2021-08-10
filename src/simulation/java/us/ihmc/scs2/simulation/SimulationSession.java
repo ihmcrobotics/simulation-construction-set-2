@@ -1,5 +1,6 @@
 package us.ihmc.scs2.simulation;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import us.ihmc.commons.Conversions;
@@ -7,6 +8,7 @@ import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
@@ -24,6 +26,7 @@ public class SimulationSession extends Session
    private final YoDouble simulationTime = new YoDouble("simulationTime", rootRegistry);
    private final YoFrameVector3D gravity = new YoFrameVector3D("gravity", ReferenceFrame.getWorldFrame(), rootRegistry);
    private final String simulationName;
+   private final List<YoGraphicDefinition> yoGraphicDefinitions = new ArrayList<>();
 
    public SimulationSession()
    {
@@ -86,6 +89,27 @@ public class SimulationSession extends Session
       physicsEngine.addTerrainObject(terrainObjectDefinition);
    }
 
+   public void addYoGraphicDefinition(YoGraphicDefinition yoGraphicDefinition)
+   {
+      yoGraphicDefinitions.add(yoGraphicDefinition);
+   }
+
+   public void addYoGraphicDefinitions(YoGraphicDefinition... yoGraphicDefinitions)
+   {
+      for (YoGraphicDefinition yoGraphicDefinition : yoGraphicDefinitions)
+      {
+         addYoGraphicDefinition(yoGraphicDefinition);
+      }
+   }
+
+   public void addYoGraphicDefinitions(Iterable<? extends YoGraphicDefinition> yoGraphicDefinitions)
+   {
+      for (YoGraphicDefinition yoGraphicDefinition : yoGraphicDefinitions)
+      {
+         addYoGraphicDefinition(yoGraphicDefinition);
+      }
+   }
+
    public ReferenceFrame getInertialFrame()
    {
       return inertialFrame;
@@ -118,5 +142,11 @@ public class SimulationSession extends Session
    public List<TerrainObjectDefinition> getTerrainObjectDefinitions()
    {
       return physicsEngine.getTerrainObjectDefinitions();
+   }
+
+   @Override
+   public List<YoGraphicDefinition> getYoGraphicDefinitions()
+   {
+      return yoGraphicDefinitions;
    }
 }
