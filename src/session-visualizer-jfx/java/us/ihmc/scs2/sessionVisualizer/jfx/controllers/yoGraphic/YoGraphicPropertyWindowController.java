@@ -236,7 +236,6 @@ public class YoGraphicPropertyWindowController
    private void refreshTreeView()
    {
       unloadEditor();
-      rootGroup.updateVisiblePropertyRecursively();
       CheckBoxTreeItem<YoGraphicFXItem> oldRootItem = rootItem;
       rootItem = new CheckBoxTreeItem<>(rootGroup);
       rootItem.setExpanded(true);
