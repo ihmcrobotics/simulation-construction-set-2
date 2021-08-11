@@ -346,12 +346,13 @@ public class YoGroupFX implements YoGraphicFXItem
       return parentGroupProperty == null;
    }
 
-   public YoGroupFX getRoot()
+   @Override
+   public YoGroupFX getRootGroup()
    {
       if (isRoot() || parentGroupProperty.get() == null)
          return this;
       else
-         return parentGroupProperty.get().getRoot();
+         return parentGroupProperty.get().getRootGroup();
    }
 
    public Node getNode2D()

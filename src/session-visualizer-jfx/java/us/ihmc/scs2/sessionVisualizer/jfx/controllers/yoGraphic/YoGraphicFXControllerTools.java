@@ -73,8 +73,7 @@ public class YoGraphicFXControllerTools
 
    public static YoGraphicFXItem duplicateYoGraphicFXItemAndRegister(YoGraphicFXItem itemToDuplicate)
    {
-      YoGroupFX parentGroup = itemToDuplicate.getParentGroup();
-      String cloneName = createAvailableYoGraphicFXItemName(parentGroup.getRoot(),
+      String cloneName = createAvailableYoGraphicFXItemName(itemToDuplicate.getRootGroup(),
                                                             itemToDuplicate.getNamespace(),
                                                             itemToDuplicate.getName(),
                                                             itemToDuplicate.getClass());
