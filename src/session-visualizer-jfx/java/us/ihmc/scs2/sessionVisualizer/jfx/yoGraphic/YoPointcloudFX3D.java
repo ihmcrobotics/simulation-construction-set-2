@@ -17,6 +17,7 @@ import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Shape3D;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.definition.JavaFXVisualTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple3DProperty;
@@ -40,6 +41,11 @@ public class YoPointcloudFX3D extends YoGraphicFX3D
    public YoPointcloudFX3D()
    {
       numberOfPointsProperty.addListener((observable, oldValue, newValue) -> refreshGraphicsProperty.set(true));
+   }
+
+   public YoPointcloudFX3D(ReferenceFrame worldFrame)
+   {
+      this();
    }
 
    @Override

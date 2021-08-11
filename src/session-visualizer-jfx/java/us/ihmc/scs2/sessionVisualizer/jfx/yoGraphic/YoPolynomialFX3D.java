@@ -15,6 +15,7 @@ import javafx.scene.Node;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Mesh;
 import javafx.scene.shape.MeshView;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tools.EuclidCoreTools;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -41,6 +42,11 @@ public class YoPolynomialFX3D extends YoGraphicFX3D
 
    public YoPolynomialFX3D()
    {
+   }
+
+   public YoPolynomialFX3D(ReferenceFrame worldFrame)
+   {
+      this();
    }
 
    @Override

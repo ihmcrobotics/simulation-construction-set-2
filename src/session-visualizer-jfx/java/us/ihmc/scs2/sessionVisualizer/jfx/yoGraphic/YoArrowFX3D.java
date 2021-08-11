@@ -13,6 +13,7 @@ import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
 import us.ihmc.euclid.axisAngle.AxisAngle;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.javaFXToolkit.JavaFXTools;
 import us.ihmc.scs2.definition.geometry.Cone3DDefinition;
@@ -51,6 +52,13 @@ public class YoArrowFX3D extends YoGraphicFX3D
       head.getTransforms().addAll(new Translate(0.0, 0.0, 1.0), headScale);
 
       arrow.getTransforms().addAll(arrowAffine);
+   }
+
+   public YoArrowFX3D(ReferenceFrame worldFrame)
+   {
+      this();
+      origin.setReferenceFrame(worldFrame);
+      direction.setReferenceFrame(worldFrame);
    }
 
    @Override

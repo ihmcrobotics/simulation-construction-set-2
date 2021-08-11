@@ -446,7 +446,10 @@ public class YoGraphicPropertyWindowController
 
          if (itemNameResult.isPresent() && itemTypeResult.isPresent())
          {
-            YoGraphicFXItem newItem = YoGraphicFXControllerTools.createYoGraphicFXItemAndRegister(group, itemNameResult.get(), itemTypeResult.get());
+            YoGraphicFXItem newItem = YoGraphicFXControllerTools.createYoGraphicFXItemAndRegister(toolkit.getReferenceFrameManager().getWorldFrame(),
+                                                                                                  group,
+                                                                                                  itemNameResult.get(),
+                                                                                                  itemTypeResult.get());
 
             JavaFXMissingTools.runLater(getClass(), () ->
             {

@@ -14,6 +14,7 @@ import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Mesh;
 import javafx.scene.shape.MeshView;
 import javafx.scene.transform.Affine;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.Vector2D;
 import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
@@ -47,6 +48,13 @@ public class YoPolygonExtrudedFX3D extends YoGraphicFX3D
       polygonNode.setMaterial(material);
       polygonNode.getTransforms().add(affine);
       polygonNode.idProperty().bind(nameProperty());
+   }
+
+   public YoPolygonExtrudedFX3D(ReferenceFrame worldFrame)
+   {
+      this();
+      position.setReferenceFrame(worldFrame);
+      orientation.setReferenceFrame(worldFrame);
    }
 
    @Override
