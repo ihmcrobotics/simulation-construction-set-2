@@ -91,8 +91,8 @@ public class SessionVisualizerIOTools
    private static final String YO_COMPOSITE_SEARCH = YO_COMPOSITE + "search/";
    private static final String YO_COMPOSITE_ENTRY = YO_COMPOSITE + "entry/";
    private static final String YO_GRAPHIC = "yoGraphic/";
-   private static final String YO_GRAPHIC_2D = YO_GRAPHIC + "graphic2D";
-   private static final String YO_GRAPHIC_3D = YO_GRAPHIC + "graphic3D";
+   private static final String YO_GRAPHIC_2D = YO_GRAPHIC + "graphic2D/";
+   private static final String YO_GRAPHIC_3D = YO_GRAPHIC + "graphic3D/";
    private static final String YO_SLIDERBOARD = "yoSliderboard/";
    private static final String YO_SLIDERBOARD_BCF2000 = YO_SLIDERBOARD + "bcf2000/";
 

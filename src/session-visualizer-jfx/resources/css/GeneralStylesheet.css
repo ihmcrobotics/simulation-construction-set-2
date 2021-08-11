@@ -487,6 +487,15 @@
 .graphic-item-type-combo-box .list-cell {
     -fx-padding: 2 0 2 7;
     -fx-cell-size: 2.2em;
+}
+
+.graphic-editor-preview-button {
+	-fx-alignment: BOTTOM_CENTER;
+	-fx-pref-width: 130px;
+	-fx-pref-height: 130px;
+} 
+
+.graphic-editor-preview-icon {
 } 
 
 /*******************************************************************************

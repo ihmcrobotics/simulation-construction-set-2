@@ -4,7 +4,7 @@
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox fx:id="mainPane" spacing="10.0" stylesheets="@../../../css/GeneralStylesheet.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.graphic3D.YoBoxFX3DEditorController">
+<VBox fx:id="mainPane" styleClass="graphic-editor-vbox" stylesheets="@../../../css/GeneralStylesheet.css" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.graphic3D.YoBoxFX3DEditorController">
    <children>
       <fx:include fx:id="positionEditor" source="../editor/YoCompositeEditorPane.fxml"/>
       <fx:include fx:id="orientationEditor" source="../editor/YoCompositeEditorPane.fxml"/>
