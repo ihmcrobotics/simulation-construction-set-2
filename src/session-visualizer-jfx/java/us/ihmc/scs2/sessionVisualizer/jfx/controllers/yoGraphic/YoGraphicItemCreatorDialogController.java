@@ -71,10 +71,8 @@ public class YoGraphicItemCreatorDialogController
 
    private YoGroupFX parent;
 
-   public void initialize(SessionVisualizerToolkit toolkit, YoGroupFX parent)
+   public void initialize(SessionVisualizerToolkit toolkit)
    {
-      this.parent = parent;
-
       // Buttons to types:
       // Graphic 2D:
       buttonToTypeMap.put(yoLineFX2DToggleButton, YoLineFX2D.class);
@@ -117,10 +115,11 @@ public class YoGraphicItemCreatorDialogController
       {
          Class<? extends YoGraphicFXItem> newItemType = toItemType(newValue);
          itemNameValidityProperty.set(isYoGraphicFXItemNameValid(itemNameTextField.getText(), newItemType));
-         itemNameTextField.setText(createAvailableYoGraphicFXItemName(parent, typeToDefaultNameMap.get(newItemType), newItemType));
+         if (newItemType == null)
+            itemNameTextField.setText("");
+         else
+            itemNameTextField.setText(createAvailableYoGraphicFXItemName(parent, typeToDefaultNameMap.get(newItemType), newItemType));
       });
-
-      itemNamespaceTextField.setText(parent.getFullname());
 
       itemNameTextField.textProperty()
                        .addListener((observable,
@@ -137,6 +136,22 @@ public class YoGraphicItemCreatorDialogController
       stage.setTitle("YoGraphicFXItem creation");
       stage.getIcons().add(SessionVisualizerIOTools.SCS_ICON_IMAGE);
       stage.setScene(scene);
+   }
+
+   public void setParent(YoGroupFX parent)
+   {
+      this.parent = parent;
+      userValidatedProperty.set(false);
+      itemNamespaceTextField.setText(parent.getFullname());
+      Class<? extends YoGraphicFXItem> itemType = toItemType(toggleGroup.getSelectedToggle());
+      if (itemType != null)
+      {
+         String name = itemNameTextField.getText();
+         if (name.trim().isEmpty())
+            name = typeToDefaultNameMap.get(itemType);
+         itemNameTextField.setText(createAvailableYoGraphicFXItemName(parent, name, itemType));
+      }
+      itemNameValidityProperty.set(isYoGraphicFXItemNameValid(itemNameTextField.getText(), itemType));
    }
 
    public void showAndWait()

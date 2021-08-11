@@ -77,6 +77,7 @@ public class YoGraphicPropertyWindowController
    private SessionVisualizerToolkit toolkit;
    private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
+   private final ObjectProperty<YoGraphicItemCreatorDialogController> cachedItemCreator = new SimpleObjectProperty<>(this, "cachedItemCreator", null);
    private final ObjectProperty<YoGraphicFXCreatorController<YoGraphicFX>> activeEditor = new SimpleObjectProperty<>(this, "activeEditor", null);
    private final Map<YoGraphicFXItem, YoGraphicFXCreatorController<YoGraphicFX>> cachedEditors = new HashMap<>();
    private final ObjectProperty<ContextMenu> activeContexMenu = new SimpleObjectProperty<>(this, "activeContextMenu", null);
@@ -435,10 +436,17 @@ public class YoGraphicPropertyWindowController
 
       try
       {
-         FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.YO_GRAPHIC_ITEM_CREATOR_URL);
-         loader.load();
-         YoGraphicItemCreatorDialogController controller = loader.getController();
-         controller.initialize(toolkit, group);
+         if (cachedItemCreator.get() == null)
+         {
+            FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.YO_GRAPHIC_ITEM_CREATOR_URL);
+            loader.load();
+            YoGraphicItemCreatorDialogController controller = loader.getController();
+            controller.initialize(toolkit);
+            cachedItemCreator.set(controller);
+         }
+
+         YoGraphicItemCreatorDialogController controller = cachedItemCreator.get();
+         controller.setParent(group);
          controller.showAndWait();
 
          Optional<String> itemNameResult = controller.getItemNameResult();
