@@ -110,13 +110,13 @@ public class YoLineFX2DEditorController implements YoGraphicFXCreatorController<
       originEditorController.setInput(definitionBeforeEdits.getOrigin());
       if (definitionBeforeEdits.getDirection() != null)
       {
-         directionRadioButton.setSelected(true);
          directionEditorController.setInput(definitionBeforeEdits.getDirection());
+         directionRadioButton.setSelected(true);
       }
       else
       {
-         destinationRadioButton.setSelected(true);
          destinationEditorController.setInput(definitionBeforeEdits.getDestination());
+         destinationRadioButton.setSelected(true);
       }
       styleEditorController.setInput(definitionBeforeEdits);
       nameEditorController.setInput(definitionBeforeEdits.getName(), yoGraphicToEdit.getNamespace());
