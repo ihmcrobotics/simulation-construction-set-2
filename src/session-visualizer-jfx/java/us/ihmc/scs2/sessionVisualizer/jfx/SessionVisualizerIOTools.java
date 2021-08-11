@@ -23,6 +23,8 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Window;
 import us.ihmc.commons.nio.FileTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX2D;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX3D;
 
 public class SessionVisualizerIOTools
 {
@@ -89,6 +91,8 @@ public class SessionVisualizerIOTools
    private static final String YO_COMPOSITE_SEARCH = YO_COMPOSITE + "search/";
    private static final String YO_COMPOSITE_ENTRY = YO_COMPOSITE + "entry/";
    private static final String YO_GRAPHIC = "yoGraphic/";
+   private static final String YO_GRAPHIC_2D = YO_GRAPHIC + "graphic2D";
+   private static final String YO_GRAPHIC_3D = YO_GRAPHIC + "graphic3D";
    private static final String YO_SLIDERBOARD = "yoSliderboard/";
    private static final String YO_SLIDERBOARD_BCF2000 = YO_SLIDERBOARD + "bcf2000/";
 
@@ -160,7 +164,15 @@ public class SessionVisualizerIOTools
 
    public static FXMLLoader getYoGraphicFXEditorFXMLLoader(Class<?> yoGraphicFXType)
    {
-      URL fxmlResource = getFXMLResource(YO_GRAPHIC, yoGraphicFXType.getSimpleName() + "EditorPane");
+      String location = null;
+      if (YoGraphicFX2D.class.isAssignableFrom(yoGraphicFXType))
+         location = YO_GRAPHIC_2D;
+      else if (YoGraphicFX3D.class.isAssignableFrom(yoGraphicFXType))
+         location = YO_GRAPHIC_3D;
+      else
+         throw new IllegalArgumentException("Unhandled graphic type: " + yoGraphicFXType.getSimpleName());
+
+      URL fxmlResource = getFXMLResource(location, yoGraphicFXType.getSimpleName() + "EditorPane");
       Objects.requireNonNull(fxmlResource, "Could not find FXML resource for " + yoGraphicFXType.getSimpleName());
       return new FXMLLoader(fxmlResource);
    }
