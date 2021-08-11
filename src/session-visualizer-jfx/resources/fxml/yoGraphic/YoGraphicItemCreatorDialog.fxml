@@ -23,7 +23,7 @@
          <panes>
             <TitledPane animated="false" text="2D Graphics">
                <content>
-                  <FlowPane columnHalignment="CENTER" hgap="5.0" prefWidth="600.0">
+                  <FlowPane columnHalignment="CENTER" hgap="5.0" prefWidth="600.0" vgap="5.0">
                      <children>
                         <ToggleButton fx:id="yoLineFX2DToggleButton" contentDisplay="TOP" mnemonicParsing="false" styleClass="graphic-editor-preview-button" text="Line">
                            <graphic>
@@ -67,7 +67,7 @@
             </TitledPane>
             <TitledPane animated="false" text="3D Graphics">
                <content>
-                  <FlowPane columnHalignment="CENTER" hgap="5.0">
+                  <FlowPane columnHalignment="CENTER" hgap="5.0" vgap="5.0">
                      <children>
                         <ToggleButton fx:id="yoArrowFX3DToggleButton" contentDisplay="TOP" mnemonicParsing="false" styleClass="graphic-editor-preview-button" text="Arrow">
                            <graphic>
@@ -96,11 +96,29 @@
                               </ImageView>
                            </graphic>
                         </ToggleButton>
+                        <ToggleButton fx:id="yoConeFX3DToggleButton" contentDisplay="TOP" mnemonicParsing="false" styleClass="graphic-editor-preview-button" text="Cone">
+                           <graphic>
+                              <ImageView fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true" styleClass="graphic-editor-preview-icon">
+                                 <image>
+                                    <Image url="@../../icons/yoGraphic/YoConeFX3D.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </ToggleButton>
                         <ToggleButton fx:id="yoCoordinateSystemFX3DToggleButton" contentDisplay="TOP" mnemonicParsing="false" styleClass="graphic-editor-preview-button" text="Coordinate System">
                            <graphic>
                               <ImageView fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true" styleClass="graphic-editor-preview-icon">
                                  <image>
                                     <Image url="@../../icons/yoGraphic/YoCoordinateSystemFX3D.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </ToggleButton>
+                        <ToggleButton fx:id="yoCylinderFX3DToggleButton" contentDisplay="TOP" mnemonicParsing="false" styleClass="graphic-editor-preview-button" text="Cylinder">
+                           <graphic>
+                              <ImageView fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true" styleClass="graphic-editor-preview-icon">
+                                 <image>
+                                    <Image url="@../../icons/yoGraphic/YoCylinderFX3D.png" />
                                  </image>
                               </ImageView>
                            </graphic>
@@ -141,18 +159,36 @@
                               </ImageView>
                            </graphic>
                         </ToggleButton>
+                        <ToggleButton fx:id="yoSTPBoxFX3DToggleButton" contentDisplay="TOP" mnemonicParsing="false" styleClass="graphic-editor-preview-button" text="STP Box">
+                           <graphic>
+                              <ImageView fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true" styleClass="graphic-editor-preview-icon">
+                                 <image>
+                                    <Image url="@../../icons/yoGraphic/YoSTPBoxFX3D.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </ToggleButton>
                      </children>
                   </FlowPane>
                </content>
             </TitledPane>
             <TitledPane animated="false" text="Misc.">
                <content>
-                  <FlowPane prefHeight="200.0" prefWidth="200.0">
+                  <FlowPane hgap="5.0" prefHeight="200.0" prefWidth="200.0" vgap="5.0">
                      <children>
                         <ToggleButton fx:id="yoGroupFXToggleButton" contentDisplay="TOP" mnemonicParsing="false" styleClass="graphic-editor-preview-button" text="Group">
                            <graphic>
                               <FontAwesomeIconView glyphName="OBJECT_GROUP" size="80" />
                            </graphic></ToggleButton>
+                        <ToggleButton fx:id="robotCollisionsToggleButton" contentDisplay="TOP" mnemonicParsing="false" styleClass="graphic-editor-preview-button" text="Robot Collisions">
+                           <graphic>
+                              <ImageView fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true" styleClass="graphic-editor-preview-icon">
+                                 <image>
+                                    <Image url="@../../icons/yoGraphic/YoRobotCollisions.png" />
+                                 </image>
+                              </ImageView>
+                           </graphic>
+                        </ToggleButton>
                      </children>
                   </FlowPane>
                </content>

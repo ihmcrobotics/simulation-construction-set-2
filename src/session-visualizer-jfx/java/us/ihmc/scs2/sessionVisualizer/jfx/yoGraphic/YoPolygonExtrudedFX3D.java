@@ -95,7 +95,7 @@ public class YoPolygonExtrudedFX3D extends YoGraphicFX3D
       return data;
    }
 
-   static class PolygonData
+   private static class PolygonData
    {
       private List<Point2DReadOnly> vertices;
       private double thickness;

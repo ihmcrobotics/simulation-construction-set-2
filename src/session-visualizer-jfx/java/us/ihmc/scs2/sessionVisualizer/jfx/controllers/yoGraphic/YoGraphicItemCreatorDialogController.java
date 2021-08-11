@@ -4,7 +4,6 @@ import static us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphic
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXTextField;
@@ -21,12 +20,15 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoArrowFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoBoxFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoCapsuleFX3D;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoConeFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoCoordinateSystemFX3D;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoCylinderFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXItem;
@@ -39,6 +41,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoPointcloudFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoPolygonExtrudedFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoPolygonFX2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoPolynomialFX3D;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoSTPBoxFX3D;
 
 public class YoGraphicItemCreatorDialogController
 {
@@ -47,10 +50,11 @@ public class YoGraphicItemCreatorDialogController
    @FXML
    private ToggleButton yoLineFX2DToggleButton, yoPointcloudFX2DToggleButton, yoPointFX2DToggleButton, yoPolygonFX2DToggleButton;
    @FXML
-   private ToggleButton yoArrowFX3DToggleButton, yoBoxFX3DToggleButton, yoCapsuleFX3DToggleButton, yoCoordinateSystemFX3DToggleButton,
-         yoPointcloudFX3DToggleButton, yoPointFX3DToggleButton, yoPolygonExtrudedFX3DToggleButton, yoPolynomialFX3DToggleButton;
+   private ToggleButton yoArrowFX3DToggleButton, yoBoxFX3DToggleButton, yoCapsuleFX3DToggleButton, yoConeFX3DToggleButton, yoCoordinateSystemFX3DToggleButton,
+         yoCylinderFX3DToggleButton, yoPointcloudFX3DToggleButton, yoPointFX3DToggleButton, yoPolygonExtrudedFX3DToggleButton, yoPolynomialFX3DToggleButton,
+         yoSTPBoxFX3DToggleButton;
    @FXML
-   private ToggleButton yoGroupFXToggleButton;
+   private ToggleButton yoGroupFXToggleButton, robotCollisionsToggleButton;
    @FXML
    private JFXTextField itemNameTextField;
    @FXML
@@ -69,10 +73,14 @@ public class YoGraphicItemCreatorDialogController
    private final Map<Toggle, Class<? extends YoGraphicFXItem>> buttonToTypeMap = new LinkedHashMap<>();
    private final Map<Class<? extends YoGraphicFXItem>, String> typeToDefaultNameMap = new LinkedHashMap<>();
 
+   private ReferenceFrame worldFrame;
+
    private YoGroupFX parent;
 
    public void initialize(SessionVisualizerToolkit toolkit)
    {
+      worldFrame = toolkit.getReferenceFrameManager().getWorldFrame();
+
       // Buttons to types:
       // Graphic 2D:
       buttonToTypeMap.put(yoLineFX2DToggleButton, YoLineFX2D.class);
@@ -83,11 +91,14 @@ public class YoGraphicItemCreatorDialogController
       buttonToTypeMap.put(yoArrowFX3DToggleButton, YoArrowFX3D.class);
       buttonToTypeMap.put(yoBoxFX3DToggleButton, YoBoxFX3D.class);
       buttonToTypeMap.put(yoCapsuleFX3DToggleButton, YoCapsuleFX3D.class);
+      buttonToTypeMap.put(yoConeFX3DToggleButton, YoConeFX3D.class);
       buttonToTypeMap.put(yoCoordinateSystemFX3DToggleButton, YoCoordinateSystemFX3D.class);
+      buttonToTypeMap.put(yoCylinderFX3DToggleButton, YoCylinderFX3D.class);
       buttonToTypeMap.put(yoPointcloudFX3DToggleButton, YoPointcloudFX3D.class);
       buttonToTypeMap.put(yoPointFX3DToggleButton, YoPointFX3D.class);
       buttonToTypeMap.put(yoPolygonExtrudedFX3DToggleButton, YoPolygonExtrudedFX3D.class);
       buttonToTypeMap.put(yoPolynomialFX3DToggleButton, YoPolynomialFX3D.class);
+      buttonToTypeMap.put(yoSTPBoxFX3DToggleButton, YoSTPBoxFX3D.class);
       // Misc.:
       buttonToTypeMap.put(yoGroupFXToggleButton, YoGroupFX.class);
 
@@ -101,11 +112,14 @@ public class YoGraphicItemCreatorDialogController
       typeToDefaultNameMap.put(YoArrowFX3D.class, "Arrow 3D");
       typeToDefaultNameMap.put(YoBoxFX3D.class, "Box 3D");
       typeToDefaultNameMap.put(YoCapsuleFX3D.class, "Capsule 3D");
+      typeToDefaultNameMap.put(YoConeFX3D.class, "Cone 3D");
       typeToDefaultNameMap.put(YoCoordinateSystemFX3D.class, "Coordinate System 3D");
+      typeToDefaultNameMap.put(YoCylinderFX3D.class, "Cylinder 3D");
       typeToDefaultNameMap.put(YoPointcloudFX3D.class, "Pointcloud 3D");
       typeToDefaultNameMap.put(YoPointFX3D.class, "Point 3D");
       typeToDefaultNameMap.put(YoPolygonExtrudedFX3D.class, "Polygon Extruded 3D");
       typeToDefaultNameMap.put(YoPolynomialFX3D.class, "Polynomial 3D");
+      typeToDefaultNameMap.put(YoSTPBoxFX3D.class, "STP Box 3D");
       // Misc.:
       typeToDefaultNameMap.put(YoGroupFX.class, "Group");
 
@@ -159,22 +173,19 @@ public class YoGraphicItemCreatorDialogController
       stage.showAndWait();
    }
 
-   public Optional<String> getItemNameResult()
+   public YoGraphicFXItem createItem()
    {
+      if (!userValidatedProperty.get())
+         return null;
       if (!itemNameValidityProperty.get())
-         return Optional.empty();
-      if (!userValidatedProperty.get())
-         return Optional.empty();
-      return Optional.of(itemNameTextField.getText());
-   }
-
-   public Optional<Class<? extends YoGraphicFXItem>> getItemTypeResult()
-   {
-      if (!userValidatedProperty.get())
-         return Optional.empty();
+         return null;
       if (toggleGroup.getSelectedToggle() == null)
-         return Optional.empty();
-      return Optional.of(buttonToTypeMap.get(toggleGroup.getSelectedToggle()));
+         return null;
+
+      return YoGraphicFXControllerTools.createYoGraphicFXItemAndRegister(worldFrame,
+                                                                         parent,
+                                                                         itemNameTextField.getText(),
+                                                                         toItemType(toggleGroup.getSelectedToggle()));
    }
 
    private Class<? extends YoGraphicFXItem> toItemType(Toggle toggle)

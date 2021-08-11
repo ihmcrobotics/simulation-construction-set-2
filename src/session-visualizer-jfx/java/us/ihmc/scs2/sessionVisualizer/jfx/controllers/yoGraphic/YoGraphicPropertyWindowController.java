@@ -448,16 +448,10 @@ public class YoGraphicPropertyWindowController
          controller.setParent(group);
          controller.showAndWait();
 
-         Optional<String> itemNameResult = controller.getItemNameResult();
-         Optional<Class<? extends YoGraphicFXItem>> itemTypeResult = controller.getItemTypeResult();
+         YoGraphicFXItem newItem = controller.createItem();
 
-         if (itemNameResult.isPresent() && itemTypeResult.isPresent())
+         if (newItem != null)
          {
-            YoGraphicFXItem newItem = YoGraphicFXControllerTools.createYoGraphicFXItemAndRegister(toolkit.getReferenceFrameManager().getWorldFrame(),
-                                                                                                  group,
-                                                                                                  itemNameResult.get(),
-                                                                                                  itemTypeResult.get());
-
             JavaFXMissingTools.runLater(getClass(), () ->
             {
                selectItem(rootItem, newItem);

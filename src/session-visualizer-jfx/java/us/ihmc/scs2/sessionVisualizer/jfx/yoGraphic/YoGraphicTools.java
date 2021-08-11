@@ -149,8 +149,10 @@ public class YoGraphicTools
       return parent;
    }
 
-   public static List<YoGraphicFXItem> createYoGraphicFXs(YoVariableDatabase yoVariableDatabase, YoGroupFX parentGroup,
-                                                          YoGraphicFXResourceManager resourceManager, ReferenceFrameManager referenceFrameManager,
+   public static List<YoGraphicFXItem> createYoGraphicFXs(YoVariableDatabase yoVariableDatabase,
+                                                          YoGroupFX parentGroup,
+                                                          YoGraphicFXResourceManager resourceManager,
+                                                          ReferenceFrameManager referenceFrameManager,
                                                           YoGraphicListDefinition yoGraphicListDefinition)
    {
       if (yoGraphicListDefinition.getYoGraphics() == null)
@@ -168,8 +170,11 @@ public class YoGraphicTools
       return items;
    }
 
-   public static YoGraphicFXItem createYoGraphicFX(YoVariableDatabase yoVariableDatabase, YoGroupFX parentGroup, YoGraphicFXResourceManager resourceManager,
-                                                   ReferenceFrameManager referenceFrameManager, YoGraphicDefinition yoGraphicDefinition)
+   public static YoGraphicFXItem createYoGraphicFX(YoVariableDatabase yoVariableDatabase,
+                                                   YoGroupFX parentGroup,
+                                                   YoGraphicFXResourceManager resourceManager,
+                                                   ReferenceFrameManager referenceFrameManager,
+                                                   YoGraphicDefinition yoGraphicDefinition)
    {
       YoGraphicFXItem yoGraphicFX = toYoGraphicFX(yoVariableDatabase, resourceManager, referenceFrameManager, yoGraphicDefinition);
 
@@ -196,8 +201,10 @@ public class YoGraphicTools
       return yoGraphicFX;
    }
 
-   public static YoGraphicFXItem toYoGraphicFX(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                               ReferenceFrameManager referenceFrameManager, YoGraphicDefinition definition)
+   public static YoGraphicFXItem toYoGraphicFX(YoVariableDatabase yoVariableDatabase,
+                                               YoGraphicFXResourceManager resourceManager,
+                                               ReferenceFrameManager referenceFrameManager,
+                                               YoGraphicDefinition definition)
    {
       try
       {
@@ -217,6 +224,10 @@ public class YoGraphicTools
             return toYoArrowFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, (YoGraphicArrow3DDefinition) definition);
          else if (definition instanceof YoGraphicCapsule3DDefinition)
             return toYoCapsuleFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, (YoGraphicCapsule3DDefinition) definition);
+         else if (definition instanceof YoGraphicCone3DDefinition)
+            return toYoConeFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, (YoGraphicCone3DDefinition) definition);
+         else if (definition instanceof YoGraphicCylinder3DDefinition)
+            return toYoCylinderFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, (YoGraphicCylinder3DDefinition) definition);
          else if (definition instanceof YoGraphicPointcloud3DDefinition)
             return toYoPointcloudFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, (YoGraphicPointcloud3DDefinition) definition);
          else if (definition instanceof YoGraphicPolynomial3DDefinition)
@@ -227,6 +238,8 @@ public class YoGraphicTools
             return toYoPolygonExtrudedFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, (YoGraphicPolygonExtruded3DDefinition) definition);
          else if (definition instanceof YoGraphicBox3DDefinition)
             return toYoBoxFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, (YoGraphicBox3DDefinition) definition);
+         else if (definition instanceof YoGraphicSTPBox3DDefinition)
+            return toYoSTPBoxFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, (YoGraphicSTPBox3DDefinition) definition);
          else
             throw new UnsupportedOperationException("Unhandled graphic type: " + definition.getClass().getSimpleName());
       }
@@ -237,15 +250,21 @@ public class YoGraphicTools
       }
    }
 
-   private static void toYoGraphicFX(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                     ReferenceFrameManager referenceFrameManager, YoGraphicDefinition definition, YoGraphicFX yoGraphicFXToPack)
+   private static void toYoGraphicFX(YoVariableDatabase yoVariableDatabase,
+                                     YoGraphicFXResourceManager resourceManager,
+                                     ReferenceFrameManager referenceFrameManager,
+                                     YoGraphicDefinition definition,
+                                     YoGraphicFX yoGraphicFXToPack)
    {
       yoGraphicFXToPack.setName(definition.getName());
       yoGraphicFXToPack.setVisible(definition.isVisible());
    }
 
-   private static void toYoGraphicFX2D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                       ReferenceFrameManager referenceFrameManager, YoGraphic2DDefinition definition, YoGraphicFX2D yoGraphicFXToPack)
+   private static void toYoGraphicFX2D(YoVariableDatabase yoVariableDatabase,
+                                       YoGraphicFXResourceManager resourceManager,
+                                       ReferenceFrameManager referenceFrameManager,
+                                       YoGraphic2DDefinition definition,
+                                       YoGraphicFX2D yoGraphicFXToPack)
    {
       toYoGraphicFX(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
       Color fillColor = JavaFXVisualTools.toColor(definition.getFillColor(), null);
@@ -256,8 +275,10 @@ public class YoGraphicTools
       yoGraphicFXToPack.setStrokeWidth(CompositePropertyTools.toDoubleProperty(yoVariableDatabase, definition.getStrokeWidth()));
    }
 
-   public static YoGroupFX toYoGroupFX(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                       ReferenceFrameManager referenceFrameManager, YoGraphicGroupDefinition definition)
+   public static YoGroupFX toYoGroupFX(YoVariableDatabase yoVariableDatabase,
+                                       YoGraphicFXResourceManager resourceManager,
+                                       ReferenceFrameManager referenceFrameManager,
+                                       YoGraphicGroupDefinition definition)
    {
       YoGroupFX yoGroupFX = new YoGroupFX(definition.getName());
       yoGroupFX.setVisible(definition.isVisible());
@@ -270,16 +291,21 @@ public class YoGraphicTools
       return yoGroupFX;
    }
 
-   public static YoPointFX2D toYoPointFX2D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                           ReferenceFrameManager referenceFrameManager, YoGraphicPoint2DDefinition definition)
+   public static YoPointFX2D toYoPointFX2D(YoVariableDatabase yoVariableDatabase,
+                                           YoGraphicFXResourceManager resourceManager,
+                                           ReferenceFrameManager referenceFrameManager,
+                                           YoGraphicPoint2DDefinition definition)
    {
       YoPointFX2D yoGraphicFX = new YoPointFX2D();
       toYoPointFX2D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFX);
       return yoGraphicFX;
    }
 
-   public static void toYoPointFX2D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                    ReferenceFrameManager referenceFrameManager, YoGraphicPoint2DDefinition definition, YoPointFX2D yoGraphicFXToPack)
+   public static void toYoPointFX2D(YoVariableDatabase yoVariableDatabase,
+                                    YoGraphicFXResourceManager resourceManager,
+                                    ReferenceFrameManager referenceFrameManager,
+                                    YoGraphicPoint2DDefinition definition,
+                                    YoPointFX2D yoGraphicFXToPack)
    {
       toYoGraphicFX2D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
       yoGraphicFXToPack.setPosition(CompositePropertyTools.toTuple2DProperty(yoVariableDatabase, referenceFrameManager, definition.getPosition()));
@@ -287,16 +313,20 @@ public class YoGraphicTools
       yoGraphicFXToPack.setGraphicResource(resourceManager.loadGraphic2DResource(definition.getGraphicName()));
    }
 
-   public static YoPolygonFX2D toYoGraphicPolygonFX2D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                                      ReferenceFrameManager referenceFrameManager, YoGraphicPolygon2DDefinition definition)
+   public static YoPolygonFX2D toYoGraphicPolygonFX2D(YoVariableDatabase yoVariableDatabase,
+                                                      YoGraphicFXResourceManager resourceManager,
+                                                      ReferenceFrameManager referenceFrameManager,
+                                                      YoGraphicPolygon2DDefinition definition)
    {
       YoPolygonFX2D yoGraphicFX = new YoPolygonFX2D();
       toYoGraphicPolygonFX2D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFX);
       return yoGraphicFX;
    }
 
-   public static void toYoGraphicPolygonFX2D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                             ReferenceFrameManager referenceFrameManager, YoGraphicPolygon2DDefinition definition,
+   public static void toYoGraphicPolygonFX2D(YoVariableDatabase yoVariableDatabase,
+                                             YoGraphicFXResourceManager resourceManager,
+                                             ReferenceFrameManager referenceFrameManager,
+                                             YoGraphicPolygon2DDefinition definition,
                                              YoPolygonFX2D yoGraphicFXToPack)
    {
       toYoGraphicFX2D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
@@ -304,16 +334,20 @@ public class YoGraphicTools
       yoGraphicFXToPack.setNumberOfVertices(CompositePropertyTools.toIntegerProperty(yoVariableDatabase, definition.getNumberOfVertices()));
    }
 
-   public static YoPointcloudFX2D toYoPointcloudFX2D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                                     ReferenceFrameManager referenceFrameManager, YoGraphicPointcloud2DDefinition definition)
+   public static YoPointcloudFX2D toYoPointcloudFX2D(YoVariableDatabase yoVariableDatabase,
+                                                     YoGraphicFXResourceManager resourceManager,
+                                                     ReferenceFrameManager referenceFrameManager,
+                                                     YoGraphicPointcloud2DDefinition definition)
    {
       YoPointcloudFX2D yoGraphicFX = new YoPointcloudFX2D();
       toYoPointcloudFX2D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFX);
       return yoGraphicFX;
    }
 
-   public static void toYoPointcloudFX2D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                         ReferenceFrameManager referenceFrameManager, YoGraphicPointcloud2DDefinition definition,
+   public static void toYoPointcloudFX2D(YoVariableDatabase yoVariableDatabase,
+                                         YoGraphicFXResourceManager resourceManager,
+                                         ReferenceFrameManager referenceFrameManager,
+                                         YoGraphicPointcloud2DDefinition definition,
                                          YoPointcloudFX2D yoGraphicFXToPack)
    {
       toYoGraphicFX2D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
@@ -323,16 +357,21 @@ public class YoGraphicTools
       yoGraphicFXToPack.setGraphicResource(resourceManager.loadGraphic2DResource(definition.getGraphicName()));
    }
 
-   public static YoLineFX2D toYoLineFX2D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                         ReferenceFrameManager referenceFrameManager, YoGraphicLine2DDefinition definition)
+   public static YoLineFX2D toYoLineFX2D(YoVariableDatabase yoVariableDatabase,
+                                         YoGraphicFXResourceManager resourceManager,
+                                         ReferenceFrameManager referenceFrameManager,
+                                         YoGraphicLine2DDefinition definition)
    {
       YoLineFX2D yoGraphicFX = new YoLineFX2D();
       toYoLineFX2D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFX);
       return yoGraphicFX;
    }
 
-   public static void toYoLineFX2D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                   ReferenceFrameManager referenceFrameManager, YoGraphicLine2DDefinition definition, YoLineFX2D yoGraphicFXToPack)
+   public static void toYoLineFX2D(YoVariableDatabase yoVariableDatabase,
+                                   YoGraphicFXResourceManager resourceManager,
+                                   ReferenceFrameManager referenceFrameManager,
+                                   YoGraphicLine2DDefinition definition,
+                                   YoLineFX2D yoGraphicFXToPack)
    {
       toYoGraphicFX2D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
       yoGraphicFXToPack.setOrigin(CompositePropertyTools.toTuple2DProperty(yoVariableDatabase, referenceFrameManager, definition.getOrigin()));
@@ -340,23 +379,31 @@ public class YoGraphicTools
       yoGraphicFXToPack.setDestination(CompositePropertyTools.toTuple2DProperty(yoVariableDatabase, referenceFrameManager, definition.getDestination()));
    }
 
-   private static void toYoGraphicFX3D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                       ReferenceFrameManager referenceFrameManager, YoGraphic3DDefinition definition, YoGraphicFX3D yoGraphicFXToPack)
+   private static void toYoGraphicFX3D(YoVariableDatabase yoVariableDatabase,
+                                       YoGraphicFXResourceManager resourceManager,
+                                       ReferenceFrameManager referenceFrameManager,
+                                       YoGraphic3DDefinition definition,
+                                       YoGraphicFX3D yoGraphicFXToPack)
    {
       toYoGraphicFX(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
       yoGraphicFXToPack.setColor(JavaFXVisualTools.toColor(definition.getColor()));
    }
 
-   public static YoPointFX3D toYoPointFX3D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                           ReferenceFrameManager referenceFrameManager, YoGraphicPoint3DDefinition definition)
+   public static YoPointFX3D toYoPointFX3D(YoVariableDatabase yoVariableDatabase,
+                                           YoGraphicFXResourceManager resourceManager,
+                                           ReferenceFrameManager referenceFrameManager,
+                                           YoGraphicPoint3DDefinition definition)
    {
       YoPointFX3D yoGraphicFX = new YoPointFX3D();
       toYoPointFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFX);
       return yoGraphicFX;
    }
 
-   public static void toYoPointFX3D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                    ReferenceFrameManager referenceFrameManager, YoGraphicPoint3DDefinition definition, YoPointFX3D yoGraphicFXToPack)
+   public static void toYoPointFX3D(YoVariableDatabase yoVariableDatabase,
+                                    YoGraphicFXResourceManager resourceManager,
+                                    ReferenceFrameManager referenceFrameManager,
+                                    YoGraphicPoint3DDefinition definition,
+                                    YoPointFX3D yoGraphicFXToPack)
    {
       toYoGraphicFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
       yoGraphicFXToPack.setPosition(CompositePropertyTools.toTuple3DProperty(yoVariableDatabase, referenceFrameManager, definition.getPosition()));
@@ -365,16 +412,21 @@ public class YoGraphicTools
          yoGraphicFXToPack.setGraphicResource(resourceManager.loadGraphic3DResource(definition.getGraphicName()));
    }
 
-   public static YoArrowFX3D toYoArrowFX3D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                           ReferenceFrameManager referenceFrameManager, YoGraphicArrow3DDefinition definition)
+   public static YoArrowFX3D toYoArrowFX3D(YoVariableDatabase yoVariableDatabase,
+                                           YoGraphicFXResourceManager resourceManager,
+                                           ReferenceFrameManager referenceFrameManager,
+                                           YoGraphicArrow3DDefinition definition)
    {
       YoArrowFX3D yoGraphicFX = new YoArrowFX3D();
       toYoArrowFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFX);
       return yoGraphicFX;
    }
 
-   public static void toYoArrowFX3D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                    ReferenceFrameManager referenceFrameManager, YoGraphicArrow3DDefinition definition, YoArrowFX3D yoGraphicFXToPack)
+   public static void toYoArrowFX3D(YoVariableDatabase yoVariableDatabase,
+                                    YoGraphicFXResourceManager resourceManager,
+                                    ReferenceFrameManager referenceFrameManager,
+                                    YoGraphicArrow3DDefinition definition,
+                                    YoArrowFX3D yoGraphicFXToPack)
    {
       toYoGraphicFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
       yoGraphicFXToPack.setOrigin(CompositePropertyTools.toTuple3DProperty(yoVariableDatabase, referenceFrameManager, definition.getOrigin()));
@@ -387,16 +439,21 @@ public class YoGraphicTools
       yoGraphicFXToPack.setHeadRadius(CompositePropertyTools.toDoubleProperty(yoVariableDatabase, definition.getHeadRadius()));
    }
 
-   public static YoCapsuleFX3D toYoCapsuleFX3D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                               ReferenceFrameManager referenceFrameManager, YoGraphicCapsule3DDefinition definition)
+   public static YoCapsuleFX3D toYoCapsuleFX3D(YoVariableDatabase yoVariableDatabase,
+                                               YoGraphicFXResourceManager resourceManager,
+                                               ReferenceFrameManager referenceFrameManager,
+                                               YoGraphicCapsule3DDefinition definition)
    {
       YoCapsuleFX3D yoGraphicFX = new YoCapsuleFX3D();
       toYoCapsuleFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFX);
       return yoGraphicFX;
    }
 
-   public static void toYoCapsuleFX3D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                      ReferenceFrameManager referenceFrameManager, YoGraphicCapsule3DDefinition definition, YoCapsuleFX3D yoGraphicFXToPack)
+   public static void toYoCapsuleFX3D(YoVariableDatabase yoVariableDatabase,
+                                      YoGraphicFXResourceManager resourceManager,
+                                      ReferenceFrameManager referenceFrameManager,
+                                      YoGraphicCapsule3DDefinition definition,
+                                      YoCapsuleFX3D yoGraphicFXToPack)
    {
       toYoGraphicFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
       yoGraphicFXToPack.setCenter(CompositePropertyTools.toTuple3DProperty(yoVariableDatabase, referenceFrameManager, definition.getCenter()));
@@ -405,16 +462,66 @@ public class YoGraphicTools
       yoGraphicFXToPack.setRadius(CompositePropertyTools.toDoubleProperty(yoVariableDatabase, definition.getRadius()));
    }
 
-   public static YoPointcloudFX3D toYoPointcloudFX3D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                                     ReferenceFrameManager referenceFrameManager, YoGraphicPointcloud3DDefinition definition)
+   public static YoCylinderFX3D toYoCylinderFX3D(YoVariableDatabase yoVariableDatabase,
+                                                 YoGraphicFXResourceManager resourceManager,
+                                                 ReferenceFrameManager referenceFrameManager,
+                                                 YoGraphicCylinder3DDefinition definition)
+   {
+      YoCylinderFX3D yoGraphicFX = new YoCylinderFX3D();
+      toYoCylinderFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFX);
+      return yoGraphicFX;
+   }
+
+   public static void toYoCylinderFX3D(YoVariableDatabase yoVariableDatabase,
+                                       YoGraphicFXResourceManager resourceManager,
+                                       ReferenceFrameManager referenceFrameManager,
+                                       YoGraphicCylinder3DDefinition definition,
+                                       YoCylinderFX3D yoGraphicFXToPack)
+   {
+      toYoGraphicFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
+      yoGraphicFXToPack.setCenter(CompositePropertyTools.toTuple3DProperty(yoVariableDatabase, referenceFrameManager, definition.getCenter()));
+      yoGraphicFXToPack.setAxis(CompositePropertyTools.toTuple3DProperty(yoVariableDatabase, referenceFrameManager, definition.getAxis()));
+      yoGraphicFXToPack.setLength(CompositePropertyTools.toDoubleProperty(yoVariableDatabase, definition.getLength()));
+      yoGraphicFXToPack.setRadius(CompositePropertyTools.toDoubleProperty(yoVariableDatabase, definition.getRadius()));
+   }
+
+   public static YoConeFX3D toYoConeFX3D(YoVariableDatabase yoVariableDatabase,
+                                         YoGraphicFXResourceManager resourceManager,
+                                         ReferenceFrameManager referenceFrameManager,
+                                         YoGraphicCone3DDefinition definition)
+   {
+      YoConeFX3D yoGraphicFX = new YoConeFX3D();
+      toYoConeFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFX);
+      return yoGraphicFX;
+   }
+
+   public static void toYoConeFX3D(YoVariableDatabase yoVariableDatabase,
+                                   YoGraphicFXResourceManager resourceManager,
+                                   ReferenceFrameManager referenceFrameManager,
+                                   YoGraphicCone3DDefinition definition,
+                                   YoConeFX3D yoGraphicFXToPack)
+   {
+      toYoGraphicFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
+      yoGraphicFXToPack.setPosition(CompositePropertyTools.toTuple3DProperty(yoVariableDatabase, referenceFrameManager, definition.getPosition()));
+      yoGraphicFXToPack.setAxis(CompositePropertyTools.toTuple3DProperty(yoVariableDatabase, referenceFrameManager, definition.getAxis()));
+      yoGraphicFXToPack.setHeight(CompositePropertyTools.toDoubleProperty(yoVariableDatabase, definition.getHeight()));
+      yoGraphicFXToPack.setRadius(CompositePropertyTools.toDoubleProperty(yoVariableDatabase, definition.getRadius()));
+   }
+
+   public static YoPointcloudFX3D toYoPointcloudFX3D(YoVariableDatabase yoVariableDatabase,
+                                                     YoGraphicFXResourceManager resourceManager,
+                                                     ReferenceFrameManager referenceFrameManager,
+                                                     YoGraphicPointcloud3DDefinition definition)
    {
       YoPointcloudFX3D yoGraphicFX = new YoPointcloudFX3D();
       toYoPointcloudFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFX);
       return yoGraphicFX;
    }
 
-   public static void toYoPointcloudFX3D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                         ReferenceFrameManager referenceFrameManager, YoGraphicPointcloud3DDefinition definition,
+   public static void toYoPointcloudFX3D(YoVariableDatabase yoVariableDatabase,
+                                         YoGraphicFXResourceManager resourceManager,
+                                         ReferenceFrameManager referenceFrameManager,
+                                         YoGraphicPointcloud3DDefinition definition,
                                          YoPointcloudFX3D yoGraphicFXToPack)
    {
       toYoGraphicFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
@@ -424,16 +531,20 @@ public class YoGraphicTools
       yoGraphicFXToPack.setGraphicResource(resourceManager.loadGraphic3DResource(definition.getGraphicName()));
    }
 
-   public static YoPolynomialFX3D toYoPolynomialFX3D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                                     ReferenceFrameManager referenceFrameManager, YoGraphicPolynomial3DDefinition definition)
+   public static YoPolynomialFX3D toYoPolynomialFX3D(YoVariableDatabase yoVariableDatabase,
+                                                     YoGraphicFXResourceManager resourceManager,
+                                                     ReferenceFrameManager referenceFrameManager,
+                                                     YoGraphicPolynomial3DDefinition definition)
    {
       YoPolynomialFX3D yoGraphicFX = new YoPolynomialFX3D();
       toYoPolynomialFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFX);
       return yoGraphicFX;
    }
 
-   public static void toYoPolynomialFX3D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                         ReferenceFrameManager referenceFrameManager, YoGraphicPolynomial3DDefinition definition,
+   public static void toYoPolynomialFX3D(YoVariableDatabase yoVariableDatabase,
+                                         YoGraphicFXResourceManager resourceManager,
+                                         ReferenceFrameManager referenceFrameManager,
+                                         YoGraphicPolynomial3DDefinition definition,
                                          YoPolynomialFX3D yoGraphicFXToPack)
    {
       toYoGraphicFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
@@ -448,16 +559,20 @@ public class YoGraphicTools
       yoGraphicFXToPack.setSize(CompositePropertyTools.toDoubleProperty(yoVariableDatabase, definition.getSize()));
    }
 
-   public static YoCoordinateSystemFX3D toYoCoordinateSystemFX3D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                                                 ReferenceFrameManager referenceFrameManager, YoGraphicCoordinateSystem3DDefinition definition)
+   public static YoCoordinateSystemFX3D toYoCoordinateSystemFX3D(YoVariableDatabase yoVariableDatabase,
+                                                                 YoGraphicFXResourceManager resourceManager,
+                                                                 ReferenceFrameManager referenceFrameManager,
+                                                                 YoGraphicCoordinateSystem3DDefinition definition)
    {
       YoCoordinateSystemFX3D yoGraphicFX = new YoCoordinateSystemFX3D();
       toYoCoordinateSystemFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFX);
       return yoGraphicFX;
    }
 
-   public static void toYoCoordinateSystemFX3D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                               ReferenceFrameManager referenceFrameManager, YoGraphicCoordinateSystem3DDefinition definition,
+   public static void toYoCoordinateSystemFX3D(YoVariableDatabase yoVariableDatabase,
+                                               YoGraphicFXResourceManager resourceManager,
+                                               ReferenceFrameManager referenceFrameManager,
+                                               YoGraphicCoordinateSystem3DDefinition definition,
                                                YoCoordinateSystemFX3D yoGraphicFXToPack)
    {
       toYoGraphicFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
@@ -469,16 +584,20 @@ public class YoGraphicTools
       yoGraphicFXToPack.setHeadRadius(CompositePropertyTools.toDoubleProperty(yoVariableDatabase, definition.getHeadRadius()));
    }
 
-   public static YoPolygonExtrudedFX3D toYoPolygonExtrudedFX3D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                                               ReferenceFrameManager referenceFrameManager, YoGraphicPolygonExtruded3DDefinition definition)
+   public static YoPolygonExtrudedFX3D toYoPolygonExtrudedFX3D(YoVariableDatabase yoVariableDatabase,
+                                                               YoGraphicFXResourceManager resourceManager,
+                                                               ReferenceFrameManager referenceFrameManager,
+                                                               YoGraphicPolygonExtruded3DDefinition definition)
    {
       YoPolygonExtrudedFX3D yoGraphicFX = new YoPolygonExtrudedFX3D();
       toYoPolygonExtrudedFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFX);
       return yoGraphicFX;
    }
 
-   public static void toYoPolygonExtrudedFX3D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                              ReferenceFrameManager referenceFrameManager, YoGraphicPolygonExtruded3DDefinition definition,
+   public static void toYoPolygonExtrudedFX3D(YoVariableDatabase yoVariableDatabase,
+                                              YoGraphicFXResourceManager resourceManager,
+                                              ReferenceFrameManager referenceFrameManager,
+                                              YoGraphicPolygonExtruded3DDefinition definition,
                                               YoPolygonExtrudedFX3D yoGraphicFXToPack)
    {
       toYoGraphicFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
@@ -489,21 +608,50 @@ public class YoGraphicTools
       yoGraphicFXToPack.setThickness(CompositePropertyTools.toDoubleProperty(yoVariableDatabase, definition.getThickness()));
    }
 
-   public static YoBoxFX3D toYoBoxFX3D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                       ReferenceFrameManager referenceFrameManager, YoGraphicBox3DDefinition definition)
+   public static YoBoxFX3D toYoBoxFX3D(YoVariableDatabase yoVariableDatabase,
+                                       YoGraphicFXResourceManager resourceManager,
+                                       ReferenceFrameManager referenceFrameManager,
+                                       YoGraphicBox3DDefinition definition)
    {
       YoBoxFX3D yoGraphicFX = new YoBoxFX3D();
       toYoBoxFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFX);
       return yoGraphicFX;
    }
 
-   public static void toYoBoxFX3D(YoVariableDatabase yoVariableDatabase, YoGraphicFXResourceManager resourceManager,
-                                  ReferenceFrameManager referenceFrameManager, YoGraphicBox3DDefinition definition, YoBoxFX3D yoGraphicFXToPack)
+   public static void toYoBoxFX3D(YoVariableDatabase yoVariableDatabase,
+                                  YoGraphicFXResourceManager resourceManager,
+                                  ReferenceFrameManager referenceFrameManager,
+                                  YoGraphicBox3DDefinition definition,
+                                  YoBoxFX3D yoGraphicFXToPack)
    {
       toYoGraphicFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
       yoGraphicFXToPack.setPosition(CompositePropertyTools.toTuple3DProperty(yoVariableDatabase, referenceFrameManager, definition.getPosition()));
       yoGraphicFXToPack.setOrientation(CompositePropertyTools.toOrientation3DProperty(yoVariableDatabase, referenceFrameManager, definition.getOrientation()));
       yoGraphicFXToPack.setSize(CompositePropertyTools.toTuple3DProperty(yoVariableDatabase, referenceFrameManager, definition.getSize()));
+   }
+
+   public static YoSTPBoxFX3D toYoSTPBoxFX3D(YoVariableDatabase yoVariableDatabase,
+                                             YoGraphicFXResourceManager resourceManager,
+                                             ReferenceFrameManager referenceFrameManager,
+                                             YoGraphicSTPBox3DDefinition definition)
+   {
+      YoSTPBoxFX3D yoGraphicFX = new YoSTPBoxFX3D();
+      toYoSTPBoxFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFX);
+      return yoGraphicFX;
+   }
+
+   public static void toYoSTPBoxFX3D(YoVariableDatabase yoVariableDatabase,
+                                     YoGraphicFXResourceManager resourceManager,
+                                     ReferenceFrameManager referenceFrameManager,
+                                     YoGraphicSTPBox3DDefinition definition,
+                                     YoSTPBoxFX3D yoGraphicFXToPack)
+   {
+      toYoGraphicFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
+      yoGraphicFXToPack.setPosition(CompositePropertyTools.toTuple3DProperty(yoVariableDatabase, referenceFrameManager, definition.getPosition()));
+      yoGraphicFXToPack.setOrientation(CompositePropertyTools.toOrientation3DProperty(yoVariableDatabase, referenceFrameManager, definition.getOrientation()));
+      yoGraphicFXToPack.setSize(CompositePropertyTools.toTuple3DProperty(yoVariableDatabase, referenceFrameManager, definition.getSize()));
+      yoGraphicFXToPack.setMinimumMargin(CompositePropertyTools.toDoubleProperty(yoVariableDatabase, definition.getMinimumMargin()));
+      yoGraphicFXToPack.setMaximumMargin(CompositePropertyTools.toDoubleProperty(yoVariableDatabase, definition.getMaximumMargin()));
    }
 
    public static YoGraphicListDefinition toYoGraphicListDefinition(Collection<? extends YoGraphicFXItem> yoGraphicFXs)
@@ -527,6 +675,10 @@ public class YoGraphicTools
          return toYoGraphicArrow3DDefinition((YoArrowFX3D) yoGraphicFX);
       else if (yoGraphicFX instanceof YoCapsuleFX3D)
          return toYoGraphicCapsule3DDefinition((YoCapsuleFX3D) yoGraphicFX);
+      else if (yoGraphicFX instanceof YoConeFX3D)
+         return toYoGraphicCone3DDefinition((YoConeFX3D) yoGraphicFX);
+      else if (yoGraphicFX instanceof YoCylinderFX3D)
+         return toYoGraphicCylinder3DDefinition((YoCylinderFX3D) yoGraphicFX);
       else if (yoGraphicFX instanceof YoPointFX3D)
          return toYoGraphicPoint3DDefinition((YoPointFX3D) yoGraphicFX);
       else if (yoGraphicFX instanceof YoPointcloudFX3D)
@@ -539,6 +691,8 @@ public class YoGraphicTools
          return toYoGraphicPolygonExtruded3DDefinition((YoPolygonExtrudedFX3D) yoGraphicFX);
       else if (yoGraphicFX instanceof YoBoxFX3D)
          return toYoGraphicBox3DDefinition((YoBoxFX3D) yoGraphicFX);
+      else if (yoGraphicFX instanceof YoSTPBoxFX3D)
+         return toYoGraphicSTPBox3DDefinition((YoSTPBoxFX3D) yoGraphicFX);
       else
          throw new UnsupportedOperationException("Unsupported " + YoGraphicFX.class.getSimpleName() + ": " + yoGraphicFX.getClass().getSimpleName());
    }
@@ -671,6 +825,42 @@ public class YoGraphicTools
       return definition;
    }
 
+   public static YoGraphicCone3DDefinition toYoGraphicCone3DDefinition(YoConeFX3D yoGraphicFX)
+   {
+      if (yoGraphicFX == null)
+         return null;
+
+      YoGraphicCone3DDefinition definition = new YoGraphicCone3DDefinition();
+
+      definition.setName(yoGraphicFX.getName());
+      definition.setVisible(yoGraphicFX.isVisible());
+      definition.setPosition(CompositePropertyTools.toYoTuple3DDefinition(yoGraphicFX.getPosition()));
+      definition.setAxis(CompositePropertyTools.toYoTuple3DDefinition(yoGraphicFX.getAxis()));
+      definition.setHeight(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getHeight()));
+      definition.setRadius(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getRadius()));
+      definition.setColor(toColorDefinition(yoGraphicFX.getColor()));
+
+      return definition;
+   }
+
+   public static YoGraphicCylinder3DDefinition toYoGraphicCylinder3DDefinition(YoCylinderFX3D yoGraphicFX)
+   {
+      if (yoGraphicFX == null)
+         return null;
+
+      YoGraphicCylinder3DDefinition definition = new YoGraphicCylinder3DDefinition();
+
+      definition.setName(yoGraphicFX.getName());
+      definition.setVisible(yoGraphicFX.isVisible());
+      definition.setCenter(CompositePropertyTools.toYoTuple3DDefinition(yoGraphicFX.getCenter()));
+      definition.setAxis(CompositePropertyTools.toYoTuple3DDefinition(yoGraphicFX.getAxis()));
+      definition.setLength(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getLength()));
+      definition.setRadius(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getRadius()));
+      definition.setColor(toColorDefinition(yoGraphicFX.getColor()));
+
+      return definition;
+   }
+
    public static YoGraphicPoint3DDefinition toYoGraphicPoint3DDefinition(YoPointFX3D yoGraphicFX)
    {
       if (yoGraphicFX == null)
@@ -780,6 +970,25 @@ public class YoGraphicTools
       definition.setPosition(CompositePropertyTools.toYoTuple3DDefinition(yoGraphicFX.getPosition()));
       definition.setOrientation(CompositePropertyTools.toYoOrientation3DDefinition(yoGraphicFX.getOrientation()));
       definition.setSize(CompositePropertyTools.toYoTuple3DDefinition(yoGraphicFX.getSize()));
+      definition.setColor(toColorDefinition(yoGraphicFX.getColor()));
+
+      return definition;
+   }
+
+   public static YoGraphicSTPBox3DDefinition toYoGraphicSTPBox3DDefinition(YoSTPBoxFX3D yoGraphicFX)
+   {
+      if (yoGraphicFX == null)
+         return null;
+
+      YoGraphicSTPBox3DDefinition definition = new YoGraphicSTPBox3DDefinition();
+
+      definition.setName(yoGraphicFX.getName());
+      definition.setVisible(yoGraphicFX.isVisible());
+      definition.setPosition(CompositePropertyTools.toYoTuple3DDefinition(yoGraphicFX.getPosition()));
+      definition.setOrientation(CompositePropertyTools.toYoOrientation3DDefinition(yoGraphicFX.getOrientation()));
+      definition.setSize(CompositePropertyTools.toYoTuple3DDefinition(yoGraphicFX.getSize()));
+      definition.setMinimumMargin(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getMinimumMargin()));
+      definition.setMaximumMargin(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getMaximumMargin()));
       definition.setColor(toColorDefinition(yoGraphicFX.getColor()));
 
       return definition;

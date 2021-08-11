@@ -3050,6 +3050,12 @@ public class TriangleMesh3DFactories
    /*
     * TODO: The following is for drawing STP shapes. Needs some cleanup.
     */
+   
+   public static TriangleMesh3DDefinition toSTPBox3DMesh(RigidBodyTransformReadOnly pose, Tuple3DReadOnly size, double smallRadius,
+                                                         double largeRadius, boolean highlightLimits)
+   {
+      return toSTPBox3DMesh(pose, size.getX(), size.getY(), size.getZ(), smallRadius, largeRadius, highlightLimits);
+   }
 
    public static TriangleMesh3DDefinition toSTPBox3DMesh(RigidBodyTransformReadOnly pose, double sizeX, double sizeY, double sizeZ, double smallRadius,
                                                          double largeRadius, boolean highlightLimits)
