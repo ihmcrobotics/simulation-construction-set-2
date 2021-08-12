@@ -7,6 +7,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXTextField;
 
@@ -145,7 +147,7 @@ public class YoGraphicItemCreatorDialogController
       sessionRobotDefinitions.addListener((ListChangeListener<RobotDefinition>) change ->
       {
          robotCollisionsToggleButtons.clear();
-         robotCollisionsToggleButtons.addAll(change.getList().stream().map(a -> createRobotCollisionsToggleButton()).collect(Collectors.toList()));
+         robotCollisionsToggleButtons.addAll(change.getList().stream().map(this::createRobotCollisionsToggleButton).collect(Collectors.toList()));
       });
 
       robotCollisionsToggleButtons.addListener((ListChangeListener<ToggleButton>) change ->
@@ -165,7 +167,7 @@ public class YoGraphicItemCreatorDialogController
             }
          }
       });
-      robotCollisionsToggleButtons.addAll(sessionRobotDefinitions.stream().map(a -> createRobotCollisionsToggleButton()).collect(Collectors.toList()));
+      robotCollisionsToggleButtons.addAll(sessionRobotDefinitions.stream().map(this::createRobotCollisionsToggleButton).collect(Collectors.toList()));
 
       toggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) ->
       {
@@ -175,7 +177,7 @@ public class YoGraphicItemCreatorDialogController
          if (robotCollisionsToggleButtons.contains(newValue))
          {
             newItemType = YoGroupFX.class;
-            name = sessionRobotDefinitions.get(robotCollisionsToggleButtons.indexOf(newValue)).getName();
+            name = sessionRobotDefinitions.get(robotCollisionsToggleButtons.indexOf(newValue)).getName() + " - collisions";
          }
          else
          {
@@ -310,12 +312,14 @@ public class YoGraphicItemCreatorDialogController
       stage.close();
    }
 
-   private ToggleButton createRobotCollisionsToggleButton()
+   private ToggleButton createRobotCollisionsToggleButton(RobotDefinition robotdefinition)
    {
       FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.YO_GRAPHIC_ROBOT_COLLISIONS_BUTTON_URL);
       try
       {
-         return loader.load();
+         ToggleButton button = loader.load();
+         button.setText(StringUtils.capitalize(robotdefinition.getName()) + " Collisions");
+         return button;
       }
       catch (IOException e)
       {
