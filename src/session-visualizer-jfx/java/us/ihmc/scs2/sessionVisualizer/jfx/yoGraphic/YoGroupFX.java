@@ -3,6 +3,8 @@ package us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 
+import org.apache.commons.lang3.mutable.MutableBoolean;
+
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -10,6 +12,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableBooleanValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
@@ -30,7 +33,6 @@ public class YoGroupFX implements YoGraphicFXItem
    private final Group group3D = new Group();
 
    private final BooleanProperty visibleProperty = new SimpleBooleanProperty(this, "visible", true);
-   private final BooleanProperty visibilityStateProperty = new SimpleBooleanProperty(this, "visibilityState", true);
 
    public static YoGroupFX createGUIRoot()
    {
@@ -76,8 +78,8 @@ public class YoGroupFX implements YoGraphicFXItem
          setupYoGraphicFXsListener(yoGraphicFX3DSet, group3D);
 
          setupVisibilityBindings();
-         group2D.visibleProperty().bind(visibilityStateProperty);
-         group3D.visibleProperty().bind(visibilityStateProperty);
+         group2D.visibleProperty().bind(visibleProperty);
+         group3D.visibleProperty().bind(visibleProperty);
       }
    }
 
@@ -88,25 +90,57 @@ public class YoGroupFX implements YoGraphicFXItem
 
    private void setupVisibilityBindings()
    {
-      visibleProperty.addListener((o, oldValue, newValue) -> itemChildren.forEach(child -> child.setVisible(newValue)));
+      MutableBoolean updating = new MutableBoolean(false);
 
-      itemChildren.addListener((SetChangeListener<YoGraphicFXItem>) change ->
+      visibleProperty.addListener((o, oldValue, newValue) ->
       {
-         visibilityStateProperty.unbind();
+         if (updating.isTrue())
+            return;
 
+         updating.setTrue();
+         itemChildren.forEach(child -> child.setVisible(newValue));
+         updating.setFalse();
+      });
+
+      itemChildren.addListener(new SetChangeListener<YoGraphicFXItem>()
+      {
          ObservableBooleanValue observable = null;
+         ChangeListener<? super Boolean> changeListener = (o, oldValue, newValue) -> updateVisibility();
 
-         for (YoGraphicFXItem itemChild : change.getSet())
+         @Override
+         public void onChanged(Change<? extends YoGraphicFXItem> change)
          {
-            if (observable == null)
-               observable = itemChild.visibleProperty();
-            else
-               observable = Bindings.or(observable, itemChild.visibleProperty());
+            if (observable != null)
+               observable.removeListener(changeListener);
+
+            if (change.getSet().isEmpty())
+            {
+               observable = null;
+               updateVisibility();
+               return;
+            }
+
+            for (YoGraphicFXItem itemChild : change.getSet())
+            {
+               if (observable == null)
+                  observable = itemChild.visibleProperty();
+               else
+                  observable = Bindings.or(observable, itemChild.visibleProperty());
+            }
+
+            observable.addListener(changeListener);
+            updateVisibility();
          }
-         if (observable == null)
-            visibilityStateProperty.set(false);
-         else
-            visibilityStateProperty.bind(observable);
+
+         private void updateVisibility()
+         {
+            if (updating.isTrue())
+               return;
+
+            updating.setTrue();
+            visibleProperty.set(observable == null ? false : observable.get());
+            updating.setFalse();
+         }
       });
    }
 
