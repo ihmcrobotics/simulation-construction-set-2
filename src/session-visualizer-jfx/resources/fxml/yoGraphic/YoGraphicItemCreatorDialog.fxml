@@ -174,19 +174,11 @@
             </TitledPane>
             <TitledPane animated="false" text="Misc.">
                <content>
-                  <FlowPane hgap="5.0" prefHeight="200.0" prefWidth="200.0" vgap="5.0">
+                  <FlowPane fx:id="miscFlowPane" hgap="5.0" prefHeight="200.0" prefWidth="200.0" vgap="5.0">
                      <children>
                         <ToggleButton fx:id="yoGroupFXToggleButton" contentDisplay="TOP" mnemonicParsing="false" styleClass="graphic-editor-preview-button" text="Group">
                            <graphic>
                               <FontAwesomeIconView glyphName="OBJECT_GROUP" size="80" />
-                           </graphic></ToggleButton>
-                        <ToggleButton fx:id="robotCollisionsToggleButton" contentDisplay="TOP" mnemonicParsing="false" styleClass="graphic-editor-preview-button" text="Robot Collisions">
-                           <graphic>
-                              <ImageView fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true" styleClass="graphic-editor-preview-icon">
-                                 <image>
-                                    <Image url="@../../icons/yoGraphic/YoRobotCollisions.png" />
-                                 </image>
-                              </ImageView>
                            </graphic>
                         </ToggleButton>
                      </children>

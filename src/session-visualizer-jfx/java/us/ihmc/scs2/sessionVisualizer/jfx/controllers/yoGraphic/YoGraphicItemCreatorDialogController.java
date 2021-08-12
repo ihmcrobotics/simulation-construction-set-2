@@ -2,16 +2,22 @@ package us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic;
 
 import static us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools.createAvailableYoGraphicFXItemName;
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXTextField;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
@@ -60,7 +66,7 @@ public class YoGraphicItemCreatorDialogController
    @FXML
    private FlowPane miscFlowPane;
    @FXML
-   private ToggleButton yoGroupFXToggleButton, robotCollisionsToggleButton;
+   private ToggleButton yoGroupFXToggleButton;
    @FXML
    private JFXTextField itemNameTextField;
    @FXML
@@ -69,6 +75,9 @@ public class YoGraphicItemCreatorDialogController
    private ImageView itemNameValidImageView;
    @FXML
    private JFXButton createItemButton;
+
+   // These ToggleButtons are created on the fly when start/stop session and added to the miscFlowPane
+   private final ObservableList<ToggleButton> robotCollisionsToggleButtons = FXCollections.observableArrayList();
 
    private final ToggleGroup toggleGroup = new ToggleGroup();
    private final Stage stage = new Stage(StageStyle.UTILITY);
@@ -79,15 +88,15 @@ public class YoGraphicItemCreatorDialogController
 
    private ReferenceFrame worldFrame;
    private ReferenceFrameManager referenceFrameManager;
-   private SessionVisualizerToolkit toolkit;
+   private ObservableList<RobotDefinition> sessionRobotDefinitions;
 
    private YoGroupFX parent;
 
    public void initialize(SessionVisualizerToolkit toolkit)
    {
-      this.toolkit = toolkit;
       referenceFrameManager = toolkit.getReferenceFrameManager();
       worldFrame = referenceFrameManager.getWorldFrame();
+      sessionRobotDefinitions = toolkit.getSessionRobotDefinitions();
 
       // Buttons to types:
       // Graphic 2D:
@@ -132,17 +141,41 @@ public class YoGraphicItemCreatorDialogController
       typeToDefaultNameMap.put(YoGroupFX.class, "Group");
 
       buttonToTypeMap.keySet().forEach(button -> button.setToggleGroup(toggleGroup));
-      robotCollisionsToggleButton.setToggleGroup(toggleGroup);
+
+      sessionRobotDefinitions.addListener((ListChangeListener<RobotDefinition>) change ->
+      {
+         robotCollisionsToggleButtons.clear();
+         robotCollisionsToggleButtons.addAll(change.getList().stream().map(a -> createRobotCollisionsToggleButton()).collect(Collectors.toList()));
+      });
+
+      robotCollisionsToggleButtons.addListener((ListChangeListener<ToggleButton>) change ->
+      {
+         while (change.next())
+         {
+            if (change.wasRemoved())
+            {
+               miscFlowPane.getChildren().removeAll(change.getRemoved());
+               change.getRemoved().forEach(button -> button.setToggleGroup(null));
+            }
+
+            if (change.wasAdded())
+            {
+               miscFlowPane.getChildren().addAll(change.getAddedSubList());
+               change.getAddedSubList().forEach(button -> button.setToggleGroup(toggleGroup));
+            }
+         }
+      });
+      robotCollisionsToggleButtons.addAll(sessionRobotDefinitions.stream().map(a -> createRobotCollisionsToggleButton()).collect(Collectors.toList()));
 
       toggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) ->
       {
          Class<? extends YoGraphicFXItem> newItemType;
          String name;
 
-         if (newValue == robotCollisionsToggleButton)
+         if (robotCollisionsToggleButtons.contains(newValue))
          {
             newItemType = YoGroupFX.class;
-            name = toolkit.getSessionRobotDefinitions().get(0).getName();
+            name = sessionRobotDefinitions.get(robotCollisionsToggleButtons.indexOf(newValue)).getName();
          }
          else
          {
@@ -158,7 +191,7 @@ public class YoGraphicItemCreatorDialogController
 
       itemNameTextField.textProperty().addListener((observable, oldValue, newValue) ->
       {
-         if (toggleGroup.getSelectedToggle() == robotCollisionsToggleButton)
+         if (robotCollisionsToggleButtons.contains(toggleGroup.getSelectedToggle()))
             itemNameValidityProperty.set(isYoGraphicFXItemNameValid(newValue, YoGroupFX.class));
          else
             itemNameValidityProperty.set(isYoGraphicFXItemNameValid(newValue, toItemType(toggleGroup.getSelectedToggle())));
@@ -210,9 +243,9 @@ public class YoGraphicItemCreatorDialogController
       {
          return YoGraphicFXControllerTools.createYoGraphicFXItemAndRegister(worldFrame, parent, itemNameTextField.getText(), itemType);
       }
-      else if (toggleGroup.getSelectedToggle() == robotCollisionsToggleButton)
+      else if (robotCollisionsToggleButtons.contains(toggleGroup.getSelectedToggle()))
       {
-         RobotDefinition robotDefinition = toolkit.getSessionRobotDefinitions().get(0);
+         RobotDefinition robotDefinition = sessionRobotDefinitions.get(robotCollisionsToggleButtons.indexOf(toggleGroup.getSelectedToggle()));
          YoGroupFX robotCollisionShapeDefinitions = YoGraphicTools.convertRobotCollisionShapeDefinitions(referenceFrameManager, robotDefinition);
          robotCollisionShapeDefinitions.setName(itemNameTextField.getText());
          boolean success = parent.addChild(robotCollisionShapeDefinitions);
@@ -275,5 +308,19 @@ public class YoGraphicItemCreatorDialogController
    {
       userValidatedProperty.set(true);
       stage.close();
+   }
+
+   private ToggleButton createRobotCollisionsToggleButton()
+   {
+      FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.YO_GRAPHIC_ROBOT_COLLISIONS_BUTTON_URL);
+      try
+      {
+         return loader.load();
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+         return null;
+      }
    }
 }
