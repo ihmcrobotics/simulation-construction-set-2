@@ -77,4 +77,11 @@ public class VisualDefinition
    {
       return materialDefinition;
    }
+
+   @Override
+   public String toString()
+   {
+      return "VisualDefinition [name=" + name + ", originPose=" + originPose + ", geometryDefinition=" + geometryDefinition + ", materialDefinition="
+            + materialDefinition + "]";
+   }
 }

@@ -33,6 +33,7 @@ import com.interactivemesh.jfx.importer.obj.ObjImportOption;
 import com.interactivemesh.jfx.importer.obj.ObjModelImporter;
 import com.interactivemesh.jfx.importer.stl.StlMeshImporter;
 
+import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
@@ -50,6 +51,7 @@ import javafx.scene.transform.Affine;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Transform;
+import javafx.scene.transform.Translate;
 import us.ihmc.euclid.tools.EuclidCoreTools;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.javaFXToolkit.JavaFXTools;
@@ -69,6 +71,7 @@ import us.ihmc.scs2.definition.geometry.Torus3DDefinition;
 import us.ihmc.scs2.definition.geometry.TruncatedCone3DDefinition;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
 import us.ihmc.scs2.definition.visual.MaterialDefinition;
+import us.ihmc.scs2.definition.visual.TextureDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
 import us.ihmc.scs2.sessionVisualizer.TriangleMesh3DFactories;
 
@@ -264,7 +267,12 @@ public class JavaFXVisualTools
       if (geometryDefinition == null)
          return DEFAULT_BOX;
 
-      return new Box(geometryDefinition.getSizeX(), geometryDefinition.getSizeY(), geometryDefinition.getSizeZ());
+      Box box = new Box(geometryDefinition.getSizeX(), geometryDefinition.getSizeY(), geometryDefinition.getSizeZ());
+      if (!geometryDefinition.isCentered())
+      {
+         box.getTransforms().add(new Translate(0.0, 0.0, 0.5 * geometryDefinition.getSizeZ()));
+      }
+      return box;
    }
 
    public static MeshView toCapsule(Capsule3DDefinition geometryDefinition)
@@ -642,8 +650,69 @@ public class JavaFXVisualTools
       if (materialDefinition == null)
          return DEFAULT_MATERIAL;
 
-      Color color = toColor(materialDefinition.getDiffuseColor());
-      return new PhongMaterial(color);
+      PhongMaterial phongMaterial = new PhongMaterial();
+
+      ColorDefinition diffuseColor = materialDefinition.getDiffuseColor();
+      // TODO Not sure what to do with these 2
+      //      ColorDefinition ambientColor = materialDefinition.getAmbientColor();
+      //      ColorDefinition emissiveColor = materialDefinition.getEmissiveColor();
+      ColorDefinition specularColor = materialDefinition.getSpecularColor();
+
+      TextureDefinition diffuseMap = materialDefinition.getDiffuseMap();
+      TextureDefinition emissiveMap = materialDefinition.getEmissiveMap();
+      TextureDefinition normalMap = materialDefinition.getNormalMap();
+      TextureDefinition specularMap = materialDefinition.getSpecularMap();
+
+      boolean atLeastOneFieldSet = false;
+
+      if (diffuseColor != null)
+      {
+         phongMaterial.setDiffuseColor(toColor(diffuseColor));
+         atLeastOneFieldSet = true;
+      }
+      if (specularColor != null)
+      {
+         phongMaterial.setSpecularColor(toColor(specularColor));
+         phongMaterial.setSpecularPower(materialDefinition.getShininess());
+         atLeastOneFieldSet = true;
+      }
+
+      if (diffuseMap != null)
+      {
+         phongMaterial.setDiffuseMap(toImage(diffuseMap));
+         atLeastOneFieldSet = true;
+      }
+      if (emissiveMap != null)
+      {
+         phongMaterial.setSelfIlluminationMap(toImage(emissiveMap));
+         atLeastOneFieldSet = true;
+      }
+      if (normalMap != null)
+      {
+         phongMaterial.setBumpMap(toImage(normalMap));
+         atLeastOneFieldSet = true;
+      }
+      if (specularMap != null)
+      {
+         phongMaterial.setSpecularMap(toImage(specularMap));
+         phongMaterial.setSpecularPower(materialDefinition.getShininess());
+         atLeastOneFieldSet = true;
+      }
+
+      return atLeastOneFieldSet ? phongMaterial : DEFAULT_MATERIAL;
+   }
+
+   public static Image toImage(TextureDefinition textureDefinition)
+   {
+      if (textureDefinition == null)
+         return null;
+      if (textureDefinition.getImage() != null)
+         return SwingFXUtils.toFXImage(textureDefinition.getImage(), null);
+      if (textureDefinition.getFileURL() != null)
+         return new Image(textureDefinition.getFileURL().toExternalForm());
+      if (textureDefinition.getFilename() != null)
+         return new Image(textureDefinition.getFilename());
+      return null;
    }
 
    public static Color toColor(ColorDefinition colorDefinition)
