@@ -69,6 +69,8 @@ public abstract class Session
    private final AtomicLong desiredBufferPublishPeriod = new AtomicLong(-1L);
 
    // State listener to publish internal to outside world
+   private final long sessionPropertiesPublishPeriod = 500L;
+   private long lastSessionPropertiesPublishTimestamp = -1L;
    private final List<Consumer<SessionProperties>> sessionPropertiesListeners = new ArrayList<>();
    private final List<Consumer<YoBufferPropertiesReadOnly>> currentBufferPropertiesListeners = new ArrayList<>();
 
@@ -258,7 +260,6 @@ public abstract class Session
       LogTools.info("Started session's thread");
       sessionStarted = true;
       restartSessionTask();
-      executorService.scheduleAtFixedRate(this::reportActiveMode, 500, 200, TimeUnit.MILLISECONDS);
    }
 
    private void scheduleShutdown()
@@ -348,6 +349,30 @@ public abstract class Session
       return runAtRealTimeRate.get() ? sessionTickToTimeIncrement.get() : 1L;
    }
 
+   /**
+    * Stuff that needs to be done no matter the active session mode.
+    */
+   protected void doGeneric()
+   {
+      if (!sessionInitialized)
+      {
+         initializeSession();
+         // Not sure why we wouldn't want that when starting in RUNNING.
+         // When running simulation, the session starts in PAUSE, writing in the buffer allows to write the robot initial state.
+         if (activeMode.get() == SessionMode.PAUSE || activeMode.get() == SessionMode.PLAYBACK)
+            sharedBuffer.writeBuffer();
+         sessionInitialized = true;
+      }
+
+      long currentTimestamp = System.nanoTime();
+
+      if (currentTimestamp - lastSessionPropertiesPublishTimestamp > sessionPropertiesPublishPeriod)
+      {
+         lastSessionPropertiesPublishTimestamp = currentTimestamp;
+         reportActiveMode();
+      }
+   }
+
    private int nextBufferRecordTickCounter = 0;
 
    public void runTick()
@@ -355,11 +380,7 @@ public abstract class Session
       runTimer.start();
       runActualDT.update();
 
-      if (!sessionInitialized)
-      {
-         initializeSession();
-         sessionInitialized = true;
-      }
+      doGeneric();
 
       runInitializeTimer.start();
       initializeRunTick();
@@ -464,12 +485,7 @@ public abstract class Session
       playbackTimer.start();
       playbackActualDT.update();
 
-      if (!sessionInitialized)
-      {
-         initializeSession();
-         sharedBuffer.writeBuffer();
-         sessionInitialized = true;
-      }
+      doGeneric();
 
       initializePlaybackTick();
 
@@ -529,12 +545,7 @@ public abstract class Session
       pauseTimer.start();
       pauseActualDT.update();
 
-      if (!sessionInitialized)
-      {
-         initializeSession();
-         sharedBuffer.writeBuffer();
-         sessionInitialized = true;
-      }
+      doGeneric();
 
       boolean shouldReadBuffer = initializePauseTick();
       shouldReadBuffer |= doSpecificPauseTick();
