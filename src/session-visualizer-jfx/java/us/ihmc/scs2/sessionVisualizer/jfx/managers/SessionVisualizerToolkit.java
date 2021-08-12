@@ -2,10 +2,13 @@ package us.ihmc.scs2.sessionVisualizer.jfx.managers;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.stage.Stage;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.log.LogTools;
 import us.ihmc.messager.MessagerAPIFactory;
+import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.session.SessionMessagerAPI;
 import us.ihmc.scs2.session.SessionState;
@@ -39,6 +42,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    private Stage mainWindow;
 
    private final ObjectProperty<Session> activeSessionProperty = new SimpleObjectProperty<>(this, "activeSession", null);
+   private final ObservableList<RobotDefinition> sessionRobotDefinitions = FXCollections.observableArrayList();
 
    public SessionVisualizerToolkit(Stage mainWindow) throws Exception
    {
@@ -58,6 +62,13 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       yoCompositeSearchManager = new YoCompositeSearchManager(messager, topics, yoManager, backgroundExecutorManager);
       keyFrameManager = new KeyFrameManager(messager, topics);
       secondaryWindowManager = new SecondaryWindowManager(this);
+
+      activeSessionProperty.addListener((o, oldValue, newValue) ->
+      {
+         sessionRobotDefinitions.clear();
+         if (newValue != null && newValue.getRobotDefinitions() != null && !newValue.getRobotDefinitions().isEmpty())
+            sessionRobotDefinitions.setAll(newValue.getRobotDefinitions());
+      });
    }
 
    public void startSession(Session session, Runnable sessionLoadedCallback)
@@ -245,5 +256,10 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    public SecondaryWindowManager getWindowManager()
    {
       return secondaryWindowManager;
+   }
+
+   public ObservableList<RobotDefinition> getSessionRobotDefinitions()
+   {
+      return sessionRobotDefinitions;
    }
 }

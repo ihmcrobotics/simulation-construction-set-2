@@ -12,14 +12,58 @@ import javafx.scene.Node;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
 import javafx.scene.shape.Shape3D;
+import us.ihmc.euclid.Axis3D;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
+import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
+import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.log.LogTools;
+import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.mecano.tools.MultiBodySystemTools;
+import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
+import us.ihmc.scs2.definition.geometry.Box3DDefinition;
+import us.ihmc.scs2.definition.geometry.Capsule3DDefinition;
+import us.ihmc.scs2.definition.geometry.Cone3DDefinition;
+import us.ihmc.scs2.definition.geometry.Cylinder3DDefinition;
+import us.ihmc.scs2.definition.geometry.ExtrudedPolygon2DDefinition;
+import us.ihmc.scs2.definition.geometry.GeometryDefinition;
+import us.ihmc.scs2.definition.geometry.Point3DDefinition;
+import us.ihmc.scs2.definition.geometry.STPBox3DDefinition;
+import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
+import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
+import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
-import us.ihmc.scs2.definition.yoGraphic.*;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphic2DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphic3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicArrow3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicBox3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicCapsule3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicCone3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicCoordinateSystem3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicCylinder3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicLine2DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicListDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicPoint2DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicPoint3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicPointcloud2DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicPointcloud3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicPolygon2DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicPolygonExtruded3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicPolynomial3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicSTPBox3DDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.definition.JavaFXVisualTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.CompositePropertyTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.YoVariableDatabase;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.QuaternionProperty;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple2DProperty;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple3DProperty;
 
 public class YoGraphicTools
 {
@@ -652,6 +696,231 @@ public class YoGraphicTools
       yoGraphicFXToPack.setSize(CompositePropertyTools.toTuple3DProperty(yoVariableDatabase, referenceFrameManager, definition.getSize()));
       yoGraphicFXToPack.setMinimumMargin(CompositePropertyTools.toDoubleProperty(yoVariableDatabase, definition.getMinimumMargin()));
       yoGraphicFXToPack.setMaximumMargin(CompositePropertyTools.toDoubleProperty(yoVariableDatabase, definition.getMaximumMargin()));
+   }
+
+   public static YoGroupFX convertRobotCollisionShapeDefinitions(ReferenceFrameManager referenceFrameManager, RobotDefinition robotDefinition)
+   {
+      Color color = Color.AQUAMARINE.deriveColor(0.0, 1.0, 1.0, 0.4); // Transparent aquamarine
+      return convertRobotCollisionShapeDefinitions(referenceFrameManager, robotDefinition, color);
+   }
+
+   public static YoGroupFX convertRobotCollisionShapeDefinitions(ReferenceFrameManager referenceFrameManager, RobotDefinition robotDefinition, Color color)
+   {
+      YoGroupFX robotCollisionGroup = new YoGroupFX(robotDefinition.getName());
+
+      // We only use the instance of the robot to find the frame names.
+      RigidBodyBasics rootBody = robotDefinition.newIntance(ReferenceFrameTools.constructARootFrame(referenceFrameManager.getWorldFrame().getName()));
+      List<RigidBodyDefinition> allRigidBodies = robotDefinition.getAllRigidBodies();
+
+      for (RigidBodyDefinition rigidBodyDefinition : allRigidBodies)
+      {
+         if (rigidBodyDefinition.getCollisionShapeDefinitions() == null)
+            continue;
+         if (rigidBodyDefinition.getCollisionShapeDefinitions().isEmpty())
+            continue;
+
+         // We use the instantiated rigid-body to get the name of the reference frame we want to use.
+         RigidBodyBasics rigidBody = MultiBodySystemTools.findRigidBody(rootBody, rigidBodyDefinition.getName());
+         ReferenceFrame referenceFrame = rigidBody.isRootBody() ? rigidBody.getBodyFixedFrame() : rigidBody.getParentJoint().getFrameAfterJoint();
+         // Finally, we use the manager to retrieve the right instance of the frame to use.
+         referenceFrame = referenceFrameManager.getReferenceFrameFromFullname(ReferenceFrameManager.getFullname(referenceFrame));
+         YoGroupFX collisionGroup = convertRigidBodyCollisionShapeDefinitions(referenceFrame, rigidBodyDefinition, color);
+
+         if (collisionGroup != null)
+            robotCollisionGroup.addChild(collisionGroup);
+      }
+
+      return robotCollisionGroup;
+   }
+
+   public static YoGroupFX convertRigidBodyCollisionShapeDefinitions(ReferenceFrame referenceFrame, RigidBodyDefinition rigidBodyDefinition, Color color)
+   {
+      List<CollisionShapeDefinition> collisionShapeDefinitions = rigidBodyDefinition.getCollisionShapeDefinitions();
+
+      if (collisionShapeDefinitions == null || collisionShapeDefinitions.isEmpty())
+         return null;
+
+      YoGroupFX yoGroupFX = new YoGroupFX(rigidBodyDefinition.getName());
+
+      for (CollisionShapeDefinition collisionShapeDefinition : collisionShapeDefinitions)
+      {
+         YoGraphicFX3D convertedGraphic;
+         try
+         {
+            convertedGraphic = convertCollisionShapeDefinition(referenceFrame, collisionShapeDefinition);
+         }
+         catch (Exception e)
+         {
+            e.printStackTrace();
+            continue;
+         }
+
+         String graphicName = collisionShapeDefinition.getName();
+         if (graphicName == null || graphicName.trim().isEmpty())
+            graphicName = collisionShapeDefinition.getGeometryDefinition().getClass().getSimpleName();
+         graphicName = YoGraphicFXControllerTools.createAvailableYoGraphicFX3DName(yoGroupFX, graphicName);
+         convertedGraphic.setName(graphicName);
+         convertedGraphic.setColor(color);
+         yoGroupFX.addYoGraphicFX3D(convertedGraphic);
+      }
+
+      if (yoGroupFX.getYoGraphicFX3DSet().isEmpty())
+         return null;
+
+      return yoGroupFX;
+   }
+
+   public static YoGraphicFX3D convertCollisionShapeDefinition(ReferenceFrame referenceFrame, CollisionShapeDefinition collisionShapeDefinition)
+   {
+      return convertGeometryDefinition(referenceFrame, collisionShapeDefinition.getOriginPose(), collisionShapeDefinition.getGeometryDefinition());
+   }
+
+   public static YoGraphicFX3D convertGeometryDefinition(ReferenceFrame referenceFrame,
+                                                         RigidBodyTransformReadOnly originPose,
+                                                         GeometryDefinition geometryDefinition)
+   {
+      if (geometryDefinition instanceof Box3DDefinition)
+         return convertBox3DDefinition(referenceFrame, originPose, (Box3DDefinition) geometryDefinition);
+      else if (geometryDefinition instanceof STPBox3DDefinition)
+         return convertSTPBox3DDefinition(referenceFrame, originPose, (STPBox3DDefinition) geometryDefinition);
+      else if (geometryDefinition instanceof Capsule3DDefinition)
+         return convertCapsule3DDefinition(referenceFrame, originPose, (Capsule3DDefinition) geometryDefinition);
+      else if (geometryDefinition instanceof Cone3DDefinition)
+         return convertCone3DDefinition(referenceFrame, originPose, (Cone3DDefinition) geometryDefinition);
+      else if (geometryDefinition instanceof Cylinder3DDefinition)
+         return convertCylinder3DDefinition(referenceFrame, originPose, (Cylinder3DDefinition) geometryDefinition);
+      else if (geometryDefinition instanceof ExtrudedPolygon2DDefinition)
+         return convertExtrudedPolygon2DDefinition(referenceFrame, originPose, (ExtrudedPolygon2DDefinition) geometryDefinition);
+      else if (geometryDefinition instanceof Point3DDefinition)
+         return convertPoint3DDefinition(referenceFrame, originPose, (Point3DDefinition) geometryDefinition);
+      else if (geometryDefinition instanceof Sphere3DDefinition)
+         return convertSphere3DDefinition(referenceFrame, originPose, (Sphere3DDefinition) geometryDefinition);
+      else
+         throw new UnsupportedOperationException("Unsupported " + GeometryDefinition.class.getSimpleName() + ": "
+               + geometryDefinition.getClass().getSimpleName());
+   }
+
+   public static YoBoxFX3D convertBox3DDefinition(ReferenceFrame referenceFrame, RigidBodyTransformReadOnly originPose, Box3DDefinition geometryDefinition)
+   {
+      YoBoxFX3D yoGraphicFX = new YoBoxFX3D();
+      if (!geometryDefinition.isCentered())
+      {
+         RigidBodyTransform temp = new RigidBodyTransform();
+         temp.set(originPose);
+         temp.appendTranslation(0.0, 0.0, 0.5 * geometryDefinition.getSizeZ());
+         originPose = temp;
+      }
+      Tuple3DReadOnly position = originPose.getTranslation();
+      yoGraphicFX.setPosition(new Tuple3DProperty(referenceFrame, position.getX(), position.getY(), position.getZ()));
+      Quaternion orientation = new Quaternion(originPose.getRotation());
+      yoGraphicFX.setOrientation(new QuaternionProperty(referenceFrame, orientation.getX(), orientation.getY(), orientation.getZ(), orientation.getS()));
+      yoGraphicFX.setSize(new Tuple3DProperty(referenceFrame, geometryDefinition.getSizeX(), geometryDefinition.getSizeY(), geometryDefinition.getSizeZ()));
+      return yoGraphicFX;
+   }
+
+   public static YoSTPBoxFX3D convertSTPBox3DDefinition(ReferenceFrame referenceFrame,
+                                                        RigidBodyTransformReadOnly originPose,
+                                                        STPBox3DDefinition geometryDefinition)
+   {
+      YoSTPBoxFX3D yoGraphicFX = new YoSTPBoxFX3D();
+      Tuple3DReadOnly position = originPose.getTranslation();
+      yoGraphicFX.setPosition(new Tuple3DProperty(referenceFrame, position.getX(), position.getY(), position.getZ()));
+      Quaternion orientation = new Quaternion(originPose.getRotation());
+      yoGraphicFX.setOrientation(new QuaternionProperty(referenceFrame, orientation.getX(), orientation.getY(), orientation.getZ(), orientation.getS()));
+      yoGraphicFX.setSize(new Tuple3DProperty(referenceFrame, geometryDefinition.getSizeX(), geometryDefinition.getSizeY(), geometryDefinition.getSizeZ()));
+      yoGraphicFX.setMinimumMargin(geometryDefinition.getMinimumMargin());
+      yoGraphicFX.setMaximumMargin(geometryDefinition.getMaximumMargin());
+      return yoGraphicFX;
+   }
+
+   public static YoCapsuleFX3D convertCapsule3DDefinition(ReferenceFrame referenceFrame,
+                                                          RigidBodyTransformReadOnly originPose,
+                                                          Capsule3DDefinition geometryDefinition)
+   {
+      if (!geometryDefinition.isRegular())
+         throw new UnsupportedOperationException("Irregular capsules are not supported.");
+
+      YoCapsuleFX3D yoGraphicFX = new YoCapsuleFX3D();
+      Tuple3DReadOnly position = originPose.getTranslation();
+      yoGraphicFX.setCenter(new Tuple3DProperty(referenceFrame, position.getX(), position.getY(), position.getZ()));
+      Vector3D axis = new Vector3D();
+      originPose.transform(Axis3D.Z, axis);
+      yoGraphicFX.setAxis(new Tuple3DProperty(referenceFrame, axis.getX(), axis.getY(), axis.getZ()));
+      yoGraphicFX.setRadius(geometryDefinition.getRadiusX());
+      yoGraphicFX.setLength(geometryDefinition.getLength());
+      return yoGraphicFX;
+   }
+
+   public static YoConeFX3D convertCone3DDefinition(ReferenceFrame referenceFrame, RigidBodyTransformReadOnly originPose, Cone3DDefinition geometryDefinition)
+   {
+      YoConeFX3D yoGraphicFX = new YoConeFX3D();
+      Tuple3DReadOnly position = originPose.getTranslation();
+      yoGraphicFX.setPosition(new Tuple3DProperty(referenceFrame, position.getX(), position.getY(), position.getZ()));
+      Vector3D axis = new Vector3D();
+      originPose.transform(Axis3D.Z, axis);
+      yoGraphicFX.setAxis(new Tuple3DProperty(referenceFrame, axis.getX(), axis.getY(), axis.getZ()));
+      yoGraphicFX.setRadius(geometryDefinition.getRadius());
+      yoGraphicFX.setHeight(geometryDefinition.getHeight());
+      return yoGraphicFX;
+   }
+
+   public static YoCylinderFX3D convertCylinder3DDefinition(ReferenceFrame referenceFrame,
+                                                            RigidBodyTransformReadOnly originPose,
+                                                            Cylinder3DDefinition geometryDefinition)
+   {
+      if (!geometryDefinition.isCentered())
+         throw new UnsupportedOperationException("Un-centered cylinders are not supported.");
+
+      YoCylinderFX3D yoGraphicFX = new YoCylinderFX3D();
+      Tuple3DReadOnly position = originPose.getTranslation();
+      yoGraphicFX.setCenter(new Tuple3DProperty(referenceFrame, position.getX(), position.getY(), position.getZ()));
+      Vector3D axis = new Vector3D();
+      originPose.transform(Axis3D.Z, axis);
+      yoGraphicFX.setAxis(new Tuple3DProperty(referenceFrame, axis.getX(), axis.getY(), axis.getZ()));
+      yoGraphicFX.setRadius(geometryDefinition.getRadius());
+      yoGraphicFX.setLength(geometryDefinition.getLength());
+      return yoGraphicFX;
+   }
+
+   public static YoPolygonExtrudedFX3D convertExtrudedPolygon2DDefinition(ReferenceFrame referenceFrame,
+                                                                          RigidBodyTransformReadOnly originPose,
+                                                                          ExtrudedPolygon2DDefinition geometryDefinition)
+   {
+      if (geometryDefinition.getBottomZ() != 0.0)
+         throw new UnsupportedOperationException("Only supports extruded polygon with bottom z coordinate at zero.");
+
+      YoPolygonExtrudedFX3D yoGraphicFX = new YoPolygonExtrudedFX3D();
+      Tuple3DReadOnly position = originPose.getTranslation();
+      yoGraphicFX.setPosition(new Tuple3DProperty(referenceFrame, position.getX(), position.getY(), position.getZ()));
+      Quaternion orientation = new Quaternion(originPose.getRotation());
+      yoGraphicFX.setOrientation(new QuaternionProperty(referenceFrame, orientation.getX(), orientation.getY(), orientation.getZ(), orientation.getS()));
+      yoGraphicFX.setThickness(geometryDefinition.getTopZ() - geometryDefinition.getBottomZ());
+      yoGraphicFX.setVertices(geometryDefinition.getPolygonVertices().stream().map(v -> new Tuple2DProperty(referenceFrame, v.getX(), v.getY()))
+                                                .collect(Collectors.toList()));
+      yoGraphicFX.setNumberOfVertices(geometryDefinition.getPolygonVertices().size());
+      return yoGraphicFX;
+   }
+
+   public static YoPointFX3D convertPoint3DDefinition(ReferenceFrame referenceFrame,
+                                                      RigidBodyTransformReadOnly originPose,
+                                                      Point3DDefinition geometryDefinition)
+   {
+      YoPointFX3D yoGraphicFX = new YoPointFX3D();
+      Tuple3DReadOnly position = originPose.getTranslation();
+      yoGraphicFX.setPosition(new Tuple3DProperty(referenceFrame, position.getX(), position.getY(), position.getZ()));
+      yoGraphicFX.setSize(0.01);
+      return yoGraphicFX;
+   }
+
+   public static YoPointFX3D convertSphere3DDefinition(ReferenceFrame referenceFrame,
+                                                       RigidBodyTransformReadOnly originPose,
+                                                       Sphere3DDefinition geometryDefinition)
+   {
+      YoPointFX3D yoGraphicFX = new YoPointFX3D();
+      Tuple3DReadOnly position = originPose.getTranslation();
+      yoGraphicFX.setPosition(new Tuple3DProperty(referenceFrame, position.getX(), position.getY(), position.getZ()));
+      yoGraphicFX.setSize(geometryDefinition.getRadius());
+      return yoGraphicFX;
    }
 
    public static YoGraphicListDefinition toYoGraphicListDefinition(Collection<? extends YoGraphicFXItem> yoGraphicFXs)

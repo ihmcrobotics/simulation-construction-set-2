@@ -17,11 +17,14 @@ import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoArrowFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoBoxFX3D;
@@ -32,6 +35,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoCylinderFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXItem;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoLineFX2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoPointFX2D;
@@ -54,15 +58,15 @@ public class YoGraphicItemCreatorDialogController
          yoCylinderFX3DToggleButton, yoPointcloudFX3DToggleButton, yoPointFX3DToggleButton, yoPolygonExtrudedFX3DToggleButton, yoPolynomialFX3DToggleButton,
          yoSTPBoxFX3DToggleButton;
    @FXML
+   private FlowPane miscFlowPane;
+   @FXML
    private ToggleButton yoGroupFXToggleButton, robotCollisionsToggleButton;
    @FXML
    private JFXTextField itemNameTextField;
    @FXML
    private JFXTextField itemNamespaceTextField;
-
    @FXML
    private ImageView itemNameValidImageView;
-
    @FXML
    private JFXButton createItemButton;
 
@@ -74,12 +78,16 @@ public class YoGraphicItemCreatorDialogController
    private final Map<Class<? extends YoGraphicFXItem>, String> typeToDefaultNameMap = new LinkedHashMap<>();
 
    private ReferenceFrame worldFrame;
+   private ReferenceFrameManager referenceFrameManager;
+   private SessionVisualizerToolkit toolkit;
 
    private YoGroupFX parent;
 
    public void initialize(SessionVisualizerToolkit toolkit)
    {
-      worldFrame = toolkit.getReferenceFrameManager().getWorldFrame();
+      this.toolkit = toolkit;
+      referenceFrameManager = toolkit.getReferenceFrameManager();
+      worldFrame = referenceFrameManager.getWorldFrame();
 
       // Buttons to types:
       // Graphic 2D:
@@ -124,22 +132,37 @@ public class YoGraphicItemCreatorDialogController
       typeToDefaultNameMap.put(YoGroupFX.class, "Group");
 
       buttonToTypeMap.keySet().forEach(button -> button.setToggleGroup(toggleGroup));
+      robotCollisionsToggleButton.setToggleGroup(toggleGroup);
 
       toggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) ->
       {
-         Class<? extends YoGraphicFXItem> newItemType = toItemType(newValue);
-         itemNameValidityProperty.set(isYoGraphicFXItemNameValid(itemNameTextField.getText(), newItemType));
-         if (newItemType == null)
-            itemNameTextField.setText("");
+         Class<? extends YoGraphicFXItem> newItemType;
+         String name;
+
+         if (newValue == robotCollisionsToggleButton)
+         {
+            newItemType = YoGroupFX.class;
+            name = toolkit.getSessionRobotDefinitions().get(0).getName();
+         }
          else
-            itemNameTextField.setText(createAvailableYoGraphicFXItemName(parent, typeToDefaultNameMap.get(newItemType), newItemType));
+         {
+            newItemType = toItemType(newValue);
+            name = typeToDefaultNameMap.get(newItemType);
+         }
+
+         name = newItemType == null ? "" : createAvailableYoGraphicFXItemName(parent, name, newItemType);
+
+         itemNameTextField.setText(name);
+         itemNameValidityProperty.set(isYoGraphicFXItemNameValid(name, newItemType));
       });
 
-      itemNameTextField.textProperty()
-                       .addListener((observable,
-                                     oldValue,
-                                     newValue) -> itemNameValidityProperty.set(isYoGraphicFXItemNameValid(newValue,
-                                                                                                          toItemType(toggleGroup.getSelectedToggle()))));
+      itemNameTextField.textProperty().addListener((observable, oldValue, newValue) ->
+      {
+         if (toggleGroup.getSelectedToggle() == robotCollisionsToggleButton)
+            itemNameValidityProperty.set(isYoGraphicFXItemNameValid(newValue, YoGroupFX.class));
+         else
+            itemNameValidityProperty.set(isYoGraphicFXItemNameValid(newValue, toItemType(toggleGroup.getSelectedToggle())));
+      });
       YoGraphicFXControllerTools.bindValidityImageView(itemNameValidityProperty, itemNameValidImageView);
 
       createItemButton.disableProperty().bind(itemNameValidityProperty.not());
@@ -182,10 +205,23 @@ public class YoGraphicItemCreatorDialogController
       if (toggleGroup.getSelectedToggle() == null)
          return null;
 
-      return YoGraphicFXControllerTools.createYoGraphicFXItemAndRegister(worldFrame,
-                                                                         parent,
-                                                                         itemNameTextField.getText(),
-                                                                         toItemType(toggleGroup.getSelectedToggle()));
+      Class<? extends YoGraphicFXItem> itemType = toItemType(toggleGroup.getSelectedToggle());
+      if (itemType != null)
+      {
+         return YoGraphicFXControllerTools.createYoGraphicFXItemAndRegister(worldFrame, parent, itemNameTextField.getText(), itemType);
+      }
+      else if (toggleGroup.getSelectedToggle() == robotCollisionsToggleButton)
+      {
+         RobotDefinition robotDefinition = toolkit.getSessionRobotDefinitions().get(0);
+         YoGroupFX robotCollisionShapeDefinitions = YoGraphicTools.convertRobotCollisionShapeDefinitions(referenceFrameManager, robotDefinition);
+         robotCollisionShapeDefinitions.setName(itemNameTextField.getText());
+         boolean success = parent.addChild(robotCollisionShapeDefinitions);
+         return success ? robotCollisionShapeDefinitions : null;
+      }
+      else
+      {
+         return null;
+      }
    }
 
    private Class<? extends YoGraphicFXItem> toItemType(Toggle toggle)

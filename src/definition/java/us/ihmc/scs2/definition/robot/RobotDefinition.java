@@ -95,6 +95,11 @@ public class RobotDefinition
       return collectSubtreeJointDefinitions(rootBodyDefinition);
    }
 
+   public List<RigidBodyDefinition> getAllRigidBodies()
+   {
+      return collectSubtreeRigidBodyDefinitions(rootBodyDefinition);
+   }
+
    public List<ControllerDefinition> getControllerDefinitions()
    {
       return controllerDefinitions;
@@ -102,18 +107,41 @@ public class RobotDefinition
 
    private static List<JointDefinition> collectSubtreeJointDefinitions(RigidBodyDefinition start)
    {
+      return collectSubtreeJointDefinitions(start, new ArrayList<>());
+   }
+
+   private static List<JointDefinition> collectSubtreeJointDefinitions(RigidBodyDefinition start, List<JointDefinition> jointsToPack)
+   {
       if (start == null)
          return Collections.emptyList();
 
-      List<JointDefinition> joints = new ArrayList<>();
+      for (JointDefinition childJoint : start.getChildrenJoints())
+      {
+         jointsToPack.add(childJoint);
+         collectSubtreeJointDefinitions(childJoint.getSuccessor(), jointsToPack);
+      }
+
+      return jointsToPack;
+   }
+
+   private static List<RigidBodyDefinition> collectSubtreeRigidBodyDefinitions(RigidBodyDefinition start)
+   {
+      return collectSubtreeRigidBodyDefinitions(start, new ArrayList<>());
+   }
+
+   private static List<RigidBodyDefinition> collectSubtreeRigidBodyDefinitions(RigidBodyDefinition start, List<RigidBodyDefinition> rigidBodiesToPack)
+   {
+      if (start == null)
+         return Collections.emptyList();
+
+      rigidBodiesToPack.add(start);
 
       for (JointDefinition childJoint : start.getChildrenJoints())
       {
-         joints.add(childJoint);
-         joints.addAll(collectSubtreeJointDefinitions(childJoint.getSuccessor()));
+         collectSubtreeRigidBodyDefinitions(childJoint.getSuccessor(), rigidBodiesToPack);
       }
 
-      return joints;
+      return rigidBodiesToPack;
    }
 
    public RigidBodyBasics newIntance(ReferenceFrame rootFrame)
