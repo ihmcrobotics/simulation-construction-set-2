@@ -63,7 +63,7 @@ public class SimulationSession extends Session
    public void initializeSession()
    {
       super.initializeSession();
-      physicsEngine.initialize();
+      physicsEngine.initialize(gravity);
    }
 
    @Override

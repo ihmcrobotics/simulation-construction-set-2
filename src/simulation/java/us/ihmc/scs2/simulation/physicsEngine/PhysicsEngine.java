@@ -136,7 +136,7 @@ public class PhysicsEngine
       hasGlobalContactParameters.set(true);
    }
 
-   public boolean initialize()
+   public boolean initialize(Vector3DReadOnly gravity)
    {
       if (!initialize)
          return false;
@@ -144,6 +144,10 @@ public class PhysicsEngine
       for (Robot robot : robotList)
       {
          robot.initializeState();
+         robot.getRobotPhysics().resetCalculators();
+         // Fill out the joint accelerations so the accelerometers can get initialized.
+         robot.getRobotPhysics().doForwardDynamics(gravity);
+         robot.updateSensors();
          robot.getControllerManager().initializeControllers();
       }
       initialize = false;
@@ -152,7 +156,7 @@ public class PhysicsEngine
 
    public void simulate(double dt, Vector3DReadOnly gravity)
    {
-      if (initialize())
+      if (initialize(gravity))
          return;
 
       long startTick = System.nanoTime();
