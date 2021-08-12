@@ -6,15 +6,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import gnu.trove.list.linked.TDoubleLinkedList;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
+import us.ihmc.scs2.session.YoTimer;
 import us.ihmc.scs2.simulation.collision.Collidable;
 import us.ihmc.scs2.simulation.collision.CollisionTools;
 import us.ihmc.scs2.simulation.parameters.ConstraintParametersReadOnly;
@@ -70,13 +71,9 @@ public class PhysicsEngine
    private final YoBoolean hasGlobalConstraintParameters;
    private final YoConstraintParameters globalConstraintParameters;
 
-   private final YoDouble time;
-   private final YoDouble rawTickDurationMilliseconds;
-   private final YoDouble averageTickDurationMilliseconds;
-   private final YoDouble rawRealTimeRate;
-   private final YoDouble averageRealTimeRate;
-   private final int averageWindow = 100;
-   private final TDoubleLinkedList rawTickDurationBuffer = new TDoubleLinkedList();
+   private final YoDouble time = new YoDouble("physicsTime", physicsEngineRegistry);
+   private final YoTimer physicsEngineTotalTimer = new YoTimer("physicsEngineTotalTimer", TimeUnit.MILLISECONDS, physicsEngineRegistry);
+   private final YoDouble physicsEngineRealTimeRate = new YoDouble("physicsEngineRealTimeRate", physicsEngineRegistry);
 
    private boolean initialize = true;
 
@@ -97,12 +94,6 @@ public class PhysicsEngine
       hasGlobalConstraintParameters = new YoBoolean("hasGlobalConstraintParameters", physicsEngineRegistry);
       globalConstraintParameters = new YoConstraintParameters("globalConstraint", physicsEngineRegistry);
       multiContactImpulseCalculatorPool = new YoMultiContactImpulseCalculatorPool(1, inertialFrame, multiContactCalculatorRegistry);
-
-      time = new YoDouble("physicsTime", physicsEngineRegistry);
-      rawTickDurationMilliseconds = new YoDouble("rawTickDurationMilliseconds", physicsEngineRegistry);
-      averageTickDurationMilliseconds = new YoDouble("averageTickDurationMilliseconds", physicsEngineRegistry);
-      rawRealTimeRate = new YoDouble("rawRealTimeRate", physicsEngineRegistry);
-      averageRealTimeRate = new YoDouble("averageRealTimeRate", physicsEngineRegistry);
    }
 
    public void addTerrainObject(TerrainObjectDefinition terrainObjectDefinition)
@@ -154,12 +145,19 @@ public class PhysicsEngine
       return true;
    }
 
+   private final YoTimer initialPhaseTimer = new YoTimer("initialPhaseTimer", TimeUnit.MILLISECONDS, physicsEngineRegistry);
+   private final YoTimer detectCollisionsTimer = new YoTimer("detectCollisionsTimer", TimeUnit.MILLISECONDS, physicsEngineRegistry);
+   private final YoTimer configureCollisionHandlersTimer = new YoTimer("configureCollisionHandlersTimer", TimeUnit.MILLISECONDS, physicsEngineRegistry);
+   private final YoTimer handleCollisionsTimer = new YoTimer("handleCollisionsTimer", TimeUnit.MILLISECONDS, physicsEngineRegistry);
+   private final YoTimer finalPhaseTimer = new YoTimer("finalPhaseTimer", TimeUnit.MILLISECONDS, physicsEngineRegistry);
+
    public void simulate(double dt, Vector3DReadOnly gravity)
    {
       if (initialize(gravity))
          return;
 
-      long startTick = System.nanoTime();
+      physicsEngineTotalTimer.start();
+      initialPhaseTimer.start();
 
       for (Robot robot : robotList)
       {
@@ -175,11 +173,17 @@ public class PhysicsEngine
       }
 
       environmentCollidables.forEach(collidable -> collidable.updateBoundingBox(inertialFrame));
+      initialPhaseTimer.stop();
+      detectCollisionsTimer.start();
+
       if (hasGlobalContactParameters.getValue())
          collisionDetectionPlugin.setMinimumPenetration(globalContactParameters.getMinimumPenetration());
       collisionDetectionPlugin.evaluationCollisions(robotList, () -> environmentCollidables, dt);
 
       collisionGroups = MultiRobotCollisionGroup.toCollisionGroups(collisionDetectionPlugin.getAllCollisions());
+
+      detectCollisionsTimer.stop();
+      configureCollisionHandlersTimer.start();
 
       Set<RigidBodyBasics> uncoveredRobotsRootBody = new HashSet<>(robotMap.keySet());
       List<MultiContactImpulseCalculator> impulseCalculators = new ArrayList<>();
@@ -201,6 +205,9 @@ public class PhysicsEngine
          uncoveredRobotsRootBody.removeAll(collisionGroup.getRootBodies());
       }
 
+      configureCollisionHandlersTimer.stop();
+      handleCollisionsTimer.start();
+
       for (RigidBodyBasics rootBody : uncoveredRobotsRootBody)
       {
          Robot robot = robotMap.get(rootBody);
@@ -218,6 +225,9 @@ public class PhysicsEngine
          impulseCalculator.writeImpulses();
       }
 
+      handleCollisionsTimer.stop();
+      finalPhaseTimer.start();
+
       for (Robot robot : robotList)
       {
          robot.getRobotPhysics().writeJointAccelerations();
@@ -229,20 +239,9 @@ public class PhysicsEngine
 
       time.add(dt);
 
-      long endTick = System.nanoTime();
-
-      double dtMilliseconds = dt * 1.0e3;
-      double tickDuration = (endTick - startTick) / 1.0e6;
-      rawTickDurationMilliseconds.set(tickDuration);
-      rawRealTimeRate.set(dtMilliseconds / tickDuration);
-      rawTickDurationBuffer.add(tickDuration);
-
-      if (rawTickDurationBuffer.size() >= averageWindow)
-      {
-         averageTickDurationMilliseconds.set(rawTickDurationBuffer.sum() / averageWindow);
-         averageRealTimeRate.set(dtMilliseconds / averageTickDurationMilliseconds.getValue());
-         rawTickDurationBuffer.removeAt(0);
-      }
+      finalPhaseTimer.stop();
+      physicsEngineTotalTimer.stop();
+      physicsEngineRealTimeRate.set((dt * 1.0e3) / physicsEngineTotalTimer.getTimer().getValue());
    }
 
    public List<RobotDefinition> getRobotDefinitions()
