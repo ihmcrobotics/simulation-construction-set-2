@@ -75,7 +75,7 @@ public class YoRegistryStatisticsPaneController
             close();
       });
       window.setTitle("YoRegistry statistics");
-      window.getIcons().add(SessionVisualizerIOTools.SCS_ICON_IMAGE);
+      SessionVisualizerIOTools.addSCSIconToWindow(window);
       window.setScene(new Scene(mainAnchorPane));
       window.initOwner(toolkit.getMainWindow());
    }

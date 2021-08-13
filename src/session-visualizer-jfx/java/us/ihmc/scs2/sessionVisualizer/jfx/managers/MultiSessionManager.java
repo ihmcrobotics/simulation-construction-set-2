@@ -55,6 +55,7 @@ public class MultiSessionManager
             if (toolkit.hasActiveSession())
             {
                Alert alert = new Alert(AlertType.CONFIRMATION, "Do you want to save the default configuration?", ButtonType.YES, ButtonType.NO);
+               SessionVisualizerIOTools.addSCSIconToDialog(alert);
                Optional<ButtonType> result = alert.showAndWait();
                stopSession(result.isPresent() && result.get() == ButtonType.OK);
             }

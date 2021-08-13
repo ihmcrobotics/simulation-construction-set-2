@@ -59,7 +59,7 @@ public class SecondaryWindowController
       chartGroupController.maximumRowProperty().set(9);
       chartGroupController.maximumColProperty().set(6);
 
-      stage.getIcons().add(SessionVisualizerIOTools.SCS_ICON_IMAGE);
+      SessionVisualizerIOTools.addSCSIconToWindow(stage);
 
       mainNode.getChildren().set(1, chartGroupPane);
       VBox.setVgrow(chartGroupPane, Priority.ALWAYS);

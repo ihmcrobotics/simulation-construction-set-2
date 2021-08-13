@@ -264,6 +264,7 @@ public class YoCompositePatternPropertyWindowController
       if (activeEditor.get() != null && activeEditor.get().hasChangesPending())
       {
          Alert alert = new Alert(AlertType.CONFIRMATION, "Do you want to discard the changes?", ButtonType.YES, ButtonType.NO);
+         SessionVisualizerIOTools.addSCSIconToDialog(alert);
          Optional<ButtonType> result = alert.showAndWait();
          ButtonType answer = result.get();
 

@@ -56,6 +56,7 @@ public class FileMenuController
    private void loadDefaultConfiguration()
    {
       Alert alert = new Alert(AlertType.CONFIRMATION, "Load default configuration?", ButtonType.OK, ButtonType.CANCEL);
+      SessionVisualizerIOTools.addSCSIconToDialog(alert);
       Optional<ButtonType> result = alert.showAndWait();
       if (result.isPresent() && result.get() == ButtonType.OK)
          messager.submitMessage(topics.getSessionVisualizerDefaultConfigurationLoadRequest(), true);
@@ -74,6 +75,7 @@ public class FileMenuController
    private void saveDefaultConfiguration()
    {
       Alert alert = new Alert(AlertType.CONFIRMATION, "Save current configuration as default?", ButtonType.OK, ButtonType.CANCEL);
+      SessionVisualizerIOTools.addSCSIconToDialog(alert);
       Optional<ButtonType> result = alert.showAndWait();
       if (result.isPresent() && result.get() == ButtonType.OK)
          messager.submitMessage(topics.getSessionVisualizerDefaultConfigurationSaveRequest(), true);

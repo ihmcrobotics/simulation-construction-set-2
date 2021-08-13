@@ -46,7 +46,7 @@ public class SessionVisualizer
    {
       // Configuring listener first so this is the first one getting called. Allows to cancel the close request.
       primaryStage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, this::stop);
-      primaryStage.getIcons().add(SessionVisualizerIOTools.SCS_ICON_IMAGE);
+      SessionVisualizerIOTools.addSCSIconToWindow(primaryStage);
       primaryStage.setTitle(NO_ACTIVE_SESSION_TITLE);
 
       toolkit = new SessionVisualizerToolkit(primaryStage);
@@ -104,6 +104,7 @@ public class SessionVisualizer
       if (toolkit.hasActiveSession())
       {
          Alert alert = new Alert(AlertType.CONFIRMATION, "Do you want to save the default configuration?", ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
+         SessionVisualizerIOTools.addSCSIconToDialog(alert);
 
          Optional<ButtonType> result = alert.showAndWait();
          if (!result.isPresent())

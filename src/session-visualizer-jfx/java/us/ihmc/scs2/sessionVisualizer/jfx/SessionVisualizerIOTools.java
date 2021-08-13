@@ -18,9 +18,11 @@ import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.FileUtils;
 
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Dialog;
 import javafx.scene.image.Image;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Stage;
 import javafx.stage.Window;
 import us.ihmc.commons.nio.FileTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX2D;
@@ -148,6 +150,19 @@ public class SessionVisualizerIOTools
    public static final URL REMOTE_SESSION_INFO_PANE_FXML_URL = getFXMLResource(SESSION_FOLDER, "YoClientInformationPane");
    public static final URL LOG_SESSION_MANAGER_PANE_FXML_URL = getFXMLResource(SESSION_FOLDER, "LogSessionManagerPane");
    public static final URL LOG_CROP_PROGRESS_PANE_FXML_URL = getFXMLResource(SESSION_FOLDER, "LogCropProgressPane");
+
+   public static void addSCSIconToDialog(Dialog<?> dialog)
+   {
+      addSCSIconToWindow(dialog.getDialogPane().getScene().getWindow());
+   }
+
+   public static void addSCSIconToWindow(Window window)
+   {
+      if (window instanceof Stage)
+      {
+         ((Stage) window).getIcons().add(SCS_ICON_IMAGE);
+      }
+   }
 
    public static URL getCSSResource(String filename)
    {

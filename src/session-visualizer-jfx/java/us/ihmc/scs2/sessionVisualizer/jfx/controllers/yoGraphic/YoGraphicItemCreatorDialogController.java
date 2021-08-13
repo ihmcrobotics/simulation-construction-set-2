@@ -197,7 +197,7 @@ public class YoGraphicItemCreatorDialogController
       Scene scene = new Scene(mainPane);
 
       stage.setTitle("YoGraphicFXItem creation");
-      stage.getIcons().add(SessionVisualizerIOTools.SCS_ICON_IMAGE);
+      SessionVisualizerIOTools.addSCSIconToWindow(stage);
       stage.setScene(scene);
    }
 
