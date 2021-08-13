@@ -31,6 +31,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
+import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
@@ -80,6 +81,7 @@ public class YoGraphicItemCreatorDialogController
 
    // These ToggleButtons are created on the fly when start/stop session and added to the miscFlowPane
    private final ObservableList<ToggleButton> robotCollisionsToggleButtons = FXCollections.observableArrayList();
+   private ToggleButton terrainCollisionsToggleButton = null;
 
    private final ToggleGroup toggleGroup = new ToggleGroup();
    private final Stage stage = new Stage(StageStyle.UTILITY);
@@ -91,6 +93,7 @@ public class YoGraphicItemCreatorDialogController
    private ReferenceFrame worldFrame;
    private ReferenceFrameManager referenceFrameManager;
    private ObservableList<RobotDefinition> sessionRobotDefinitions;
+   private ObservableList<TerrainObjectDefinition> sessionTerrainObjectDefinitions;
 
    private YoGroupFX parent;
 
@@ -99,6 +102,7 @@ public class YoGraphicItemCreatorDialogController
       referenceFrameManager = toolkit.getReferenceFrameManager();
       worldFrame = referenceFrameManager.getWorldFrame();
       sessionRobotDefinitions = toolkit.getSessionRobotDefinitions();
+      sessionTerrainObjectDefinitions = toolkit.getSessionTerrainObjectDefinitions();
 
       // Buttons to types:
       // Graphic 2D:
@@ -144,30 +148,10 @@ public class YoGraphicItemCreatorDialogController
 
       buttonToTypeMap.keySet().forEach(button -> button.setToggleGroup(toggleGroup));
 
-      sessionRobotDefinitions.addListener((ListChangeListener<RobotDefinition>) change ->
-      {
-         robotCollisionsToggleButtons.clear();
-         robotCollisionsToggleButtons.addAll(change.getList().stream().map(this::createRobotCollisionsToggleButton).collect(Collectors.toList()));
-      });
-
-      robotCollisionsToggleButtons.addListener((ListChangeListener<ToggleButton>) change ->
-      {
-         while (change.next())
-         {
-            if (change.wasRemoved())
-            {
-               miscFlowPane.getChildren().removeAll(change.getRemoved());
-               change.getRemoved().forEach(button -> button.setToggleGroup(null));
-            }
-
-            if (change.wasAdded())
-            {
-               miscFlowPane.getChildren().addAll(change.getAddedSubList());
-               change.getAddedSubList().forEach(button -> button.setToggleGroup(toggleGroup));
-            }
-         }
-      });
-      robotCollisionsToggleButtons.addAll(sessionRobotDefinitions.stream().map(this::createRobotCollisionsToggleButton).collect(Collectors.toList()));
+      sessionRobotDefinitions.addListener((ListChangeListener<RobotDefinition>) change -> refreshRobotCollisionsToggleButtons());
+      refreshRobotCollisionsToggleButtons();
+      sessionTerrainObjectDefinitions.addListener((ListChangeListener<TerrainObjectDefinition>) change -> refreshTerrainCollisionsToggleButton());
+      refreshTerrainCollisionsToggleButton();
 
       toggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) ->
       {
@@ -177,7 +161,12 @@ public class YoGraphicItemCreatorDialogController
          if (robotCollisionsToggleButtons.contains(newValue))
          {
             newItemType = YoGroupFX.class;
-            name = sessionRobotDefinitions.get(robotCollisionsToggleButtons.indexOf(newValue)).getName() + " - collisions";
+            name = sessionRobotDefinitions.get(robotCollisionsToggleButtons.indexOf(newValue)).getName() + " collisions";
+         }
+         else if (terrainCollisionsToggleButton != null && terrainCollisionsToggleButton == newValue)
+         {
+            newItemType = YoGroupFX.class;
+            name = "Terrain collisions";
          }
          else
          {
@@ -195,6 +184,8 @@ public class YoGraphicItemCreatorDialogController
       {
          if (robotCollisionsToggleButtons.contains(toggleGroup.getSelectedToggle()))
             itemNameValidityProperty.set(isYoGraphicFXItemNameValid(newValue, YoGroupFX.class));
+         else if (terrainCollisionsToggleButton != null && terrainCollisionsToggleButton == toggleGroup.getSelectedToggle())
+            itemNameValidityProperty.set(isYoGraphicFXItemNameValid(newValue, YoGroupFX.class));
          else
             itemNameValidityProperty.set(isYoGraphicFXItemNameValid(newValue, toItemType(toggleGroup.getSelectedToggle())));
       });
@@ -208,6 +199,40 @@ public class YoGraphicItemCreatorDialogController
       stage.setTitle("YoGraphicFXItem creation");
       stage.getIcons().add(SessionVisualizerIOTools.SCS_ICON_IMAGE);
       stage.setScene(scene);
+   }
+
+   private void refreshRobotCollisionsToggleButtons()
+   {
+      miscFlowPane.getChildren().removeAll(robotCollisionsToggleButtons);
+      robotCollisionsToggleButtons.forEach(button -> button.setToggleGroup(null));
+
+      robotCollisionsToggleButtons.clear();
+      robotCollisionsToggleButtons.addAll(sessionRobotDefinitions.stream().map(this::createRobotCollisionsToggleButton).collect(Collectors.toList()));
+
+      miscFlowPane.getChildren().addAll(robotCollisionsToggleButtons);
+      robotCollisionsToggleButtons.forEach(button -> button.setToggleGroup(toggleGroup));
+   }
+
+   private void refreshTerrainCollisionsToggleButton()
+   {
+      if (sessionTerrainObjectDefinitions.isEmpty())
+      { // There's no terrain collision, let's remove the button.
+         if (terrainCollisionsToggleButton != null)
+         {
+            terrainCollisionsToggleButton.setToggleGroup(null);
+            miscFlowPane.getChildren().remove(terrainCollisionsToggleButton);
+            terrainCollisionsToggleButton = null;
+         }
+      }
+      else
+      { // There's some terrain, let's add the button.
+         if (terrainCollisionsToggleButton == null)
+         {
+            terrainCollisionsToggleButton = createTerrainCollisionsToggleButton();
+            miscFlowPane.getChildren().add(terrainCollisionsToggleButton);
+            terrainCollisionsToggleButton.setToggleGroup(toggleGroup);
+         }
+      }
    }
 
    public void setParent(YoGroupFX parent)
@@ -252,6 +277,14 @@ public class YoGraphicItemCreatorDialogController
          robotCollisionShapeDefinitions.setName(itemNameTextField.getText());
          boolean success = parent.addChild(robotCollisionShapeDefinitions);
          return success ? robotCollisionShapeDefinitions : null;
+      }
+      else if (terrainCollisionsToggleButton != null && terrainCollisionsToggleButton == toggleGroup.getSelectedToggle())
+      {
+         YoGroupFX terrainCollisionShapeDefinitions = YoGraphicTools.convertTerrainObjectsCollisionShapeDefinitions(worldFrame,
+                                                                                                                    sessionTerrainObjectDefinitions);
+         terrainCollisionShapeDefinitions.setName(itemNameTextField.getText());
+         boolean success = parent.addChild(terrainCollisionShapeDefinitions);
+         return success ? terrainCollisionShapeDefinitions : null;
       }
       else
       {
@@ -320,6 +353,20 @@ public class YoGraphicItemCreatorDialogController
          ToggleButton button = loader.load();
          button.setText(StringUtils.capitalize(robotdefinition.getName()) + " Collisions");
          return button;
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+         return null;
+      }
+   }
+
+   private ToggleButton createTerrainCollisionsToggleButton()
+   {
+      FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.YO_GRAPHIC_TERRAIN_COLLISIONS_BUTTON_URL);
+      try
+      {
+         return loader.load();
       }
       catch (IOException e)
       {

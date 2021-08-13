@@ -1,5 +1,7 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.managers;
 
+import java.util.List;
+
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -9,6 +11,7 @@ import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.log.LogTools;
 import us.ihmc.messager.MessagerAPIFactory;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
+import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.session.SessionMessagerAPI;
 import us.ihmc.scs2.session.SessionState;
@@ -43,6 +46,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
 
    private final ObjectProperty<Session> activeSessionProperty = new SimpleObjectProperty<>(this, "activeSession", null);
    private final ObservableList<RobotDefinition> sessionRobotDefinitions = FXCollections.observableArrayList();
+   private final ObservableList<TerrainObjectDefinition> sessionTerrainObjectDefinitions = FXCollections.observableArrayList();
 
    public SessionVisualizerToolkit(Stage mainWindow) throws Exception
    {
@@ -66,8 +70,18 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       activeSessionProperty.addListener((o, oldValue, newValue) ->
       {
          sessionRobotDefinitions.clear();
-         if (newValue != null && newValue.getRobotDefinitions() != null && !newValue.getRobotDefinitions().isEmpty())
-            sessionRobotDefinitions.setAll(newValue.getRobotDefinitions());
+         sessionTerrainObjectDefinitions.clear();
+
+         if (newValue == null)
+            return;
+
+         List<RobotDefinition> newRobotDefinitions = newValue.getRobotDefinitions();
+         if (newRobotDefinitions != null && !newRobotDefinitions.isEmpty())
+            sessionRobotDefinitions.setAll(newRobotDefinitions);
+
+         List<TerrainObjectDefinition> newTerrainObjectDefinitions = newValue.getTerrainObjectDefinitions();
+         if (newTerrainObjectDefinitions != null && !newTerrainObjectDefinitions.isEmpty())
+            sessionTerrainObjectDefinitions.setAll(newTerrainObjectDefinitions);
       });
    }
 
@@ -261,5 +275,10 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    public ObservableList<RobotDefinition> getSessionRobotDefinitions()
    {
       return sessionRobotDefinitions;
+   }
+
+   public ObservableList<TerrainObjectDefinition> getSessionTerrainObjectDefinitions()
+   {
+      return sessionTerrainObjectDefinitions;
    }
 }

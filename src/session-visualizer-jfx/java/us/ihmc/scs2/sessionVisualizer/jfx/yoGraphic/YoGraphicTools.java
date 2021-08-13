@@ -35,6 +35,7 @@ import us.ihmc.scs2.definition.geometry.STPBox3DDefinition;
 import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
+import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphic2DDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphic3DDefinition;
@@ -748,6 +749,76 @@ public class YoGraphicTools
          try
          {
             convertedGraphic = convertCollisionShapeDefinition(referenceFrame, collisionShapeDefinition);
+         }
+         catch (Exception e)
+         {
+            e.printStackTrace();
+            continue;
+         }
+
+         String graphicName = collisionShapeDefinition.getName();
+         if (graphicName == null || graphicName.trim().isEmpty())
+            graphicName = collisionShapeDefinition.getGeometryDefinition().getClass().getSimpleName();
+         graphicName = YoGraphicFXControllerTools.createAvailableYoGraphicFX3DName(yoGroupFX, graphicName);
+         convertedGraphic.setName(graphicName);
+         convertedGraphic.setColor(color);
+         yoGroupFX.addYoGraphicFX3D(convertedGraphic);
+      }
+
+      if (yoGroupFX.getYoGraphicFX3DSet().isEmpty())
+         return null;
+
+      return yoGroupFX;
+   }
+
+   public static YoGroupFX convertTerrainObjectsCollisionShapeDefinitions(ReferenceFrame worldFrame, List<TerrainObjectDefinition> terrainObjectDefinitions)
+   {
+      Color color = Color.BLUEVIOLET.deriveColor(0.0, 1.0, 1.0, 0.4); // Transparent blueviolet
+      return convertTerrainObjectsCollisionShapeDefinitions(worldFrame, terrainObjectDefinitions, color);
+   }
+
+   public static YoGroupFX convertTerrainObjectsCollisionShapeDefinitions(ReferenceFrame worldFrame,
+                                                                          List<TerrainObjectDefinition> terrainObjectDefinitions,
+                                                                          Color color)
+   {
+      YoGroupFX terrainsCollisionGroup = new YoGroupFX("Terrain objects - collisions");
+
+      for (TerrainObjectDefinition terrainObjectDefinition : terrainObjectDefinitions)
+      {
+         YoGroupFX terrainCollisionGroup = convertTerrainObjectCollisionShapeDefinitions(worldFrame, terrainObjectDefinition, color);
+
+         if (terrainCollisionGroup == null || terrainCollisionGroup.getItemChildren().isEmpty())
+            continue;
+
+         String adjustedName = YoGraphicFXControllerTools.createAvailableYoGraphicFXGroupName(terrainsCollisionGroup, terrainCollisionGroup.getName());
+         terrainCollisionGroup.setName(adjustedName);
+         terrainsCollisionGroup.addChild(terrainCollisionGroup);
+      }
+
+      return terrainsCollisionGroup;
+   }
+
+   public static YoGroupFX convertTerrainObjectCollisionShapeDefinitions(ReferenceFrame worldFrame,
+                                                                         TerrainObjectDefinition terrainObjectDefinition,
+                                                                         Color color)
+   {
+      List<CollisionShapeDefinition> collisionShapeDefinitions = terrainObjectDefinition.getCollisionShapeDefinitions();
+
+      if (collisionShapeDefinitions == null || collisionShapeDefinitions.isEmpty())
+         return null;
+
+      String name = terrainObjectDefinition.getName();
+      if (name == null || name.isEmpty())
+         name = "TerrainObject";
+
+      YoGroupFX yoGroupFX = new YoGroupFX(name);
+
+      for (CollisionShapeDefinition collisionShapeDefinition : collisionShapeDefinitions)
+      {
+         YoGraphicFX3D convertedGraphic;
+         try
+         {
+            convertedGraphic = convertCollisionShapeDefinition(worldFrame, collisionShapeDefinition);
          }
          catch (Exception e)
          {

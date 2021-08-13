@@ -141,6 +141,7 @@ public class SessionVisualizerIOTools
    public static final URL YO_GRAPHIC_PROPERTY_URL = getFXMLResource(YO_GRAPHIC, "YoGraphicPropertyWindow");
    public static final URL YO_COMPOSITE_EDITOR_URL = getFXMLResource(YO_GRAPHIC, "YoCompositeEditorPane");
    public static final URL YO_GRAPHIC_ROBOT_COLLISIONS_BUTTON_URL = getFXMLResource(YO_GRAPHIC, "YoGraphicRobotCollisionsToggleButton");
+   public static final URL YO_GRAPHIC_TERRAIN_COLLISIONS_BUTTON_URL = getFXMLResource(YO_GRAPHIC, "YoGraphicTerrainCollisionsToggleButton");
 
    // Session resources:
    public static final URL REMOTE_SESSION_MANAGER_PANE_FXML_URL = getFXMLResource(SESSION_FOLDER, "RemoteSessionManagerPane");
