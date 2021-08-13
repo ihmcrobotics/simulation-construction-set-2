@@ -30,21 +30,16 @@ public class TableSizeQuickAccess
    private final Rectangle[][] boxes;
    private final JFXButton clearAllButton, clearEmptyButton;
 
-   private final int numberOfRows;
-   private final int numberOfColumns;
+   private final int maxNumberOfRows;
+   private final int maxNumberOfColumns;
 
    private final IntegerProperty selectedRowsProperty = new SimpleIntegerProperty(this, "selectedRows", -1);
    private final IntegerProperty selectedColumnsProperty = new SimpleIntegerProperty(this, "selectedColumns", -1);
 
-   public TableSizeQuickAccess(int numberOfRows, int numberOfColumns)
+   public TableSizeQuickAccess(String title, int currentNumberOfRows, int currentNumberOfColumns, int maxNumberOfRows, int maxNumberOfColumns)
    {
-      this(null, numberOfRows, numberOfColumns);
-   }
-
-   public TableSizeQuickAccess(String title, int numberOfRows, int numberOfColumns)
-   {
-      this.numberOfRows = numberOfRows;
-      this.numberOfColumns = numberOfColumns;
+      this.maxNumberOfRows = maxNumberOfRows;
+      this.maxNumberOfColumns = maxNumberOfColumns;
       anchorPane.getChildren().add(vBox);
       AnchorPane.setTopAnchor(vBox, 5.0);
       AnchorPane.setLeftAnchor(vBox, 5.0);
@@ -57,7 +52,7 @@ public class TableSizeQuickAccess
 
       clearEmptyButton = new JFXButton("Clear Empty");
       clearEmptyButton.getStyleClass().add("chart-table-view-clear-button");
-      
+
       vBox.getChildren().add(new HBox(3.0, clearAllButton, clearEmptyButton));
       vBox.getStylesheets().add(SessionVisualizerIOTools.GENERAL_STYLESHEET.toExternalForm());
 
@@ -76,13 +71,18 @@ public class TableSizeQuickAccess
       });
       gridPane.setOnMouseMoved(e -> tooltip.show(gridPane, e.getScreenX() + 10, e.getScreenY() + 20));
 
-      boxes = new Rectangle[numberOfRows][numberOfColumns];
+      boxes = new Rectangle[maxNumberOfRows][maxNumberOfColumns];
 
-      for (int row = 0; row < numberOfRows; row++)
+      for (int row = 0; row < maxNumberOfRows; row++)
       {
-         for (int col = 0; col < numberOfColumns; col++)
+         for (int col = 0; col < maxNumberOfColumns; col++)
          {
-            Rectangle box = new Rectangle(30, 30, Paint.valueOf("#a0a4a8"));
+            Paint boxPaint;
+            if (row < currentNumberOfRows && col < currentNumberOfColumns)
+               boxPaint = Paint.valueOf("#b5b576"); // Light gray-ish yellow
+            else
+               boxPaint = Paint.valueOf("#a0a4a8"); // Light gray
+            Rectangle box = new Rectangle(30, 30, boxPaint);
             box.setStroke(Color.BLACK);
             box.setStrokeWidth(2.0);
             box.setStrokeType(StrokeType.INSIDE);
@@ -114,15 +114,15 @@ public class TableSizeQuickAccess
             rowBoxes[col].setStyle(SELECTED);
          }
 
-         for (int col = lastSelectedCol + 1; col < numberOfColumns; col++)
+         for (int col = lastSelectedCol + 1; col < maxNumberOfColumns; col++)
          {
             rowBoxes[col].setStyle(UNSELECTED);
          }
       }
 
-      for (int row = lastSelectedRow + 1; row < numberOfRows; row++)
+      for (int row = lastSelectedRow + 1; row < maxNumberOfRows; row++)
       {
-         for (int col = 0; col < numberOfColumns; col++)
+         for (int col = 0; col < maxNumberOfColumns; col++)
          {
             boxes[row][col].setStyle(UNSELECTED);
          }

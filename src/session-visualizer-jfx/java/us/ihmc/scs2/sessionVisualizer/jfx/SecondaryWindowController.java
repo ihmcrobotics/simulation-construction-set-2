@@ -56,8 +56,8 @@ public class SecondaryWindowController
 
       chartGroupController.initialize(toolkit);
       chartGroupController.start();
-      chartGroupController.maximumRowProperty().set(6);
-      chartGroupController.maximumColProperty().set(4);
+      chartGroupController.maximumRowProperty().set(9);
+      chartGroupController.maximumColProperty().set(6);
 
       stage.getIcons().add(SessionVisualizerIOTools.SCS_ICON_IMAGE);
 

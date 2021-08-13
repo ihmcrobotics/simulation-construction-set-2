@@ -86,8 +86,8 @@ public class YoChartGroupPanelController
    private final ObservableList<YoChartPanelController> chartControllers = FXCollections.observableArrayList();
    private final BooleanProperty isRunning = new SimpleBooleanProperty(this, "isRunning", false);
 
-   private final IntegerProperty maximumRowNumberProperty = new SimpleIntegerProperty(this, "maximumRow", 3);
-   private final IntegerProperty maximumColNumberProperty = new SimpleIntegerProperty(this, "maximumColumn", 4);
+   private final IntegerProperty maximumRowNumberProperty = new SimpleIntegerProperty(this, "maximumRow", 6);
+   private final IntegerProperty maximumColNumberProperty = new SimpleIntegerProperty(this, "maximumColumn", 6);
 
    @FXML
    private AnchorPane mainPane;
@@ -463,6 +463,8 @@ public class YoChartGroupPanelController
       Popup popup = new Popup();
       popup.autoHideProperty().set(true);
       TableSizeQuickAccess tableSizeQuickAccess = new TableSizeQuickAccess("Select graph table size:",
+                                                                           numberOfRows.get(),
+                                                                           numberOfCols.get(),
                                                                            maximumRowNumberProperty.get(),
                                                                            maximumColNumberProperty.get());
       AnchorPane rootNode = tableSizeQuickAccess.getMainPane();
@@ -492,6 +494,8 @@ public class YoChartGroupPanelController
          popup.hide();
       });
       popup.getContent().add(rootNode);
+      dropDownMenuButton.setDisable(true);
+      popup.setOnHiding(e -> dropDownMenuButton.setDisable(false));
       Bounds boundsInLocal = dropDownMenuButton.getBoundsInLocal();
       Point2D anchorPosition = dropDownMenuButton.localToScreen(boundsInLocal.getMinX(), boundsInLocal.getMaxY());
 
