@@ -40,6 +40,7 @@ public class MultiSessionManager
 
    private final Map<Class<? extends SessionControlsController>, SessionControlsController> inactiveControllerMap = new HashMap<>();
    private final ObjectProperty<SessionControlsController> activeController = new SimpleObjectProperty<>(this, "activeSessionControls", null);
+   // TODO This activeSession is not setup properly, when starting a sim it remains null.
    private final ObjectProperty<Session> activeSession = new SimpleObjectProperty<>(this, "activeSession", null);
 
    public MultiSessionManager(SessionVisualizerToolkit toolkit, MainWindowController mainWindowController)
@@ -69,13 +70,15 @@ public class MultiSessionManager
       messager.registerJavaFXSyncedTopicListener(topics.getLogSessionControlsRequest(), m -> openLogSessionControls());
       messager.registerJavaFXSyncedTopicListener(topics.getSessionVisualizerConfigurationLoadRequest(), m -> loadSessionConfiguration(m));
       messager.registerJavaFXSyncedTopicListener(topics.getSessionVisualizerConfigurationSaveRequest(), m -> saveSessionConfiguration(m));
+      messager.registerJavaFXSyncedTopicListener(topics.getSessionVisualizerDefaultConfigurationLoadRequest(), m -> loadSessionDefaultConfiguration(toolkit.getSession()));
+      messager.registerJavaFXSyncedTopicListener(topics.getSessionVisualizerDefaultConfigurationSaveRequest(), m -> saveSessionDefaultConfiguration());
    }
 
    public void startSession(Session session, Runnable sessionLoadedCallback)
    {
       Runnable callback = () ->
       {
-         loadSessionConfiguration(session);
+         loadSessionDefaultConfiguration(session);
          if (sessionLoadedCallback != null)
             sessionLoadedCallback.run();
       };
@@ -92,7 +95,7 @@ public class MultiSessionManager
          return;
 
       if (saveConfiguration)
-         saveSessionConfiguration();
+         saveSessionDefaultConfiguration();
       toolkit.stopSession();
       mainWindowController.stopSession();
       inactiveControllerMap.values().forEach(SessionControlsController::unloadSession);
@@ -175,7 +178,7 @@ public class MultiSessionManager
    private String robotName;
    private String sessionName;
 
-   public void loadSessionConfiguration(Session session)
+   public void loadSessionDefaultConfiguration(Session session)
    {
       if (session.getRobotDefinitions().isEmpty())
          robotName = "UnknownRobot";
@@ -267,7 +270,7 @@ public class MultiSessionManager
       return destFile;
    }
 
-   public void saveSessionConfiguration()
+   public void saveSessionDefaultConfiguration()
    {
       SCSGuiConfiguration configuration = SCSGuiConfiguration.defaultSaver(robotName, sessionName);
       // Cleanup files with old extensions.

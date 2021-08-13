@@ -26,6 +26,7 @@ public class SessionVisualizerMessagerAPI
    private static final CategoryTheme OverheadPlotter = apiFactory.createCategoryTheme("OverheadPlotter");
    private static final CategoryTheme Group = apiFactory.createCategoryTheme("Group");
    private static final CategoryTheme Configuration = apiFactory.createCategoryTheme("Configuration");
+   private static final CategoryTheme Default = apiFactory.createCategoryTheme("Default");
 
    private static final TopicTheme Toggle = apiFactory.createTopicTheme("Toggle");
    private static final TopicTheme Next = apiFactory.createTopicTheme("Next");
@@ -51,7 +52,9 @@ public class SessionVisualizerMessagerAPI
    public static final Topic<Boolean> SessionVisualizerCloseRequest = APIRoot.topic(Close);
    public static final Topic<Integer> ControlsNumberPrecision = APIRoot.child(Controls).topic(Precision); // TODO Not the greatest topic name, nor the best place.
    public static final Topic<File> SessionVisualizerConfigurationLoadRequest = APIRoot.child(Configuration).topic(Load);
+   public static final Topic<Boolean> SessionVisualizerDefaultConfigurationLoadRequest = APIRoot.child(Configuration).child(Default).topic(Load);
    public static final Topic<File> SessionVisualizerConfigurationSaveRequest = APIRoot.child(Configuration).topic(Save);
+   public static final Topic<Boolean> SessionVisualizerDefaultConfigurationSaveRequest = APIRoot.child(Configuration).child(Default).topic(Save);
 
    static
    { // Ensure that the KeyFrame is loaded before closing the API.

@@ -2,6 +2,7 @@
 	-default-pale-green: #89e0c0;
 	-default-pale-red: #edafb7;
 	-default-pale-blue: #8996e0;
+	-default-pale-cyan: #89e0dd;
 	-default-pale-dark-blue: #3d69c9;
 	-default-pale-pink: #dd8bd8;
 	-default-pale-purple: #b2aeeb;
@@ -177,8 +178,18 @@
 	-glyph-name: FOLDER_OPEN_ALT;
 }
 
+.load-default-icon-view {
+	-fx-fill: -default-pale-cyan;
+	-glyph-name: FOLDER_OPEN_ALT;
+}
+
 .save-icon-view {
 	-fx-fill: -default-pale-blue;
+	-glyph-name: FLOPPY_ALT;
+}
+
+.save-default-icon-view {
+	-fx-fill: -default-pale-cyan;
 	-glyph-name: FLOPPY_ALT;
 }
 

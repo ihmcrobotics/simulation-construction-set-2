@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import us.ihmc.log.LogTools;
+
 public class LinkedBufferArray extends LinkedBuffer
 {
    private int size = 0;
@@ -93,9 +95,17 @@ public class LinkedBufferArray extends LinkedBuffer
    public boolean pull()
    {
       boolean hasPulledSomething = false;
-      for (int i = 0; i < size; i++)
+      try
       {
-         hasPulledSomething |= linkedBuffers[i].pull();
+         for (int i = 0; i < size; i++)
+         {
+            hasPulledSomething |= linkedBuffers[i].pull();
+         }
+      }
+      catch (NullPointerException e)
+      {
+         LogTools.info("linkedBuffers: size = " + size + ", " + Arrays.toString(linkedBuffers));
+         e.printStackTrace();
       }
       return hasPulledSomething;
    }

@@ -28,11 +28,31 @@
             </FontAwesomeIconView>
          </graphic>
       </MenuItem>
+      <MenuItem onAction="#loadDefaultConfiguration" text="Load default configuration">
+         <graphic>
+            <FontAwesomeIconView>
+               <styleClass>
+                  <String fx:value="load-default-icon-view" />
+                  <String fx:value="menu-item-icon-view" />
+               </styleClass>
+            </FontAwesomeIconView>
+         </graphic>
+      </MenuItem>
       <MenuItem onAction="#saveConfiguration" text="Save configuration...">
          <graphic>
             <FontAwesomeIconView>
                <styleClass>
                   <String fx:value="save-icon-view" />
+                  <String fx:value="menu-item-icon-view" />
+               </styleClass>
+            </FontAwesomeIconView>
+         </graphic>
+      </MenuItem>
+      <MenuItem onAction="#saveDefaultConfiguration" text="Save to default configuration">
+         <graphic>
+            <FontAwesomeIconView>
+               <styleClass>
+                  <String fx:value="save-default-icon-view" />
                   <String fx:value="menu-item-icon-view" />
                </styleClass>
             </FontAwesomeIconView>

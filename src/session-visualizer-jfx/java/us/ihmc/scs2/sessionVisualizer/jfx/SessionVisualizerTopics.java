@@ -55,6 +55,8 @@ public class SessionVisualizerTopics
 
    private Topic<File> sessionVisualizerConfigurationLoadRequest;
    private Topic<File> sessionVisualizerConfigurationSaveRequest;
+   private Topic<Boolean> sessionVisualizerDefaultConfigurationLoadRequest;
+   private Topic<Boolean> sessionVisualizerDefaultConfigurationSaveRequest;
 
    // Session topics
    private Topic<SessionState> sessionCurrentState;
@@ -115,6 +117,8 @@ public class SessionVisualizerTopics
 
       sessionVisualizerConfigurationLoadRequest = SessionVisualizerMessagerAPI.SessionVisualizerConfigurationLoadRequest;
       sessionVisualizerConfigurationSaveRequest = SessionVisualizerMessagerAPI.SessionVisualizerConfigurationSaveRequest;
+      sessionVisualizerDefaultConfigurationLoadRequest = SessionVisualizerMessagerAPI.SessionVisualizerDefaultConfigurationLoadRequest;
+      sessionVisualizerDefaultConfigurationSaveRequest = SessionVisualizerMessagerAPI.SessionVisualizerDefaultConfigurationSaveRequest;
 
       sessionCurrentState = SessionMessagerAPI.SessionCurrentState;
       sessionCurrentMode = SessionMessagerAPI.SessionCurrentMode;
@@ -294,6 +298,16 @@ public class SessionVisualizerTopics
    public Topic<File> getSessionVisualizerConfigurationSaveRequest()
    {
       return sessionVisualizerConfigurationSaveRequest;
+   }
+
+   public Topic<Boolean> getSessionVisualizerDefaultConfigurationLoadRequest()
+   {
+      return sessionVisualizerDefaultConfigurationLoadRequest;
+   }
+
+   public Topic<Boolean> getSessionVisualizerDefaultConfigurationSaveRequest()
+   {
+      return sessionVisualizerDefaultConfigurationSaveRequest;
    }
 
    public Topic<SessionState> getSessionCurrentState()

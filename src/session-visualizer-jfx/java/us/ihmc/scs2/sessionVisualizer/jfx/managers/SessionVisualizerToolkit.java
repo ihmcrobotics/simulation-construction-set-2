@@ -160,6 +160,11 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       return activeSessionProperty.get() != null;
    }
 
+   public Session getSession()
+   {
+      return activeSessionProperty.get();
+   }
+
    @Override
    public void handleImpl(long now)
    {
