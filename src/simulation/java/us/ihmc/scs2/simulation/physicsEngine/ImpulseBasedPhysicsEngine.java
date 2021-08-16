@@ -49,7 +49,7 @@ import us.ihmc.yoVariables.variable.YoDouble;
  *
  * @author Sylvain Bertrand
  */
-public class PhysicsEngine
+public class ImpulseBasedPhysicsEngine
 {
    private final ReferenceFrame inertialFrame;
 
@@ -77,7 +77,7 @@ public class PhysicsEngine
 
    private boolean initialize = true;
 
-   public PhysicsEngine(ReferenceFrame inertialFrame, YoRegistry rootRegistry)
+   public ImpulseBasedPhysicsEngine(ReferenceFrame inertialFrame, YoRegistry rootRegistry)
    {
       this.rootRegistry = rootRegistry;
       this.inertialFrame = inertialFrame;

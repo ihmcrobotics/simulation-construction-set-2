@@ -12,7 +12,7 @@ import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
-import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngine;
+import us.ihmc.scs2.simulation.physicsEngine.ImpulseBasedPhysicsEngine;
 import us.ihmc.scs2.simulation.robot.Robot;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -22,7 +22,7 @@ public class SimulationSession extends Session
    public static final ReferenceFrame DEFAULT_INERTIAL_FRAME = ReferenceFrameTools.constructARootFrame("worldFrame");
 
    private final ReferenceFrame inertialFrame;
-   private final PhysicsEngine physicsEngine;
+   private final ImpulseBasedPhysicsEngine physicsEngine;
    private final YoDouble simulationTime = new YoDouble("simulationTime", rootRegistry);
    private final YoFrameVector3D gravity = new YoFrameVector3D("gravity", ReferenceFrame.getWorldFrame(), rootRegistry);
    private final String simulationName;
@@ -51,7 +51,7 @@ public class SimulationSession extends Session
       this.inertialFrame = inertialFrame;
       this.simulationName = simulationName;
 
-      physicsEngine = new PhysicsEngine(inertialFrame, rootRegistry);
+      physicsEngine = new ImpulseBasedPhysicsEngine(inertialFrame, rootRegistry);
 
       submitBufferSizeRequest(200000);
       setSessionTickToTimeIncrement(Conversions.secondsToNanoseconds(0.0001));
@@ -127,7 +127,7 @@ public class SimulationSession extends Session
       return simulationName;
    }
 
-   public PhysicsEngine getPhysicsEngine()
+   public ImpulseBasedPhysicsEngine getPhysicsEngine()
    {
       return physicsEngine;
    }
