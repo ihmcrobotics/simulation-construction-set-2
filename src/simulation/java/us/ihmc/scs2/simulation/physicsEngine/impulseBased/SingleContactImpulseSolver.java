@@ -1,8 +1,8 @@
-package us.ihmc.scs2.simulation.physicsEngine;
+package us.ihmc.scs2.simulation.physicsEngine.impulseBased;
 
-import static us.ihmc.scs2.simulation.physicsEngine.ContactImpulseTools.computeSlipLambda;
-import static us.ihmc.scs2.simulation.physicsEngine.ContactImpulseTools.isInsideFrictionCone;
-import static us.ihmc.scs2.simulation.physicsEngine.ContactImpulseTools.isInsideFrictionEllipsoid;
+import static us.ihmc.scs2.simulation.physicsEngine.impulseBased.ContactImpulseTools.computeSlipLambda;
+import static us.ihmc.scs2.simulation.physicsEngine.impulseBased.ContactImpulseTools.isInsideFrictionCone;
+import static us.ihmc.scs2.simulation.physicsEngine.impulseBased.ContactImpulseTools.isInsideFrictionEllipsoid;
 
 import org.ejml.data.DMatrix3;
 import org.ejml.data.DMatrix3x3;

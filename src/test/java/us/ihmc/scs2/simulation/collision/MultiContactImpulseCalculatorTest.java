@@ -40,9 +40,9 @@ import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
 import us.ihmc.scs2.definition.state.SixDoFJointState;
 import us.ihmc.scs2.simulation.parameters.ContactParameters;
-import us.ihmc.scs2.simulation.physicsEngine.MultiContactImpulseCalculator;
 import us.ihmc.scs2.simulation.physicsEngine.MultiRobotCollisionGroup;
-import us.ihmc.scs2.simulation.physicsEngine.SingleContactImpulseCalculator;
+import us.ihmc.scs2.simulation.physicsEngine.impulseBased.MultiContactImpulseCalculator;
+import us.ihmc.scs2.simulation.physicsEngine.impulseBased.SingleContactImpulseCalculator;
 import us.ihmc.scs2.simulation.robot.Robot;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
 

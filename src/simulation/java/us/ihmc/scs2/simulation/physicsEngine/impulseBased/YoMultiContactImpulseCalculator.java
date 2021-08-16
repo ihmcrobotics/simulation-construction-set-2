@@ -1,9 +1,10 @@
-package us.ihmc.scs2.simulation.physicsEngine;
+package us.ihmc.scs2.simulation.physicsEngine.impulseBased;
 
 import java.util.Map;
 
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.scs2.simulation.physicsEngine.MultiRobotCollisionGroup;
 import us.ihmc.scs2.simulation.robot.Robot;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;

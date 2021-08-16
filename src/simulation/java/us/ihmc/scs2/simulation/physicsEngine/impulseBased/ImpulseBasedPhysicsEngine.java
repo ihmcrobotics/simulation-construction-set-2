@@ -1,4 +1,4 @@
-package us.ihmc.scs2.simulation.physicsEngine;
+package us.ihmc.scs2.simulation.physicsEngine.impulseBased;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,6 +22,9 @@ import us.ihmc.scs2.simulation.parameters.ConstraintParametersReadOnly;
 import us.ihmc.scs2.simulation.parameters.ContactParametersReadOnly;
 import us.ihmc.scs2.simulation.parameters.YoConstraintParameters;
 import us.ihmc.scs2.simulation.parameters.YoContactParameters;
+import us.ihmc.scs2.simulation.physicsEngine.MultiRobotCollisionGroup;
+import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngine;
+import us.ihmc.scs2.simulation.physicsEngine.SimpleCollisionDetection;
 import us.ihmc.scs2.simulation.robot.Robot;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;

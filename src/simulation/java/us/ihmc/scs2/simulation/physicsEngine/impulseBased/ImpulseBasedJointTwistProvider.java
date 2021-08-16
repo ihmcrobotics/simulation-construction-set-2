@@ -1,4 +1,4 @@
-package us.ihmc.scs2.simulation.physicsEngine;
+package us.ihmc.scs2.simulation.physicsEngine.impulseBased;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,6 +15,7 @@ import us.ihmc.mecano.multiBodySystem.interfaces.JointReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
+import us.ihmc.scs2.simulation.physicsEngine.JointStateProvider;
 
 public class ImpulseBasedJointTwistProvider implements JointStateProvider
 {

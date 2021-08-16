@@ -11,6 +11,7 @@ import org.ejml.dense.row.CommonOps_DDRM;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointReadOnly;
 import us.ihmc.mecano.tools.JointStateType;
+import us.ihmc.scs2.simulation.physicsEngine.impulseBased.ImpulseBasedConstraintCalculator;
 
 public class CombinedJointStateProviders implements JointStateProvider
 {

@@ -1,4 +1,4 @@
-package us.ihmc.scs2.simulation.physicsEngine;
+package us.ihmc.scs2.simulation.physicsEngine.impulseBased;
 
 import java.util.List;
 
@@ -8,6 +8,7 @@ import us.ihmc.mecano.algorithms.interfaces.RigidBodyTwistProvider;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.tools.JointStateType;
+import us.ihmc.scs2.simulation.physicsEngine.JointStateProvider;
 
 public interface ImpulseBasedConstraintCalculator
 {

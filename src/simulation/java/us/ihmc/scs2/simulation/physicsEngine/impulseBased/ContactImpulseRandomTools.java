@@ -1,6 +1,6 @@
-package us.ihmc.scs2.simulation.physicsEngine;
+package us.ihmc.scs2.simulation.physicsEngine.impulseBased;
 
-import static us.ihmc.scs2.simulation.physicsEngine.ContactImpulseTools.negateMult;
+import static us.ihmc.scs2.simulation.physicsEngine.impulseBased.ContactImpulseTools.negateMult;
 
 import java.util.Random;
 

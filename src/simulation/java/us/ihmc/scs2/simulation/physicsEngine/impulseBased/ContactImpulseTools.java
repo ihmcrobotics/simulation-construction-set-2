@@ -1,4 +1,4 @@
-package us.ihmc.scs2.simulation.physicsEngine;
+package us.ihmc.scs2.simulation.physicsEngine.impulseBased;
 
 import org.ejml.data.DMatrix;
 import org.ejml.data.DMatrix3;

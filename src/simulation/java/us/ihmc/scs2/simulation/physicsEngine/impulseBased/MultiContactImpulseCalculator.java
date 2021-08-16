@@ -1,4 +1,4 @@
-package us.ihmc.scs2.simulation.physicsEngine;
+package us.ihmc.scs2.simulation.physicsEngine.impulseBased;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,6 +18,9 @@ import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.scs2.simulation.collision.CollisionResult;
 import us.ihmc.scs2.simulation.parameters.ConstraintParametersReadOnly;
 import us.ihmc.scs2.simulation.parameters.ContactParametersReadOnly;
+import us.ihmc.scs2.simulation.physicsEngine.CombinedJointStateProviders;
+import us.ihmc.scs2.simulation.physicsEngine.CombinedRigidBodyTwistProviders;
+import us.ihmc.scs2.simulation.physicsEngine.MultiRobotCollisionGroup;
 import us.ihmc.scs2.simulation.robot.Robot;
 import us.ihmc.scs2.simulation.robot.RobotPhysics;
 

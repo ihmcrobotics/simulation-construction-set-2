@@ -15,6 +15,7 @@ import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyReadOnly;
 import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.mecano.spatial.interfaces.SpatialVectorReadOnly;
 import us.ihmc.mecano.spatial.interfaces.TwistReadOnly;
+import us.ihmc.scs2.simulation.physicsEngine.impulseBased.ImpulseBasedConstraintCalculator;
 
 public class CombinedRigidBodyTwistProviders implements RigidBodyTwistProvider
 {
