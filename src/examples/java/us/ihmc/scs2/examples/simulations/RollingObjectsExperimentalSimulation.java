@@ -19,6 +19,7 @@ import us.ihmc.scs2.definition.visual.VisualDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizer;
 import us.ihmc.scs2.simulation.SimulationSession;
 import us.ihmc.scs2.simulation.parameters.ContactParameters;
+import us.ihmc.scs2.simulation.physicsEngine.ImpulseBasedPhysicsEngine;
 
 public class RollingObjectsExperimentalSimulation
 {
@@ -113,7 +114,7 @@ public class RollingObjectsExperimentalSimulation
       simulationSession.addRobot(cylinderRobot);
       simulationSession.addRobot(capsuleRobot);
       simulationSession.addTerrainObject(terrain);
-      simulationSession.getPhysicsEngine().setGlobalContactParameters(contactParameters);
+      ((ImpulseBasedPhysicsEngine) simulationSession.getPhysicsEngine()).setGlobalContactParameters(contactParameters);
       SessionVisualizer.startSessionVisualizer(simulationSession);
    }
 

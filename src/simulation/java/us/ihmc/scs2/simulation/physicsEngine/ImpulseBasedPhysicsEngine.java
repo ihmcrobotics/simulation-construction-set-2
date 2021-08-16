@@ -49,7 +49,7 @@ import us.ihmc.yoVariables.variable.YoDouble;
  *
  * @author Sylvain Bertrand
  */
-public class ImpulseBasedPhysicsEngine
+public class ImpulseBasedPhysicsEngine implements PhysicsEngine
 {
    private final ReferenceFrame inertialFrame;
 
@@ -96,17 +96,14 @@ public class ImpulseBasedPhysicsEngine
       multiContactImpulseCalculatorPool = new YoMultiContactImpulseCalculatorPool(1, inertialFrame, multiContactCalculatorRegistry);
    }
 
+   @Override
    public void addTerrainObject(TerrainObjectDefinition terrainObjectDefinition)
    {
       terrainObjectDefinitions.add(terrainObjectDefinition);
       environmentCollidables.addAll(CollisionTools.toCollisionShape(terrainObjectDefinition, inertialFrame));
    }
 
-   public void addRobot(RobotDefinition robotDefinition)
-   {
-      addRobot(new Robot(robotDefinition, inertialFrame));
-   }
-
+   @Override
    public void addRobot(Robot robot)
    {
       robot.setupPhysicsAndControllers();
@@ -127,6 +124,7 @@ public class ImpulseBasedPhysicsEngine
       hasGlobalContactParameters.set(true);
    }
 
+   @Override
    public boolean initialize(Vector3DReadOnly gravity)
    {
       if (!initialize)
@@ -151,6 +149,7 @@ public class ImpulseBasedPhysicsEngine
    private final YoTimer handleCollisionsTimer = new YoTimer("handleCollisionsTimer", TimeUnit.MILLISECONDS, physicsEngineRegistry);
    private final YoTimer finalPhaseTimer = new YoTimer("finalPhaseTimer", TimeUnit.MILLISECONDS, physicsEngineRegistry);
 
+   @Override
    public void simulate(double dt, Vector3DReadOnly gravity)
    {
       if (initialize(gravity))
@@ -244,28 +243,27 @@ public class ImpulseBasedPhysicsEngine
       physicsEngineRealTimeRate.set((dt * 1.0e3) / physicsEngineTotalTimer.getTimer().getValue());
    }
 
+   @Override
    public List<RobotDefinition> getRobotDefinitions()
    {
       return robotList.stream().map(Robot::getRobotDefinition).collect(Collectors.toList());
    }
 
+   @Override
    public List<TerrainObjectDefinition> getTerrainObjectDefinitions()
    {
       return terrainObjectDefinitions;
    }
 
-   public List<String> getRobotNames()
-   {
-      return robotList.stream().map(Robot::getName).collect(Collectors.toList());
-   }
-
-   public double getTime()
-   {
-      return time.getValue();
-   }
-
+   @Override
    public YoRegistry getPhysicsEngineRegistry()
    {
       return rootRegistry;
+   }
+
+   @Override
+   public ReferenceFrame getInertialFrame()
+   {
+      return inertialFrame;
    }
 }

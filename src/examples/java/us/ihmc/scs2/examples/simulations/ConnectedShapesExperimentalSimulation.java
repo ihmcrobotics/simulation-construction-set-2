@@ -22,6 +22,7 @@ import us.ihmc.scs2.definition.visual.VisualDefinitionFactory;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizer;
 import us.ihmc.scs2.simulation.SimulationSession;
 import us.ihmc.scs2.simulation.parameters.ContactParameters;
+import us.ihmc.scs2.simulation.physicsEngine.ImpulseBasedPhysicsEngine;
 
 public class ConnectedShapesExperimentalSimulation
 {
@@ -88,7 +89,7 @@ public class ConnectedShapesExperimentalSimulation
       SimulationSession simulationSession = new SimulationSession();
       simulationSession.addRobot(robotDefinition);
       simulationSession.addTerrainObject(terrain);
-      simulationSession.getPhysicsEngine().setGlobalContactParameters(contactParameters);
+      ((ImpulseBasedPhysicsEngine) simulationSession.getPhysicsEngine()).setGlobalContactParameters(contactParameters);
       SessionVisualizer.startSessionVisualizer(simulationSession);
    }
 

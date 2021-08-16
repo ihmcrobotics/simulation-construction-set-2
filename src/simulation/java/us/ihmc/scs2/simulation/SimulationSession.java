@@ -13,6 +13,7 @@ import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
 import us.ihmc.scs2.simulation.physicsEngine.ImpulseBasedPhysicsEngine;
+import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngine;
 import us.ihmc.scs2.simulation.robot.Robot;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -22,7 +23,7 @@ public class SimulationSession extends Session
    public static final ReferenceFrame DEFAULT_INERTIAL_FRAME = ReferenceFrameTools.constructARootFrame("worldFrame");
 
    private final ReferenceFrame inertialFrame;
-   private final ImpulseBasedPhysicsEngine physicsEngine;
+   private final PhysicsEngine physicsEngine;
    private final YoDouble simulationTime = new YoDouble("simulationTime", rootRegistry);
    private final YoFrameVector3D gravity = new YoFrameVector3D("gravity", ReferenceFrame.getWorldFrame(), rootRegistry);
    private final String simulationName;
@@ -127,7 +128,7 @@ public class SimulationSession extends Session
       return simulationName;
    }
 
-   public ImpulseBasedPhysicsEngine getPhysicsEngine()
+   public PhysicsEngine getPhysicsEngine()
    {
       return physicsEngine;
    }

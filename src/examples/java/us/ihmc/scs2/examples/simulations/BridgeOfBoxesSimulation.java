@@ -30,6 +30,7 @@ import us.ihmc.scs2.definition.visual.VisualDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizer;
 import us.ihmc.scs2.simulation.SimulationSession;
 import us.ihmc.scs2.simulation.parameters.ContactParameters;
+import us.ihmc.scs2.simulation.physicsEngine.ImpulseBasedPhysicsEngine;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePoseUsingYawPitchRoll;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
@@ -116,7 +117,7 @@ public class BridgeOfBoxesSimulation
       SimulationSession simulationSession = new SimulationSession();
       robots.forEach(simulationSession::addRobot);
       simulationSession.addTerrainObject(terrainObjectDefinition);
-      simulationSession.getPhysicsEngine().setGlobalContactParameters(contactParameters);
+      ((ImpulseBasedPhysicsEngine) simulationSession.getPhysicsEngine()).setGlobalContactParameters(contactParameters);
       SessionVisualizer.startSessionVisualizer(simulationSession);
    }
 

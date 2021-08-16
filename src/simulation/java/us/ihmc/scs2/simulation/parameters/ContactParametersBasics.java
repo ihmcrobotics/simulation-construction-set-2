@@ -2,7 +2,7 @@ package us.ihmc.scs2.simulation.parameters;
 
 /**
  * Write and read interface for accessing/modifying a set of parameters used for resolving contacts
- * between pairs of collidables, see {@link ExperimentalPhysicsEngine}.
+ * between pairs of collidables, see {@link ImpulseBasedPhysicsEngine}.
  * 
  * @author Sylvain Bertrand
  */
