@@ -1,4 +1,4 @@
-package us.ihmc.scs2.simulation.robot;
+package us.ihmc.scs2.simulation.physicsEngine.impulseBased;
 
 import java.util.HashMap;
 import java.util.List;
@@ -20,10 +20,8 @@ import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.scs2.simulation.collision.Collidable;
 import us.ihmc.scs2.simulation.collision.FrameShapePosePredictor;
-import us.ihmc.scs2.simulation.physicsEngine.impulseBased.RobotJointLimitImpulseBasedCalculator;
-import us.ihmc.scs2.simulation.physicsEngine.impulseBased.SingleContactImpulseCalculator;
-import us.ihmc.scs2.simulation.physicsEngine.impulseBased.YoRobotJointLimitImpulseBasedCalculator;
-import us.ihmc.scs2.simulation.physicsEngine.impulseBased.YoSingleContactImpulseCalculatorPool;
+import us.ihmc.scs2.simulation.robot.Robot;
+import us.ihmc.scs2.simulation.robot.RobotPhysicsOutput;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRigidBody;
 import us.ihmc.scs2.simulation.screwTools.RigidBodyDeltaTwistCalculator;
 import us.ihmc.scs2.simulation.screwTools.RigidBodyImpulseRegistry;
@@ -33,7 +31,7 @@ import us.ihmc.scs2.simulation.screwTools.SimMultiBodySystemTools;
 import us.ihmc.scs2.simulation.screwTools.SingleRobotFirstOrderIntegrator;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
-public class RobotPhysics
+public class ImpulseBasedRobotPhysics
 {
    private static final String ContactCalculatorNameSuffix = SingleContactImpulseCalculator.class.getSimpleName();
 
@@ -63,7 +61,7 @@ public class RobotPhysics
 
    private final RobotPhysicsOutput physicsOutput;
 
-   public RobotPhysics(Robot owner)
+   public ImpulseBasedRobotPhysics(Robot owner)
    {
       this.owner = owner;
       inertialFrame = owner.getInertialFrame();
@@ -197,7 +195,7 @@ public class RobotPhysics
       return selfContactConstraintCalculatorPool.nextAvailable();
    }
 
-   public SingleContactImpulseCalculator getOrCreateInterRobotContactConstraintCalculator(Robot otherRobot)
+   public SingleContactImpulseCalculator getOrCreateInterRobotContactConstraintCalculator(ImpulseBasedRobot otherRobot)
    {
       if (otherRobot == null)
          return getOrCreateEnvironmentContactConstraintCalculator();
@@ -214,7 +212,7 @@ public class RobotPhysics
                                                                 owner.getRootBody(),
                                                                 forwardDynamicsCalculator,
                                                                 otherRobot.getRootBody(),
-                                                                otherRobot.getRobotPhysics().getForwardDynamicsCalculator(),
+                                                                otherRobot.getForwardDynamicsCalculator(),
                                                                 interRobotContactCalculatorRegistry);
          interRobotContactConstraintCalculatorPools.put(otherRobot.getRootBody(), calculators);
       }

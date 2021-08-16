@@ -58,8 +58,8 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
 
    private final YoRegistry rootRegistry;
    private final YoRegistry physicsEngineRegistry = new YoRegistry(getClass().getSimpleName());
-   private final List<Robot> robotList = new ArrayList<>();
-   private final Map<RigidBodyBasics, Robot> robotMap = new HashMap<>();
+   private final List<ImpulseBasedRobot> robotList = new ArrayList<>();
+   private final Map<RigidBodyBasics, ImpulseBasedRobot> robotMap = new HashMap<>();
    private final YoMultiContactImpulseCalculatorPool multiContactImpulseCalculatorPool;
 
    private List<MultiRobotCollisionGroup> collisionGroups;
@@ -107,12 +107,14 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
    }
 
    @Override
-   public void addRobot(Robot robot)
+   public Robot addRobot(RobotDefinition robotDefinition)
    {
-      robot.setupPhysicsAndControllers();
-      robotMap.put(robot.getRootBody(), robot);
-      rootRegistry.addChild(robot.getRegistry());
-      robotList.add(robot);
+      ImpulseBasedRobot ibRobot = new ImpulseBasedRobot(robotDefinition, inertialFrame);
+      ibRobot.setupPhysicsAndControllers();
+      robotMap.put(ibRobot.getRootBody(), ibRobot);
+      rootRegistry.addChild(ibRobot.getRegistry());
+      robotList.add(ibRobot);
+      return ibRobot;
    }
 
    public void setGlobalConstraintParameters(ConstraintParametersReadOnly parameters)
@@ -133,12 +135,12 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
       if (!initialize)
          return false;
 
-      for (Robot robot : robotList)
+      for (ImpulseBasedRobot robot : robotList)
       {
          robot.initializeState();
-         robot.getRobotPhysics().resetCalculators();
+         robot.resetCalculators();
          // Fill out the joint accelerations so the accelerometers can get initialized.
-         robot.getRobotPhysics().doForwardDynamics(gravity);
+         robot.doForwardDynamics(gravity);
          robot.updateSensors();
          robot.getControllerManager().initializeControllers();
       }
@@ -161,17 +163,17 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
       physicsEngineTotalTimer.start();
       initialPhaseTimer.start();
 
-      for (Robot robot : robotList)
+      for (ImpulseBasedRobot robot : robotList)
       {
-         robot.getRobotPhysics().resetCalculators();
+         robot.resetCalculators();
          robot.getControllerManager().updateControllers(time.getValue());
-         robot.getRobotPhysics().updateCollidableBoundingBoxes();
+         robot.updateCollidableBoundingBoxes();
       }
 
-      for (Robot robot : robotList)
+      for (ImpulseBasedRobot robot : robotList)
       {
          robot.getControllerManager().writeControllerOutput(JointStateType.EFFORT);
-         robot.getRobotPhysics().doForwardDynamics(gravity);
+         robot.doForwardDynamics(gravity);
       }
 
       environmentCollidables.forEach(collidable -> collidable.updateBoundingBox(inertialFrame));
@@ -212,12 +214,12 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
 
       for (RigidBodyBasics rootBody : uncoveredRobotsRootBody)
       {
-         Robot robot = robotMap.get(rootBody);
-         RobotJointLimitImpulseBasedCalculator jointLimitConstraintCalculator = robot.getRobotPhysics().getJointLimitConstraintCalculator();
+         ImpulseBasedRobot robot = robotMap.get(rootBody);
+         RobotJointLimitImpulseBasedCalculator jointLimitConstraintCalculator = robot.getJointLimitConstraintCalculator();
          jointLimitConstraintCalculator.initialize(dt);
          jointLimitConstraintCalculator.updateInertia(null, null);
          jointLimitConstraintCalculator.computeImpulse(dt);
-         robot.getRobotPhysics().addJointVelocityChange(jointLimitConstraintCalculator.getJointVelocityChange(0));
+         robot.addJointVelocityChange(jointLimitConstraintCalculator.getJointVelocityChange(0));
       }
 
       for (MultiContactImpulseCalculator impulseCalculator : impulseCalculators)
@@ -230,11 +232,11 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
       handleCollisionsTimer.stop();
       finalPhaseTimer.start();
 
-      for (Robot robot : robotList)
+      for (ImpulseBasedRobot robot : robotList)
       {
-         robot.getRobotPhysics().writeJointAccelerations();
-         robot.getRobotPhysics().writeJointDeltaVelocities();
-         robot.getRobotPhysics().integrateState(dt);
+         robot.writeJointAccelerations();
+         robot.writeJointDeltaVelocities();
+         robot.integrateState(dt);
          robot.updateFrames();
          robot.updateSensors();
       }
@@ -247,9 +249,15 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
    }
 
    @Override
+   public ReferenceFrame getInertialFrame()
+   {
+      return inertialFrame;
+   }
+
+   @Override
    public List<RobotDefinition> getRobotDefinitions()
    {
-      return robotList.stream().map(Robot::getRobotDefinition).collect(Collectors.toList());
+      return robotList.stream().map(ImpulseBasedRobot::getRobotDefinition).collect(Collectors.toList());
    }
 
    @Override
@@ -262,11 +270,5 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
    public YoRegistry getPhysicsEngineRegistry()
    {
       return rootRegistry;
-   }
-
-   @Override
-   public ReferenceFrame getInertialFrame()
-   {
-      return inertialFrame;
    }
 }

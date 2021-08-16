@@ -75,14 +75,9 @@ public class SimulationSession extends Session
       simulationTime.add(dt);
    }
 
-   public void addRobot(RobotDefinition robotDefinition)
+   public Robot addRobot(RobotDefinition robotDefinition)
    {
-      physicsEngine.addRobot(robotDefinition);
-   }
-
-   public void addRobot(Robot robot)
-   {
-      physicsEngine.addRobot(robot);
+      return physicsEngine.addRobot(robotDefinition);
    }
 
    public void addTerrainObject(TerrainObjectDefinition terrainObjectDefinition)
