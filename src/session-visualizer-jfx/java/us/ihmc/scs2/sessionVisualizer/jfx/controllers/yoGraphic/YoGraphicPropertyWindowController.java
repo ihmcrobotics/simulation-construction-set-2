@@ -54,6 +54,8 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX2D;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXItem;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
 
@@ -78,8 +80,8 @@ public class YoGraphicPropertyWindowController
    private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
    private final ObjectProperty<YoGraphicItemCreatorDialogController> cachedItemCreator = new SimpleObjectProperty<>(this, "cachedItemCreator", null);
-   private final ObjectProperty<YoGraphicFXCreatorController<YoGraphicFX>> activeEditor = new SimpleObjectProperty<>(this, "activeEditor", null);
-   private final Map<YoGraphicFXItem, YoGraphicFXCreatorController<YoGraphicFX>> cachedEditors = new HashMap<>();
+   private final ObjectProperty<YoGraphicFXCreatorController<YoGraphicFXItem>> activeEditor = new SimpleObjectProperty<>(this, "activeEditor", null);
+   private final Map<YoGraphicFXItem, YoGraphicFXCreatorController<YoGraphicFXItem>> cachedEditors = new HashMap<>();
    private final ObjectProperty<ContextMenu> activeContexMenu = new SimpleObjectProperty<>(this, "activeContextMenu", null);
    private YoGroupFX rootGroup;
    private YoGroupFX sessionRootGroup;
@@ -150,6 +152,8 @@ public class YoGraphicPropertyWindowController
          {
             saveChangesButton.disableProperty().bind(newValue.hasChangesPendingProperty().and(newValue.inputsValidityProperty()).not());
             revertChangesButton.disableProperty().bind(newValue.hasChangesPendingProperty().not());
+            newValue.saveChanges();
+            newValue.resetFields();
          }
       });
 
@@ -368,20 +372,32 @@ public class YoGraphicPropertyWindowController
 
       Class<? extends YoGraphicFXItem> itemType = item.getClass();
 
-      if (item instanceof YoGroupFX)
-         return;
-
-      YoGraphicFXCreatorController<YoGraphicFX> controller = cachedEditors.get(item);
+      YoGraphicFXCreatorController<YoGraphicFXItem> controller = cachedEditors.get(item);
 
       if (controller == null)
       {
          try
          {
-            FXMLLoader loader = SessionVisualizerIOTools.getYoGraphicFXEditorFXMLLoader(itemType);
-            loader.load();
-            controller = loader.getController();
-            controller.initialize(toolkit, (YoGraphicFX) item);
-            cachedEditors.put(item, controller);
+            if (item instanceof YoGroupFX)
+            {
+               Class<? extends YoGraphicFX> commonItemType = findCommonChildrenType((YoGroupFX) item);
+               if (commonItemType == null)
+                  return;
+
+               FXMLLoader loader = SessionVisualizerIOTools.getYoGraphicFXGroupEditorFXMLLoader(commonItemType);
+               loader.load();
+               controller = loader.getController();
+               controller.initialize(toolkit, (YoGraphicFXItem) item);
+               cachedEditors.put(item, controller);
+            }
+            else
+            {
+               FXMLLoader loader = SessionVisualizerIOTools.getYoGraphicFXEditorFXMLLoader(itemType);
+               loader.load();
+               controller = loader.getController();
+               controller.initialize(toolkit, (YoGraphicFXItem) item);
+               cachedEditors.put(item, controller);
+            }
          }
          catch (IOException e)
          {
@@ -399,6 +415,46 @@ public class YoGraphicPropertyWindowController
          AnchorPane.setTopAnchor(editorPane, 0.0);
          AnchorPane.setBottomAnchor(editorPane, 0.0);
          yoGraphicTypeLabel.setText(itemType.getSimpleName());
+      }
+   }
+
+   private static Class<? extends YoGraphicFX> findCommonChildrenType(YoGroupFX group)
+   {
+      if (!group.getYoGraphicFX2DSet().isEmpty())
+      {
+         if (!group.getYoGraphicFX3DSet().isEmpty())
+            return null;
+
+         Class<? extends YoGraphicFX> commonType = null;
+
+         for (YoGraphicFX2D item : group.getYoGraphicFX2DSet())
+         {
+            if (commonType == null)
+               commonType = item.getClass();
+            else if (commonType != item.getClass())
+               return null;
+         }
+
+         return commonType;
+      }
+      else if (!group.getYoGraphicFX3DSet().isEmpty())
+      {
+
+         Class<? extends YoGraphicFX> commonType = null;
+
+         for (YoGraphicFX3D item : group.getYoGraphicFX3DSet())
+         {
+            if (commonType == null)
+               commonType = item.getClass();
+            else if (commonType != item.getClass())
+               return null;
+         }
+
+         return commonType;
+      }
+      else
+      {
+         return null;
       }
    }
 

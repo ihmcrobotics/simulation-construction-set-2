@@ -4,9 +4,9 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.value.ObservableBooleanValue;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.UIElement;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
-import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXItem;
 
-public interface YoGraphicFXCreatorController<G extends YoGraphicFX> extends UIElement
+public interface YoGraphicFXCreatorController<G extends YoGraphicFXItem> extends UIElement
 {
    void initialize(SessionVisualizerToolkit toolkit, G yoGraphicToEdit);
 

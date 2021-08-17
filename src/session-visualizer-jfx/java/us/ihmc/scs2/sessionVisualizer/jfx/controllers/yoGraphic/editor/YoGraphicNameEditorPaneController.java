@@ -10,6 +10,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
@@ -24,7 +25,11 @@ public class YoGraphicNameEditorPaneController
    @FXML
    private GridPane mainPane;
    @FXML
+   private Label nameLabel;
+   @FXML
    private TextField nameTextField;
+   @FXML
+   private Label namespaceLabel;
    @FXML
    private TextField namespaceTextField;
 
@@ -123,5 +128,15 @@ public class YoGraphicNameEditorPaneController
    public GridPane getMainPane()
    {
       return mainPane;
+   }
+
+   public Label getNameLabel()
+   {
+      return nameLabel;
+   }
+
+   public Label getNamespaceLabel()
+   {
+      return namespaceLabel;
    }
 }

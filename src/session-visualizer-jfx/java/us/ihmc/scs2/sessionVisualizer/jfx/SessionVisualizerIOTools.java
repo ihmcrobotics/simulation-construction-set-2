@@ -27,6 +27,7 @@ import javafx.stage.Window;
 import us.ihmc.commons.nio.FileTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX3D;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXItem;
 
 public class SessionVisualizerIOTools
 {
@@ -95,6 +96,7 @@ public class SessionVisualizerIOTools
    private static final String YO_GRAPHIC = "yoGraphic/";
    private static final String YO_GRAPHIC_2D = YO_GRAPHIC + "graphic2D/";
    private static final String YO_GRAPHIC_3D = YO_GRAPHIC + "graphic3D/";
+   private static final String YO_GRAPHIC_GROUP = YO_GRAPHIC + "group/";
    private static final String YO_SLIDERBOARD = "yoSliderboard/";
    private static final String YO_SLIDERBOARD_BCF2000 = YO_SLIDERBOARD + "bcf2000/";
 
@@ -179,7 +181,7 @@ public class SessionVisualizerIOTools
       return classLoader.getResource(FXML_FOLDER + location + filename + ".fxml");
    }
 
-   public static FXMLLoader getYoGraphicFXEditorFXMLLoader(Class<?> yoGraphicFXType)
+   public static FXMLLoader getYoGraphicFXEditorFXMLLoader(Class<? extends YoGraphicFXItem> yoGraphicFXType)
    {
       String location = null;
       if (YoGraphicFX2D.class.isAssignableFrom(yoGraphicFXType))
@@ -191,6 +193,21 @@ public class SessionVisualizerIOTools
 
       URL fxmlResource = getFXMLResource(location, yoGraphicFXType.getSimpleName() + "EditorPane");
       Objects.requireNonNull(fxmlResource, "Could not find FXML resource for " + yoGraphicFXType.getSimpleName());
+      return new FXMLLoader(fxmlResource);
+   }
+
+   public static FXMLLoader getYoGraphicFXGroupEditorFXMLLoader(Class<? extends YoGraphicFXItem> yoGraphicFXType)
+   {
+      String location = null;
+      if (YoGraphicFX2D.class.isAssignableFrom(yoGraphicFXType))
+         location = YO_GRAPHIC_GROUP + "graphic2D/";
+      else if (YoGraphicFX3D.class.isAssignableFrom(yoGraphicFXType))
+         location = YO_GRAPHIC_GROUP + "graphic3D/";
+      else
+         throw new IllegalArgumentException("Unhandled graphic type: " + yoGraphicFXType.getSimpleName());
+
+      URL fxmlResource = getFXMLResource(location, yoGraphicFXType.getSimpleName() + "GroupEditorPane");
+      Objects.requireNonNull(fxmlResource, "Could not find FXML resource for grouped " + yoGraphicFXType.getSimpleName());
       return new FXMLLoader(fxmlResource);
    }
 

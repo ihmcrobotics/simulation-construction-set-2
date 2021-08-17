@@ -27,4 +27,32 @@ public class YoGraphicFXResource
    {
       return resourceURL;
    }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      if (object == this)
+      {
+         return true;
+      }
+      else if (object instanceof YoGraphicFXResource)
+      {
+         YoGraphicFXResource other = (YoGraphicFXResource) object;
+         if (resourceName == null ? other.resourceName != null : !resourceName.equals(other.resourceName))
+            return false;
+         if (resourceURL == null ? other.resourceURL != null : !resourceURL.equals(other.resourceURL))
+            return false;
+         return true;
+      }
+      else
+      {
+         return false;
+      }
+   }
+
+   @Override
+   public String toString()
+   {
+      return "YoGraphicFXResource [resourceName=" + resourceName + ", resourceURL=" + resourceURL + "]";
+   }
 }
