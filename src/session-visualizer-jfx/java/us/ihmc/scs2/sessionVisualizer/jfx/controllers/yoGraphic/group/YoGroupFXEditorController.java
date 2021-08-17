@@ -23,11 +23,13 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXCreatorController;
+import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.editor.YoCompositeEditorPaneController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.editor.YoGraphic3DStyleEditorPaneController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.editor.YoGraphicNameEditorPaneController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.editor.yoTextField.YoDoubleTextField;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple3DProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX3D;
@@ -75,7 +77,7 @@ public abstract class YoGroupFXEditorController<T extends YoGraphicFX> implement
       nameEditorController.initialize(toolkit, yoGraphicToEdit);
       nameEditorController.getNameLabel().setText("Group name");
       nameEditorController.bindYoGraphicFXItem(yoGraphicToEdit);
-      resetActions.add(() -> nameEditorController.setInput(yoGraphicToEdit.getName(), yoGraphicToEdit.getNamespace()));
+      registerResetAction(() -> nameEditorController.setInput(yoGraphicToEdit.getName(), yoGraphicToEdit.getNamespace()));
    }
 
    protected void setupStyleEditor(YoGraphic3DStyleEditorPaneController styleEditorController)
@@ -87,7 +89,7 @@ public abstract class YoGroupFXEditorController<T extends YoGraphicFX> implement
       styleEditorController.colorProperty()
                            .addListener((o, oldValue, newValue) -> setField(graphicChildren, (g, c) -> ((YoGraphicFX3D) g).setColor(c), newValue));
 
-      resetActions.add(() ->
+      registerResetAction(() ->
       {
          Color initialColor = getCommonValue(getField(graphicChildren, g -> ((YoGraphicFX3D) g).getColor().get()));
          if (initialColor != null)
@@ -103,14 +105,40 @@ public abstract class YoGroupFXEditorController<T extends YoGraphicFX> implement
       LinkedYoRegistry linkedRootRegistry = toolkit.getYoManager().getLinkedRootRegistry();
 
       YoDoubleTextField yoDoubleTextField = new YoDoubleTextField(textField, yoCompositeSearchManager, linkedRootRegistry, validImageView);
-
       yoDoubleTextField.setupAutoCompletion();
-
       yoDoubleTextField.supplierProperty().addListener((o, oldValue, newValue) -> setField(graphicChildren, setter, newValue));
-
-      resetActions.add(() -> textField.setText(getCommonString(yoCompositeSearchManager, getField(graphicChildren, getter))));
+      registerResetAction(() -> textField.setText(getCommonString(yoCompositeSearchManager, getField(graphicChildren, getter))));
 
       return yoDoubleTextField;
+   }
+
+   protected void setupTuple3DEditor(YoCompositeEditorPaneController tuple3DEditorController,
+                                     boolean setupReferenceFrameFields,
+                                     String entryName,
+                                     BiConsumer<T, Tuple3DProperty> setter,
+                                     Function<T, Tuple3DProperty> getter)
+   {
+
+      tuple3DEditorController.initialize(toolkit, yoCompositeSearchManager.getYoTuple3DCollection(), setupReferenceFrameFields);
+      tuple3DEditorController.setCompositeName(entryName);
+      registerResetAction(() -> tuple3DEditorController.setInput(YoGroupFXEditorTools.getCommonTuple3DProperty(yoCompositeSearchManager,
+                                                                                                               getField(graphicChildren, getter))));
+      if (setupReferenceFrameFields)
+      {
+         tuple3DEditorController.addInputListener((components, frame) ->
+         {
+            Tuple3DProperty newValue = new Tuple3DProperty(frame, components);
+            setField(graphicChildren, setter, newValue);
+         });
+      }
+      else
+      {
+         tuple3DEditorController.addInputListener((components) ->
+         {
+            Tuple3DProperty newValue = new Tuple3DProperty(components);
+            setField(graphicChildren, setter, newValue);
+         });
+      }
    }
 
    @Override
