@@ -21,6 +21,8 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Accordion;
+import javafx.scene.control.TitledPane;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
@@ -78,6 +80,10 @@ public class YoGraphicItemCreatorDialogController
    private ImageView itemNameValidImageView;
    @FXML
    private JFXButton createItemButton;
+   @FXML
+   private TitledPane graphics2DTitledPane, graphics3DTitledPane, miscTitledPane;
+   @FXML
+   private Accordion accordion;
 
    // These ToggleButtons are created on the fly when start/stop session and added to the miscFlowPane
    private final ObservableList<ToggleButton> robotCollisionsToggleButtons = FXCollections.observableArrayList();
@@ -99,6 +105,8 @@ public class YoGraphicItemCreatorDialogController
 
    public void initialize(SessionVisualizerToolkit toolkit)
    {
+      accordion.setExpandedPane(graphics2DTitledPane);
+
       referenceFrameManager = toolkit.getReferenceFrameManager();
       worldFrame = referenceFrameManager.getWorldFrame();
       sessionRobotDefinitions = toolkit.getSessionRobotDefinitions();

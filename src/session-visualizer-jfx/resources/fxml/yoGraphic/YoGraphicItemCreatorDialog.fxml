@@ -19,9 +19,9 @@
 
 <VBox fx:id="mainPane" minHeight="600.0" stylesheets="@../../css/GeneralStylesheet.css" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicItemCreatorDialogController">
    <children>
-      <Accordion VBox.vgrow="ALWAYS">
+      <Accordion fx:id="accordion" VBox.vgrow="ALWAYS">
          <panes>
-            <TitledPane animated="false" text="2D Graphics">
+            <TitledPane fx:id="graphics2DTitledPane" text="2D Graphics">
                <content>
                   <FlowPane columnHalignment="CENTER" hgap="5.0" prefWidth="600.0" vgap="5.0">
                      <children>
@@ -65,7 +65,7 @@
                   </FlowPane>
                </content>
             </TitledPane>
-            <TitledPane animated="false" text="3D Graphics">
+            <TitledPane fx:id="graphics3DTitledPane" text="3D Graphics">
                <content>
                   <FlowPane columnHalignment="CENTER" hgap="5.0" vgap="5.0">
                      <children>
@@ -172,7 +172,7 @@
                   </FlowPane>
                </content>
             </TitledPane>
-            <TitledPane animated="false" text="Misc.">
+            <TitledPane fx:id="miscTitledPane" text="Misc.">
                <content>
                   <FlowPane fx:id="miscFlowPane" hgap="5.0" prefHeight="200.0" prefWidth="200.0" vgap="5.0">
                      <children>
