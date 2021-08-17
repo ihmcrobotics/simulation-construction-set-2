@@ -97,6 +97,7 @@ public class SessionVisualizerIOTools
    private static final String YO_GRAPHIC_2D = YO_GRAPHIC + "graphic2D/";
    private static final String YO_GRAPHIC_3D = YO_GRAPHIC + "graphic3D/";
    private static final String YO_GRAPHIC_GROUP = YO_GRAPHIC + "group/";
+   private static final String YO_GRAPHIC_SUB_EDITOR = YO_GRAPHIC + "editor/";
    private static final String YO_SLIDERBOARD = "yoSliderboard/";
    private static final String YO_SLIDERBOARD_BCF2000 = YO_SLIDERBOARD + "bcf2000/";
 
@@ -143,7 +144,7 @@ public class SessionVisualizerIOTools
 
    public static final URL YO_GRAPHIC_ITEM_CREATOR_URL = getFXMLResource(YO_GRAPHIC, "YoGraphicItemCreatorDialog");
    public static final URL YO_GRAPHIC_PROPERTY_URL = getFXMLResource(YO_GRAPHIC, "YoGraphicPropertyWindow");
-   public static final URL YO_COMPOSITE_EDITOR_URL = getFXMLResource(YO_GRAPHIC, "YoCompositeEditorPane");
+   public static final URL YO_COMPOSITE_EDITOR_URL = getFXMLResource(YO_GRAPHIC_SUB_EDITOR, "YoCompositeEditorPane");
    public static final URL YO_GRAPHIC_ROBOT_COLLISIONS_BUTTON_URL = getFXMLResource(YO_GRAPHIC, "YoGraphicRobotCollisionsToggleButton");
    public static final URL YO_GRAPHIC_TERRAIN_COLLISIONS_BUTTON_URL = getFXMLResource(YO_GRAPHIC, "YoGraphicTerrainCollisionsToggleButton");
 
