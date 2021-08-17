@@ -1,54 +1,33 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.graphic3D;
 
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.value.ObservableBooleanValue;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicPolygonExtruded3DDefinition;
-import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXCreatorController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.editor.YoCompositeEditorPaneController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.editor.YoCompositeListEditorPaneController;
-import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.editor.YoGraphic3DStyleEditorPaneController;
-import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.editor.YoGraphicNameEditorPaneController;
-import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.editor.yoTextField.YoDoubleTextField;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
-import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple2DProperty;
-import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YawPitchRollProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoPolygonExtrudedFX3D;
-import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 
-public class YoPolygonExtrudedFX3DEditorController implements YoGraphicFXCreatorController<YoPolygonExtrudedFX3D>
+public class YoPolygonExtrudedFX3DEditorController extends YoGraphicFX3DEditorController<YoPolygonExtrudedFX3D>
 {
-   @FXML
-   private VBox mainPane;
    @FXML
    private YoCompositeEditorPaneController positionEditorController, orientationEditorController;
    @FXML
    private YoCompositeListEditorPaneController vertexListEditorController;
    @FXML
    private TextField thicknessTextField;
-   @FXML
-   private YoGraphic3DStyleEditorPaneController styleEditorController;
-   @FXML
-   private YoGraphicNameEditorPaneController nameEditorController;
 
    @FXML
    private ImageView thicknessValidImageView;
 
-   private YoDoubleTextField yoThicknessTextField;
-   private ObservableBooleanValue inputsValidityProperty;
-
-   private YoPolygonExtrudedFX3D yoGraphicToEdit;
    private YoGraphicPolygonExtruded3DDefinition definitionBeforeEdits;
 
    private BooleanProperty hasChangesPendingProperty = new SimpleBooleanProperty(this, "hasChangesPending", false);
@@ -56,47 +35,14 @@ public class YoPolygonExtrudedFX3DEditorController implements YoGraphicFXCreator
    @Override
    public void initialize(SessionVisualizerToolkit toolkit, YoPolygonExtrudedFX3D yoGraphicToEdit)
    {
-      this.yoGraphicToEdit = yoGraphicToEdit;
+      super.initialize(toolkit, yoGraphicToEdit);
       definitionBeforeEdits = YoGraphicTools.toYoGraphicPolygonExtruded3DDefinition(yoGraphicToEdit);
       yoGraphicToEdit.visibleProperty().addListener((observable, oldValue, newValue) -> definitionBeforeEdits.setVisible(newValue));
-      YoCompositeSearchManager yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
-      LinkedYoRegistry linkedRootRegistry = toolkit.getYoManager().getLinkedRootRegistry();
 
-      positionEditorController.initialize(toolkit, yoCompositeSearchManager.getYoTuple3DCollection(), true);
-      positionEditorController.setCompositeName("Position");
-      if (yoGraphicToEdit.getOrientation() != null && yoGraphicToEdit.getOrientation() instanceof YawPitchRollProperty)
-         orientationEditorController.initialize(toolkit, yoCompositeSearchManager.getYoYawPitchRollCollection(), true);
-      else
-         orientationEditorController.initialize(toolkit, yoCompositeSearchManager.getYoQuaternionCollection(), true);
-      orientationEditorController.setCompositeName("Orientation");
-
-      vertexListEditorController.initialize(toolkit, yoCompositeSearchManager.getYoTuple2DCollection(), false);
-      vertexListEditorController.setCompositeName("Vertex", "Vertices");
-      yoThicknessTextField = new YoDoubleTextField(thicknessTextField, yoCompositeSearchManager, linkedRootRegistry, thicknessValidImageView);
-
-      yoThicknessTextField.setupAutoCompletion();
-
-      styleEditorController.initialize(toolkit);
-      nameEditorController.initialize(toolkit, yoGraphicToEdit);
-
-      inputsValidityProperty = Bindings.and(positionEditorController.inputsValidityProperty(), orientationEditorController.inputsValidityProperty())
-                                       .and(vertexListEditorController.inputsValidityProperty()).and(yoThicknessTextField.getValidityProperty())
-                                       .and(nameEditorController.inputsValidityProperty());
-
-      positionEditorController.bindYoCompositeDoubleProperty(yoGraphicToEdit.getPosition());
-      orientationEditorController.bindYoCompositeDoubleProperty(yoGraphicToEdit.getOrientation());
-      vertexListEditorController.numberOfCompositesProperty().addListener((o, oldValue, newValue) -> yoGraphicToEdit.setNumberOfVertices(newValue));
-      vertexListEditorController.addInputListener(yoGraphicToEdit::setVertices, Tuple2DProperty::new);
-      yoThicknessTextField.supplierProperty().addListener((o, oldValue, newValue) -> yoGraphicToEdit.setThickness(newValue));
-      styleEditorController.bindYoGraphicFX3D(yoGraphicToEdit);
-      nameEditorController.bindYoGraphicFXItem(yoGraphicToEdit);
-
-      positionEditorController.addInputNotification(() -> updateHasChangesPendingProperty(null, null, null));
-      orientationEditorController.addInputNotification(() -> updateHasChangesPendingProperty(null, null, null));
-      vertexListEditorController.addInputNotification(() -> updateHasChangesPendingProperty(null, null, null));
-      thicknessTextField.textProperty().addListener(this::updateHasChangesPendingProperty);
-      styleEditorController.addInputNotification(() -> updateHasChangesPendingProperty(null, null, null));
-      nameEditorController.addAnyChangeListener(this::updateHasChangesPendingProperty);
+      setupTuple3DPropertyEditor(positionEditorController, "Position", true, yoGraphicToEdit.getPosition());
+      setupOrientation3DProperty(orientationEditorController, "Orientation", true, yoGraphicToEdit.getOrientation());
+      setupTuple2DPropertyListEditor(vertexListEditorController, "Vertex", true, yoGraphicToEdit::setNumberOfVertices, yoGraphicToEdit::setVertices);
+      setupDoublePropertyEditor(thicknessTextField, thicknessValidImageView, YoPolygonExtrudedFX3D::setThickness);
 
       setupHeightAdjustment();
       resetFields();
@@ -118,7 +64,8 @@ public class YoPolygonExtrudedFX3DEditorController implements YoGraphicFXCreator
       });
    }
 
-   private <T> void updateHasChangesPendingProperty(ObservableValue<? extends T> observable, T oldValue, T newValue)
+   @Override
+   protected <T> void updateHasChangesPendingProperty(ObservableValue<? extends T> observable, T oldValue, T newValue)
    {
       hasChangesPendingProperty.set(!definitionBeforeEdits.equals(YoGraphicTools.toYoGraphicPolygonExtruded3DDefinition(yoGraphicToEdit)));
    }
@@ -145,23 +92,5 @@ public class YoPolygonExtrudedFX3DEditorController implements YoGraphicFXCreator
    public ReadOnlyBooleanProperty hasChangesPendingProperty()
    {
       return hasChangesPendingProperty;
-   }
-
-   @Override
-   public ObservableBooleanValue inputsValidityProperty()
-   {
-      return inputsValidityProperty;
-   }
-
-   @Override
-   public YoPolygonExtrudedFX3D getYoGraphicFX()
-   {
-      return yoGraphicToEdit;
-   }
-
-   @Override
-   public VBox getMainPane()
-   {
-      return mainPane;
    }
 }
