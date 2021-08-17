@@ -1,8 +1,5 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.graphic3D;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
@@ -25,8 +22,6 @@ public class YoSTPBoxFX3DEditorController extends YoGraphicFX3DEditorController<
    private ImageView minimumMarginValidImageView, maximumMarginValidImageView;
 
    private YoGraphicSTPBox3DDefinition definitionBeforeEdits;
-
-   private BooleanProperty hasChangesPendingProperty = new SimpleBooleanProperty(this, "hasChangesPending", false);
 
    @Override
    public void initialize(SessionVisualizerToolkit toolkit, YoSTPBoxFX3D yoGraphicToEdit)
@@ -67,11 +62,5 @@ public class YoSTPBoxFX3DEditorController extends YoGraphicFX3DEditorController<
    {
       definitionBeforeEdits = YoGraphicTools.toYoGraphicSTPBox3DDefinition(yoGraphicToEdit);
       hasChangesPendingProperty.set(false);
-   }
-
-   @Override
-   public ReadOnlyBooleanProperty hasChangesPendingProperty()
-   {
-      return hasChangesPendingProperty;
    }
 }

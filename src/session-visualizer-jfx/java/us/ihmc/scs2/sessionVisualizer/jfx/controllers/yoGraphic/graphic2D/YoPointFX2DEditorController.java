@@ -2,103 +2,53 @@ package us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.graphic2D;
 
 import com.jfoenix.controls.JFXComboBox;
 
-import javafx.beans.binding.Bindings;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.value.ObservableBooleanValue;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.VBox;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicPoint2DDefinition;
-import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXCreatorController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.editor.YoCompositeEditorPaneController;
-import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.editor.YoGraphic2DStyleEditorPaneController;
-import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.editor.YoGraphicNameEditorPaneController;
-import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.editor.yoTextField.YoDoubleTextField;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
-import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXResourceManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoPointFX2D;
-import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 
-public class YoPointFX2DEditorController implements YoGraphicFXCreatorController<YoPointFX2D>
+public class YoPointFX2DEditorController extends YoGraphicFX2DEditorController<YoPointFX2D>
 {
-   public static final double DEFAULT_STROKE_WIDTH = YoGraphicFX2D.DEFAULT_STROKE_WIDTH.get();
-
-   @FXML
-   private VBox mainPane;
    @FXML
    private YoCompositeEditorPaneController positionEditorController;
    @FXML
    private TextField sizeTextField;
    @FXML
-   private YoGraphic2DStyleEditorPaneController styleEditorController;
-   @FXML
    private JFXComboBox<String> graphicComboBox;
-   @FXML
-   private YoGraphicNameEditorPaneController nameEditorController;
    @FXML
    private ImageView sizeValidImageView;
 
-   private ObservableBooleanValue inputsValidityProperty;
-
-   private YoDoubleTextField yoSizeTextField;
-
-   private YoPointFX2D yoGraphicToEdit;
    private YoGraphicPoint2DDefinition definitionBeforeEdits;
-   private YoCompositeSearchManager yoCompositeSearchManager;
-
-   private BooleanProperty hasChangesPendingProperty = new SimpleBooleanProperty(this, "hasChangesPending", false);
 
    @Override
    public void initialize(SessionVisualizerToolkit toolkit, YoPointFX2D yoGraphicToEdit)
    {
-      this.yoGraphicToEdit = yoGraphicToEdit;
+      super.initialize(toolkit, yoGraphicToEdit);
+
       definitionBeforeEdits = YoGraphicTools.toYoGraphicPoint2DDefinition(yoGraphicToEdit);
       yoGraphicToEdit.visibleProperty().addListener((observable, oldValue, newValue) -> definitionBeforeEdits.setVisible(newValue));
-      yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
-      LinkedYoRegistry linkedRootRegistry = toolkit.getYoManager().getLinkedRootRegistry();
 
-      positionEditorController.initialize(toolkit, yoCompositeSearchManager.getYoTuple2DCollection(), true);
-      positionEditorController.setCompositeName("Position");
-      yoSizeTextField = new YoDoubleTextField(sizeTextField, yoCompositeSearchManager, linkedRootRegistry, sizeValidImageView);
-      styleEditorController.initialize(toolkit);
-
-      yoSizeTextField.setupAutoCompletion();
+      setupTuple2DPropertyEditor(positionEditorController, "Position", true, yoGraphicToEdit.getPosition());
+      setupDoublePropertyEditor(sizeTextField, sizeValidImageView, YoPointFX2D::setSize);
 
       YoGraphicFXResourceManager yoGraphicFXResourceManager = toolkit.getYoGraphicFXManager().getYoGraphicFXResourceManager();
       graphicComboBox.setItems(FXCollections.observableArrayList(yoGraphicFXResourceManager.getGraphic2DNameList()));
-
-      nameEditorController.initialize(toolkit, yoGraphicToEdit);
-
-      inputsValidityProperty = Bindings.and(positionEditorController.inputsValidityProperty(), yoSizeTextField.getValidityProperty())
-                                       .and(styleEditorController.inputsValidityProperty()).and(nameEditorController.inputsValidityProperty());
-
-      positionEditorController.bindYoCompositeDoubleProperty(yoGraphicToEdit.getPosition());
-      yoSizeTextField.supplierProperty().addListener((o, oldValue, newValue) -> yoGraphicToEdit.setSize(newValue));
-      styleEditorController.bindYoGraphicFX2D(yoGraphicToEdit);
-
       graphicComboBox.valueProperty()
                      .addListener((o, oldValue, newValue) -> yoGraphicToEdit.setGraphicResource(yoGraphicFXResourceManager.loadGraphic2DResource(newValue)));
-
-      nameEditorController.bindYoGraphicFXItem(yoGraphicToEdit);
-
-      positionEditorController.addInputNotification(() -> updateHasChangesPendingProperty(null, null, null));
-      sizeTextField.textProperty().addListener(this::updateHasChangesPendingProperty);
-      styleEditorController.addInputNotification(() -> updateHasChangesPendingProperty(null, null, null));
       graphicComboBox.valueProperty().addListener(this::updateHasChangesPendingProperty);
-      nameEditorController.addAnyChangeListener(this::updateHasChangesPendingProperty);
 
       resetFields();
    }
 
-   private <T> void updateHasChangesPendingProperty(ObservableValue<? extends T> observable, T oldValue, T newValue)
+   @Override
+   protected <T> void updateHasChangesPendingProperty(ObservableValue<? extends T> observable, T oldValue, T newValue)
    {
       hasChangesPendingProperty.set(!definitionBeforeEdits.equals(YoGraphicTools.toYoGraphicPoint2DDefinition(yoGraphicToEdit)));
    }
@@ -116,33 +66,9 @@ public class YoPointFX2DEditorController implements YoGraphicFXCreatorController
    }
 
    @Override
-   public ObservableBooleanValue inputsValidityProperty()
-   {
-      return inputsValidityProperty;
-   }
-
-   @Override
    public void saveChanges()
    {
       definitionBeforeEdits = YoGraphicTools.toYoGraphicPoint2DDefinition(yoGraphicToEdit);
       hasChangesPendingProperty.set(false);
-   }
-
-   @Override
-   public ReadOnlyBooleanProperty hasChangesPendingProperty()
-   {
-      return hasChangesPendingProperty;
-   }
-
-   @Override
-   public YoPointFX2D getYoGraphicFX()
-   {
-      return yoGraphicToEdit;
-   }
-
-   @Override
-   public VBox getMainPane()
-   {
-      return mainPane;
    }
 }

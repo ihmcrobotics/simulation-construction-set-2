@@ -3,9 +3,6 @@ package us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.graphic3D;
 import com.jfoenix.controls.JFXComboBox;
 import com.jfoenix.controls.JFXTextField;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -31,8 +28,6 @@ public class YoPointcloudFX3DEditorController extends YoGraphicFX3DEditorControl
    private JFXComboBox<String> graphicComboBox;
 
    private YoGraphicPointcloud3DDefinition definitionBeforeEdits;
-
-   private BooleanProperty hasChangesPendingProperty = new SimpleBooleanProperty(this, "hasChangesPending", false);
 
    @Override
    public void initialize(SessionVisualizerToolkit toolkit, YoPointcloudFX3D yoGraphicToEdit)
@@ -92,11 +87,5 @@ public class YoPointcloudFX3DEditorController extends YoGraphicFX3DEditorControl
    {
       definitionBeforeEdits = YoGraphicTools.toYoGraphicPointcloud3DDefinition(yoGraphicToEdit);
       hasChangesPendingProperty.set(false);
-   }
-
-   @Override
-   public ReadOnlyBooleanProperty hasChangesPendingProperty()
-   {
-      return hasChangesPendingProperty;
    }
 }

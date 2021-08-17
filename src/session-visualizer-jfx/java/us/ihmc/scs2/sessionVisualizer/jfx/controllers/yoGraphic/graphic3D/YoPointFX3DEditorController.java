@@ -2,9 +2,6 @@ package us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.graphic3D;
 
 import com.jfoenix.controls.JFXComboBox;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -29,8 +26,6 @@ public class YoPointFX3DEditorController extends YoGraphicFX3DEditorController<Y
    private ImageView sizeValidImageView;
 
    private YoGraphicPoint3DDefinition definitionBeforeEdits;
-
-   private BooleanProperty hasChangesPendingProperty = new SimpleBooleanProperty(this, "hasChangesPending", false);
 
    @Override
    public void initialize(SessionVisualizerToolkit toolkit, YoPointFX3D yoGraphicToEdit)
@@ -77,11 +72,5 @@ public class YoPointFX3DEditorController extends YoGraphicFX3DEditorController<Y
    {
       definitionBeforeEdits = YoGraphicTools.toYoGraphicPoint3DDefinition(yoGraphicToEdit);
       hasChangesPendingProperty.set(false);
-   }
-
-   @Override
-   public ReadOnlyBooleanProperty hasChangesPendingProperty()
-   {
-      return hasChangesPendingProperty;
    }
 }

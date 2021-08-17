@@ -1,8 +1,5 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.graphic3D;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.ScrollPane;
@@ -29,8 +26,6 @@ public class YoPolygonExtrudedFX3DEditorController extends YoGraphicFX3DEditorCo
    private ImageView thicknessValidImageView;
 
    private YoGraphicPolygonExtruded3DDefinition definitionBeforeEdits;
-
-   private BooleanProperty hasChangesPendingProperty = new SimpleBooleanProperty(this, "hasChangesPending", false);
 
    @Override
    public void initialize(SessionVisualizerToolkit toolkit, YoPolygonExtrudedFX3D yoGraphicToEdit)
@@ -86,11 +81,5 @@ public class YoPolygonExtrudedFX3DEditorController extends YoGraphicFX3DEditorCo
    {
       definitionBeforeEdits = YoGraphicTools.toYoGraphicPolygonExtruded3DDefinition(yoGraphicToEdit);
       hasChangesPendingProperty.set(false);
-   }
-
-   @Override
-   public ReadOnlyBooleanProperty hasChangesPendingProperty()
-   {
-      return hasChangesPendingProperty;
    }
 }
