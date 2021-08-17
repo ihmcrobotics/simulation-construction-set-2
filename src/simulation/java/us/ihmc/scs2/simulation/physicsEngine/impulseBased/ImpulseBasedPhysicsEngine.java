@@ -269,6 +269,6 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
    @Override
    public YoRegistry getPhysicsEngineRegistry()
    {
-      return rootRegistry;
+      return physicsEngineRegistry;
    }
 }

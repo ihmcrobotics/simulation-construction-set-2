@@ -13,6 +13,7 @@ import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
 import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngine;
+import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngineFactory;
 import us.ihmc.scs2.simulation.physicsEngine.impulseBased.ImpulseBasedPhysicsEngine;
 import us.ihmc.scs2.simulation.robot.Robot;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
@@ -34,17 +35,27 @@ public class SimulationSession extends Session
       this(retrieveCallerName());
    }
 
+   public SimulationSession(PhysicsEngineFactory physicsEngineFactory)
+   {
+      this(retrieveCallerName(), physicsEngineFactory);
+   }
+
    public SimulationSession(String simulationName)
    {
       this(DEFAULT_INERTIAL_FRAME, simulationName);
    }
 
-   public SimulationSession(ReferenceFrame inertialFrame)
+   public SimulationSession(ReferenceFrame inertialFrame, String simulationName)
    {
-      this(inertialFrame, retrieveCallerName());
+      this(inertialFrame, simulationName, (frame, rootRegistry) -> new ImpulseBasedPhysicsEngine(frame, rootRegistry));
    }
 
-   public SimulationSession(ReferenceFrame inertialFrame, String simulationName)
+   public SimulationSession(String simulationName, PhysicsEngineFactory physicsEngineFactory)
+   {
+      this(DEFAULT_INERTIAL_FRAME, simulationName, physicsEngineFactory);
+   }
+
+   public SimulationSession(ReferenceFrame inertialFrame, String simulationName, PhysicsEngineFactory physicsEngineFactory)
    {
       if (!inertialFrame.isRootFrame())
          throw new IllegalArgumentException("The given inertialFrame is not a root frame: " + inertialFrame);
@@ -52,7 +63,7 @@ public class SimulationSession extends Session
       this.inertialFrame = inertialFrame;
       this.simulationName = simulationName;
 
-      physicsEngine = new ImpulseBasedPhysicsEngine(inertialFrame, rootRegistry);
+      physicsEngine = physicsEngineFactory.build(inertialFrame, rootRegistry);
 
       submitBufferSizeRequest(200000);
       setSessionTickToTimeIncrement(Conversions.secondsToNanoseconds(0.0001));
