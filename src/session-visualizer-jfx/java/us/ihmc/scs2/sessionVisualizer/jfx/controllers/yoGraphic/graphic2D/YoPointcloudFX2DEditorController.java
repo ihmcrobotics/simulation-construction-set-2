@@ -28,6 +28,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple2DProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXResourceManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoPointcloudFX2D;
+import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 
 public class YoPointcloudFX2DEditorController implements YoGraphicFXCreatorController<YoPointcloudFX2D>
 {
@@ -63,7 +64,8 @@ public class YoPointcloudFX2DEditorController implements YoGraphicFXCreatorContr
       yoGraphicToEdit.visibleProperty().addListener((observable, oldValue, newValue) -> definitionBeforeEdits.setVisible(newValue));
 
       YoCompositeSearchManager yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
-      yoSizeTextField = new YoDoubleTextField(sizeTextField, yoCompositeSearchManager, sizeValidImageView);
+      LinkedYoRegistry linkedRootRegistry = toolkit.getYoManager().getLinkedRootRegistry();
+      yoSizeTextField = new YoDoubleTextField(sizeTextField, yoCompositeSearchManager, linkedRootRegistry, sizeValidImageView);
 
       YoGraphicFXResourceManager yoGraphicFXResourceManager = toolkit.getYoGraphicFXManager().getYoGraphicFXResourceManager();
       graphicComboBox.setItems(FXCollections.observableArrayList(yoGraphicFXResourceManager.getGraphic2DNameList()));

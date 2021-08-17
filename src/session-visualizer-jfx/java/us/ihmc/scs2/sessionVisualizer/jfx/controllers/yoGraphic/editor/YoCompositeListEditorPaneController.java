@@ -68,6 +68,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.CompositeProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeCollection;
+import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 
 public class YoCompositeListEditorPaneController
 {
@@ -115,7 +116,12 @@ public class YoCompositeListEditorPaneController
       this.setupReferenceFrameFields = setupReferenceFrameFields;
 
       YoCompositeSearchManager yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
-      yoNumberOfCompositesTextField = new YoIntegerTextField(numberOfCompositesTextField, yoCompositeSearchManager, true, numberOfCompositesValidImageView);
+      LinkedYoRegistry linkedRootRegistry = toolkit.getYoManager().getLinkedRootRegistry();
+      yoNumberOfCompositesTextField = new YoIntegerTextField(numberOfCompositesTextField,
+                                                             yoCompositeSearchManager,
+                                                             linkedRootRegistry,
+                                                             true,
+                                                             numberOfCompositesValidImageView);
       setupListViewControls();
 
       if (yoCompositeCollection != null)

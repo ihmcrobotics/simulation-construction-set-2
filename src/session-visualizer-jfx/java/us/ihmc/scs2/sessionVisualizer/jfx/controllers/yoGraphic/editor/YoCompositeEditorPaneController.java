@@ -37,6 +37,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.CompositeProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeCollection;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositePattern;
+import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 
 public class YoCompositeEditorPaneController
 {
@@ -88,7 +89,11 @@ public class YoCompositeEditorPaneController
 
       for (int i = 0; i < numberOfComponents; i++)
       {
-         YoDoubleTextField yoComponentTextField = new YoDoubleTextField(componentSearchTextFields[i], searchManager, componentValidImageViews[i]);
+         LinkedYoRegistry linkedRootRegistry = toolkit.getYoManager().getLinkedRootRegistry();
+         YoDoubleTextField yoComponentTextField = new YoDoubleTextField(componentSearchTextFields[i],
+                                                                        searchManager,
+                                                                        linkedRootRegistry,
+                                                                        componentValidImageViews[i]);
          yoComponentTextField.setupAutoCompletion();
          if (inputsValidityProperty == null)
             inputsValidityProperty = BooleanExpression.booleanExpression(yoComponentTextField.getValidityProperty());

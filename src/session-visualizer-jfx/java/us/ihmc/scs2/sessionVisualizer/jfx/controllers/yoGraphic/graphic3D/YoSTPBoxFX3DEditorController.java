@@ -21,6 +21,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YawPitchRollProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoSTPBoxFX3D;
+import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 
 public class YoSTPBoxFX3DEditorController implements YoGraphicFXCreatorController<YoSTPBoxFX3D>
 {
@@ -54,21 +55,22 @@ public class YoSTPBoxFX3DEditorController implements YoGraphicFXCreatorControlle
       this.yoGraphicToEdit = yoGraphicToEdit;
       definitionBeforeEdits = YoGraphicTools.toYoGraphicSTPBox3DDefinition(yoGraphicToEdit);
       yoGraphicToEdit.visibleProperty().addListener((observable, oldValue, newValue) -> definitionBeforeEdits.setVisible(newValue));
+      YoCompositeSearchManager yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
 
-      positionEditorController.initialize(toolkit, toolkit.getYoCompositeSearchManager().getYoTuple3DCollection(), true);
+      positionEditorController.initialize(toolkit, yoCompositeSearchManager.getYoTuple3DCollection(), true);
       positionEditorController.setCompositeName("Position");
       if (yoGraphicToEdit.getOrientation() != null && yoGraphicToEdit.getOrientation() instanceof YawPitchRollProperty)
-         orientationEditorController.initialize(toolkit, toolkit.getYoCompositeSearchManager().getYoYawPitchRollCollection(), true);
+         orientationEditorController.initialize(toolkit, yoCompositeSearchManager.getYoYawPitchRollCollection(), true);
       else
-         orientationEditorController.initialize(toolkit, toolkit.getYoCompositeSearchManager().getYoQuaternionCollection(), true);
+         orientationEditorController.initialize(toolkit, yoCompositeSearchManager.getYoQuaternionCollection(), true);
       orientationEditorController.setCompositeName("Orientation");
 
-      YoCompositeSearchManager yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
       sizeEditorController.initialize(toolkit, yoCompositeSearchManager.getYoTuple3DCollection(), false);
       sizeEditorController.setCompositeName("Size");
 
-      yoMinimumMarginTextField = new YoDoubleTextField(minimumMarginTextField, yoCompositeSearchManager, minimumMarginValidImageView);
-      yoMaximumMarginTextField = new YoDoubleTextField(maximumMarginTextField, yoCompositeSearchManager, maximumMarginValidImageView);
+      LinkedYoRegistry linkedRootRegistry = toolkit.getYoManager().getLinkedRootRegistry();
+      yoMinimumMarginTextField = new YoDoubleTextField(minimumMarginTextField, yoCompositeSearchManager, linkedRootRegistry, minimumMarginValidImageView);
+      yoMaximumMarginTextField = new YoDoubleTextField(maximumMarginTextField, yoCompositeSearchManager, linkedRootRegistry, maximumMarginValidImageView);
 
       yoMinimumMarginTextField.setupAutoCompletion();
       yoMaximumMarginTextField.setupAutoCompletion();

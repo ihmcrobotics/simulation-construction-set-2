@@ -23,6 +23,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXResourceManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoPointFX3D;
+import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 
 public class YoPointFX3DEditorController implements YoGraphicFXCreatorController<YoPointFX3D>
 {
@@ -57,10 +58,11 @@ public class YoPointFX3DEditorController implements YoGraphicFXCreatorController
       definitionBeforeEdits = YoGraphicTools.toYoGraphicPoint3DDefinition(yoGraphicToEdit);
       yoGraphicToEdit.visibleProperty().addListener((observable, oldValue, newValue) -> definitionBeforeEdits.setVisible(newValue));
       YoCompositeSearchManager yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
+      LinkedYoRegistry linkedRootRegistry = toolkit.getYoManager().getLinkedRootRegistry();
 
       positionEditorController.initialize(toolkit, yoCompositeSearchManager.getYoTuple3DCollection(), true);
       positionEditorController.setCompositeName("Position");
-      yoSizeTextField = new YoDoubleTextField(sizeTextField, yoCompositeSearchManager, sizeValidImageView);
+      yoSizeTextField = new YoDoubleTextField(sizeTextField, yoCompositeSearchManager, linkedRootRegistry, sizeValidImageView);
 
       yoSizeTextField.setupAutoCompletion();
 

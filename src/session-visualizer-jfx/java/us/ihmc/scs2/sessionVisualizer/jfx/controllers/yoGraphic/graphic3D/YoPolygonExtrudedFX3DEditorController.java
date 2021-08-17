@@ -25,6 +25,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple2DProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YawPitchRollProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoPolygonExtrudedFX3D;
+import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 
 public class YoPolygonExtrudedFX3DEditorController implements YoGraphicFXCreatorController<YoPolygonExtrudedFX3D>
 {
@@ -58,19 +59,20 @@ public class YoPolygonExtrudedFX3DEditorController implements YoGraphicFXCreator
       this.yoGraphicToEdit = yoGraphicToEdit;
       definitionBeforeEdits = YoGraphicTools.toYoGraphicPolygonExtruded3DDefinition(yoGraphicToEdit);
       yoGraphicToEdit.visibleProperty().addListener((observable, oldValue, newValue) -> definitionBeforeEdits.setVisible(newValue));
+      YoCompositeSearchManager yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
+      LinkedYoRegistry linkedRootRegistry = toolkit.getYoManager().getLinkedRootRegistry();
 
-      positionEditorController.initialize(toolkit, toolkit.getYoCompositeSearchManager().getYoTuple3DCollection(), true);
+      positionEditorController.initialize(toolkit, yoCompositeSearchManager.getYoTuple3DCollection(), true);
       positionEditorController.setCompositeName("Position");
       if (yoGraphicToEdit.getOrientation() != null && yoGraphicToEdit.getOrientation() instanceof YawPitchRollProperty)
-         orientationEditorController.initialize(toolkit, toolkit.getYoCompositeSearchManager().getYoYawPitchRollCollection(), true);
+         orientationEditorController.initialize(toolkit, yoCompositeSearchManager.getYoYawPitchRollCollection(), true);
       else
-         orientationEditorController.initialize(toolkit, toolkit.getYoCompositeSearchManager().getYoQuaternionCollection(), true);
+         orientationEditorController.initialize(toolkit, yoCompositeSearchManager.getYoQuaternionCollection(), true);
       orientationEditorController.setCompositeName("Orientation");
 
-      YoCompositeSearchManager yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
       vertexListEditorController.initialize(toolkit, yoCompositeSearchManager.getYoTuple2DCollection(), false);
       vertexListEditorController.setCompositeName("Vertex", "Vertices");
-      yoThicknessTextField = new YoDoubleTextField(thicknessTextField, yoCompositeSearchManager, thicknessValidImageView);
+      yoThicknessTextField = new YoDoubleTextField(thicknessTextField, yoCompositeSearchManager, linkedRootRegistry, thicknessValidImageView);
 
       yoThicknessTextField.setupAutoCompletion();
 

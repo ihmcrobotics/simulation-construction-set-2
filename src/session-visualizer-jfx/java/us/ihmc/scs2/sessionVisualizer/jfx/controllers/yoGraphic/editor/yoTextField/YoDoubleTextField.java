@@ -18,20 +18,23 @@ import us.ihmc.scs2.sessionVisualizer.jfx.tools.CompositePropertyTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeCollection;
+import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 
 public class YoDoubleTextField extends YoVariableTextField<DoubleProperty>
 {
    private final YoCompositeCollection yoVariableCollection;
+   private final LinkedYoRegistry linkedRootRegistry;
 
-   public YoDoubleTextField(TextField textField, YoCompositeSearchManager searchManager)
+   public YoDoubleTextField(TextField textField, YoCompositeSearchManager searchManager, LinkedYoRegistry linkedRootRegistry)
    {
-      this(textField, searchManager, null);
+      this(textField, searchManager, linkedRootRegistry, null);
    }
 
-   public YoDoubleTextField(TextField textField, YoCompositeSearchManager searchManager, ImageView validImageView)
+   public YoDoubleTextField(TextField textField, YoCompositeSearchManager searchManager, LinkedYoRegistry linkedRootRegistry, ImageView validImageView)
    {
       super(textField, validImageView);
+      this.linkedRootRegistry = linkedRootRegistry;
       yoVariableCollection = searchManager.getYoVariableCollection();
    }
 
@@ -79,9 +82,15 @@ public class YoDoubleTextField extends YoVariableTextField<DoubleProperty>
    {
       YoComposite yoComposite = yoVariableCollection.getYoCompositeFromUniqueName(text);
       if (yoComposite == null)
+      {
          return new SimpleDoubleProperty(Double.parseDouble(text));
+      }
       else
-         return new YoDoubleProperty((YoDouble) yoComposite.getYoComponents().get(0));
+      {
+         YoDoubleProperty yoDoubleProperty = new YoDoubleProperty((YoDouble) yoComposite.getYoComponents().get(0));
+         yoDoubleProperty.setLinkedBuffer(linkedRootRegistry.linkYoVariable(yoDoubleProperty.getYoVariable()));
+         return yoDoubleProperty;
+      }
    }
 
    @Override

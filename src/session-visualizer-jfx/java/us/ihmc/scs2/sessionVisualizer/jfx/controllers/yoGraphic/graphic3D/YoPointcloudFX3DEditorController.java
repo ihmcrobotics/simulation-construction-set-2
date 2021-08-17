@@ -28,6 +28,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple3DProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXResourceManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoPointcloudFX3D;
+import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 
 public class YoPointcloudFX3DEditorController implements YoGraphicFXCreatorController<YoPointcloudFX3D>
 {
@@ -65,7 +66,8 @@ public class YoPointcloudFX3DEditorController implements YoGraphicFXCreatorContr
       YoCompositeSearchManager yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
       pointListEditorController.initialize(toolkit, yoCompositeSearchManager.getYoTuple3DCollection(), true);
       pointListEditorController.setCompositeName("Point");
-      yoSizeTextField = new YoDoubleTextField(sizeTextField, yoCompositeSearchManager, sizeValidImageView);
+      LinkedYoRegistry linkedRootRegistry = toolkit.getYoManager().getLinkedRootRegistry();
+      yoSizeTextField = new YoDoubleTextField(sizeTextField, yoCompositeSearchManager, linkedRootRegistry, sizeValidImageView);
 
       YoGraphicFXResourceManager yoGraphicFXResourceManager = toolkit.getYoGraphicFXManager().getYoGraphicFXResourceManager();
       graphicComboBox.setItems(FXCollections.observableArrayList(yoGraphicFXResourceManager.getGraphic3DNameList()));

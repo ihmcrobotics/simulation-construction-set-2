@@ -22,6 +22,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoPolynomialFX3D;
+import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 
 public class YoPolynomialFX3DEditorController implements YoGraphicFXCreatorController<YoPolynomialFX3D>
 {
@@ -60,15 +61,16 @@ public class YoPolynomialFX3DEditorController implements YoGraphicFXCreatorContr
       yoGraphicToEdit.visibleProperty().addListener((observable, oldValue, newValue) -> definitionBeforeEdits.setVisible(newValue));
 
       YoCompositeSearchManager yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
+      LinkedYoRegistry linkedRootRegistry = toolkit.getYoManager().getLinkedRootRegistry();
       coefficientsXListEditorController.initialize(toolkit, yoCompositeSearchManager.getYoDoubleCollection(), false);
       coefficientsXListEditorController.setCompositeName("Coefficient X", "Coefficients X");
       coefficientsYListEditorController.initialize(toolkit, yoCompositeSearchManager.getYoDoubleCollection(), false);
       coefficientsYListEditorController.setCompositeName("Coefficient Y", "Coefficients Y ");
       coefficientsZListEditorController.initialize(toolkit, yoCompositeSearchManager.getYoDoubleCollection(), false);
       coefficientsZListEditorController.setCompositeName("Coefficient Z", "Coefficients Z");
-      yoStartTimeTextField = new YoDoubleTextField(startTimeTextField, yoCompositeSearchManager, startTimeValidImageView);
-      yoEndTimeTextField = new YoDoubleTextField(endTimeTextField, yoCompositeSearchManager, endTimeValidImageView);
-      yoSizeTextField = new YoDoubleTextField(sizeTextField, yoCompositeSearchManager, sizeValidImageView);
+      yoStartTimeTextField = new YoDoubleTextField(startTimeTextField, yoCompositeSearchManager, linkedRootRegistry, startTimeValidImageView);
+      yoEndTimeTextField = new YoDoubleTextField(endTimeTextField, yoCompositeSearchManager, linkedRootRegistry, endTimeValidImageView);
+      yoSizeTextField = new YoDoubleTextField(sizeTextField, yoCompositeSearchManager, linkedRootRegistry, sizeValidImageView);
 
       styleEditorController.initialize(toolkit);
       nameEditorController.initialize(toolkit, yoGraphicToEdit);

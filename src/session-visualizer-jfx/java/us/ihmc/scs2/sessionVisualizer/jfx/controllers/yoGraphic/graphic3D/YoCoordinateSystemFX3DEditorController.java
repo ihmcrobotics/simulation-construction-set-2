@@ -21,6 +21,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YawPitchRollProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoCoordinateSystemFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
+import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 
 public class YoCoordinateSystemFX3DEditorController implements YoGraphicFXCreatorController<YoCoordinateSystemFX3D>
 {
@@ -61,18 +62,19 @@ public class YoCoordinateSystemFX3DEditorController implements YoGraphicFXCreato
       definitionBeforeEdits = YoGraphicTools.toYoGraphicCoordinateSystem3DDefinition(yoGraphicToEdit);
       yoGraphicToEdit.visibleProperty().addListener((observable, oldValue, newValue) -> definitionBeforeEdits.setVisible(newValue));
       yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
+      LinkedYoRegistry linkedRootRegistry = toolkit.getYoManager().getLinkedRootRegistry();
 
       positionEditorController.initialize(toolkit, toolkit.getYoCompositeSearchManager().getYoTuple3DCollection(), true);
       positionEditorController.setCompositeName("Position");
       if (yoGraphicToEdit.getOrientation() != null && yoGraphicToEdit.getOrientation() instanceof YawPitchRollProperty)
-         orientationEditorController.initialize(toolkit, toolkit.getYoCompositeSearchManager().getYoYawPitchRollCollection(), true);
+         orientationEditorController.initialize(toolkit, yoCompositeSearchManager.getYoYawPitchRollCollection(), true);
       else
-         orientationEditorController.initialize(toolkit, toolkit.getYoCompositeSearchManager().getYoQuaternionCollection(), true);
+         orientationEditorController.initialize(toolkit, yoCompositeSearchManager.getYoQuaternionCollection(), true);
       orientationEditorController.setCompositeName("Orientation");
-      yoBodyLengthTextField = new YoDoubleTextField(bodyLengthTextField, yoCompositeSearchManager, bodyLengthValidImageView);
-      yoHeadLengthTextField = new YoDoubleTextField(headLengthTextField, yoCompositeSearchManager, headLengthValidImageView);
-      yoBodyRadiusTextField = new YoDoubleTextField(bodyRadiusTextField, yoCompositeSearchManager, bodyRadiusValidImageView);
-      yoHeadRadiusTextField = new YoDoubleTextField(headRadiusTextField, yoCompositeSearchManager, headRadiusValidImageView);
+      yoBodyLengthTextField = new YoDoubleTextField(bodyLengthTextField, yoCompositeSearchManager, linkedRootRegistry, bodyLengthValidImageView);
+      yoHeadLengthTextField = new YoDoubleTextField(headLengthTextField, yoCompositeSearchManager, linkedRootRegistry, headLengthValidImageView);
+      yoBodyRadiusTextField = new YoDoubleTextField(bodyRadiusTextField, yoCompositeSearchManager, linkedRootRegistry, bodyRadiusValidImageView);
+      yoHeadRadiusTextField = new YoDoubleTextField(headRadiusTextField, yoCompositeSearchManager, linkedRootRegistry, headRadiusValidImageView);
 
       yoBodyLengthTextField.setupAutoCompletion();
       yoBodyRadiusTextField.setupAutoCompletion();

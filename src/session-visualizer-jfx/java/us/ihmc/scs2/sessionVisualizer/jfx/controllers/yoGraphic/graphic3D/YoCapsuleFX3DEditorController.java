@@ -20,6 +20,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoCapsuleFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
+import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 
 public class YoCapsuleFX3DEditorController implements YoGraphicFXCreatorController<YoCapsuleFX3D>
 {
@@ -54,13 +55,14 @@ public class YoCapsuleFX3DEditorController implements YoGraphicFXCreatorControll
       definitionBeforeEdits = YoGraphicTools.toYoGraphicCapsule3DDefinition(yoGraphicToEdit);
       yoGraphicToEdit.visibleProperty().addListener((observable, oldValue, newValue) -> definitionBeforeEdits.setVisible(newValue));
       yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
+      LinkedYoRegistry linkedRootRegistry = toolkit.getYoManager().getLinkedRootRegistry();
 
-      centerEditorController.initialize(toolkit, toolkit.getYoCompositeSearchManager().getYoTuple3DCollection(), true);
+      centerEditorController.initialize(toolkit, yoCompositeSearchManager.getYoTuple3DCollection(), true);
       centerEditorController.setCompositeName("Center");
-      axisEditorController.initialize(toolkit, toolkit.getYoCompositeSearchManager().getYoTuple3DCollection(), true);
+      axisEditorController.initialize(toolkit, yoCompositeSearchManager.getYoTuple3DCollection(), true);
       axisEditorController.setCompositeName("Axis");
-      yoLengthTextField = new YoDoubleTextField(lengthTextField, yoCompositeSearchManager, lengthValidImageView);
-      yoRadiusTextField = new YoDoubleTextField(radiusTextField, yoCompositeSearchManager, radiusValidImageView);
+      yoLengthTextField = new YoDoubleTextField(lengthTextField, yoCompositeSearchManager, linkedRootRegistry, lengthValidImageView);
+      yoRadiusTextField = new YoDoubleTextField(radiusTextField, yoCompositeSearchManager, linkedRootRegistry, radiusValidImageView);
 
       yoLengthTextField.setupAutoCompletion();
       yoRadiusTextField.setupAutoCompletion();
