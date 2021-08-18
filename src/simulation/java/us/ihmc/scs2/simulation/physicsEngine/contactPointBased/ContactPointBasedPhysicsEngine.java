@@ -124,6 +124,11 @@ public class ContactPointBasedPhysicsEngine implements PhysicsEngine
       }
    }
 
+   public void setGroundContactParameters(ContactPointBasedContactParametersReadOnly parameters)
+   {
+      forceCalculator.setParameters(parameters);
+   }
+
    @Override
    public Robot addRobot(RobotDefinition robotDefinition)
    {

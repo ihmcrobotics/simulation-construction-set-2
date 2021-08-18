@@ -11,6 +11,22 @@ public class ContactPointBasedContactParameters implements ContactPointBasedCont
    private double alphaStick;
    private boolean enableSlip;
 
+   public static ContactPointBasedContactParameters defaultParameters()
+   {
+      ContactPointBasedContactParameters parameters = new ContactPointBasedContactParameters();
+
+      parameters.setKxy(16000.0);//1422.0);
+      parameters.setBxy(650.0);//15.6);
+      parameters.setKz(650.0);//125.0);
+      parameters.setBz(500.0);//300.0);
+      parameters.setStiffeningLength(0.008);
+      parameters.setAlphaSlip(0.7);
+      parameters.setAlphaStick(0.7);
+      parameters.setEnableSlip(false);
+
+      return parameters;
+   }
+
    @Override
    public void setKxy(double kxy)
    {

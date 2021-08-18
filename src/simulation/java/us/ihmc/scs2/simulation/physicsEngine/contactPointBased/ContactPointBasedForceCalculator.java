@@ -11,48 +11,33 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.simulation.collision.Collidable;
 import us.ihmc.scs2.simulation.collision.CollidableHolder;
+import us.ihmc.scs2.simulation.parameters.ContactPointBasedContactParameters;
+import us.ihmc.scs2.simulation.parameters.ContactPointBasedContactParametersReadOnly;
+import us.ihmc.scs2.simulation.parameters.YoContactPointBasedContactParameters;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
 import us.ihmc.scs2.simulation.robot.trackers.GroundContactPoint;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePose3D;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePoseUsingYawPitchRoll;
 import us.ihmc.yoVariables.registry.YoRegistry;
-import us.ihmc.yoVariables.variable.YoBoolean;
-import us.ihmc.yoVariables.variable.YoDouble;
 
 public class ContactPointBasedForceCalculator
 {
-   private static final double DEFAULT_K_XY = 1422, DEFAULT_B_XY = 15.6, DEFAULT_K_Z = 125, DEFAULT_B_Z = 300;
-   private static final double DEFAULT_STIFFENING_LENGTH = 0.008;
-   private static final double DEFAULT_ALPHA_SLIP = 0.7;
-   private static final double DEFAULT_ALPHA_STICK = 0.7;
-
    private final YoRegistry registry = new YoRegistry(getClass().getSimpleName());
-   private final YoDouble groundKxy = new YoDouble("groundKxy", "LinearStickSlipGroundContactModel x and y spring constant", registry);
-   private final YoDouble groundBxy = new YoDouble("groundBxy", "LinearStickSlipGroundContactModel x and y damping constant", registry);
-   private final YoDouble groundKz = new YoDouble("groundKz", "LinearStickSlipGroundContactModel z spring constant", registry);
-   private final YoDouble groundBz = new YoDouble("groundBz", "LinearStickSlipGroundContactModel z damping constant", registry);
-   private final YoDouble groundStiffeningLength = new YoDouble("groundStiffeningLength",
-                                                                "LinearStickSlipGroundContactModel z spring nominal stiffening length",
-                                                                registry);
-   private final YoDouble groundAlphaSlip = new YoDouble("groundAlphaSlip", "LinearStickSlipGroundContactModel slip coefficient of friction", registry);
-   private final YoDouble groundAlphaStick = new YoDouble("groundAlphaStick", "LinearStickSlipGroundContactModel stick coefficient of friction", registry);
-
-   private final YoBoolean groundEnableSlip = new YoBoolean("groundEnableSlip", "LinearStickSlipGroundContactModel. If true can slip", registry);
+   private final YoContactPointBasedContactParameters parameters = new YoContactPointBasedContactParameters("ground", registry);
 
    private final ReferenceFrame inertialFrame;
 
    public ContactPointBasedForceCalculator(ReferenceFrame inertialFrame, YoRegistry parentRegistry)
    {
       this.inertialFrame = inertialFrame;
-      groundKxy.set(DEFAULT_K_XY);
-      groundBxy.set(DEFAULT_B_XY);
-      groundKz.set(DEFAULT_K_Z);
-      groundBz.set(DEFAULT_B_Z);
-      groundStiffeningLength.set(DEFAULT_STIFFENING_LENGTH);
-      groundAlphaSlip.set(DEFAULT_ALPHA_SLIP);
-      groundAlphaStick.set(DEFAULT_ALPHA_STICK);
+      parameters.set(ContactPointBasedContactParameters.defaultParameters());
 
       parentRegistry.addChild(registry);
+   }
+
+   public void setParameters(ContactPointBasedContactParametersReadOnly parameters)
+   {
+      this.parameters.set(parameters);
    }
 
    public void resolveContactForces(List<ContactPointBasedRobot> robots, CollidableHolder staticCollidableHolder)
@@ -152,26 +137,26 @@ public class ContactPointBasedForceCalculator
 
       forceParallel.setAndScale(xPrime, inPlaneVector1);
       forceParallel.scaleAdd(yPrime, inPlaneVector2, forceParallel);
-      forceParallel.scale(groundKxy.getDoubleValue());
+      forceParallel.scale(parameters.getKxy());
 
       forceNormal.set(contactNormal);
 
-      if (groundStiffeningLength.getDoubleValue() - zPrime > 0.002)
+      if (parameters.getStiffeningLength() - zPrime > 0.002)
       {
-         forceNormal.scale(groundKz.getDoubleValue() * zPrime / (groundStiffeningLength.getDoubleValue() - zPrime));
+         forceNormal.scale(parameters.getKz() * zPrime / (parameters.getStiffeningLength() - zPrime));
       }
       else
       {
-         forceNormal.scale(groundKz.getDoubleValue() * zPrime / 0.002);
+         forceNormal.scale(parameters.getKz() * zPrime / 0.002);
       }
 
       // Damping part
       xPrime = inPlaneVector1.dot(linearVelocityWorld);
       yPrime = inPlaneVector2.dot(linearVelocityWorld);
       zPrime = contactNormal.dot(linearVelocityWorld);
-      forceParallel.scaleAdd(-groundBxy.getDoubleValue() * xPrime, inPlaneVector1, forceParallel);
-      forceParallel.scaleAdd(-groundBxy.getDoubleValue() * yPrime, inPlaneVector2, forceParallel);
-      forceNormal.scaleAdd(-groundBz.getDoubleValue() * zPrime, contactNormal, forceNormal);
+      forceParallel.scaleAdd(-parameters.getBxy() * xPrime, inPlaneVector1, forceParallel);
+      forceParallel.scaleAdd(-parameters.getBxy() * yPrime, inPlaneVector2, forceParallel);
+      forceNormal.scaleAdd(-parameters.getBz() * zPrime, contactNormal, forceNormal);
 
       double magnitudeOfForceNormal = forceNormal.dot(contactNormal);
 
@@ -202,7 +187,7 @@ public class ContactPointBasedForceCalculator
 
    private void checkIfSlipping(GroundContactPoint gcp)
    {
-      if (!groundEnableSlip.getBooleanValue())
+      if (!parameters.isSlipEnabled())
       {
          gcp.getIsSlipping().set(false);
          return;
@@ -229,10 +214,10 @@ public class ContactPointBasedForceCalculator
       // perpendicular to the normal into the chasm..
       // +++JEP: 140626: Revisit the chasm thing later. For now take the heightAt check out...
       //    if ((gc.getZ() > heightAt - 0.010) && ((ratio > groundAlphaStick.getDoubleValue()) || ((gc.isSlipping()) && (ratio > groundAlphaSlip.getDoubleValue()))))
-      if (ratio > groundAlphaStick.getDoubleValue() || gcp.getIsSlipping().getValue() && ratio > groundAlphaSlip.getDoubleValue())
+      if (ratio > parameters.getAlphaStick() || gcp.getIsSlipping().getValue() && ratio > parameters.getAlphaSlip())
       {
          gcp.getIsSlipping().set(true);
-         double parallelSlipForce = groundAlphaSlip.getDoubleValue() * normalSpringForce;
+         double parallelSlipForce = parameters.getAlphaSlip() * normalSpringForce;
 
          double parallelScale = parallelSlipForce / parallelSpringForce;
          if (parallelScale < 1.0)
