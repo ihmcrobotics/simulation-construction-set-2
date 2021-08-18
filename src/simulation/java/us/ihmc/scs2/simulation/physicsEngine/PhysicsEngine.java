@@ -13,7 +13,7 @@ public interface PhysicsEngine
 {
    boolean initialize(Vector3DReadOnly gravity);
 
-   void simulate(double dt, Vector3DReadOnly gravity);
+   void simulate(double currentTime, double dt, Vector3DReadOnly gravity);
 
    Robot addRobot(RobotDefinition robotDefinition);
 

@@ -74,7 +74,6 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
    private final YoBoolean hasGlobalConstraintParameters;
    private final YoConstraintParameters globalConstraintParameters;
 
-   private final YoDouble time = new YoDouble("physicsTime", physicsEngineRegistry);
    private final YoTimer physicsEngineTotalTimer = new YoTimer("physicsEngineTotalTimer", TimeUnit.MILLISECONDS, physicsEngineRegistry);
    private final YoDouble physicsEngineRealTimeRate = new YoDouble("physicsEngineRealTimeRate", physicsEngineRegistry);
 
@@ -155,7 +154,7 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
    private final YoTimer finalPhaseTimer = new YoTimer("finalPhaseTimer", TimeUnit.MILLISECONDS, physicsEngineRegistry);
 
    @Override
-   public void simulate(double dt, Vector3DReadOnly gravity)
+   public void simulate(double currentTime, double dt, Vector3DReadOnly gravity)
    {
       if (initialize(gravity))
          return;
@@ -166,7 +165,7 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
       for (ImpulseBasedRobot robot : robotList)
       {
          robot.resetCalculators();
-         robot.getControllerManager().updateControllers(time.getValue());
+         robot.getControllerManager().updateControllers(currentTime);
          robot.updateCollidableBoundingBoxes();
       }
 
@@ -224,7 +223,7 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
 
       for (MultiContactImpulseCalculator impulseCalculator : impulseCalculators)
       {
-         impulseCalculator.computeImpulses(time.getValue(), dt, false);
+         impulseCalculator.computeImpulses(currentTime, dt, false);
          impulseCalculator.writeJointDeltaVelocities();
          impulseCalculator.writeImpulses();
       }
@@ -240,8 +239,6 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
          robot.updateFrames();
          robot.updateSensors();
       }
-
-      time.add(dt);
 
       finalPhaseTimer.stop();
       physicsEngineTotalTimer.stop();

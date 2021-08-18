@@ -82,7 +82,7 @@ public class SimulationSession extends Session
    protected void doSpecificRunTick()
    {
       double dt = Conversions.nanosecondsToSeconds(getSessionTickToTimeIncrement());
-      physicsEngine.simulate(dt, gravity);
+      physicsEngine.simulate(simulationTime.getValue(), dt, gravity);
       simulationTime.add(dt);
    }
 

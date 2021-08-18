@@ -13,15 +13,27 @@ import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
 import us.ihmc.scs2.simulation.collision.Collidable;
 import us.ihmc.scs2.simulation.collision.CollisionTools;
+import us.ihmc.scs2.simulation.parameters.ContactPointBasedContactParametersReadOnly;
 import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngine;
 import us.ihmc.scs2.simulation.robot.Robot;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
 import us.ihmc.scs2.simulation.robot.trackers.GroundContactPoint;
 import us.ihmc.yoVariables.registry.YoRegistry;
-import us.ihmc.yoVariables.variable.YoDouble;
 
 public class ContactPointBasedPhysicsEngine implements PhysicsEngine
 {
+   /**
+    * The maximum translational acceleration this joint may undergo before throwing an
+    * {@link UnreasonableAccelerationException UnreasonableAccelerationException}.
+    */
+   public static final double MAX_TRANS_ACCEL = 1000000000000.0;
+
+   /**
+    * The maximum rotational acceleration this joint may undergo before throwing an
+    * {@link UnreasonableAccelerationException UnreasonableAccelerationException}.
+    */
+   public static final double MAX_ROT_ACCEL = 10000000.0;
+
    private final ReferenceFrame inertialFrame;
 
    private final YoRegistry rootRegistry;
@@ -31,7 +43,6 @@ public class ContactPointBasedPhysicsEngine implements PhysicsEngine
    private final List<TerrainObjectDefinition> terrainObjectDefinitions = new ArrayList<>();
    private final List<Collidable> environmentCollidables = new ArrayList<>();
 
-   private final YoDouble time = new YoDouble("physicsTime", physicsEngineRegistry);
    private final ContactPointBasedForceCalculator forceCalculator;
 
    private boolean initialize = true;
@@ -48,79 +59,73 @@ public class ContactPointBasedPhysicsEngine implements PhysicsEngine
    @Override
    public boolean initialize(Vector3DReadOnly gravity)
    {
-      try
-      {
-         if (!initialize)
-            return false;
-
-         for (ContactPointBasedRobot robot : robotList)
-         {
-            robot.initializeState();
-            robot.resetCalculators();
-            // Fill out the joint accelerations so the accelerometers can get initialized.
-            robot.doForwardDynamics(gravity);
-            robot.updateSensors();
-            robot.getControllerManager().initializeControllers();
-         }
-         initialize = false;
-         return true;
-      }
-      catch (Exception e)
-      {
-         e.printStackTrace();
+      if (!initialize)
          return false;
+
+      for (ContactPointBasedRobot robot : robotList)
+      {
+         robot.initializeState();
+         robot.resetCalculators();
+         // Fill out the joint accelerations so the accelerometers can get initialized.
+         robot.doForwardDynamics(gravity);
+         robot.updateSensors();
+         robot.getControllerManager().initializeControllers();
       }
+      initialize = false;
+      return true;
    }
 
    private final Wrench tempWrench = new Wrench();
 
    @Override
-   public void simulate(double dt, Vector3DReadOnly gravity)
+   public void simulate(double currentTime, double dt, Vector3DReadOnly gravity)
    {
-      try
+      if (initialize(gravity))
+         return;
+
+      for (ContactPointBasedRobot robot : robotList)
       {
-         if (initialize(gravity))
-            return;
-
-         for (ContactPointBasedRobot robot : robotList)
-         {
-            robot.resetCalculators();
-            robot.getControllerManager().updateControllers(time.getValue());
-            robot.getControllerManager().writeControllerOutput(JointStateType.EFFORT);
-            robot.updateCollidableBoundingBoxes();
-         }
-
-         environmentCollidables.forEach(collidable -> collidable.updateBoundingBox(inertialFrame));
-         forceCalculator.resolveContactForces(robotList, () -> environmentCollidables);
-
-         for (ContactPointBasedRobot robot : robotList)
-         {
-            for (SimJointBasics joint : robot.getRootBody().childrenSubtreeIterable())
-            {
-               FixedFrameWrenchBasics externalWrench = robot.getForwardDynamicsCalculator().getExternalWrench(joint.getSuccessor());
-
-               for (GroundContactPoint gcp : joint.getAuxialiryData().getGroundContactPoints())
-               {
-                  tempWrench.setIncludingFrame(gcp.getWrench());
-                  tempWrench.changeFrame(externalWrench.getReferenceFrame());
-                  externalWrench.add(tempWrench);
-               }
-            }
-
-            robot.doForwardDynamics(gravity);
-         }
-
-         for (ContactPointBasedRobot robot : robotList)
-         {
-            robot.writeJointAccelerations();
-            robot.integrateState(dt);
-            robot.updateFrames();
-            robot.updateSensors();
-         }
+         robot.resetCalculators();
+         robot.getControllerManager().updateControllers(currentTime);
+         robot.getControllerManager().writeControllerOutput(JointStateType.EFFORT);
+         robot.updateCollidableBoundingBoxes();
       }
-      catch (Exception e)
+
+      environmentCollidables.forEach(collidable -> collidable.updateBoundingBox(inertialFrame));
+      forceCalculator.resolveContactForces(robotList, () -> environmentCollidables);
+
+      for (ContactPointBasedRobot robot : robotList)
       {
-         e.printStackTrace();
+         for (SimJointBasics joint : robot.getRootBody().childrenSubtreeIterable())
+         {
+            FixedFrameWrenchBasics externalWrench = robot.getForwardDynamicsCalculator().getExternalWrench(joint.getSuccessor());
+
+            for (GroundContactPoint gcp : joint.getAuxialiryData().getGroundContactPoints())
+            {
+               tempWrench.setIncludingFrame(gcp.getWrench());
+               tempWrench.changeFrame(externalWrench.getReferenceFrame());
+               externalWrench.add(tempWrench);
+            }
+         }
+
+         robot.doForwardDynamics(gravity);
+      }
+
+      for (ContactPointBasedRobot robot : robotList)
+      {
+         robot.writeJointAccelerations();
+
+         robot.getAllJoints().forEach(joint ->
+         {
+            if (joint.getJointTwist().getAngularPart().length() > MAX_ROT_ACCEL)
+               throw new IllegalStateException("Unreasonable acceleration for the joint " + joint);
+            if (joint.getJointTwist().getLinearPart().length() > MAX_TRANS_ACCEL)
+               throw new IllegalStateException("Unreasonable acceleration for the joint " + joint);
+         });
+
+         robot.integrateState(dt);
+         robot.updateFrames();
+         robot.updateSensors();
       }
    }
 
