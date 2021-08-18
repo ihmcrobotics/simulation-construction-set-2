@@ -5,6 +5,8 @@ import java.util.List;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.algorithms.ForwardDynamicsCalculator;
+import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyReadOnly;
+import us.ihmc.mecano.spatial.interfaces.WrenchReadOnly;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.simulation.collision.Collidable;
 import us.ihmc.scs2.simulation.collision.CollidableHolder;
@@ -37,6 +39,11 @@ public class ContactPointBasedRobot extends Robot implements CollidableHolder
    public void resetCalculators()
    {
       robotPhysics.resetCalculators();
+   }
+
+   public void addRigidBodyExternalWrench(RigidBodyReadOnly target, WrenchReadOnly wrenchToAdd)
+   {
+      robotPhysics.addRigidBodyExternalWrench(target, wrenchToAdd);
    }
 
    public void doForwardDynamics(Vector3DReadOnly gravity)

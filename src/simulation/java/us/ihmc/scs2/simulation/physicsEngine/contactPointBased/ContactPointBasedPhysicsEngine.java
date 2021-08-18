@@ -17,6 +17,7 @@ import us.ihmc.scs2.simulation.parameters.ContactPointBasedContactParametersRead
 import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngine;
 import us.ihmc.scs2.simulation.robot.Robot;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
 import us.ihmc.scs2.simulation.robot.trackers.GroundContactPoint;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
@@ -98,7 +99,8 @@ public class ContactPointBasedPhysicsEngine implements PhysicsEngine
       {
          for (SimJointBasics joint : robot.getRootBody().childrenSubtreeIterable())
          {
-            FixedFrameWrenchBasics externalWrench = robot.getForwardDynamicsCalculator().getExternalWrench(joint.getSuccessor());
+            SimRigidBodyBasics body = joint.getSuccessor();
+            FixedFrameWrenchBasics externalWrench = robot.getForwardDynamicsCalculator().getExternalWrench(body);
 
             for (GroundContactPoint gcp : joint.getAuxialiryData().getGroundContactPoints())
             {
@@ -106,6 +108,8 @@ public class ContactPointBasedPhysicsEngine implements PhysicsEngine
                tempWrench.changeFrame(externalWrench.getReferenceFrame());
                externalWrench.add(tempWrench);
             }
+
+            robot.addRigidBodyExternalWrench(body, externalWrench);
          }
 
          robot.doForwardDynamics(gravity);
