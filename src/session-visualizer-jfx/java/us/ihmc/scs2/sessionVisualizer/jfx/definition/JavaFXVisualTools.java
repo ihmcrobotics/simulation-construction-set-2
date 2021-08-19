@@ -704,15 +704,23 @@ public class JavaFXVisualTools
 
    public static Image toImage(TextureDefinition textureDefinition)
    {
-      if (textureDefinition == null)
+      try
+      {
+         if (textureDefinition == null)
+            return null;
+         if (textureDefinition.getImage() != null)
+            return SwingFXUtils.toFXImage(textureDefinition.getImage(), null);
+         if (textureDefinition.getFileURL() != null)
+            return new Image(textureDefinition.getFileURL().toExternalForm());
+         if (textureDefinition.getFilename() != null)
+            return new Image(textureDefinition.getFilename());
          return null;
-      if (textureDefinition.getImage() != null)
-         return SwingFXUtils.toFXImage(textureDefinition.getImage(), null);
-      if (textureDefinition.getFileURL() != null)
-         return new Image(textureDefinition.getFileURL().toExternalForm());
-      if (textureDefinition.getFilename() != null)
-         return new Image(textureDefinition.getFilename());
-      return null;
+      }
+      catch (Exception e)
+      {
+         e.printStackTrace();
+         return null;
+      }
    }
 
    public static Color toColor(ColorDefinition colorDefinition)
