@@ -14,7 +14,6 @@ import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
 import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngine;
 import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngineFactory;
-import us.ihmc.scs2.simulation.physicsEngine.impulseBased.ImpulseBasedPhysicsEngine;
 import us.ihmc.scs2.simulation.robot.Robot;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -47,7 +46,7 @@ public class SimulationSession extends Session
 
    public SimulationSession(ReferenceFrame inertialFrame, String simulationName)
    {
-      this(inertialFrame, simulationName, (frame, rootRegistry) -> new ImpulseBasedPhysicsEngine(frame, rootRegistry));
+      this(inertialFrame, simulationName, PhysicsEngineFactory.newImpulseBasedPhysicsEngineFactory());
    }
 
    public SimulationSession(String simulationName, PhysicsEngineFactory physicsEngineFactory)
