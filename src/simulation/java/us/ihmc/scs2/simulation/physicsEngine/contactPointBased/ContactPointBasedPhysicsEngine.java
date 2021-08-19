@@ -97,7 +97,7 @@ public class ContactPointBasedPhysicsEngine implements PhysicsEngine
 
       for (ContactPointBasedRobot robot : robotList)
       {
-         for (SimJointBasics joint : robot.getRootBody().childrenSubtreeIterable())
+         for (SimJointBasics joint : robot.getJointsToConsider())
          {
             SimRigidBodyBasics body = joint.getSuccessor();
             FixedFrameWrenchBasics externalWrench = robot.getForwardDynamicsCalculator().getExternalWrench(body);

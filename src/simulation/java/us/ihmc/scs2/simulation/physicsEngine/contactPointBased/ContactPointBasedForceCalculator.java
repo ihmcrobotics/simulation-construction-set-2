@@ -54,7 +54,7 @@ public class ContactPointBasedForceCalculator
 
    public void resolveContactForces(ContactPointBasedRobot robot, CollidableHolder staticCollidableHolder)
    {
-      for (SimJointBasics joint : robot.getRootBody().childrenSubtreeIterable())
+      for (SimJointBasics joint : robot.getJointsToConsider())
       {
          if (joint.getAuxialiryData().getGroundContactPoints().isEmpty())
             continue;
