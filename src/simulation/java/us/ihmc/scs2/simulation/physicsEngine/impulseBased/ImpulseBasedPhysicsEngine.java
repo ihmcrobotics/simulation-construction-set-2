@@ -172,6 +172,7 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
       for (ImpulseBasedRobot robot : robotList)
       {
          robot.getControllerManager().writeControllerOutput(JointStateType.EFFORT);
+         robot.getControllerManager().writeControllerOutputForJointsToIgnore(JointStateType.values());
          robot.doForwardDynamics(gravity);
       }
 

@@ -97,4 +97,26 @@ public class RobotControllerManager
          }
       }
    }
+
+   public void writeControllerOutputForJointsToIgnore(JointStateType... statesToWrite)
+   {
+      for (JointBasics joint : input.getJointsToIgnore())
+      {
+         JointStateBasics jointOutput = controllerOutput.getJointOutput(joint);
+
+         for (JointStateType stateToWrite : statesToWrite)
+         {
+            if (!jointOutput.hasOutputFor(stateToWrite))
+               continue;
+            if (stateToWrite == JointStateType.CONFIGURATION)
+               jointOutput.getConfiguration(joint);
+            else if (stateToWrite == JointStateType.VELOCITY)
+               jointOutput.getVelocity(joint);
+            else if (stateToWrite == JointStateType.ACCELERATION)
+               jointOutput.getAcceleration(joint);
+            else if (stateToWrite == JointStateType.EFFORT)
+               jointOutput.getEffort(joint);
+         }
+      }
+   }
 }
