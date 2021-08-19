@@ -40,10 +40,10 @@ import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
 import us.ihmc.scs2.definition.state.SixDoFJointState;
 import us.ihmc.scs2.simulation.parameters.ContactParameters;
-import us.ihmc.scs2.simulation.physicsEngine.MultiContactImpulseCalculator;
 import us.ihmc.scs2.simulation.physicsEngine.MultiRobotCollisionGroup;
-import us.ihmc.scs2.simulation.physicsEngine.SingleContactImpulseCalculator;
-import us.ihmc.scs2.simulation.robot.Robot;
+import us.ihmc.scs2.simulation.physicsEngine.impulseBased.ImpulseBasedRobot;
+import us.ihmc.scs2.simulation.physicsEngine.impulseBased.MultiContactImpulseCalculator;
+import us.ihmc.scs2.simulation.physicsEngine.impulseBased.SingleContactImpulseCalculator;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
 
 /**
@@ -69,10 +69,10 @@ public class MultiContactImpulseCalculatorTest
          double dt = EuclidCoreRandomTools.nextDouble(random, 1.0e-6, 1.0e-3);
          Vector3DReadOnly gravity = EuclidCoreRandomTools.nextVector3DWithFixedLength(random, EuclidCoreRandomTools.nextDouble(random, 0.0, 15.0));
 
-         Robot robotA = nextSingleFloatingBodyRobot(random, "blopA");
-         Robot robotB = nextSingleFloatingBodyRobot(random, "blopB");
-         robotA.getRobotPhysics().doForwardDynamics(gravity);
-         robotB.getRobotPhysics().doForwardDynamics(gravity);
+         ImpulseBasedRobot robotA = nextSingleFloatingBodyRobot(random, "blopA");
+         ImpulseBasedRobot robotB = nextSingleFloatingBodyRobot(random, "blopB");
+         robotA.doForwardDynamics(gravity);
+         robotB.doForwardDynamics(gravity);
          SimRigidBodyBasics rootA = robotA.getRootBody();
          SimRigidBodyBasics rootB = robotB.getRootBody();
          SimRigidBodyBasics bodyA = robotA.getRigidBody("blopABody");
@@ -86,13 +86,12 @@ public class MultiContactImpulseCalculatorTest
          collisionGroup.getGroupCollisions().add(bodyAToEnvironment);
          collisionGroup.getGroupCollisions().add(bodyAToBodyB);
 
-         Map<RigidBodyBasics, Robot> robotMap = new HashMap<>();
+         Map<RigidBodyBasics, ImpulseBasedRobot> robotMap = new HashMap<>();
          robotMap.put(rootA, robotA);
          robotMap.put(rootB, robotB);
          Map<RigidBodyBasics, ForwardDynamicsCalculator> robotForwardDynamicsCalculatorMap = robotMap.entrySet().stream()
                                                                                                      .collect(Collectors.toMap(Entry::getKey,
                                                                                                                                e -> e.getValue()
-                                                                                                                                     .getRobotPhysics()
                                                                                                                                      .getForwardDynamicsCalculator()));
 
          Map<CollisionResult, FrameVector3D> contactLinearVelocitiesNoImpulse = predictContactVelocity(dt,
@@ -283,9 +282,9 @@ public class MultiContactImpulseCalculatorTest
       return robotDefinition;
    }
 
-   static Robot nextSingleFloatingBodyRobot(Random random, String name)
+   static ImpulseBasedRobot nextSingleFloatingBodyRobot(Random random, String name)
    {
-      Robot robot = new Robot(nextSingleFloatingBodyRobotDefinition(random, name), worldFrame);
+      ImpulseBasedRobot robot = new ImpulseBasedRobot(nextSingleFloatingBodyRobotDefinition(random, name), worldFrame);
       robot.setupPhysicsAndControllers();
       robot.initializeState();
       return robot;

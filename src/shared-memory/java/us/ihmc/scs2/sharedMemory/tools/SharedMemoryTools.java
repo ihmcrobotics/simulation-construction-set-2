@@ -460,6 +460,10 @@ public class SharedMemoryTools
       {
          return null;
       }
+      else if (registryNamespace.equals(rootRegistry.getNamespace()))
+      {
+         return rootRegistry;
+      }
 
       List<String> subNames = registryNamespace.removeStart(rootRegistry.getNamespace()).getSubNames();
       YoRegistry currentRegistry = rootRegistry;

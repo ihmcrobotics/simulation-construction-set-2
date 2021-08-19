@@ -1,4 +1,4 @@
-package us.ihmc.scs2.simulation.physicsEngine;
+package us.ihmc.scs2.simulation.physicsEngine.impulseBased;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,6 +41,7 @@ import us.ihmc.scs2.simulation.collision.PhysicsEngineTools;
 import us.ihmc.scs2.simulation.parameters.ContactParameters;
 import us.ihmc.scs2.simulation.parameters.ContactParametersBasics;
 import us.ihmc.scs2.simulation.parameters.ContactParametersReadOnly;
+import us.ihmc.scs2.simulation.physicsEngine.JointStateProvider;
 
 /**
  * From <i>"Per-Contact Iteration Method for Solving Contact Dynamics"</i>

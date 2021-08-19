@@ -55,7 +55,7 @@ public class SimIMUSensor extends SimSensor
       bodyFixedPoint.setIncludingFrame(getOffset().getPosition());
       bodyFixedPoint.changeFrame(bodyFrame);
       accelerationProvider.getAccelerationOfBody(body).getLinearAccelerationAt(bodyFrame.getTwistOfFrame(), bodyFixedPoint, intermediateAcceleration);
-      if (dt != 0.0) // This can happen at initialization
+      if (dt != 0.0 && deltaTwistProvider != null) // This can happen at initialization
          intermediateAcceleration.scaleAdd(1.0 / dt, deltaTwistProvider.getLinearVelocityOfBodyFixedPoint(body, bodyFixedPoint), intermediateAcceleration);
       linearAcceleration.setMatchingFrame(intermediateAcceleration);
    }

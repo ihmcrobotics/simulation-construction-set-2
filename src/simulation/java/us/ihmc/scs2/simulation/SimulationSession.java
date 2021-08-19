@@ -13,6 +13,7 @@ import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
 import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngine;
+import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngineFactory;
 import us.ihmc.scs2.simulation.robot.Robot;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -33,17 +34,27 @@ public class SimulationSession extends Session
       this(retrieveCallerName());
    }
 
+   public SimulationSession(PhysicsEngineFactory physicsEngineFactory)
+   {
+      this(retrieveCallerName(), physicsEngineFactory);
+   }
+
    public SimulationSession(String simulationName)
    {
       this(DEFAULT_INERTIAL_FRAME, simulationName);
    }
 
-   public SimulationSession(ReferenceFrame inertialFrame)
+   public SimulationSession(ReferenceFrame inertialFrame, String simulationName)
    {
-      this(inertialFrame, retrieveCallerName());
+      this(inertialFrame, simulationName, PhysicsEngineFactory.newImpulseBasedPhysicsEngineFactory());
    }
 
-   public SimulationSession(ReferenceFrame inertialFrame, String simulationName)
+   public SimulationSession(String simulationName, PhysicsEngineFactory physicsEngineFactory)
+   {
+      this(DEFAULT_INERTIAL_FRAME, simulationName, physicsEngineFactory);
+   }
+
+   public SimulationSession(ReferenceFrame inertialFrame, String simulationName, PhysicsEngineFactory physicsEngineFactory)
    {
       if (!inertialFrame.isRootFrame())
          throw new IllegalArgumentException("The given inertialFrame is not a root frame: " + inertialFrame);
@@ -51,7 +62,7 @@ public class SimulationSession extends Session
       this.inertialFrame = inertialFrame;
       this.simulationName = simulationName;
 
-      physicsEngine = new PhysicsEngine(inertialFrame, rootRegistry);
+      physicsEngine = physicsEngineFactory.build(inertialFrame, rootRegistry);
 
       submitBufferSizeRequest(200000);
       setSessionTickToTimeIncrement(Conversions.secondsToNanoseconds(0.0001));
@@ -70,18 +81,13 @@ public class SimulationSession extends Session
    protected void doSpecificRunTick()
    {
       double dt = Conversions.nanosecondsToSeconds(getSessionTickToTimeIncrement());
-      physicsEngine.simulate(dt, gravity);
+      physicsEngine.simulate(simulationTime.getValue(), dt, gravity);
       simulationTime.add(dt);
    }
 
-   public void addRobot(RobotDefinition robotDefinition)
+   public Robot addRobot(RobotDefinition robotDefinition)
    {
-      physicsEngine.addRobot(robotDefinition);
-   }
-
-   public void addRobot(Robot robot)
-   {
-      physicsEngine.addRobot(robot);
+      return physicsEngine.addRobot(robotDefinition);
    }
 
    public void addTerrainObject(TerrainObjectDefinition terrainObjectDefinition)

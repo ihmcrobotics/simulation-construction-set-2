@@ -3,7 +3,6 @@ package us.ihmc.scs2.simulation.physicsEngine;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collector;
 
 import us.ihmc.euclid.referenceFrame.FrameVector3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -119,27 +118,5 @@ public class CombinedRigidBodyTwistProviders implements RigidBodyTwistProvider
    public ReferenceFrame getInertialFrame()
    {
       return inertialFrame;
-   }
-
-   public static Collector<RigidBodyTwistProvider, CombinedRigidBodyTwistProviders, CombinedRigidBodyTwistProviders> collect(ReferenceFrame inertialFrame)
-   {
-      return Collector.of(() -> new CombinedRigidBodyTwistProviders(inertialFrame), CombinedRigidBodyTwistProviders::add, (left, right) ->
-      {
-         left.addAll(right);
-         return left;
-      }, Collector.Characteristics.IDENTITY_FINISH);
-   }
-
-   public static Collector<ImpulseBasedConstraintCalculator, CombinedRigidBodyTwistProviders, CombinedRigidBodyTwistProviders> collectFromCalculator(ReferenceFrame inertialFrame)
-   {
-      return Collector.of(() -> new CombinedRigidBodyTwistProviders(inertialFrame), (providers, calculator) ->
-      {
-         for (int i = 0; i < calculator.getNumberOfRobotsInvolved(); i++)
-            providers.add(calculator.getRigidBodyTwistChangeProvider(i));
-      }, (left, right) ->
-      {
-         left.addAll(right);
-         return left;
-      }, Collector.Characteristics.IDENTITY_FINISH);
    }
 }

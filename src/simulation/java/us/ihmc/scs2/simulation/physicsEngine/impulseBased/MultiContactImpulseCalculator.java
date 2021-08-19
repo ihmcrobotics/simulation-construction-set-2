@@ -1,4 +1,4 @@
-package us.ihmc.scs2.simulation.physicsEngine;
+package us.ihmc.scs2.simulation.physicsEngine.impulseBased;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,8 +18,9 @@ import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.scs2.simulation.collision.CollisionResult;
 import us.ihmc.scs2.simulation.parameters.ConstraintParametersReadOnly;
 import us.ihmc.scs2.simulation.parameters.ContactParametersReadOnly;
-import us.ihmc.scs2.simulation.robot.Robot;
-import us.ihmc.scs2.simulation.robot.RobotPhysics;
+import us.ihmc.scs2.simulation.physicsEngine.CombinedJointStateProviders;
+import us.ihmc.scs2.simulation.physicsEngine.CombinedRigidBodyTwistProviders;
+import us.ihmc.scs2.simulation.physicsEngine.MultiRobotCollisionGroup;
 
 /**
  * Inspired from: <i>Per-Contact Iteration Method for Solving Contact Dynamics</i>
@@ -45,14 +46,14 @@ public class MultiContactImpulseCalculator
 
    private static boolean hasCalculatorFailedOnce = false;
 
-   private Map<RigidBodyBasics, Robot> robots;
+   private Map<RigidBodyBasics, ImpulseBasedRobot> robots;
 
    public MultiContactImpulseCalculator(ReferenceFrame rootFrame)
    {
       this.rootFrame = rootFrame;
    }
 
-   public void configure(Map<RigidBodyBasics, Robot> robots, MultiRobotCollisionGroup collisionGroup)
+   public void configure(Map<RigidBodyBasics, ImpulseBasedRobot> robots, MultiRobotCollisionGroup collisionGroup)
    {
       this.robots = robots;
 
@@ -63,8 +64,8 @@ public class MultiContactImpulseCalculator
 
       for (RigidBodyBasics rootBody : collisionGroup.getRootBodies())
       {
-         Robot robot = robots.get(rootBody);
-         jointLimitCalculators.add(robot.getRobotPhysics().getJointLimitConstraintCalculator());
+         ImpulseBasedRobot robot = robots.get(rootBody);
+         jointLimitCalculators.add(robot.getJointLimitConstraintCalculator());
       }
 
       for (int i = 0; i < collisionGroup.getNumberOfCollisions(); i++)
@@ -77,11 +78,11 @@ public class MultiContactImpulseCalculator
 
          if (rootB == null)
          {
-            calculator = robots.get(rootA).getRobotPhysics().getOrCreateEnvironmentContactConstraintCalculator();
+            calculator = robots.get(rootA).getOrCreateEnvironmentContactConstraintCalculator();
          }
          else
          {
-            calculator = robots.get(rootA).getRobotPhysics().getOrCreateInterRobotContactConstraintCalculator(robots.get(rootB));
+            calculator = robots.get(rootA).getOrCreateInterRobotContactConstraintCalculator(robots.get(rootB));
          }
 
          calculator.setCollision(collisionResult);
@@ -289,8 +290,7 @@ public class MultiContactImpulseCalculator
          for (int i = 0; i < calculator.getNumberOfRobotsInvolved(); i++)
          {
             RigidBodyBasics rootBody = calculator.getRootBody(i);
-            RobotPhysics robotPhysics = robots.get(rootBody).getRobotPhysics();
-            robotPhysics.addJointVelocityChange(calculator.getJointVelocityChange(i));
+            robots.get(rootBody).addJointVelocityChange(calculator.getJointVelocityChange(i));
          }
       }
    }
@@ -305,8 +305,7 @@ public class MultiContactImpulseCalculator
          for (int i = 0; i < calculator.getNumberOfRobotsInvolved(); i++)
          {
             RigidBodyBasics rootBody = calculator.getRootBody(i);
-            RobotPhysics robotPhysics = robots.get(rootBody).getRobotPhysics();
-            robotPhysics.addRigidBodyExternalImpulse(calculator.getRigidBodyTargets().get(i), calculator.getImpulse(i));
+            robots.get(rootBody).addRigidBodyExternalImpulse(calculator.getRigidBodyTargets().get(i), calculator.getImpulse(i));
          }
       }
    }

@@ -1,6 +1,9 @@
 package us.ihmc.scs2.simulation.robot.sensors;
 
+import java.util.function.Function;
+
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
+import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyReadOnly;
 import us.ihmc.mecano.spatial.Wrench;
 import us.ihmc.mecano.spatial.interfaces.SpatialImpulseReadOnly;
 import us.ihmc.mecano.spatial.interfaces.WrenchReadOnly;
@@ -39,9 +42,12 @@ public class SimWrenchSensor extends SimSensor
       super.update(robotPhysicsOutput);
 
       SimRigidBodyBasics body = getParentJoint().getSuccessor();
+      Function<RigidBodyReadOnly, WrenchReadOnly> externalWrenchProvider = robotPhysicsOutput.getExternalWrenchProvider();
+      Function<RigidBodyReadOnly, SpatialImpulseReadOnly> externalImpulseProvider = robotPhysicsOutput.getExternalImpulseProvider();
+
       double dt = robotPhysicsOutput.getDT();
-      WrenchReadOnly externalWrench = robotPhysicsOutput.getExternalWrenchProvider().apply(body);
-      SpatialImpulseReadOnly externalImpulse = robotPhysicsOutput.getExternalImpulseProvider().apply(body);
+      WrenchReadOnly externalWrench = externalWrenchProvider == null ? null : externalWrenchProvider.apply(body);
+      SpatialImpulseReadOnly externalImpulse = externalImpulseProvider == null ? null : externalImpulseProvider.apply(body);
 
       if (externalImpulse != null)
       {

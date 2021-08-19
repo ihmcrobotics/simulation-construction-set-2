@@ -43,6 +43,16 @@ public class RobotDefinition
       nameOfJointsToIgnore.add(nameOfJointToIgnore);
    }
 
+   public void addSubtreeJointsToIgnore(String nameOfLastJointToConsider)
+   {
+      List<JointDefinition> definitionOfJointsToIgnore = collectSubtreeJointDefinitions(getJointDefinition(nameOfLastJointToConsider).getSuccessor());
+
+      for (JointDefinition jointDefinition : definitionOfJointsToIgnore)
+      {
+         nameOfJointsToIgnore.add(jointDefinition.getName());
+      }
+   }
+
    public void addControllerDefinition(ControllerDefinition controllerDefinition)
    {
       controllerDefinitions.add(controllerDefinition);

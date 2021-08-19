@@ -1,10 +1,10 @@
-package us.ihmc.scs2.simulation.physicsEngine;
+package us.ihmc.scs2.simulation.physicsEngine.impulseBased;
 
 import java.util.Map;
 
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
-import us.ihmc.scs2.simulation.robot.Robot;
+import us.ihmc.scs2.simulation.physicsEngine.MultiRobotCollisionGroup;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoInteger;
@@ -74,7 +74,7 @@ public class YoMultiContactImpulseCalculator extends MultiContactImpulseCalculat
    }
 
    @Override
-   public void configure(Map<RigidBodyBasics, Robot> robots, MultiRobotCollisionGroup collisionGroup)
+   public void configure(Map<RigidBodyBasics, ImpulseBasedRobot> robots, MultiRobotCollisionGroup collisionGroup)
    {
       super.configure(robots, collisionGroup);
 

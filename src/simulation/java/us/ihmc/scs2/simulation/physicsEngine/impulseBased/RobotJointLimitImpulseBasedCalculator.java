@@ -1,4 +1,4 @@
-package us.ihmc.scs2.simulation.physicsEngine;
+package us.ihmc.scs2.simulation.physicsEngine.impulseBased;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,6 +19,7 @@ import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.scs2.simulation.parameters.ConstraintParameters;
 import us.ihmc.scs2.simulation.parameters.ConstraintParametersBasics;
 import us.ihmc.scs2.simulation.parameters.ConstraintParametersReadOnly;
+import us.ihmc.scs2.simulation.physicsEngine.JointStateProvider;
 
 public class RobotJointLimitImpulseBasedCalculator implements ImpulseBasedConstraintCalculator
 {
