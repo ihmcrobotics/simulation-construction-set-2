@@ -182,20 +182,20 @@ public class YoRegistryBufferTest
          YoRegistry[] allRegistries = SharedMemoryRandomTools.nextYoRegistryTree(random, 5, 5);
          YoRegistry rootRegistry = allRegistries[0];
          YoBufferProperties bufferProperties = SharedMemoryRandomTools.nextYoBufferProperties(random);
-         YoRegistryBuffer YoRegistryBuffer = new YoRegistryBuffer(rootRegistry, bufferProperties);
+         YoRegistryBuffer yoRegistryBuffer = new YoRegistryBuffer(rootRegistry, bufferProperties);
 
          // Create a mirror of the registries
          YoRegistry rootMirrorRegistry = new YoRegistry(rootRegistry.getName());
          SharedMemoryTools.duplicateMissingYoVariablesInTarget(rootRegistry, rootMirrorRegistry);
 
          // Add a YoVariable to one of the existing registries
-         YoRegistry YoRegistry = rootMirrorRegistry.collectSubtreeRegistries().get(random.nextInt(allRegistries.length - 1));
-         YoVariable newYoVariable = SharedMemoryRandomTools.nextYoVariable(random, YoRegistry);
-         assertNull(YoRegistryBuffer.findYoVariableBuffer(newYoVariable));
+         YoRegistry yoRegistry = rootMirrorRegistry.collectSubtreeRegistries().get(random.nextInt(allRegistries.length - 1));
+         YoVariable newYoVariable = SharedMemoryRandomTools.nextYoVariable(random, yoRegistry);
+         assertNull(yoRegistryBuffer.findYoVariableBuffer(newYoVariable));
          assertNull(rootRegistry.findVariable(newYoVariable.getFullNameString()));
-         YoVariableBuffer<?> newBuffer = YoRegistryBuffer.findOrCreateYoVariableBuffer(newYoVariable);
+         YoVariableBuffer<?> newBuffer = yoRegistryBuffer.findOrCreateYoVariableBuffer(newYoVariable);
          assertEquals(newYoVariable.getFullNameString(), newBuffer.getYoVariable().getFullNameString());
-         assertNotNull(YoRegistryBuffer.findYoVariableBuffer(newYoVariable));
+         assertNotNull(yoRegistryBuffer.findYoVariableBuffer(newYoVariable));
          assertNotNull(rootRegistry.findVariable(newYoVariable.getFullNameString()));
          assertEquals(newYoVariable.getClass(), rootRegistry.findVariable(newYoVariable.getFullNameString()).getClass());
 
@@ -204,18 +204,18 @@ public class YoRegistryBufferTest
 
          for (int j = 0; j < random.nextInt(10) + 1; j++)
          {
-            YoRegistry newChild = new YoRegistry(SharedMemoryRandomTools.nextAvailableRegistryName(random, 10, 20, YoRegistry));
-            YoRegistry.addChild(newChild);
+            YoRegistry newChild = new YoRegistry(SharedMemoryRandomTools.nextAvailableRegistryName(random, 10, 20, yoRegistry));
+            yoRegistry.addChild(newChild);
             newRegistries.add(newChild);
-            YoRegistry = newChild;
+            yoRegistry = newChild;
          }
 
-         newYoVariable = SharedMemoryRandomTools.nextYoVariable(random, YoRegistry);
-         assertNull(YoRegistryBuffer.findYoVariableBuffer(newYoVariable));
+         newYoVariable = SharedMemoryRandomTools.nextYoVariable(random, yoRegistry);
+         assertNull(yoRegistryBuffer.findYoVariableBuffer(newYoVariable));
          assertNull(rootRegistry.findVariable(newYoVariable.getFullNameString()));
-         newBuffer = YoRegistryBuffer.findOrCreateYoVariableBuffer(newYoVariable);
+         newBuffer = yoRegistryBuffer.findOrCreateYoVariableBuffer(newYoVariable);
          assertEquals(newYoVariable.getFullNameString(), newBuffer.getYoVariable().getFullNameString());
-         assertNotNull(YoRegistryBuffer.findYoVariableBuffer(newYoVariable));
+         assertNotNull(yoRegistryBuffer.findYoVariableBuffer(newYoVariable));
          assertNotNull(rootRegistry.findVariable(newYoVariable.getFullNameString()));
          assertEquals(newYoVariable.getClass(), rootRegistry.findVariable(newYoVariable.getFullNameString()).getClass());
          newRegistries.forEach(newRegistry -> assertNotNull(rootRegistry.findRegistry(newRegistry.getNamespace())));
