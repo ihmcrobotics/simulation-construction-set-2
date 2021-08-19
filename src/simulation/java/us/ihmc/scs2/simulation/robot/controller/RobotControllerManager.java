@@ -17,7 +17,7 @@ public class RobotControllerManager
    private final YoRegistry registry;
    private final SimControllerInput controllerInput;
    private final ControllerOutput controllerOutput;
-   private List<Controller> controllers = new ArrayList<>();
+   private final List<Controller> controllers = new ArrayList<>();
    private final SimMultiBodySystemBasics input;
 
    public RobotControllerManager(SimMultiBodySystemBasics input, YoRegistry registry)

@@ -12,25 +12,20 @@ import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.scs2.simulation.collision.Collidable;
 import us.ihmc.scs2.simulation.collision.FrameShapePosePredictor;
-import us.ihmc.scs2.simulation.physicsEngine.impulseBased.RobotJointLimitImpulseBasedCalculator;
-import us.ihmc.scs2.simulation.physicsEngine.impulseBased.SingleContactImpulseCalculator;
 import us.ihmc.scs2.simulation.robot.Robot;
 import us.ihmc.scs2.simulation.robot.RobotPhysicsOutput;
+import us.ihmc.scs2.simulation.robot.controller.RobotOneDoFJointDampingCalculator;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRigidBody;
 import us.ihmc.scs2.simulation.screwTools.RigidBodyWrenchRegistry;
 import us.ihmc.scs2.simulation.screwTools.SingleRobotFirstOrderIntegrator;
-import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class ContactPointBasedRobotPhysics
 {
-   private static final String ContactCalculatorNameSuffix = SingleContactImpulseCalculator.class.getSimpleName();
-
    private final Robot owner;
    private final ReferenceFrame inertialFrame;
 
-   private final YoRegistry environmentContactCalculatorRegistry = new YoRegistry("Environment" + ContactCalculatorNameSuffix);
-   private final YoRegistry interRobotContactCalculatorRegistry = new YoRegistry("InterRobot" + ContactCalculatorNameSuffix);
-   private final YoRegistry selfContactCalculatorRegistry = new YoRegistry("Self" + ContactCalculatorNameSuffix);
+   private final RobotOneDoFJointDampingCalculator robotOneDoFJointDampingCalculator;
+   private final RobotOneDoFJointSoftLimitCalculator robotOneDoFJointSoftLimitCalculator;
 
    private final RigidBodyWrenchRegistry rigidBodyWrenchRegistry = new RigidBodyWrenchRegistry();
 
@@ -48,6 +43,11 @@ public class ContactPointBasedRobotPhysics
       this.owner = owner;
       inertialFrame = owner.getInertialFrame();
 
+      robotOneDoFJointDampingCalculator = new RobotOneDoFJointDampingCalculator(owner);
+      owner.getRegistry().addChild(robotOneDoFJointDampingCalculator.getRegistry());
+      robotOneDoFJointSoftLimitCalculator = new RobotOneDoFJointSoftLimitCalculator(owner);
+      owner.getRegistry().addChild(robotOneDoFJointSoftLimitCalculator.getRegistry());
+
       SimRigidBody rootBody = owner.getRootBody();
       collidables = rootBody.subtreeStream().flatMap(body -> body.getCollidables().stream()).collect(Collectors.toList());
 
@@ -55,22 +55,25 @@ public class ContactPointBasedRobotPhysics
       FrameShapePosePredictor frameShapePosePredictor = new FrameShapePosePredictor(forwardDynamicsCalculator);
       collidables.forEach(collidable -> collidable.setFrameShapePosePredictor(frameShapePosePredictor));
 
-      YoRegistry jointLimitConstraintCalculatorRegistry = new YoRegistry(RobotJointLimitImpulseBasedCalculator.class.getSimpleName());
-
       integrator = new SingleRobotFirstOrderIntegrator();
 
       physicsOutput = new RobotPhysicsOutput(forwardDynamicsCalculator.getAccelerationProvider(), null, rigidBodyWrenchRegistry, null);
-
-      owner.getRegistry().addChild(jointLimitConstraintCalculatorRegistry);
-      owner.getRegistry().addChild(environmentContactCalculatorRegistry);
-      owner.getRegistry().addChild(interRobotContactCalculatorRegistry);
-      owner.getRegistry().addChild(selfContactCalculatorRegistry);
    }
 
    public void resetCalculators()
    {
       forwardDynamicsCalculator.setExternalWrenchesToZero();
       rigidBodyWrenchRegistry.reset();
+   }
+
+   public void computeJointDamping()
+   {
+      robotOneDoFJointDampingCalculator.compute();
+   }
+
+   public void computeJointSoftLimits()
+   {
+      robotOneDoFJointSoftLimitCalculator.compute();
    }
 
    public void addRigidBodyExternalWrench(RigidBodyReadOnly target, WrenchReadOnly wrenchToAdd)

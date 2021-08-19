@@ -90,6 +90,8 @@ public class ContactPointBasedPhysicsEngine implements PhysicsEngine
          robot.getControllerManager().updateControllers(currentTime);
          robot.getControllerManager().writeControllerOutput(JointStateType.EFFORT);
          robot.getControllerManager().writeControllerOutputForJointsToIgnore(JointStateType.values());
+         robot.computeJointDamping();
+         robot.computeJointSoftLimits();
          robot.updateCollidableBoundingBoxes();
       }
 

@@ -41,6 +41,16 @@ public class ContactPointBasedRobot extends Robot implements CollidableHolder
       robotPhysics.resetCalculators();
    }
 
+   public void computeJointDamping()
+   {
+      robotPhysics.computeJointDamping();
+   }
+
+   public void computeJointSoftLimits()
+   {
+      robotPhysics.computeJointSoftLimits();
+   }
+
    public void addRigidBodyExternalWrench(RigidBodyReadOnly target, WrenchReadOnly wrenchToAdd)
    {
       robotPhysics.addRigidBodyExternalWrench(target, wrenchToAdd);
