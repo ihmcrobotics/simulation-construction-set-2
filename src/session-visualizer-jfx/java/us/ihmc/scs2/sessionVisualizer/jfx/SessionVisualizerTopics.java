@@ -18,6 +18,7 @@ import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 public class SessionVisualizerTopics
 {
    // GUI internal topics:
+   private Topic<SceneVideoRecordingRequest> sceneVideoRecordingRequest;
    private Topic<CameraObjectTrackingRequest> cameraTrackObject;
    private Topic<Object> takeSnapshot;
    private Topic<Object> registerRecordable;
@@ -79,6 +80,7 @@ public class SessionVisualizerTopics
 
    public void setupTopics()
    {
+      sceneVideoRecordingRequest = SessionVisualizerMessagerAPI.SceneVideoRecordingRequest;
       cameraTrackObject = SessionVisualizerMessagerAPI.CameraTrackObject;
       takeSnapshot = SessionVisualizerMessagerAPI.TakeSnapshot;
       registerRecordable = SessionVisualizerMessagerAPI.RegisterRecordable;
@@ -140,6 +142,11 @@ public class SessionVisualizerTopics
       yoBufferFillRequest = YoSharedBufferMessagerAPI.FillRequest;
       yoBufferCurrentSizeRequest = YoSharedBufferMessagerAPI.CurrentBufferSizeRequest;
       yoBufferCurrentProperties = YoSharedBufferMessagerAPI.CurrentBufferProperties;
+   }
+
+   public Topic<SceneVideoRecordingRequest> getSceneVideoRecordingRequest()
+   {
+      return sceneVideoRecordingRequest;
    }
 
    public Topic<CameraObjectTrackingRequest> getCameraTrackObject()

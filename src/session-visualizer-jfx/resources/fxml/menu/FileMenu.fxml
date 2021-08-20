@@ -18,6 +18,16 @@
             </FontAwesomeIconView>
          </graphic>
       </MenuItem>
+      <MenuItem onAction="#requestVideo" text="Export video...">
+         <graphic>
+            <FontAwesomeIconView>
+               <styleClass>
+                  <String fx:value="snapshot-icon-view" />
+                  <String fx:value="menu-item-icon-view" />
+               </styleClass>
+            </FontAwesomeIconView>
+         </graphic>
+      </MenuItem>
       <MenuItem onAction="#loadConfiguration" text="Load configuration...">
          <graphic>
             <FontAwesomeIconView>

@@ -74,12 +74,13 @@ public class SessionVisualizer
       mainWindowController = loader.getController();
       mainWindowController.initialize(new SessionVisualizerWindowToolkit(primaryStage, toolkit));
 
-      View3DFactory view3dFactory = View3DFactory.createSubscene();
-      view3dFactory.addDefaultLighting();
-      view3dFactory.addNodeToView(toolkit.getYoRobotFXManager().getRootNode());
-      view3dFactory.addNodeToView(toolkit.getEnvironmentManager().getRootNode());
-      cameraController = view3dFactory.addCameraController(0.05, 2.0e5, true);
-      CameraTools.setupNodeTrackingContextMenu(cameraController, view3dFactory.getSubScene());
+      View3DFactory view3DFactory = View3DFactory.createSubscene();
+      view3DFactory.addDefaultLighting();
+      view3DFactory.addNodeToView(toolkit.getYoRobotFXManager().getRootNode());
+      view3DFactory.addNodeToView(toolkit.getEnvironmentManager().getRootNode());
+      cameraController = view3DFactory.addCameraController(0.05, 2.0e5, true);
+      CameraTools.setupNodeTrackingContextMenu(cameraController, view3DFactory.getSubScene());
+      toolkit.setSubScene(view3DFactory.getSubScene());
 
       messager.registerJavaFXSyncedTopicListener(topics.getCameraTrackObject(), request ->
       {
@@ -88,13 +89,13 @@ public class SessionVisualizer
       });
 
       toolkit.getEnvironmentManager().addWorldCoordinateSystem(0.3);
-      toolkit.getEnvironmentManager().addSkybox(view3dFactory.getSubScene());
+      toolkit.getEnvironmentManager().addSkybox(view3DFactory.getSubScene());
       messager.registerJavaFXSyncedTopicListener(topics.getSessionVisualizerCloseRequest(), m -> stop());
 
       mainWindowController.setupPlotter2D(plotter2D);
 
-      view3dFactory.addNodeToView(toolkit.getYoGraphicFXManager().getRootNode3D());
-      mainWindowController.setupViewport3D(view3dFactory.getSubSceneWrappedInsidePane());
+      view3DFactory.addNodeToView(toolkit.getYoGraphicFXManager().getRootNode3D());
+      mainWindowController.setupViewport3D(view3DFactory.getSubSceneWrappedInsidePane());
 
       Scene mainScene = new Scene(mainPane, 1024, 768);
       toolkit.getSnapshotManager().registerRecordable(mainScene);

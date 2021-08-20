@@ -6,6 +6,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.SubScene;
 import javafx.stage.Stage;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.log.LogTools;
@@ -34,6 +35,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    private final YoGraphicFXManager yoGraphicFXManager;
    private final YoCompositeSearchManager yoCompositeSearchManager;
    private final SnapshotManager snapshotManager;
+   private final VideoRecordingManager videoRecordingManager;
    private final KeyFrameManager keyFrameManager;
 
    private final BackgroundExecutorManager backgroundExecutorManager = new BackgroundExecutorManager(4);
@@ -61,6 +63,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       messager.startMessager();
 
       snapshotManager = new SnapshotManager(mainWindow, messager, topics);
+      videoRecordingManager = new VideoRecordingManager(messager, topics);
       chartDataManager = new ChartDataManager(messager, topics, yoManager, backgroundExecutorManager);
       yoGraphicFXManager = new YoGraphicFXManager(messager, topics, yoManager, backgroundExecutorManager, referenceFrameManager);
       yoCompositeSearchManager = new YoCompositeSearchManager(messager, topics, yoManager, backgroundExecutorManager);
@@ -84,6 +87,11 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
          if (newTerrainObjectDefinitions != null && !newTerrainObjectDefinitions.isEmpty())
             sessionTerrainObjectDefinitions.setAll(newTerrainObjectDefinitions);
       });
+   }
+
+   public void setSubScene(SubScene scene)
+   {
+      videoRecordingManager.setScene(scene);
    }
 
    public void startSession(Session session, Runnable sessionLoadedCallback)
