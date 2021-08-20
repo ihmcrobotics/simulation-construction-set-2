@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -12,6 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 import us.ihmc.commons.Conversions;
@@ -71,8 +73,13 @@ public abstract class Session
    // State listener to publish internal to outside world
    private final long sessionPropertiesPublishPeriod = 500L;
    private long lastSessionPropertiesPublishTimestamp = -1L;
+   private final List<Consumer<SessionMode>> sessionModeChangedListeners = new ArrayList<>();
    private final List<Consumer<SessionProperties>> sessionPropertiesListeners = new ArrayList<>();
    private final List<Consumer<YoBufferPropertiesReadOnly>> currentBufferPropertiesListeners = new ArrayList<>();
+
+   // For exception handling
+   private final List<Consumer<Throwable>> runThrowableListeners = new ArrayList<>();
+   private final List<Consumer<Throwable>> playbackThrowableListeners = new ArrayList<>();
 
    // Fields for external requests on buffer.
    private final AtomicReference<CropBufferRequest> pendingCropBufferRequest = new AtomicReference<>(null);
@@ -129,14 +136,30 @@ public abstract class Session
 
    public void setSessionMode(SessionMode sessionMode)
    {
+      setSessionMode(sessionMode, null, null);
+   }
+
+   protected void setSessionMode(SessionMode sessionMode, BooleanSupplier terminalCondition, SessionMode nextMode)
+   {
       SessionMode currentMode = activeMode.get();
       if (sessionMode != currentMode)
       {
          activeMode.set(sessionMode);
          firstRunTick = true;
          firstPauseTick = true;
-         restartSessionTask();
+         sessionModeChangedListeners.forEach(listener -> listener.accept(sessionMode));
+         restartSessionTask(terminalCondition, nextMode);
       }
+   }
+
+   public void addSessionModeChangedListener(Consumer<SessionMode> listener)
+   {
+      sessionModeChangedListeners.add(listener);
+   }
+
+   public void removeSessionModeChangedListener(Consumer<SessionMode> listener)
+   {
+      sessionModeChangedListeners.remove(listener);
    }
 
    public void addSessionPropertiesListener(Consumer<SessionProperties> listener)
@@ -157,6 +180,26 @@ public abstract class Session
    public void removeCurrentBufferPropertiesListener(Consumer<YoBufferPropertiesReadOnly> listener)
    {
       currentBufferPropertiesListeners.remove(listener);
+   }
+
+   public void addRunThrowableListener(Consumer<Throwable> listener)
+   {
+      runThrowableListeners.add(listener);
+   }
+
+   public void removeRunThrowableListener(Consumer<Throwable> listener)
+   {
+      runThrowableListeners.remove(listener);
+   }
+
+   public void addPlaybackThrowableListener(Consumer<Throwable> listener)
+   {
+      playbackThrowableListeners.add(listener);
+   }
+
+   public void removePlaybackThrowableListener(Consumer<Throwable> listener)
+   {
+      playbackThrowableListeners.remove(listener);
    }
 
    public void setSessionTickToTimeIncrement(long sessionTickToTimeIncrement)
@@ -285,6 +328,11 @@ public abstract class Session
 
    private void restartSessionTask()
    {
+      restartSessionTask(null, null);
+   }
+
+   private void restartSessionTask(BooleanSupplier terminalCondition, SessionMode nextMode)
+   {
       if (!sessionStarted)
          return;
 
@@ -295,10 +343,28 @@ public abstract class Session
       playbackActualDT.reset();
       pauseActualDT.reset();
 
-      activeScheduledFuture = executorService.scheduleAtFixedRate(sessionModeToTaskMap.get(activeMode.get()),
-                                                                  0,
-                                                                  computeThreadPeriod(activeMode.get()),
-                                                                  TimeUnit.NANOSECONDS);
+      Runnable command;
+      Runnable sessionModeTask = sessionModeToTaskMap.get(activeMode.get());
+
+      if (terminalCondition == null)
+      {
+         LogTools.info("Setting command without terminal condition");
+         command = sessionModeTask;
+      }
+      else
+      {
+         Objects.requireNonNull(nextMode, "nextMode argument is required when providing a terminalCondition");
+
+         command = () ->
+         {
+            sessionModeTask.run();
+
+            if (terminalCondition.getAsBoolean())
+               setSessionMode(nextMode);
+         };
+      }
+
+      activeScheduledFuture = executorService.scheduleAtFixedRate(command, 0, computeThreadPeriod(activeMode.get()), TimeUnit.NANOSECONDS);
       reportActiveMode();
    }
 
@@ -394,9 +460,10 @@ public abstract class Session
          runSpecificTimer.stop();
          caughtException = false;
       }
-      catch (Exception e)
+      catch (Throwable e)
       {
          e.printStackTrace();
+         runThrowableListeners.forEach(listener -> listener.accept(e));
          caughtException = true;
       }
 
@@ -498,6 +565,7 @@ public abstract class Session
       catch (Exception e)
       {
          e.printStackTrace();
+         playbackThrowableListeners.forEach(listener -> listener.accept(e));
          caughtException = true;
       }
 

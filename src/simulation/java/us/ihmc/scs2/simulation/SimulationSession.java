@@ -2,6 +2,11 @@ package us.ihmc.scs2.simulation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+
+import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import us.ihmc.commons.Conversions;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -16,6 +21,7 @@ import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngine;
 import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngineFactory;
 import us.ihmc.scs2.simulation.robot.Robot;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
+import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 import us.ihmc.yoVariables.variable.YoDouble;
 
 public class SimulationSession extends Session
@@ -28,6 +34,10 @@ public class SimulationSession extends Session
    private final YoFrameVector3D gravity = new YoFrameVector3D("gravity", ReferenceFrame.getWorldFrame(), rootRegistry);
    private final String simulationName;
    private final List<YoGraphicDefinition> yoGraphicDefinitions = new ArrayList<>();
+
+   private SimulationSessionControlsImpl controls = null;
+
+   private boolean hasSessionStarted = false;
 
    public SimulationSession()
    {
@@ -64,15 +74,22 @@ public class SimulationSession extends Session
 
       physicsEngine = physicsEngineFactory.build(inertialFrame, rootRegistry);
 
-      submitBufferSizeRequest(200000);
       setSessionTickToTimeIncrement(Conversions.secondsToNanoseconds(0.0001));
       setSessionMode(SessionMode.PAUSE);
       gravity.set(0.0, 0.0, -9.81);
    }
 
+   public SimulationSessionControls getSimulationSessionControls()
+   {
+      if (controls == null)
+         controls = new SimulationSessionControlsImpl();
+      return controls;
+   }
+
    @Override
    public void initializeSession()
    {
+      hasSessionStarted = true;
       super.initializeSession();
       physicsEngine.initialize(gravity);
    }
@@ -87,16 +104,22 @@ public class SimulationSession extends Session
 
    public Robot addRobot(RobotDefinition robotDefinition)
    {
+      checkSessionHasNotStarted();
+
       return physicsEngine.addRobot(robotDefinition);
    }
 
    public void addTerrainObject(TerrainObjectDefinition terrainObjectDefinition)
    {
+      checkSessionHasNotStarted();
+
       physicsEngine.addTerrainObject(terrainObjectDefinition);
    }
 
    public void addYoGraphicDefinition(YoGraphicDefinition yoGraphicDefinition)
    {
+      checkSessionHasNotStarted();
+
       yoGraphicDefinitions.add(yoGraphicDefinition);
    }
 
@@ -154,5 +177,172 @@ public class SimulationSession extends Session
    public List<YoGraphicDefinition> getYoGraphicDefinitions()
    {
       return yoGraphicDefinitions;
+   }
+
+   private void checkSessionHasNotStarted()
+   {
+      if (hasSessionStarted)
+         throw new IllegalOperationException("Illegal operation after session has started.");
+   }
+
+   private class SimulationSessionControlsImpl implements SimulationSessionControls
+   {
+      @Override
+      public void pause()
+      {
+         setSessionMode(SessionMode.PAUSE);
+      }
+
+      @Override
+      public void simulate()
+      {
+         setSessionMode(SessionMode.RUNNING);
+      }
+
+      @Override
+      public void simulate(double duration)
+      {
+         if (getActiveMode() == SessionMode.RUNNING)
+            setSessionMode(SessionMode.PAUSE);
+
+         double startTime = simulationTime.getValue();
+         BooleanSupplier terminalCondition = () -> simulationTime.getValue() - startTime >= duration;
+         setSessionMode(SessionMode.RUNNING, terminalCondition, SessionMode.PAUSE);
+      }
+
+      @Override
+      public void simulate(int numberOfTicks)
+      {
+         if (getActiveMode() == SessionMode.RUNNING)
+            setSessionMode(SessionMode.PAUSE);
+
+         BooleanSupplier terminalCondition = new BooleanSupplier()
+         {
+            private int tickCounter = 0;
+
+            @Override
+            public boolean getAsBoolean()
+            {
+               tickCounter++;
+               return tickCounter >= numberOfTicks;
+            }
+         };
+         setSessionMode(SessionMode.RUNNING, terminalCondition, SessionMode.PAUSE);
+      }
+
+      @Override
+      public boolean simulateAndWait(double duration)
+      {
+         if (getActiveMode() == SessionMode.RUNNING)
+            setSessionMode(SessionMode.PAUSE);
+
+         MutableBoolean success = new MutableBoolean(false);
+
+         CountDownLatch doneLatch = new CountDownLatch(1);
+
+         Consumer<SessionMode> listener = new Consumer<SessionMode>()
+         {
+            @Override
+            public void accept(SessionMode mode)
+            {
+               if (mode != SessionMode.RUNNING)
+               {
+                  doneLatch.countDown();
+                  removeSessionModeChangedListener(this);
+               }
+            }
+         };
+
+         addSessionModeChangedListener(listener);
+
+         double startTime = simulationTime.getValue();
+
+         BooleanSupplier terminalCondition = () ->
+         {
+            boolean done = simulationTime.getValue() - startTime >= duration;
+            if (done)
+            {
+               success.setTrue();
+               doneLatch.countDown();
+            }
+            return done;
+         };
+         setSessionMode(SessionMode.RUNNING, terminalCondition, SessionMode.PAUSE);
+
+         try
+         {
+            doneLatch.await();
+         }
+         catch (InterruptedException e)
+         {
+            e.printStackTrace();
+         }
+
+         return success.isTrue();
+      }
+
+      @Override
+      public boolean simulateAndWait(int numberOfTicks)
+      {
+         if (getActiveMode() == SessionMode.RUNNING)
+            setSessionMode(SessionMode.PAUSE);
+
+         MutableBoolean success = new MutableBoolean(false);
+
+         CountDownLatch doneLatch = new CountDownLatch(1);
+
+         Consumer<SessionMode> listener = new Consumer<SessionMode>()
+         {
+            @Override
+            public void accept(SessionMode mode)
+            {
+               if (mode != SessionMode.RUNNING)
+               {
+                  doneLatch.countDown();
+                  removeSessionModeChangedListener(this);
+               }
+            }
+         };
+
+         addSessionModeChangedListener(listener);
+
+         BooleanSupplier terminalCondition = new BooleanSupplier()
+         {
+            private int tickCounter = 0;
+
+            @Override
+            public boolean getAsBoolean()
+            {
+               tickCounter++;
+               boolean done = tickCounter >= numberOfTicks;
+
+               if (done)
+               {
+                  success.setTrue();
+                  doneLatch.countDown();
+               }
+               return done;
+            }
+         };
+
+         setSessionMode(SessionMode.RUNNING, terminalCondition, SessionMode.PAUSE);
+
+         try
+         {
+            doneLatch.await();
+         }
+         catch (InterruptedException e)
+         {
+            e.printStackTrace();
+         }
+
+         return success.isTrue();
+      }
+
+      @Override
+      public void addSimulationThrowableListener(Consumer<Throwable> listener)
+      {
+         addRunThrowableListener(listener);
+      }
    }
 }
