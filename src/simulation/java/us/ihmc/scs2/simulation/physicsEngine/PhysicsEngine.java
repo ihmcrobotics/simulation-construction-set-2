@@ -21,6 +21,8 @@ public interface PhysicsEngine
 
    ReferenceFrame getInertialFrame();
 
+   List<? extends Robot> getRobots();
+
    List<RobotDefinition> getRobotDefinitions();
 
    List<TerrainObjectDefinition> getTerrainObjectDefinitions();

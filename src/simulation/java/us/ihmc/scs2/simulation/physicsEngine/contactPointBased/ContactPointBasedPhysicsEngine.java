@@ -170,6 +170,12 @@ public class ContactPointBasedPhysicsEngine implements PhysicsEngine
    }
 
    @Override
+   public List<ContactPointBasedRobot> getRobots()
+   {
+      return robotList;
+   }
+
+   @Override
    public List<RobotDefinition> getRobotDefinitions()
    {
       return robotList.stream().map(Robot::getRobotDefinition).collect(Collectors.toList());

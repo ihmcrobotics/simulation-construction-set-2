@@ -243,13 +243,19 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
 
       finalPhaseTimer.stop();
       physicsEngineTotalTimer.stop();
-      physicsEngineRealTimeRate.set((dt * 1.0e3) / physicsEngineTotalTimer.getTimer().getValue());
+      physicsEngineRealTimeRate.set(dt * 1.0e3 / physicsEngineTotalTimer.getTimer().getValue());
    }
 
    @Override
    public ReferenceFrame getInertialFrame()
    {
       return inertialFrame;
+   }
+
+   @Override
+   public List<ImpulseBasedRobot> getRobots()
+   {
+      return robotList;
    }
 
    @Override
