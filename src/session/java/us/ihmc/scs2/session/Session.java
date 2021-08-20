@@ -392,7 +392,6 @@ public abstract class Session
 
       if (terminalCondition == null)
       {
-         LogTools.info("Setting command without terminal condition");
          command = sessionModeTask;
       }
       else
