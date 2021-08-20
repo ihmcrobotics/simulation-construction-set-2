@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -74,8 +76,10 @@ public abstract class Session
    private final long sessionPropertiesPublishPeriod = 500L;
    private long lastSessionPropertiesPublishTimestamp = -1L;
    private final List<Consumer<SessionMode>> sessionModeChangedListeners = new ArrayList<>();
+   private final List<Consumer<SessionState>> sessionStateChangedListeners = new ArrayList<>();
    private final List<Consumer<SessionProperties>> sessionPropertiesListeners = new ArrayList<>();
    private final List<Consumer<YoBufferPropertiesReadOnly>> currentBufferPropertiesListeners = new ArrayList<>();
+   private final List<Runnable> shutdownListeners = new ArrayList<>();
 
    // For exception handling
    private final List<Consumer<Throwable>> runThrowableListeners = new ArrayList<>();
@@ -160,6 +164,26 @@ public abstract class Session
    public void removeSessionModeChangedListener(Consumer<SessionMode> listener)
    {
       sessionModeChangedListeners.remove(listener);
+   }
+
+   public void addSessionStateChangedListener(Consumer<SessionState> listener)
+   {
+      sessionStateChangedListeners.add(listener);
+   }
+
+   public void removeSessionStateChangedListener(Consumer<SessionState> listener)
+   {
+      sessionStateChangedListeners.remove(listener);
+   }
+
+   public void addShutdownListener(Runnable listener)
+   {
+      shutdownListeners.add(listener);
+   }
+
+   public void removeShutdownListener(Runnable listener)
+   {
+      shutdownListeners.remove(listener);
    }
 
    public void addSessionPropertiesListener(Consumer<SessionProperties> listener)
@@ -289,12 +313,16 @@ public abstract class Session
          {
             LogTools.info("Starting session");
             startSessionThread();
+            sessionStateChangedListeners.forEach(listener -> listener.accept(state));
          }
       }
       else
       {
          if (!isSessionShutdown)
-            scheduleShutdown();
+         {
+            shutdownSession();
+            sessionStateChangedListeners.forEach(listener -> listener.accept(state));
+         }
       }
    }
 
@@ -305,11 +333,6 @@ public abstract class Session
       restartSessionTask();
    }
 
-   private void scheduleShutdown()
-   {
-      executorService.execute(() -> shutdownSession());
-   }
-
    public void shutdownSession()
    {
       if (isSessionShutdown)
@@ -317,8 +340,29 @@ public abstract class Session
 
       isSessionShutdown = true;
 
+      shutdownListeners.forEach(Runnable::run);
+
       LogTools.info("Stopped session's thread");
       sessionStarted = false;
+
+      if (activeScheduledFuture != null)
+      {
+         activeScheduledFuture.cancel(false);
+         try
+         {
+            // Invoke get() to make sure we wait until the task is done.
+            activeScheduledFuture.get();
+         }
+         catch (CancellationException e)
+         {
+            // We will get a CancellationException because we're canceling the task.
+         }
+         catch (InterruptedException | ExecutionException e)
+         {
+            e.printStackTrace();
+         }
+         activeScheduledFuture = null;
+      }
 
       sessionTopicListenerManagers.forEach(SessionTopicListenerManager::detachFromMessager);
       sessionTopicListenerManagers.clear();

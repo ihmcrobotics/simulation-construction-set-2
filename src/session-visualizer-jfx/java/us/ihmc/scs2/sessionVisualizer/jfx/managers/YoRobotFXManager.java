@@ -3,16 +3,22 @@ package us.ihmc.scs2.sessionVisualizer.jfx.managers;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javafx.scene.Group;
 import javafx.scene.Node;
+import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.session.Session;
+import us.ihmc.scs2.sessionVisualizer.jfx.CameraObjectTrackingRequest;
+import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
+import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.JavaFXRigidBody;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoRobot.YoRobotFX;
+import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 
 public class YoRobotFXManager extends ObservedAnimationTimer implements Manager
 {
@@ -24,11 +30,45 @@ public class YoRobotFXManager extends ObservedAnimationTimer implements Manager
 
    private int numberOfRobotDefinitions = -1;
 
-   public YoRobotFXManager(YoManager yoManager, ReferenceFrameManager referenceFrameManager, BackgroundExecutorManager backgroundExecutorManager)
+   public YoRobotFXManager(JavaFXMessager messager,
+                           SessionVisualizerTopics topics,
+                           YoManager yoManager,
+                           ReferenceFrameManager referenceFrameManager,
+                           BackgroundExecutorManager backgroundExecutorManager)
    {
       this.yoManager = yoManager;
       this.referenceFrameManager = referenceFrameManager;
       this.backgroundExecutorManager = backgroundExecutorManager;
+
+      messager.registerTopicListener(topics.getCameraTrackObject(), request ->
+      {
+         if (!isSessionLoaded())
+            throw new IllegalOperationException("Session has not been loaded yet.");
+
+         String rigidBodyName = request.getRigidBodyName();
+         String robotName = request.getRobotName();
+
+         if (rigidBodyName != null)
+         {
+            Optional<JavaFXRigidBody> result;
+
+            if (robotName != null)
+            {
+               result = robots.stream().filter(r -> r.getRobotDefinition().getName().equalsIgnoreCase(robotName)).findFirst()
+                              .map(r -> r.findRigidBody(rigidBodyName));
+            }
+            else
+            {
+               result = robots.stream().map(r -> r.findRigidBody(rigidBodyName)).filter(Objects::nonNull).findFirst();
+            }
+
+            result.ifPresent(rigidBody ->
+            {
+               if (rigidBody.getGraphics() != null && rigidBody.getGraphics().getNode() != null)
+                  messager.submitMessage(topics.getCameraTrackObject(), new CameraObjectTrackingRequest(rigidBody.getGraphics().getNode()));
+            });
+         }
+      });
    }
 
    public void addRobotDefinition(RobotDefinition robotDefinition)

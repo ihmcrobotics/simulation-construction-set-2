@@ -14,7 +14,7 @@ public interface SimulationSessionControls
    
    boolean simulateAndWait(double duration);
    
-   boolean simulateAndWait(int numberOfTicks);
+   boolean simulateAndWait(long numberOfTicks);
 
    void addSimulationThrowableListener(Consumer<Throwable> listener);
 }

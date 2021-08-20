@@ -39,7 +39,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    private final BackgroundExecutorManager backgroundExecutorManager = new BackgroundExecutorManager(4);
    private final EnvironmentManager environmentManager = new EnvironmentManager(backgroundExecutorManager);
    private final ReferenceFrameManager referenceFrameManager = new ReferenceFrameManager(backgroundExecutorManager);
-   private final YoRobotFXManager yoRobotFXManager = new YoRobotFXManager(yoManager, referenceFrameManager, backgroundExecutorManager);
+   private final YoRobotFXManager yoRobotFXManager;
    private final SecondaryWindowManager secondaryWindowManager;
 
    private Stage mainWindow;
@@ -65,6 +65,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       yoGraphicFXManager = new YoGraphicFXManager(messager, topics, yoManager, backgroundExecutorManager, referenceFrameManager);
       yoCompositeSearchManager = new YoCompositeSearchManager(messager, topics, yoManager, backgroundExecutorManager);
       keyFrameManager = new KeyFrameManager(messager, topics);
+      yoRobotFXManager = new YoRobotFXManager(messager, topics, yoManager, referenceFrameManager, backgroundExecutorManager);
       secondaryWindowManager = new SecondaryWindowManager(this);
 
       activeSessionProperty.addListener((o, oldValue, newValue) ->

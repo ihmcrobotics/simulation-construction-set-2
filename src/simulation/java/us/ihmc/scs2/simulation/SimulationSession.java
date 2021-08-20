@@ -233,78 +233,29 @@ public class SimulationSession extends Session
       @Override
       public boolean simulateAndWait(double duration)
       {
-         if (getActiveMode() == SessionMode.RUNNING)
-            setSessionMode(SessionMode.PAUSE);
-
-         MutableBoolean success = new MutableBoolean(false);
-
-         CountDownLatch doneLatch = new CountDownLatch(1);
-
-         Consumer<SessionMode> listener = new Consumer<SessionMode>()
-         {
-            @Override
-            public void accept(SessionMode mode)
-            {
-               if (mode != SessionMode.RUNNING)
-               {
-                  doneLatch.countDown();
-                  removeSessionModeChangedListener(this);
-               }
-            }
-         };
-
-         addSessionModeChangedListener(listener);
-
-         double startTime = simulationTime.getValue();
-
-         BooleanSupplier terminalCondition = () ->
-         {
-            boolean done = simulationTime.getValue() - startTime >= duration;
-            if (done)
-            {
-               success.setTrue();
-               doneLatch.countDown();
-            }
-            return done;
-         };
-         setSessionMode(SessionMode.RUNNING, terminalCondition, SessionMode.PAUSE);
-
-         try
-         {
-            doneLatch.await();
-         }
-         catch (InterruptedException e)
-         {
-            e.printStackTrace();
-         }
-
-         return success.isTrue();
+         long numberOfTicks = Conversions.secondsToNanoseconds(duration) / getSessionTickToTimeIncrement();
+         return simulateAndWait(numberOfTicks);
       }
 
       @Override
-      public boolean simulateAndWait(int numberOfTicks)
+      public boolean simulateAndWait(long numberOfTicks)
       {
          if (getActiveMode() == SessionMode.RUNNING)
             setSessionMode(SessionMode.PAUSE);
 
          MutableBoolean success = new MutableBoolean(false);
-
          CountDownLatch doneLatch = new CountDownLatch(1);
 
-         Consumer<SessionMode> listener = new Consumer<SessionMode>()
+         Consumer<SessionMode> modeListener = mode ->
          {
-            @Override
-            public void accept(SessionMode mode)
-            {
-               if (mode != SessionMode.RUNNING)
-               {
-                  doneLatch.countDown();
-                  removeSessionModeChangedListener(this);
-               }
-            }
+            if (mode != SessionMode.RUNNING)
+               doneLatch.countDown();
          };
 
-         addSessionModeChangedListener(listener);
+         Runnable shutdownListener = doneLatch::countDown;
+
+         addSessionModeChangedListener(modeListener);
+         addShutdownListener(shutdownListener);
 
          BooleanSupplier terminalCondition = new BooleanSupplier()
          {
@@ -335,6 +286,9 @@ public class SimulationSession extends Session
          {
             e.printStackTrace();
          }
+
+         removeSessionModeChangedListener(modeListener);
+         removeShutdownListener(shutdownListener);
 
          return success.isTrue();
       }

@@ -1,8 +1,12 @@
 package us.ihmc.scs2.sessionVisualizer.jfx;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 
-import javafx.application.Platform;
+import org.apache.commons.lang3.mutable.MutableObject;
+
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -21,10 +25,12 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.MultiSessionManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.plotter.Plotter2D;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.BufferedJavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.CameraTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXApplicationCreator;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
+import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 
 public class SessionVisualizer
 {
@@ -36,20 +42,32 @@ public class SessionVisualizer
       YoGraphicFXControllerTools.loadResources();
    }
 
-   private SessionVisualizerToolkit toolkit;
-   private MultiSessionManager multiSessionManager;
+   private final SessionVisualizerToolkit toolkit;
+   private final MultiSessionManager multiSessionManager;
 
    private final Plotter2D plotter2D = new Plotter2D();
-   private MainWindowController mainWindowController;
+   private final MainWindowController mainWindowController;
+   private final FocusBasedCameraMouseEventHandler cameraController;
+   private final BufferedJavaFXMessager messager;
+   private final SessionVisualizerTopics topics;
+   private final SessionVisualizerControlsImpl sessionVisualizerControls = new SessionVisualizerControlsImpl();
+   private final List<Runnable> stopListeners = new ArrayList<>();
+
+   private final Stage primaryStage;
+
+   private boolean hasTerminated = false;
 
    public SessionVisualizer(Stage primaryStage) throws Exception
    {
+      this.primaryStage = primaryStage;
       // Configuring listener first so this is the first one getting called. Allows to cancel the close request.
       primaryStage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, this::stop);
       SessionVisualizerIOTools.addSCSIconToWindow(primaryStage);
       primaryStage.setTitle(NO_ACTIVE_SESSION_TITLE);
 
       toolkit = new SessionVisualizerToolkit(primaryStage);
+      messager = toolkit.getMessager();
+      topics = toolkit.getTopics();
 
       FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.MAIN_WINDOW_URL);
       Parent mainPane = loader.load();
@@ -60,12 +78,18 @@ public class SessionVisualizer
       view3dFactory.addDefaultLighting();
       view3dFactory.addNodeToView(toolkit.getYoRobotFXManager().getRootNode());
       view3dFactory.addNodeToView(toolkit.getEnvironmentManager().getRootNode());
-      FocusBasedCameraMouseEventHandler cameraController = view3dFactory.addCameraController(0.05, 2.0e5, true);
+      cameraController = view3dFactory.addCameraController(0.05, 2.0e5, true);
       CameraTools.setupNodeTrackingContextMenu(cameraController, view3dFactory.getSubScene());
+
+      messager.registerJavaFXSyncedTopicListener(topics.getCameraTrackObject(), request ->
+      {
+         if (request.getNode() != null)
+            cameraController.getNodeTracker().setNodeToTrack(request.getNode());
+      });
 
       toolkit.getEnvironmentManager().addWorldCoordinateSystem(0.3);
       toolkit.getEnvironmentManager().addSkybox(view3dFactory.getSubScene());
-      toolkit.getMessager().registerJavaFXSyncedTopicListener(toolkit.getTopics().getSessionVisualizerCloseRequest(), m -> stop());
+      messager.registerJavaFXSyncedTopicListener(topics.getSessionVisualizerCloseRequest(), m -> stop());
 
       mainWindowController.setupPlotter2D(plotter2D);
 
@@ -107,14 +131,7 @@ public class SessionVisualizer
          SessionVisualizerIOTools.addSCSIconToDialog(alert);
 
          Optional<ButtonType> result = alert.showAndWait();
-         if (!result.isPresent())
-         {
-            if (event != null)
-               event.consume();
-            return;
-         }
-
-         if (result.get() == ButtonType.CANCEL)
+         if (!result.isPresent() || result.get() == ButtonType.CANCEL)
          {
             if (event != null)
                event.consume();
@@ -124,6 +141,16 @@ public class SessionVisualizer
          saveConfiguration = result.get() == ButtonType.YES;
       }
 
+      stopNow(saveConfiguration);
+   }
+
+   private void stopNow(boolean saveConfiguration)
+   {
+      if (hasTerminated)
+         return;
+
+      hasTerminated = true;
+
       LogTools.info("Simulation GUI is going down.");
       try
       {
@@ -131,8 +158,10 @@ public class SessionVisualizer
          multiSessionManager.shutdown();
          mainWindowController.stop();
          toolkit.stop();
-         Platform.exit();
-         System.exit(0);
+         if (primaryStage.isShowing())
+            primaryStage.close();
+
+         stopListeners.forEach(Runnable::run);
       }
       catch (Exception e)
       {
@@ -155,17 +184,25 @@ public class SessionVisualizer
       startSessionVisualizer(null);
    }
 
-   public static void startSessionVisualizer(Session session)
+   public static SessionVisualizerControls startSessionVisualizer()
    {
+      return startSessionVisualizer(null);
+   }
+
+   public static SessionVisualizerControls startSessionVisualizer(Session session)
+   {
+      MutableObject<SessionVisualizerControls> sessionVisualizerControls = new MutableObject<>();
+
       JavaFXApplicationCreator.spawnJavaFXMainApplication();
 
-      JavaFXMissingTools.runLater(SessionVisualizer.class, () ->
+      JavaFXMissingTools.runAndWait(SessionVisualizer.class, () ->
       {
          try
          {
             SessionVisualizer sessionVisualizer = new SessionVisualizer(new Stage());
+            sessionVisualizerControls.setValue(sessionVisualizer.sessionVisualizerControls);
             if (session != null)
-               sessionVisualizer.startSession(session);
+               sessionVisualizer.startSession(session, () -> sessionVisualizer.sessionVisualizerControls.visualizerReadyLatch.countDown());
             JavaFXApplicationCreator.attachStopListener(sessionVisualizer::stop);
          }
          catch (Exception e)
@@ -173,5 +210,83 @@ public class SessionVisualizer
             throw new RuntimeException(e);
          }
       });
+
+      return sessionVisualizerControls.getValue();
+   }
+
+   private class SessionVisualizerControlsImpl implements SessionVisualizerControls
+   {
+      private final CountDownLatch visualizerReadyLatch = new CountDownLatch(1);
+
+      public SessionVisualizerControlsImpl()
+      {
+      }
+
+      @Override
+      public void waitUntilFullyUp()
+      {
+         try
+         {
+            visualizerReadyLatch.await();
+         }
+         catch (InterruptedException e)
+         {
+            e.printStackTrace();
+         }
+      }
+
+      @Override
+      public void setCameraOrientation(double latitude, double longitude, double roll)
+      {
+         checkVisualizerRunning();
+         cameraController.getRotationCalculator().setRotation(latitude, longitude, roll);
+      }
+
+      @Override
+      public void setCameraPosition(double x, double y, double z)
+      {
+         checkVisualizerRunning();
+         cameraController.changeCameraPosition(x, y, z);
+      }
+
+      @Override
+      public void setCameraFocusPosition(double x, double y, double z)
+      {
+         checkVisualizerRunning();
+         cameraController.changeFocusPosition(x, y, z, false);
+      }
+
+      @Override
+      public void requestCameraRigidBodyTracking(String robotName, String rigidBodyName)
+      {
+         checkVisualizerRunning();
+         waitUntilFullyUp();
+         messager.submitMessage(topics.getCameraTrackObject(), new CameraObjectTrackingRequest(robotName, rigidBodyName));
+      }
+
+      @Override
+      public void shutdown()
+      {
+         JavaFXMissingTools.runAndWait(getClass(), () -> stop());
+      }
+
+      @Override
+      public void shutdownNow()
+      {
+         JavaFXMissingTools.runAndWait(getClass(), () -> stopNow(false));
+      }
+
+      @Override
+      public void addVisualizerShutdownListener(Runnable listener)
+      {
+         checkVisualizerRunning();
+         stopListeners.add(listener);
+      }
+
+      private void checkVisualizerRunning()
+      {
+         if (hasTerminated)
+            throw new IllegalOperationException("Unable to perform operation, visualizer has terminated.");
+      }
    }
 }
