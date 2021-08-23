@@ -57,7 +57,7 @@ public class YoRegistryStatisticsPaneController
       nVarsDeepCol.setStyle("-fx-alignment:center-right");
       nChildShallowCol.setStyle("-fx-alignment:center-right");
 
-      rootTreeItem = new RecursiveTreeItem<>(FXCollections.observableArrayList(), RecursiveTreeObject::getChildren);
+      rootTreeItem = new RecursiveTreeItem<>(FXCollections.observableArrayList(), RecursiveTreeObject<YoRegistryInfo>::getChildren);
       treeTableView.setRoot(rootTreeItem);
       treeTableView.setShowRoot(false);
       treeTableView.getColumns().setAll(nameCol, nVarsShallowCol, nVarsDeepCol, nChildShallowCol);
