@@ -37,6 +37,8 @@ public class VideoRecordingManager
    private final AtomicReference<Long> sessionDT;
    private final AtomicReference<Integer> bufferRecordTickPeriod;
 
+   private final AtomicReference<Recorder> activeRecorder = new AtomicReference<>(null);
+
    public VideoRecordingManager(JavaFXMessager messager, SessionVisualizerTopics topics)
    {
       this.messager = messager;
@@ -59,24 +61,9 @@ public class VideoRecordingManager
    {
       LogTools.info("Received video export request: " + request);
 
-      H264Settings settings = new H264Settings();
-      settings.setBitrate(request.getWidth() * request.getHeight() / 100);
-      settings.setUsageType(EUsageType.CAMERA_VIDEO_REAL_TIME);
-      settings.setProfileIdc(EProfileIdc.PRO_HIGH);
+      if (activeRecorder.get() != null)
+         activeRecorder.get().stop();
 
-      MP4H264MovieBuilder movieBuilder;
-
-      try
-      {
-         movieBuilder = new MP4H264MovieBuilder(request.getFile(), request.getWidth(), request.getHeight(), (int) request.getFrameRate(), settings);
-      }
-      catch (IOException e)
-      {
-         e.printStackTrace();
-         return;
-      }
-
-      WritableImage image = new WritableImage(request.getWidth(), request.getHeight());
       SnapshotParameters params = new SnapshotParameters();
 
       double sceneWidth = scene.getWidth();
@@ -111,105 +98,151 @@ public class VideoRecordingManager
       double scale = Math.max(widthScale, heightScale);
       params.setTransform(new Scale(scale, scale));
 
-      new AnimationTimer()
+      Recorder recorder = new Recorder(request, params, () -> activeRecorder.set(null));
+      activeRecorder.set(recorder);
+      recorder.start();
+   }
+
+   private class Recorder extends AnimationTimer
+   {
+      private final SceneVideoRecordingRequest request;
+
+      private int bufferStart;
+      private int bufferEnd;
+
+      private int currentRecordingBufferIndex;
+      private int bufferIndexIncrement = -1;
+      private int numberOfBufferTicks = -1;
+
+      private int currentPhase = 0;
+
+      private MP4H264MovieBuilder movieBuilder;
+      private BufferedImage bufferedImage;
+      private WritableImage jfxImage;
+
+      private final SnapshotParameters params;
+
+      private final Runnable stopListener;
+
+      public Recorder(SceneVideoRecordingRequest request, SnapshotParameters params, Runnable stopListener)
       {
-         private int bufferStart = request.getBufferStart();
-         private int bufferEnd = request.getBufferEnd();
+         this.request = request;
+         this.params = params;
+         this.stopListener = stopListener;
+         bufferStart = request.getBufferStart();
+         bufferEnd = request.getBufferEnd();
+         bufferedImage = new BufferedImage(request.getWidth(), request.getHeight(), BufferedImage.TYPE_INT_ARGB);
+         jfxImage = new WritableImage(request.getWidth(), request.getHeight());
 
-         private int currentRecordingBufferIndex;
-         private int bufferIndexIncrement = -1;
-         private int numberOfBufferTicks = -1;
+         H264Settings settings = new H264Settings();
+         settings.setBitrate(request.getWidth() * request.getHeight() / 100);
+         settings.setUsageType(EUsageType.CAMERA_VIDEO_REAL_TIME);
+         settings.setProfileIdc(EProfileIdc.PRO_HIGH);
 
-         private int currentPhase = 0;
-
-         private BufferedImage bufferedImage = new BufferedImage(request.getWidth(), request.getHeight(), BufferedImage.TYPE_INT_ARGB);
-
-         @Override
-         public void handle(long now)
+         try
          {
-            if (currentSessionMode.get() != SessionMode.PAUSE)
-            {
-               messager.submitMessage(topics.getSessionCurrentMode(), SessionMode.PAUSE);
-               return;
-            }
-
-            if (sessionDT.get() == null || bufferRecordTickPeriod.get() == null)
-               return;
-
-            YoBufferPropertiesReadOnly bufferProperties = currentBufferProperties.getAndSet(null);
-
-            if (bufferProperties == null)
-               return;
-
-            switch (currentPhase)
-            {
-               case 0:
-                  if (initialize(bufferProperties))
-                     currentPhase++;
-                  return;
-               case 1:
-                  if (recordNextFrame(bufferProperties))
-                     currentPhase++;
-                  return;
-               default:
-                  try
-                  {
-                     movieBuilder.close();
-                     stop();
-                  }
-                  catch (IOException e)
-                  {
-                     e.printStackTrace();
-                  }
-            }
+            movieBuilder = new MP4H264MovieBuilder(request.getFile(), request.getWidth(), request.getHeight(), (int) request.getFrameRate(), settings);
+         }
+         catch (IOException e)
+         {
+            e.printStackTrace();
+            return;
          }
 
-         private boolean initialize(YoBufferPropertiesReadOnly bufferProperties)
+      }
+
+      @Override
+      public void handle(long now)
+      {
+         if (currentSessionMode.get() != SessionMode.PAUSE)
          {
-            if (bufferStart < 0)
-               bufferStart = bufferProperties.getInPoint();
-            if (bufferEnd < 0)
-               bufferEnd = bufferProperties.getOutPoint();
-
-            double dt = Conversions.nanosecondsToSeconds(sessionDT.get()) * bufferRecordTickPeriod.get();
-            double recordDT = request.getRealTimeRate() / request.getFrameRate();
-            bufferIndexIncrement = (int) Math.ceil(recordDT / dt);
-
-            currentRecordingBufferIndex = bufferStart;
-            numberOfBufferTicks = SharedMemoryTools.computeSubLength(bufferStart, bufferEnd, bufferProperties.getSize());
-            messager.submitMessage(topics.getYoBufferCurrentIndexRequest(), currentRecordingBufferIndex);
-
-            return true;
+            messager.submitMessage(topics.getSessionCurrentMode(), SessionMode.PAUSE);
+            return;
          }
 
-         private boolean recordNextFrame(YoBufferPropertiesReadOnly bufferProperties)
+         if (sessionDT.get() == null || bufferRecordTickPeriod.get() == null)
+            return;
+
+         YoBufferPropertiesReadOnly bufferProperties = currentBufferProperties.getAndSet(null);
+
+         if (bufferProperties == null)
+            return;
+
+         switch (currentPhase)
          {
-            if (currentRecordingBufferIndex != bufferProperties.getCurrentIndex())
-               return false;
+            case 0:
+               if (initialize(bufferProperties))
+                  currentPhase++;
+               return;
+            case 1:
+               if (recordNextFrame(bufferProperties))
+                  currentPhase++;
+               return;
+            default:
+               try
+               {
+                  movieBuilder.close();
+                  stop();
+               }
+               catch (IOException e)
+               {
+                  e.printStackTrace();
+               }
+         }
+      }
 
-            scene.snapshot(params, image);
-            bufferedImage = SwingFXUtils.fromFXImage(image, bufferedImage);
+      private boolean initialize(YoBufferPropertiesReadOnly bufferProperties)
+      {
+         if (bufferStart < 0)
+            bufferStart = bufferProperties.getInPoint();
+         if (bufferEnd < 0)
+            bufferEnd = bufferProperties.getOutPoint();
 
-            try
-            {
-               movieBuilder.encodeFrame(bufferedImage);
-            }
-            catch (IOException e)
-            {
-               e.printStackTrace();
-               stop();
-            }
+         double dt = Conversions.nanosecondsToSeconds(sessionDT.get()) * bufferRecordTickPeriod.get();
+         double recordDT = request.getRealTimeRate() / request.getFrameRate();
+         bufferIndexIncrement = (int) Math.ceil(recordDT / dt);
 
-            numberOfBufferTicks -= bufferIndexIncrement;
+         currentRecordingBufferIndex = bufferStart;
+         numberOfBufferTicks = SharedMemoryTools.computeSubLength(bufferStart, bufferEnd, bufferProperties.getSize());
+         messager.submitMessage(topics.getYoBufferCurrentIndexRequest(), currentRecordingBufferIndex);
 
-            if (numberOfBufferTicks < 0)
-               return true;
+         return true;
+      }
 
-            currentRecordingBufferIndex = SharedMemoryTools.increment(currentRecordingBufferIndex, bufferIndexIncrement, bufferProperties.getSize());
-            messager.submitMessage(topics.getYoBufferCurrentIndexRequest(), currentRecordingBufferIndex);
-
+      private boolean recordNextFrame(YoBufferPropertiesReadOnly bufferProperties)
+      {
+         if (currentRecordingBufferIndex != bufferProperties.getCurrentIndex())
             return false;
+
+         scene.snapshot(params, jfxImage);
+         bufferedImage = SwingFXUtils.fromFXImage(jfxImage, bufferedImage);
+
+         try
+         {
+            movieBuilder.encodeFrame(bufferedImage);
          }
-      }.start();
+         catch (IOException e)
+         {
+            e.printStackTrace();
+            stop();
+         }
+
+         numberOfBufferTicks -= bufferIndexIncrement;
+
+         if (numberOfBufferTicks < 0)
+            return true;
+
+         currentRecordingBufferIndex = SharedMemoryTools.increment(currentRecordingBufferIndex, bufferIndexIncrement, bufferProperties.getSize());
+         messager.submitMessage(topics.getYoBufferCurrentIndexRequest(), currentRecordingBufferIndex);
+
+         return false;
+      }
+
+      @Override
+      public void stop()
+      {
+         super.stop();
+         stopListener.run();
+      }
    }
 }
