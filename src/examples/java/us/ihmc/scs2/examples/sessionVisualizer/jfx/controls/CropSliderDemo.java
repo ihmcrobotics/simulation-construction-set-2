@@ -18,6 +18,7 @@ public class CropSliderDemo extends Application
    public void start(Stage primaryStage) throws Exception
    {
       ToggleButton showTrimButton = new ToggleButton("Show trim");
+      showTrimButton.selectedProperty().set(true);
       CropSlider cropSlider1 = new CropSlider();
       cropSlider1.showTrimProperty().bind(showTrimButton.selectedProperty());
       cropSlider1.setOrientation(Orientation.HORIZONTAL);

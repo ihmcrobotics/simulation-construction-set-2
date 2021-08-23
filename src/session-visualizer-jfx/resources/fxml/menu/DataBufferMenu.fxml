@@ -11,7 +11,7 @@
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.layout.HBox?>
 
-<Menu text="Data Buffer" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu.DataBufferMenuController">
+<Menu fx:id="menu" text="Data Buffer" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu.DataBufferMenuController">
    <items>
       <MenuItem onAction="#requestCropDataBuffer" text="Crop buffer to In/Out">
          <graphic>

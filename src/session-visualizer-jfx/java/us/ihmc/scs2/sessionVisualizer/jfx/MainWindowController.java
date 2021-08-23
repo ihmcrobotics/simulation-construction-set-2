@@ -65,11 +65,16 @@ public class MainWindowController extends ObservedAnimationTimer
 
    private SessionVisualizerToolkit globalToolkit;
    private SessionVisualizerWindowToolkit windowToolkit;
+   private SessionVisualizerTopics topics;
+   private JavaFXMessager messager;
 
    public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
       windowToolkit = toolkit;
       this.globalToolkit = toolkit.getGlobalToolkit();
+      topics = toolkit.getTopics();
+      messager = toolkit.getMessager();
+
       mainWindowMenuBarController.initialize(windowToolkit);
       sessionSimpleControlsController.initialize(windowToolkit);
       sessionAdvancedControlsController.initialize(windowToolkit);
@@ -86,6 +91,7 @@ public class MainWindowController extends ObservedAnimationTimer
       {
          e.printStackTrace();
       }
+
    }
 
    public void setupViewport3D(Pane viewportPane)
@@ -108,8 +114,7 @@ public class MainWindowController extends ObservedAnimationTimer
       plotter2DScene.widthProperty().bind(pane.widthProperty());
       plotter2D.getRoot().getChildren().add(globalToolkit.getYoGraphicFXManager().getRootNode2D());
 
-      JavaFXMessager messager = globalToolkit.getMessager();
-      showOverheadPlotterProperty = messager.createPropertyInput(globalToolkit.getTopics().getShowOverheadPlotter(), false);
+      showOverheadPlotterProperty = messager.createPropertyInput(topics.getShowOverheadPlotter(), false);
       showOverheadPlotterProperty.addListener((o, oldValue, newValue) ->
       {
          if (newValue)

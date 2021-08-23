@@ -55,6 +55,7 @@ public class SessionAdvancedControlsController
       bufferProperties = messager.createPropertyInput(topics.getYoBufferCurrentProperties());
 
       messager.registerJavaFXSyncedTopicListener(topics.getShowAdvancedControls(), show -> showProperty.set(show));
+      messager.registerJavaFXSyncedTopicListener(topics.getDisableUserControls(), disable -> buttonsContainer.setDisable(disable));
 
       showProperty.addListener((o, oldValue, newValue) -> show(newValue));
       show(showProperty.get());
@@ -73,8 +74,12 @@ public class SessionAdvancedControlsController
       setupMainControlsActiveMode(this, messager, topics, runningIconView, playbackIconView, pauseIconView);
    }
 
-   public static void setupMainControlsActiveMode(Object bean, JavaFXMessager messager, SessionVisualizerTopics topics, FontAwesomeIconView runningIconView,
-                                                  FontAwesomeIconView playbackIconView, FontAwesomeIconView pauseIconView)
+   public static void setupMainControlsActiveMode(Object bean,
+                                                  JavaFXMessager messager,
+                                                  SessionVisualizerTopics topics,
+                                                  FontAwesomeIconView runningIconView,
+                                                  FontAwesomeIconView playbackIconView,
+                                                  FontAwesomeIconView pauseIconView)
    {
       Property<SessionState> sessionCurrentStateProperty = messager.createPropertyInput(topics.getSessionCurrentState(), null);
       Property<SessionMode> sessionCurrentModeProperty = messager.createPropertyInput(topics.getSessionCurrentMode(), null);

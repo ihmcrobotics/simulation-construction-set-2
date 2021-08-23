@@ -12,7 +12,7 @@
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.layout.HBox?>
 
-<Menu text="Run" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu.RunMenuController">
+<Menu fx:id="menu" text="Run" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu.RunMenuController">
    <items>
       <MenuItem onAction="#startSimulating" text="Run">
          <graphic>

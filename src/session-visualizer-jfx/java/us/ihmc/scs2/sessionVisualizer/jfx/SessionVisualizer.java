@@ -65,7 +65,10 @@ public class SessionVisualizer
       SessionVisualizerIOTools.addSCSIconToWindow(primaryStage);
       primaryStage.setTitle(NO_ACTIVE_SESSION_TITLE);
 
-      toolkit = new SessionVisualizerToolkit(primaryStage);
+      View3DFactory view3DFactory = View3DFactory.createSubscene();
+      view3DFactory.addDefaultLighting();
+
+      toolkit = new SessionVisualizerToolkit(primaryStage, view3DFactory.getSubScene());
       messager = toolkit.getMessager();
       topics = toolkit.getTopics();
 
@@ -74,13 +77,10 @@ public class SessionVisualizer
       mainWindowController = loader.getController();
       mainWindowController.initialize(new SessionVisualizerWindowToolkit(primaryStage, toolkit));
 
-      View3DFactory view3DFactory = View3DFactory.createSubscene();
-      view3DFactory.addDefaultLighting();
       view3DFactory.addNodeToView(toolkit.getYoRobotFXManager().getRootNode());
       view3DFactory.addNodeToView(toolkit.getEnvironmentManager().getRootNode());
       cameraController = view3DFactory.addCameraController(0.05, 2.0e5, true);
       CameraTools.setupNodeTrackingContextMenu(cameraController, view3DFactory.getSubScene());
-      toolkit.setSubScene(view3DFactory.getSubScene());
 
       messager.registerJavaFXSyncedTopicListener(topics.getCameraTrackObject(), request ->
       {

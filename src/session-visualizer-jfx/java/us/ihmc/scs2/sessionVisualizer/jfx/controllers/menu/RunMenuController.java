@@ -6,6 +6,7 @@ import com.jfoenix.controls.JFXTextField;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.Menu;
 import javafx.scene.control.TextFormatter;
 import javafx.util.converter.DoubleStringConverter;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
@@ -16,6 +17,8 @@ import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 
 public class RunMenuController
 {
+   @FXML
+   private Menu menu;
    @FXML
    private CheckMenuItem simulateAtRealTimeCheckMenuItem;
    @FXML
@@ -33,6 +36,7 @@ public class RunMenuController
       bufferProperties = messager.createInput(topics.getYoBufferCurrentProperties(), null);
 
       messager.bindBidirectional(topics.getRunAtRealTimeRate(), simulateAtRealTimeCheckMenuItem.selectedProperty(), false);
+      messager.registerJavaFXSyncedTopicListener(topics.getDisableUserControls(), disable -> menu.setDisable(disable));
 
       TextFormatter<Double> formatter = new TextFormatter<>(new DoubleStringConverter());
       formatter.setValue(1.0);

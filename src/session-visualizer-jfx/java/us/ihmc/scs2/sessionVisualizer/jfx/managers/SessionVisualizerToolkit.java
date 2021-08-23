@@ -44,15 +44,17 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    private final YoRobotFXManager yoRobotFXManager;
    private final SecondaryWindowManager secondaryWindowManager;
 
-   private Stage mainWindow;
+   private final Stage mainWindow;
+   private final SubScene mainScene3D;
 
    private final ObjectProperty<Session> activeSessionProperty = new SimpleObjectProperty<>(this, "activeSession", null);
    private final ObservableList<RobotDefinition> sessionRobotDefinitions = FXCollections.observableArrayList();
    private final ObservableList<TerrainObjectDefinition> sessionTerrainObjectDefinitions = FXCollections.observableArrayList();
 
-   public SessionVisualizerToolkit(Stage mainWindow) throws Exception
+   public SessionVisualizerToolkit(Stage mainWindow, SubScene mainScene3D) throws Exception
    {
       this.mainWindow = mainWindow;
+      this.mainScene3D = mainScene3D;
 
       MessagerAPIFactory apiFactory = new MessagerAPIFactory();
       apiFactory.createRootCategory("SCS2");
@@ -63,7 +65,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       messager.startMessager();
 
       snapshotManager = new SnapshotManager(mainWindow, messager, topics);
-      videoRecordingManager = new VideoRecordingManager(messager, topics);
+      videoRecordingManager = new VideoRecordingManager(mainWindow, messager, topics, mainScene3D);
       chartDataManager = new ChartDataManager(messager, topics, yoManager, backgroundExecutorManager);
       yoGraphicFXManager = new YoGraphicFXManager(messager, topics, yoManager, backgroundExecutorManager, referenceFrameManager);
       yoCompositeSearchManager = new YoCompositeSearchManager(messager, topics, yoManager, backgroundExecutorManager);
@@ -87,11 +89,6 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
          if (newTerrainObjectDefinitions != null && !newTerrainObjectDefinitions.isEmpty())
             sessionTerrainObjectDefinitions.setAll(newTerrainObjectDefinitions);
       });
-   }
-
-   public void setSubScene(SubScene scene)
-   {
-      videoRecordingManager.setScene(scene);
    }
 
    public void startSession(Session session, Runnable sessionLoadedCallback)
@@ -209,6 +206,11 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    public Stage getMainWindow()
    {
       return mainWindow;
+   }
+
+   public SubScene getMainScene3D()
+   {
+      return mainScene3D;
    }
 
    public YoManager getYoManager()
