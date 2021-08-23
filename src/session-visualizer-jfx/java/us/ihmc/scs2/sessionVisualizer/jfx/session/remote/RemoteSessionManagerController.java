@@ -107,7 +107,7 @@ public class RemoteSessionManagerController implements SessionControlsController
       JFXTreeTableColumn<SessionInfo, String> hostNameColumn = createColumn("HostName", 175.0, 100.0, 250.0, SessionInfo::getHostName);
       JFXTreeTableColumn<SessionInfo, String> sessionNameColumn = createColumn("SessionName", 250.0, 200.0, 500.0, SessionInfo::getSessionName);
 
-      rootSession = new RecursiveTreeItem<>(FXCollections.observableArrayList(), RecursiveTreeObject::getChildren);
+      rootSession = new RecursiveTreeItem<>(FXCollections.observableArrayList(), RecursiveTreeObject<SessionInfo>::getChildren);
 
       sessionTreeTableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
       sessionTreeTableView.setRoot(rootSession);
