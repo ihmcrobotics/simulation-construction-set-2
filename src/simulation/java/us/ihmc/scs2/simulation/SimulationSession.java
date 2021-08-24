@@ -298,5 +298,18 @@ public class SimulationSession extends Session
       {
          addRunThrowableListener(listener);
       }
+
+      // Buffer controls
+      @Override
+      public void setBufferInPointToCurrent()
+      {
+         submitBufferInPointIndexRequest(sharedBuffer.getProperties().getCurrentIndex());
+      }
+
+      @Override
+      public void setBufferOutPointToCurrent()
+      {
+         submitBufferOutPointIndexRequest(sharedBuffer.getProperties().getCurrentIndex());
+      }
    }
 }

@@ -11,10 +11,15 @@ public interface SimulationSessionControls
    void simulate(double duration);
 
    void simulate(int numberOfTicks);
-   
+
    boolean simulateAndWait(double duration);
-   
+
    boolean simulateAndWait(long numberOfTicks);
 
    void addSimulationThrowableListener(Consumer<Throwable> listener);
+
+   // Buffer controls:
+   void setBufferInPointToCurrent();
+
+   void setBufferOutPointToCurrent();
 }
