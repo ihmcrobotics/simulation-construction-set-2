@@ -1,5 +1,7 @@
 package us.ihmc.scs2.definition.robot;
 
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.PrismaticJoint;
 import us.ihmc.mecano.multiBodySystem.interfaces.PrismaticJointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
@@ -12,7 +14,12 @@ public class PrismaticJointDefinition extends OneDoFJointDefinition
 
    public PrismaticJointDefinition(String name)
    {
-      setName(name);
+      super(name);
+   }
+
+   public PrismaticJointDefinition(String name, Tuple3DReadOnly offsetFromParent, Vector3DReadOnly axis)
+   {
+      super(name, offsetFromParent, axis);
    }
 
    @Override

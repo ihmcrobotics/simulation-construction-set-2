@@ -1,5 +1,6 @@
 package us.ihmc.scs2.definition.robot;
 
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.PlanarJoint;
 import us.ihmc.mecano.multiBodySystem.interfaces.PlanarJointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
@@ -12,7 +13,12 @@ public class PlanarJointDefinition extends JointDefinition
 
    public PlanarJointDefinition(String name)
    {
-      setName(name);
+      super(name);
+   }
+
+   public PlanarJointDefinition(String name, Tuple3DReadOnly offsetFromParent)
+   {
+      super(name, offsetFromParent);
    }
 
    @Override

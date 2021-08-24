@@ -8,6 +8,7 @@ import us.ihmc.euclid.interfaces.Transformable;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.transform.interfaces.Transform;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.scs2.definition.state.interfaces.JointStateBasics;
@@ -34,6 +35,12 @@ public abstract class JointDefinition implements Transformable
    public JointDefinition(String name)
    {
       setName(name);
+   }
+
+   public JointDefinition(String name, Tuple3DReadOnly offsetFromParent)
+   {
+      this(name);
+      transformToParent.getTranslation().set(offsetFromParent);
    }
 
    public void setName(String name)
