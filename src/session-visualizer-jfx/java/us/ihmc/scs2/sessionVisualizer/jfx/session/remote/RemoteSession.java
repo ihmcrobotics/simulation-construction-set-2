@@ -163,10 +163,11 @@ public class RemoteSession extends Session
    }
 
    @Override
-   protected void doSpecificRunTick()
+   protected double doSpecificRunTick()
    {
       if (robotStateUpdater != null)
          robotStateUpdater.run();
+      return Conversions.nanosecondsToSeconds(latestDataTimestamp.get());
    }
 
    @Override

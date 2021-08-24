@@ -22,7 +22,6 @@ import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngineFactory;
 import us.ihmc.scs2.simulation.robot.Robot;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
 import us.ihmc.yoVariables.exceptions.IllegalOperationException;
-import us.ihmc.yoVariables.variable.YoDouble;
 
 public class SimulationSession extends Session
 {
@@ -30,7 +29,6 @@ public class SimulationSession extends Session
 
    private final ReferenceFrame inertialFrame;
    private final PhysicsEngine physicsEngine;
-   private final YoDouble simulationTime = new YoDouble("simulationTime", rootRegistry);
    private final YoFrameVector3D gravity = new YoFrameVector3D("gravity", ReferenceFrame.getWorldFrame(), rootRegistry);
    private final String simulationName;
    private final List<YoGraphicDefinition> yoGraphicDefinitions = new ArrayList<>();
@@ -95,11 +93,11 @@ public class SimulationSession extends Session
    }
 
    @Override
-   protected void doSpecificRunTick()
+   protected double doSpecificRunTick()
    {
       double dt = Conversions.nanosecondsToSeconds(getSessionTickToTimeIncrement());
-      physicsEngine.simulate(simulationTime.getValue(), dt, gravity);
-      simulationTime.add(dt);
+      physicsEngine.simulate(time.getValue(), dt, gravity);
+      return time.getValue() + dt;
    }
 
    public Robot addRobot(RobotDefinition robotDefinition)
@@ -205,8 +203,8 @@ public class SimulationSession extends Session
          if (getActiveMode() == SessionMode.RUNNING)
             setSessionMode(SessionMode.PAUSE);
 
-         double startTime = simulationTime.getValue();
-         BooleanSupplier terminalCondition = () -> simulationTime.getValue() - startTime >= duration;
+         double startTime = time.getValue();
+         BooleanSupplier terminalCondition = () -> time.getValue() - startTime >= duration;
          setSessionMode(SessionMode.RUNNING, terminalCondition, SessionMode.PAUSE);
       }
 

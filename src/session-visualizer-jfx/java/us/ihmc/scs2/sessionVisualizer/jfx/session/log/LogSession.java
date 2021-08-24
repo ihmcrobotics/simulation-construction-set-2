@@ -91,7 +91,7 @@ public class LogSession extends Session
    }
 
    @Override
-   protected void doSpecificRunTick()
+   protected double doSpecificRunTick()
    {
       boolean endOfLog = logDataReader.read();
       if (endOfLog)
@@ -99,6 +99,7 @@ public class LogSession extends Session
 
       if (robotStateUpdater != null)
          robotStateUpdater.run();
+      return logDataReader.getCurrentRobotTime();
    }
 
    @Override

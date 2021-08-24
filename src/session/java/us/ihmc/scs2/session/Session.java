@@ -31,6 +31,7 @@ import us.ihmc.scs2.sharedMemory.YoSharedBuffer;
 import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.yoVariables.registry.YoRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 public abstract class Session
 {
@@ -38,6 +39,7 @@ public abstract class Session
 
    protected final YoRegistry rootRegistry = new YoRegistry(ROOT_REGISTRY_NAME);
    protected final YoRegistry sessionRegistry = new YoRegistry(getClass().getSimpleName());
+   protected final YoDouble time = new YoDouble("time", rootRegistry);
    private final JVMStatisticsGenerator jvmStatisticsGenerator = new JVMStatisticsGenerator(sessionRegistry);
 
    protected final YoRegistry runRegistry = new YoRegistry("runStatistics");
@@ -524,7 +526,7 @@ public abstract class Session
       try
       {
          runSpecificTimer.start();
-         doSpecificRunTick();
+         time.set(doSpecificRunTick());
          runSpecificTimer.stop();
          caughtException = false;
       }
@@ -563,7 +565,12 @@ public abstract class Session
       }
    }
 
-   protected abstract void doSpecificRunTick();
+   /**
+    * Performs action specific to the implementation of this session.
+    * 
+    * @return the current time in seconds.
+    */
+   protected abstract double doSpecificRunTick();
 
    protected void finalizeRunTick()
    {
