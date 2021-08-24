@@ -17,24 +17,11 @@ import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
 
 public class ImpulseBasedRobot extends Robot implements CollidableHolder
 {
-   private ImpulseBasedRobotPhysics robotPhysics;
-
-   public ImpulseBasedRobot(Robot other)
-   {
-      super(other);
-   }
+   private final ImpulseBasedRobotPhysics robotPhysics;
 
    public ImpulseBasedRobot(RobotDefinition robotDefinition, ReferenceFrame inertialFrame)
    {
       super(robotDefinition, inertialFrame);
-   }
-
-   public void setupPhysicsAndControllers()
-   {
-      if (robotPhysics != null)
-         return;
-
-      setupControllers();
       robotPhysics = new ImpulseBasedRobotPhysics(this);
    }
 

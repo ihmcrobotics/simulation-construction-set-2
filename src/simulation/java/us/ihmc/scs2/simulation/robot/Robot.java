@@ -1,5 +1,6 @@
 package us.ihmc.scs2.simulation.robot;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -30,6 +31,7 @@ import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRigidBody;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimSixDoFJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimMultiBodySystemBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class Robot implements SimMultiBodySystemBasics
@@ -48,15 +50,16 @@ public class Robot implements SimMultiBodySystemBasics
    protected final SimRigidBody rootBody;
    protected final ReferenceFrame inertialFrame;
 
-   protected final Map<String, SimJointBasics> nameToJointMap;
-   protected final Map<String, SimRigidBody> nameToBodyMap;
    protected final List<SimJointBasics> allJoints;
-   protected List<SimJointBasics> jointsToIgnore;
-   protected List<SimJointBasics> jointsToConsider;
-   protected JointMatrixIndexProvider jointMatrixIndexProvider;
-   protected List<JointStateReadOnly> allJointInitialStates;
+   protected final List<SimRigidBodyBasics> allRigidBodies;
+   protected final List<SimJointBasics> jointsToIgnore;
+   protected final List<SimJointBasics> jointsToConsider;
+   protected final Map<String, SimJointBasics> nameToJointMap;
+   protected final Map<String, SimRigidBodyBasics> nameToBodyMap;
+   protected final JointMatrixIndexProvider jointMatrixIndexProvider;
+   protected final List<JointStateReadOnly> allJointInitialStates;
 
-   protected RobotControllerManager controllerManager;
+   protected final RobotControllerManager controllerManager;
 
    public Robot(RobotDefinition robotDefinition, ReferenceFrame inertialFrame)
    {
@@ -68,37 +71,11 @@ public class Robot implements SimMultiBodySystemBasics
       registry = new YoRegistry(name);
 
       rootBody = createRobot(robotDefinition.getRootBodyDefinition(), inertialFrame, DEFAULT_JOINT_BUILDER, DEFAULT_BODY_BUILDER, registry);
-      nameToJointMap = SubtreeStreams.fromChildren(SimJointBasics.class, rootBody).collect(Collectors.toMap(SimJointBasics::getName, Function.identity()));
-      nameToBodyMap = rootBody.subtreeStream().collect(Collectors.toMap(SimRigidBody::getName, Function.identity()));
       allJoints = SubtreeStreams.fromChildren(SimJointBasics.class, rootBody).collect(Collectors.toList());
-   }
-
-   protected Robot(Robot other)
-   {
-      this(other.getRobotDefinition(), other.getInertialFrame(), other.getRootBody());
-   }
-
-   protected Robot(RobotDefinition robotDefinition, ReferenceFrame inertialFrame, SimRigidBody rootBody)
-   {
-      this.robotDefinition = robotDefinition;
-      this.inertialFrame = inertialFrame;
-      this.rootBody = rootBody;
-
-      name = robotDefinition.getName();
-
-      registry = new YoRegistry(name);
-
-      nameToJointMap = SubtreeStreams.fromChildren(SimJointBasics.class, rootBody).collect(Collectors.toMap(SimJointBasics::getName, Function.identity()));
-      nameToBodyMap = rootBody.subtreeStream().collect(Collectors.toMap(SimRigidBody::getName, Function.identity()));
-      allJoints = SubtreeStreams.fromChildren(SimJointBasics.class, rootBody).collect(Collectors.toList());
-   }
-
-   public void setupControllers()
-   {
-      if (controllerManager != null)
-         return;
-
-      jointsToIgnore = robotDefinition.getNameOfJointsToIgnore().stream().map(jointName -> nameToJointMap.get(jointName)).collect(Collectors.toList());
+      allRigidBodies = new ArrayList<>(rootBody.subtreeList());
+      nameToJointMap = allJoints.stream().collect(Collectors.toMap(SimJointBasics::getName, Function.identity()));
+      nameToBodyMap = allRigidBodies.stream().collect(Collectors.toMap(SimRigidBodyBasics::getName, Function.identity()));
+      jointsToIgnore = robotDefinition.getNameOfJointsToIgnore().stream().map(nameToJointMap::get).collect(Collectors.toList());
       jointsToConsider = allJoints.stream().filter(joint -> !jointsToIgnore.contains(joint)).collect(Collectors.toList());
       jointMatrixIndexProvider = JointMatrixIndexProvider.toIndexProvider(getJointsToConsider());
       allJointInitialStates = allJoints.stream().map(joint -> robotDefinition.getJointDefinition(joint.getName()).getInitialJointState())
@@ -179,12 +156,12 @@ public class Robot implements SimMultiBodySystemBasics
    }
 
    @Override
-   public SimRigidBody getRootBody()
+   public SimRigidBodyBasics getRootBody()
    {
       return rootBody;
    }
 
-   public SimRigidBody getRigidBody(String name)
+   public SimRigidBodyBasics getRigidBody(String name)
    {
       return nameToBodyMap.get(name);
    }

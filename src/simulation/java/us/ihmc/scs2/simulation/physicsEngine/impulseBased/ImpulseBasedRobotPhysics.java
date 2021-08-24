@@ -22,7 +22,7 @@ import us.ihmc.scs2.simulation.collision.Collidable;
 import us.ihmc.scs2.simulation.collision.FrameShapePosePredictor;
 import us.ihmc.scs2.simulation.robot.Robot;
 import us.ihmc.scs2.simulation.robot.RobotPhysicsOutput;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRigidBody;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
 import us.ihmc.scs2.simulation.screwTools.RigidBodyDeltaTwistCalculator;
 import us.ihmc.scs2.simulation.screwTools.RigidBodyImpulseRegistry;
 import us.ihmc.scs2.simulation.screwTools.RigidBodyWrenchRegistry;
@@ -70,7 +70,7 @@ public class ImpulseBasedRobotPhysics
       rigidBodyDeltaTwistCalculator = new RigidBodyDeltaTwistCalculator(inertialFrame, owner.getJointMatrixIndexProvider(), jointDeltaVelocityMatrix);
       rigidBodyDeltaTwistProvider = rigidBodyDeltaTwistCalculator.getDeltaTwistProvider();
 
-      SimRigidBody rootBody = owner.getRootBody();
+      SimRigidBodyBasics rootBody = owner.getRootBody();
       collidables = rootBody.subtreeStream().flatMap(body -> body.getCollidables().stream()).collect(Collectors.toList());
 
       forwardDynamicsCalculator = new ForwardDynamicsCalculator(owner);

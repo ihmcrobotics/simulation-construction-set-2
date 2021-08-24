@@ -109,7 +109,6 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
    public Robot addRobot(RobotDefinition robotDefinition)
    {
       ImpulseBasedRobot ibRobot = new ImpulseBasedRobot(robotDefinition, inertialFrame);
-      ibRobot.setupPhysicsAndControllers();
       robotMap.put(ibRobot.getRootBody(), ibRobot);
       rootRegistry.addChild(ibRobot.getRegistry());
       robotList.add(ibRobot);

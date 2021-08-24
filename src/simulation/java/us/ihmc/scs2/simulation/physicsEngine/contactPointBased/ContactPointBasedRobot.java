@@ -15,24 +15,11 @@ import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
 
 public class ContactPointBasedRobot extends Robot implements CollidableHolder
 {
-   private ContactPointBasedRobotPhysics robotPhysics;
-
-   public ContactPointBasedRobot(Robot other)
-   {
-      super(other);
-   }
+   private final ContactPointBasedRobotPhysics robotPhysics;
 
    public ContactPointBasedRobot(RobotDefinition robotDefinition, ReferenceFrame inertialFrame)
    {
       super(robotDefinition, inertialFrame);
-   }
-
-   public void setupPhysicsAndControllers()
-   {
-      if (robotPhysics != null)
-         return;
-
-      setupControllers();
       robotPhysics = new ContactPointBasedRobotPhysics(this);
    }
 

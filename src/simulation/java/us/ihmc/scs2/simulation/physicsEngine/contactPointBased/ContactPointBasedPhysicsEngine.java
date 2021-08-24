@@ -150,7 +150,6 @@ public class ContactPointBasedPhysicsEngine implements PhysicsEngine
    public Robot addRobot(RobotDefinition robotDefinition)
    {
       ContactPointBasedRobot cpbRobot = new ContactPointBasedRobot(robotDefinition, inertialFrame);
-      cpbRobot.setupPhysicsAndControllers();
       rootRegistry.addChild(cpbRobot.getRegistry());
       robotList.add(cpbRobot);
       return cpbRobot;

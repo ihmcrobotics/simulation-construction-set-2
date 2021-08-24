@@ -285,7 +285,6 @@ public class MultiContactImpulseCalculatorTest
    static ImpulseBasedRobot nextSingleFloatingBodyRobot(Random random, String name)
    {
       ImpulseBasedRobot robot = new ImpulseBasedRobot(nextSingleFloatingBodyRobotDefinition(random, name), worldFrame);
-      robot.setupPhysicsAndControllers();
       robot.initializeState();
       return robot;
    }
