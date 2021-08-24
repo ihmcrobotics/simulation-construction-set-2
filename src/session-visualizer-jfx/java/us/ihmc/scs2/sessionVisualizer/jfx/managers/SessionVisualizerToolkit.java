@@ -6,6 +6,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.SubScene;
 import javafx.stage.Stage;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.log.LogTools;
@@ -34,6 +35,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    private final YoGraphicFXManager yoGraphicFXManager;
    private final YoCompositeSearchManager yoCompositeSearchManager;
    private final SnapshotManager snapshotManager;
+   private final VideoRecordingManager videoRecordingManager;
    private final KeyFrameManager keyFrameManager;
 
    private final BackgroundExecutorManager backgroundExecutorManager = new BackgroundExecutorManager(4);
@@ -42,15 +44,17 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    private final YoRobotFXManager yoRobotFXManager;
    private final SecondaryWindowManager secondaryWindowManager;
 
-   private Stage mainWindow;
+   private final Stage mainWindow;
+   private final SubScene mainScene3D;
 
    private final ObjectProperty<Session> activeSessionProperty = new SimpleObjectProperty<>(this, "activeSession", null);
    private final ObservableList<RobotDefinition> sessionRobotDefinitions = FXCollections.observableArrayList();
    private final ObservableList<TerrainObjectDefinition> sessionTerrainObjectDefinitions = FXCollections.observableArrayList();
 
-   public SessionVisualizerToolkit(Stage mainWindow) throws Exception
+   public SessionVisualizerToolkit(Stage mainWindow, SubScene mainScene3D) throws Exception
    {
       this.mainWindow = mainWindow;
+      this.mainScene3D = mainScene3D;
 
       MessagerAPIFactory apiFactory = new MessagerAPIFactory();
       apiFactory.createRootCategory("SCS2");
@@ -61,6 +65,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       messager.startMessager();
 
       snapshotManager = new SnapshotManager(mainWindow, messager, topics);
+      videoRecordingManager = new VideoRecordingManager(mainScene3D, topics, messager);
       chartDataManager = new ChartDataManager(messager, topics, yoManager, backgroundExecutorManager);
       yoGraphicFXManager = new YoGraphicFXManager(messager, topics, yoManager, backgroundExecutorManager, referenceFrameManager);
       yoCompositeSearchManager = new YoCompositeSearchManager(messager, topics, yoManager, backgroundExecutorManager);
@@ -203,6 +208,11 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       return mainWindow;
    }
 
+   public SubScene getMainScene3D()
+   {
+      return mainScene3D;
+   }
+
    public YoManager getYoManager()
    {
       return yoManager;
@@ -271,6 +281,11 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    public BackgroundExecutorManager getBackgroundExecutorManager()
    {
       return backgroundExecutorManager;
+   }
+
+   public VideoRecordingManager getVideoRecordingManager()
+   {
+      return videoRecordingManager;
    }
 
    public SecondaryWindowManager getWindowManager()

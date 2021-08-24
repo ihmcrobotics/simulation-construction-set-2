@@ -48,6 +48,11 @@
 	-glyph-name: CAMERA;
 }
 
+.video-icon-view {
+	-fx-fill: black;
+	-glyph-name: VIDEO_CAMERA;
+}
+
 .run-icon-view {
 	-glyph-name: GEARS;
 }
@@ -326,6 +331,17 @@
 
 .chart-table-view-clear-button {
 	-fx-background-color:#edafb7;
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * Export video controls                                                       *
+ *                                                                             *
+ ******************************************************************************/
+
+.set-indices-to-in-out-button {
+	-fx-background-color: -default-pale-cyan;
+	-jfx-button-type: RAISED;
 }
 
 /*******************************************************************************

@@ -133,6 +133,7 @@ public class SessionVisualizerIOTools
    public static final URL SECONDARY_WINDOW_URL = getFXMLResource("SecondaryWindow");
 
    public static final URL SIDE_PANE_URL = getFXMLResource("SidePane");
+   public static final URL VIDEO_PREVIEW_PANE_URL = getFXMLResource("VideoRecordingPreviewPane");
 
    public static final URL CHART_PANEL_FXML_URL = getFXMLResource(CHART, "YoChartPanel");
    public static final URL CHART_GROUP_PANEL_URL = getFXMLResource(CHART, "YoChartGroupPanel");

@@ -29,6 +29,8 @@ public class SessionVisualizerMessagerAPI
    private static final CategoryTheme Default = apiFactory.createCategoryTheme("Default");
    private static final CategoryTheme Camera = apiFactory.createCategoryTheme("Camera");
    private static final CategoryTheme Track = apiFactory.createCategoryTheme("Track");
+   private static final CategoryTheme Video = apiFactory.createCategoryTheme("Video");
+   private static final CategoryTheme User = apiFactory.createCategoryTheme("User");
 
    private static final TopicTheme Toggle = apiFactory.createTopicTheme("Toggle");
    private static final TopicTheme Next = apiFactory.createTopicTheme("Next");
@@ -44,9 +46,11 @@ public class SessionVisualizerMessagerAPI
    private static final TopicTheme Open = apiFactory.createTopicTheme("open");
    private static final TopicTheme Name = apiFactory.createTopicTheme("name");
    private static final TopicTheme Precision = apiFactory.createTopicTheme("Precision");
-   private static final TopicTheme Object = apiFactory.createTopicTheme("Object");
+   private static final TopicTheme Disable = apiFactory.createTopicTheme("Disable");
 
-   public static final Topic<CameraObjectTrackingRequest> CameraTrackObject = APIRoot.child(Camera).child(Track).topic(Object);
+   public static final Topic<Boolean> DisableUserControls = APIRoot.child(User).child(Controls).topic(Disable);
+   public static final Topic<SceneVideoRecordingRequest> SceneVideoRecordingRequest = APIRoot.child(Video).topic(Request);
+   public static final Topic<CameraObjectTrackingRequest> CameraTrackObject = APIRoot.child(Camera).child(Track).topic(Request);
    public static final Topic<Object> TakeSnapshot = APIRoot.topic(Snapshot);
    public static final Topic<Object> RegisterRecordable = APIRoot.child(Register).topic(Recordable);
    public static final Topic<Object> ForgetRecordable = APIRoot.child(Forget).topic(Recordable);

@@ -8,7 +8,7 @@
 
 <Menu text="File" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu.FileMenuController">
    <items>
-      <MenuItem onAction="#requestSnapshot" text="Take snapshot...">
+      <MenuItem fx:id="takeSnapshotMenuItem" onAction="#requestSnapshot" text="Take snapshot...">
          <graphic>
             <FontAwesomeIconView>
                <styleClass>
@@ -18,7 +18,17 @@
             </FontAwesomeIconView>
          </graphic>
       </MenuItem>
-      <MenuItem onAction="#loadConfiguration" text="Load configuration...">
+      <MenuItem fx:id="exportVideoMenuItem" onAction="#requestVideo" text="Export video...">
+         <graphic>
+            <FontAwesomeIconView>
+               <styleClass>
+                  <String fx:value="video-icon-view" />
+                  <String fx:value="menu-item-icon-view" />
+               </styleClass>
+            </FontAwesomeIconView>
+         </graphic>
+      </MenuItem>
+      <MenuItem fx:id="loadConfigurationMenuItem" onAction="#loadConfiguration" text="Load configuration...">
          <graphic>
             <FontAwesomeIconView>
                <styleClass>
@@ -28,7 +38,7 @@
             </FontAwesomeIconView>
          </graphic>
       </MenuItem>
-      <MenuItem onAction="#loadDefaultConfiguration" text="Load default configuration">
+      <MenuItem fx:id="loadDefaultConfigurationMenuItem" onAction="#loadDefaultConfiguration" text="Load default configuration">
          <graphic>
             <FontAwesomeIconView>
                <styleClass>
@@ -38,7 +48,7 @@
             </FontAwesomeIconView>
          </graphic>
       </MenuItem>
-      <MenuItem onAction="#saveConfiguration" text="Save configuration...">
+      <MenuItem fx:id="saveConfigurationMenuItem" onAction="#saveConfiguration" text="Save configuration...">
          <graphic>
             <FontAwesomeIconView>
                <styleClass>
@@ -48,7 +58,7 @@
             </FontAwesomeIconView>
          </graphic>
       </MenuItem>
-      <MenuItem onAction="#saveDefaultConfiguration" text="Save to default configuration">
+      <MenuItem fx:id="saveDefaultConfigurationMenuItem" onAction="#saveDefaultConfiguration" text="Save to default configuration">
          <graphic>
             <FontAwesomeIconView>
                <styleClass>
@@ -58,7 +68,7 @@
             </FontAwesomeIconView>
          </graphic>
       </MenuItem>
-      <MenuItem onAction="#close" text="Close">
+      <MenuItem fx:id="closeMenuItem" onAction="#close" text="Close">
          <graphic>
             <OctIconView>
                <styleClass>
