@@ -70,6 +70,7 @@ import us.ihmc.scs2.definition.robot.sdf.items.SDFURIHolder;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFVisual;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFVisual.SDFMaterial;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
+import us.ihmc.scs2.definition.visual.ColorDefinitions;
 import us.ihmc.scs2.definition.visual.MaterialDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
 
@@ -230,8 +231,10 @@ public class SDFTools
       return robotDefinition;
    }
 
-   public static RigidBodyDefinition connectKinematics(List<RigidBodyDefinition> rigidBodyDefinitions, List<JointDefinition> jointDefinitions,
-                                                       List<SDFJoint> sdfJoints, List<SDFLink> sdfLinks)
+   public static RigidBodyDefinition connectKinematics(List<RigidBodyDefinition> rigidBodyDefinitions,
+                                                       List<JointDefinition> jointDefinitions,
+                                                       List<SDFJoint> sdfJoints,
+                                                       List<SDFLink> sdfLinks)
    {
       if (sdfJoints == null)
          return rigidBodyDefinitions.get(0);
@@ -629,7 +632,13 @@ public class SDFTools
       if (sdfColor == null)
          return null;
 
-      return new ColorDefinition(parseArray(sdfColor, null));
+      double[] colorArray = parseArray(sdfColor, null);
+      if (colorArray == null)
+         return null;
+      else if (colorArray.length < 4)
+         return ColorDefinitions.rgb(colorArray);
+      else
+         return ColorDefinitions.rgba(colorArray);
    }
 
    public static RigidBodyTransform parsePose(String pose)

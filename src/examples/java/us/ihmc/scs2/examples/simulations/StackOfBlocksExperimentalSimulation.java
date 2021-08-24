@@ -47,7 +47,7 @@ public class StackOfBlocksExperimentalSimulation
 
       for (int i = 0; i < numberOfBlocks; i++)
       {
-         ColorDefinition appearance = new ColorDefinition(random.nextInt());
+         ColorDefinition appearance = ColorDefinition.rgb(random.nextInt());
          RobotDefinition boxRobot = ExampleExperimentalSimulationTools.newBoxRobot("Block" + i, boxSizeX, boxSizeY, boxSizeZ, mass, 0.5, appearance);
          robotDefinitions.add(boxRobot);
 

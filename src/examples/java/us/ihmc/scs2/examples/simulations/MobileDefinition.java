@@ -232,7 +232,7 @@ public class MobileDefinition extends RobotDefinition
 
       RigidBodyTransform toyVisualPose = new RigidBodyTransform();
       toyVisualPose.getTranslation().setZ(-stringLength);
-      MaterialDefinition toyMaterialDefinition = new MaterialDefinition(new ColorDefinition(new Random().nextInt()));
+      MaterialDefinition toyMaterialDefinition = new MaterialDefinition(ColorDefinition.rgb(new Random().nextInt()));
       toyRigidbody.addVisualDefinition(new VisualDefinition(toyVisualPose, toyGeometryDefinition, toyMaterialDefinition));
 
       return toyRigidbody;

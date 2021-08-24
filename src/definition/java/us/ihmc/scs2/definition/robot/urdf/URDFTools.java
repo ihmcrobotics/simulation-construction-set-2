@@ -78,6 +78,7 @@ import us.ihmc.scs2.definition.robot.urdf.items.URDFSensor.URDFRay.URDFScan.URDF
 import us.ihmc.scs2.definition.robot.urdf.items.URDFTexture;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFVisual;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
+import us.ihmc.scs2.definition.visual.ColorDefinitions;
 import us.ihmc.scs2.definition.visual.MaterialDefinition;
 import us.ihmc.scs2.definition.visual.TextureDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
@@ -770,7 +771,13 @@ public class URDFTools
       if (urdfColor == null)
          return null;
 
-      return new ColorDefinition(parseArray(urdfColor.getRGBA(), null));
+      double[] colorArray = parseArray(urdfColor.getRGBA(), null);
+      if (colorArray == null)
+         return null;
+      else if (colorArray.length < 4)
+         return ColorDefinitions.rgb(colorArray);
+      else
+         return ColorDefinitions.rgba(colorArray);
    }
 
    public static RigidBodyTransform parsePose(String pose)
