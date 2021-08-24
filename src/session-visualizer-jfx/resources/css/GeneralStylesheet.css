@@ -48,6 +48,11 @@
 	-glyph-name: CAMERA;
 }
 
+.video-icon-view {
+	-fx-fill: black;
+	-glyph-name: VIDEO_CAMERA;
+}
+
 .run-icon-view {
 	-glyph-name: GEARS;
 }

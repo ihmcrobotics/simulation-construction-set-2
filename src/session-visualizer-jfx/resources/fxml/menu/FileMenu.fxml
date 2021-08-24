@@ -22,7 +22,7 @@
          <graphic>
             <FontAwesomeIconView>
                <styleClass>
-                  <String fx:value="snapshot-icon-view" />
+                  <String fx:value="video-icon-view" />
                   <String fx:value="menu-item-icon-view" />
                </styleClass>
             </FontAwesomeIconView>
