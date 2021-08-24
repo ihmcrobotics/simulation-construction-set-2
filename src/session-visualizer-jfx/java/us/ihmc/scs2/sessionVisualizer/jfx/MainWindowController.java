@@ -83,7 +83,8 @@ public class MainWindowController extends ObservedAnimationTimer
       try
       {
          FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.SIDE_PANE_URL);
-         setupDrawer((Pane) loader.load());
+         Pane sidePane = setupDrawer(loader.load());
+         messager.registerJavaFXSyncedTopicListener(topics.getDisableUserControls(), disable -> sidePane.setDisable(disable));
          sidePaneController = loader.getController();
          sidePaneController.initialize(toolkit.getGlobalToolkit());
       }
@@ -133,7 +134,7 @@ public class MainWindowController extends ObservedAnimationTimer
       return showOverheadPlotterProperty;
    }
 
-   public void setupDrawer(Pane sidePane)
+   public Pane setupDrawer(Pane sidePane)
    {
       // Workaround for the drawer resizing:
       // Here we make an edge similar to a SplitPane separator on which the cursor will change
@@ -208,6 +209,8 @@ public class MainWindowController extends ObservedAnimationTimer
          transition.setRate(0.5);
          transition.play();
       });
+
+      return hBox;
    }
 
    private long timeLast = -1;
