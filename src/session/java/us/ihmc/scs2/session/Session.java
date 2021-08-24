@@ -840,7 +840,7 @@ public abstract class Session
 
       private final TopicListener<SessionState> sessionCurrentStateListener = Session.this::setSessionState;
       private final TopicListener<SessionMode> sessionCurrentModeListener = Session.this::setSessionMode;
-      private final TopicListener<Long> sessionTicktoTimeIncrementListener = Session.this::setSessionTickToTimeIncrement;
+      private final TopicListener<Long> sessionTickToTimeIncrementListener = Session.this::setSessionTickToTimeIncrement;
       private final TopicListener<Boolean> runAtRealTimeRateListener = Session.this::submitRunAtRealTimeRate;
       private final TopicListener<Double> playbackRealTimeRateListener = Session.this::submitPlaybackRealTimeRate;
       private final TopicListener<Integer> bufferRecordTickPeriodListener = Session.this::submitBufferRecordTickPeriod;
@@ -867,7 +867,7 @@ public abstract class Session
 
          messager.registerTopicListener(SessionMessagerAPI.SessionCurrentState, sessionCurrentStateListener);
          messager.registerTopicListener(SessionMessagerAPI.SessionCurrentMode, sessionCurrentModeListener);
-         messager.registerTopicListener(SessionMessagerAPI.SessionTickToTimeIncrement, sessionTicktoTimeIncrementListener);
+         messager.registerTopicListener(SessionMessagerAPI.SessionTickToTimeIncrement, sessionTickToTimeIncrementListener);
          messager.registerTopicListener(SessionMessagerAPI.RunAtRealTimeRate, runAtRealTimeRateListener);
          messager.registerTopicListener(SessionMessagerAPI.PlaybackRealTimeRate, playbackRealTimeRateListener);
          messager.registerTopicListener(SessionMessagerAPI.BufferRecordTickPeriod, bufferRecordTickPeriodListener);
@@ -889,7 +889,7 @@ public abstract class Session
 
          messager.removeTopicListener(SessionMessagerAPI.SessionCurrentState, sessionCurrentStateListener);
          messager.removeTopicListener(SessionMessagerAPI.SessionCurrentMode, sessionCurrentModeListener);
-         messager.removeTopicListener(SessionMessagerAPI.SessionTickToTimeIncrement, sessionTicktoTimeIncrementListener);
+         messager.removeTopicListener(SessionMessagerAPI.SessionTickToTimeIncrement, sessionTickToTimeIncrementListener);
          messager.removeTopicListener(SessionMessagerAPI.RunAtRealTimeRate, runAtRealTimeRateListener);
          messager.removeTopicListener(SessionMessagerAPI.PlaybackRealTimeRate, playbackRealTimeRateListener);
          messager.removeTopicListener(SessionMessagerAPI.BufferRecordTickPeriod, bufferRecordTickPeriodListener);
