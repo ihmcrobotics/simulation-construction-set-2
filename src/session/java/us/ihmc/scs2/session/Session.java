@@ -104,8 +104,10 @@ public abstract class Session
    protected boolean firstRunTick = true;
    protected boolean firstPauseTick = true;
 
-   private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(new DaemonThreadFactory("SCS2-Session-Thread"));
-   private ScheduledFuture<?> activeScheduledFuture;
+   protected final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(2, new DaemonThreadFactory("SCS2-Session-Thread"));
+   protected ScheduledFuture<?> activeScheduledFuture;
+   protected final AtomicBoolean stopCurrentSessionTask = new AtomicBoolean(false);
+
    private final EnumMap<SessionMode, Runnable> sessionModeToTaskMap = new EnumMap<>(SessionMode.class);
 
    public Session()
@@ -380,35 +382,52 @@ public abstract class Session
       if (!sessionStarted)
          return;
 
-      if (activeScheduledFuture != null)
-         activeScheduledFuture.cancel(false);
+      stopCurrentSessionTask.set(true);
 
-      runActualDT.reset();
-      playbackActualDT.reset();
-      pauseActualDT.reset();
-
-      Runnable command;
-      Runnable sessionModeTask = sessionModeToTaskMap.get(activeMode.get());
-
-      if (terminalCondition == null)
+      Runnable restartTask = () ->
       {
-         command = sessionModeTask;
-      }
-      else
-      {
-         Objects.requireNonNull(nextMode, "nextMode argument is required when providing a terminalCondition");
-
-         command = () ->
+         while (activeScheduledFuture != null && !activeScheduledFuture.isCancelled())
          {
-            sessionModeTask.run();
+            try
+            {
+               Thread.sleep(10);
+            }
+            catch (InterruptedException e)
+            {
+               e.printStackTrace();
+               return;
+            }
+         }
 
-            if (terminalCondition.getAsBoolean())
-               setSessionMode(nextMode);
-         };
-      }
+         runActualDT.reset();
+         playbackActualDT.reset();
+         pauseActualDT.reset();
+         stopCurrentSessionTask.set(false);
 
-      activeScheduledFuture = executorService.scheduleAtFixedRate(command, 0, computeThreadPeriod(activeMode.get()), TimeUnit.NANOSECONDS);
-      reportActiveMode();
+         Runnable command;
+         Runnable sessionModeTask = sessionModeToTaskMap.get(activeMode.get());
+
+         if (terminalCondition == null)
+         {
+            command = sessionModeTask;
+         }
+         else
+         {
+            Objects.requireNonNull(nextMode, "nextMode argument is required when providing a terminalCondition");
+
+            command = () ->
+            {
+               sessionModeTask.run();
+
+               if (terminalCondition.getAsBoolean())
+                  setSessionMode(nextMode);
+            };
+         }
+
+         activeScheduledFuture = executorService.scheduleAtFixedRate(command, 0, computeThreadPeriod(activeMode.get()), TimeUnit.NANOSECONDS);
+         reportActiveMode();
+      };
+      executorService.execute(restartTask);
    }
 
    private long computeThreadPeriod(SessionMode mode)
@@ -486,6 +505,12 @@ public abstract class Session
 
    public void runTick()
    {
+      if (stopCurrentSessionTask.get())
+      {
+         activeScheduledFuture.cancel(false);
+         return;
+      }
+
       runTimer.start();
       runActualDT.update();
 
@@ -592,6 +617,12 @@ public abstract class Session
 
    public void playbackTick()
    {
+      if (stopCurrentSessionTask.get())
+      {
+         activeScheduledFuture.cancel(false);
+         return;
+      }
+
       playbackTimer.start();
       playbackActualDT.update();
 
@@ -653,6 +684,12 @@ public abstract class Session
 
    public void pauseTick()
    {
+      if (stopCurrentSessionTask.get())
+      {
+         activeScheduledFuture.cancel(false);
+         return;
+      }
+
       pauseTimer.start();
       pauseActualDT.update();
 

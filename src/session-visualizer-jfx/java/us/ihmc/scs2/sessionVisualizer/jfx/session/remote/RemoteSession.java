@@ -66,6 +66,9 @@ public class RemoteSession extends Session
       {
          if (!this.yoVariableClientInterface.isConnected())
             setSessionMode(SessionMode.PAUSE);
+
+         if (stopCurrentSessionTask.get())
+            activeScheduledFuture.cancel(false);
          /* Do nothing, the client thread calls runTick(). */
       });
       addSessionPropertiesListener(properties ->
