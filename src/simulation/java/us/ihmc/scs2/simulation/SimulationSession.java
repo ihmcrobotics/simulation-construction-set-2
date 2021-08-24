@@ -72,7 +72,7 @@ public class SimulationSession extends Session
 
       physicsEngine = physicsEngineFactory.build(inertialFrame, rootRegistry);
 
-      setSessionTickToTimeIncrement(Conversions.secondsToNanoseconds(0.0001));
+      setSessionDTSeconds(0.0001);
       setSessionMode(SessionMode.PAUSE);
       gravity.set(0.0, 0.0, -9.81);
    }
@@ -95,7 +95,7 @@ public class SimulationSession extends Session
    @Override
    protected double doSpecificRunTick()
    {
-      double dt = Conversions.nanosecondsToSeconds(getSessionTickToTimeIncrement());
+      double dt = Conversions.nanosecondsToSeconds(getSessionDTNanoseconds());
       physicsEngine.simulate(time.getValue(), dt, gravity);
       return time.getValue() + dt;
    }
@@ -231,7 +231,7 @@ public class SimulationSession extends Session
       @Override
       public boolean simulateAndWait(double duration)
       {
-         long numberOfTicks = Conversions.secondsToNanoseconds(duration) / getSessionTickToTimeIncrement();
+         long numberOfTicks = Conversions.secondsToNanoseconds(duration) / getSessionDTNanoseconds();
          return simulateAndWait(numberOfTicks);
       }
 

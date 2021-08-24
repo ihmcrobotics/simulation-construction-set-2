@@ -70,8 +70,7 @@ public abstract class Session
     * When simulating, this corresponds to the simulation DT for instance.
     * </p>
     */
-   // TODO Should be renamed to something like sessionDT
-   private final AtomicLong sessionTickToTimeIncrement = new AtomicLong(Conversions.secondsToNanoseconds(1.0e-4));
+   private final AtomicLong sessionDTNanoseconds = new AtomicLong(Conversions.secondsToNanoseconds(1.0e-4));
    private final AtomicLong desiredBufferPublishPeriod = new AtomicLong(-1L);
 
    // State listener to publish internal to outside world
@@ -230,12 +229,17 @@ public abstract class Session
       playbackThrowableListeners.remove(listener);
    }
 
-   public void setSessionTickToTimeIncrement(long sessionTickToTimeIncrement)
+   public void setSessionDTSeconds(double sessionDTSeconds)
    {
-      if (this.sessionTickToTimeIncrement.get() == sessionTickToTimeIncrement)
+      setSessionDTNanoseconds(Conversions.secondsToNanoseconds(sessionDTSeconds));
+   }
+
+   public void setSessionDTNanoseconds(long sessionDTNanoseconds)
+   {
+      if (this.sessionDTNanoseconds.get() == sessionDTNanoseconds)
          return;
 
-      this.sessionTickToTimeIncrement.set(sessionTickToTimeIncrement);
+      this.sessionDTNanoseconds.set(sessionDTNanoseconds);
       restartSessionTask();
    }
 
@@ -463,7 +467,7 @@ public abstract class Session
       return new SessionProperties(activeMode.get(),
                                    runAtRealTimeRate.get(),
                                    playbackRealTimeRate.get().doubleValue(),
-                                   sessionTickToTimeIncrement.get(),
+                                   sessionDTNanoseconds.get(),
                                    bufferRecordTickPeriod.get());
    }
 
@@ -476,7 +480,7 @@ public abstract class Session
 
    protected long computeRunTaskPeriod()
    {
-      return runAtRealTimeRate.get() ? sessionTickToTimeIncrement.get() : 1L;
+      return runAtRealTimeRate.get() ? sessionDTNanoseconds.get() : 1L;
    }
 
    /**
@@ -597,7 +601,7 @@ public abstract class Session
 
    protected long computePlaybackTaskPeriod()
    {
-      long timeIncrement = sessionTickToTimeIncrement.get() * bufferRecordTickPeriod.get();
+      long timeIncrement = sessionDTNanoseconds.get() * bufferRecordTickPeriod.get();
 
       if (playbackRealTimeRate.get().doubleValue() <= 0.5)
       {
@@ -832,9 +836,9 @@ public abstract class Session
       return bufferRecordTickPeriod.get();
    }
 
-   public long getSessionTickToTimeIncrement()
+   public long getSessionDTNanoseconds()
    {
-      return sessionTickToTimeIncrement.get();
+      return sessionDTNanoseconds.get();
    }
 
    public long getDesiredBufferPublishPeriod()
@@ -873,7 +877,7 @@ public abstract class Session
 
       private final TopicListener<SessionState> sessionCurrentStateListener = Session.this::setSessionState;
       private final TopicListener<SessionMode> sessionCurrentModeListener = Session.this::setSessionMode;
-      private final TopicListener<Long> sessionTickToTimeIncrementListener = Session.this::setSessionTickToTimeIncrement;
+      private final TopicListener<Long> sessionDTNanosecondsListener = Session.this::setSessionDTNanoseconds;
       private final TopicListener<Boolean> runAtRealTimeRateListener = Session.this::submitRunAtRealTimeRate;
       private final TopicListener<Double> playbackRealTimeRateListener = Session.this::submitPlaybackRealTimeRate;
       private final TopicListener<Integer> bufferRecordTickPeriodListener = Session.this::submitBufferRecordTickPeriod;
@@ -900,7 +904,7 @@ public abstract class Session
 
          messager.registerTopicListener(SessionMessagerAPI.SessionCurrentState, sessionCurrentStateListener);
          messager.registerTopicListener(SessionMessagerAPI.SessionCurrentMode, sessionCurrentModeListener);
-         messager.registerTopicListener(SessionMessagerAPI.SessionTickToTimeIncrement, sessionTickToTimeIncrementListener);
+         messager.registerTopicListener(SessionMessagerAPI.SessionDTNanoseconds, sessionDTNanosecondsListener);
          messager.registerTopicListener(SessionMessagerAPI.RunAtRealTimeRate, runAtRealTimeRateListener);
          messager.registerTopicListener(SessionMessagerAPI.PlaybackRealTimeRate, playbackRealTimeRateListener);
          messager.registerTopicListener(SessionMessagerAPI.BufferRecordTickPeriod, bufferRecordTickPeriodListener);
@@ -922,7 +926,7 @@ public abstract class Session
 
          messager.removeTopicListener(SessionMessagerAPI.SessionCurrentState, sessionCurrentStateListener);
          messager.removeTopicListener(SessionMessagerAPI.SessionCurrentMode, sessionCurrentModeListener);
-         messager.removeTopicListener(SessionMessagerAPI.SessionTickToTimeIncrement, sessionTickToTimeIncrementListener);
+         messager.removeTopicListener(SessionMessagerAPI.SessionDTNanoseconds, sessionDTNanosecondsListener);
          messager.removeTopicListener(SessionMessagerAPI.RunAtRealTimeRate, runAtRealTimeRateListener);
          messager.removeTopicListener(SessionMessagerAPI.PlaybackRealTimeRate, playbackRealTimeRateListener);
          messager.removeTopicListener(SessionMessagerAPI.BufferRecordTickPeriod, bufferRecordTickPeriodListener);
@@ -947,7 +951,7 @@ public abstract class Session
                return;
 
             messager.submitMessage(SessionMessagerAPI.SessionCurrentMode, sessionProperties.getActiveMode());
-            messager.submitMessage(SessionMessagerAPI.SessionTickToTimeIncrement, sessionProperties.getSessionTickToTimeIncrement());
+            messager.submitMessage(SessionMessagerAPI.SessionDTNanoseconds, sessionProperties.getSessionDTNanoseconds());
             messager.submitMessage(SessionMessagerAPI.PlaybackRealTimeRate, sessionProperties.getPlaybackRealTimeRate());
             messager.submitMessage(SessionMessagerAPI.RunAtRealTimeRate, sessionProperties.isRunAtRealTimeRate());
             messager.submitMessage(SessionMessagerAPI.BufferRecordTickPeriod, sessionProperties.getBufferRecordTickPeriod());

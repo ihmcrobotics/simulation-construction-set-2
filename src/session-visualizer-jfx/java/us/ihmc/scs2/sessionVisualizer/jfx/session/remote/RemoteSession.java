@@ -61,7 +61,7 @@ public class RemoteSession extends Session
       if (robotDefinition != null)
          robotDefinitions.add(robotDefinition);
 
-      setSessionTickToTimeIncrement(Conversions.secondsToNanoseconds(handshakeParser.getDt()));
+      setSessionDTSeconds(handshakeParser.getDt());
       setSessionModeTask(SessionMode.RUNNING, () ->
       {
          if (!this.yoVariableClientInterface.isConnected())
@@ -111,7 +111,7 @@ public class RemoteSession extends Session
    @Override
    public SessionProperties getSessionProperties()
    {
-      return new SessionProperties(getActiveMode(), getRunAtRealTimeRate(), getPlaybackRealTimeRate(), getSessionTickToTimeIncrement(), bufferRecordTickPeriod);
+      return new SessionProperties(getActiveMode(), getRunAtRealTimeRate(), getPlaybackRealTimeRate(), getSessionDTNanoseconds(), bufferRecordTickPeriod);
    }
 
    public void receivedTimestampOnly(long timestamp)
@@ -201,7 +201,7 @@ public class RemoteSession extends Session
 
    private void updateServerUpdateRate()
    {
-      int updateRateInMilliseconds = (int) TimeUnit.NANOSECONDS.toMillis(bufferRecordTickPeriod * getSessionTickToTimeIncrement());
+      int updateRateInMilliseconds = (int) TimeUnit.NANOSECONDS.toMillis(bufferRecordTickPeriod * getSessionDTNanoseconds());
       yoVariableClientInterface.setVariableUpdateRate(updateRateInMilliseconds);
    }
 

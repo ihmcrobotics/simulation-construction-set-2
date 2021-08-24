@@ -67,7 +67,7 @@ public class LogSession extends Session
       }
 
       submitDesiredBufferPublishPeriod(Conversions.secondsToNanoseconds(1.0 / 30.0));
-      setSessionTickToTimeIncrement(Conversions.secondsToNanoseconds(parser.getDt()));
+      setSessionDTSeconds(parser.getDt());
       setSessionMode(SessionMode.PAUSE);
    }
 

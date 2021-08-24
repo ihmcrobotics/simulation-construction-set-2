@@ -46,7 +46,7 @@ public class VideoRecordingManager
 
       currentBufferProperties = messager.createInput(topics.getYoBufferCurrentProperties());
       currentSessionMode = messager.createInput(topics.getSessionCurrentMode());
-      sessionDT = messager.createInput(topics.getSessionTickToTimeIncrement());
+      sessionDT = messager.createInput(topics.getSessionDTNanoseconds());
       bufferRecordTickPeriod = messager.createInput(topics.getBufferRecordTickPeriod());
 
       messager.registerTopicListener(topics.getSceneVideoRecordingRequest(), request -> submitRequest(request));

@@ -29,7 +29,7 @@ public class SessionMessagerAPI
    private static final TopicTheme Mode = apiFactory.createTypedTopicTheme("Mode");
    private static final TopicTheme TickPeriod = apiFactory.createTypedTopicTheme("TickPeriod");
 
-   public static final Topic<Long> SessionTickToTimeIncrement = root.child(Session).child(Run).topic(Period);
+   public static final Topic<Long> SessionDTNanoseconds = root.child(Session).child(Run).topic(Period);
    public static final Topic<SessionState> SessionCurrentState = root.child(Session).topic(State);
    public static final Topic<SessionMode> SessionCurrentMode = root.child(Session).topic(Mode);
    public static final Topic<Integer> BufferRecordTickPeriod = root.child(Session).child(Record).topic(TickPeriod);
