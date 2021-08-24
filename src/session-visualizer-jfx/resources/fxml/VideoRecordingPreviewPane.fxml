@@ -17,16 +17,15 @@
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.stage.Stage?>
 
-
-<Stage fx:id="stage" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.VideoRecordingPreviewPaneController">
+<Stage fx:id="stage" resizable="false" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.VideoRecordingPreviewPaneController">
    <scene>
       <Scene fx:id="scene">
          <root>
             <VBox fx:id="mainPane" spacing="10.0" stylesheets="@../css/GeneralStylesheet.css">
                <children>
-                  <AnchorPane>
+                  <AnchorPane fx:id="imageViewContainer" VBox.vgrow="ALWAYS">
                      <children>
-                        <ImageView fx:id="imageView" fitHeight="400.0" fitWidth="800.0" pickOnBounds="true" preserveRatio="true" />
+                        <ImageView fx:id="imageView" fitWidth="800.0" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                         <Rectangle fx:id="viewportRectangle" arcHeight="10.0" arcWidth="10.0" fill="#ffffff00" height="200.0" stroke="BLACK" strokeType="INSIDE" width="200.0" />
                      </children>
                   </AnchorPane>
@@ -44,7 +43,7 @@
                      </columnConstraints>
                      <rowConstraints>
                         <RowConstraints valignment="CENTER" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="10.0" prefHeight="30.0" valignment="CENTER" vgrow="SOMETIMES" />
+                        <RowConstraints valignment="CENTER" vgrow="SOMETIMES" />
                      </rowConstraints>
                      <children>
                         <Label maxWidth="1.7976931348623157E308" text="Resolution:" GridPane.columnIndex="1" />

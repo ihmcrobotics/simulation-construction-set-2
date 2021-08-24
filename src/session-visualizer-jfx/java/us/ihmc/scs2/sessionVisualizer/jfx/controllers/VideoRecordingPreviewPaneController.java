@@ -25,6 +25,7 @@ import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextFormatter.Change;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Scale;
@@ -36,6 +37,7 @@ import javafx.stage.WindowEvent;
 import javafx.util.converter.DoubleStringConverter;
 import us.ihmc.euclid.tools.EuclidCoreTools;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
+import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sessionVisualizer.jfx.SceneVideoRecordingRequest;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
@@ -50,6 +52,8 @@ public class VideoRecordingPreviewPaneController
    private Stage stage;
    @FXML
    private VBox mainPane;
+   @FXML
+   private AnchorPane imageViewContainer;
    @FXML
    private ImageView imageView;
    @FXML
@@ -113,6 +117,7 @@ public class VideoRecordingPreviewPaneController
    private Property<Integer> startIndex, endIndex;
 
    private final Property<SnapshotParameters> paramsProperty = new SimpleObjectProperty<>(this, "params", new SnapshotParameters());
+   private final Property<SessionMode> currentSessionMode = new SimpleObjectProperty<>(this, "currentSessionMode", null);
    private Property<YoBufferPropertiesReadOnly> bufferProperties;
 
    private Window owner;
@@ -137,6 +142,8 @@ public class VideoRecordingPreviewPaneController
       });
       resolutionComboBox.getSelectionModel().select(Resolution.FULL_HD_1920x1080.getDescription());
 
+      messager.bindBidirectional(topics.getSessionCurrentMode(), currentSessionMode, false);
+
       TextFormatter<Integer> frameRateFormatter = new TextFormatter<>(new IntegerConverter(), 60, new PositiveIntegerValueFilter());
       TextFormatter<Double> realTimeRateFormatter = new TextFormatter<>(new DoubleStringConverter(), 1.0);
       TextFormatter<Integer> startFormatter = new TextFormatter<>(new IntegerConverter(), -1, createBufferIndexFilter());
@@ -158,12 +165,40 @@ public class VideoRecordingPreviewPaneController
       stage.showingProperty().addListener((o, oldValue, newValue) -> updatePreview());
       currentBufferIndexSlider.valueProperty().addListener((o, oldValue, newValue) -> updatePreview());
 
+      messager.submitMessage(topics.getSessionCurrentMode(), SessionMode.PAUSE);
+      MutableBoolean updatingBufferIndex = new MutableBoolean(false);
       bufferProperties = messager.createPropertyInput(topics.getYoBufferCurrentProperties());
 
-      MutableBoolean updatingBufferIndex = new MutableBoolean(false);
+      currentSessionMode.addListener((o, oldValue, newValue) ->
+      {
+         if (newValue != SessionMode.PAUSE)
+         {
+            messager.submitMessage(topics.getSessionCurrentMode(), SessionMode.PAUSE);
+         }
+         else if (bufferProperties.getValue() != null)
+         {
+            currentBufferIndexSlider.setMax(bufferProperties.getValue().getSize());
+            if (startIndex.getValue() == -1)
+               startIndex.setValue(bufferProperties.getValue().getInPoint());
+            if (endIndex.getValue() == -1)
+               endIndex.setValue(bufferProperties.getValue().getOutPoint());
+
+            updatingBufferIndex.setTrue();
+            currentBufferIndexSlider.setValue(bufferProperties.getValue().getCurrentIndex());
+            updatingBufferIndex.setFalse();
+         }
+      });
+
       messager.registerJavaFXSyncedTopicListener(topics.getYoBufferCurrentProperties(), m ->
       {
+         if (currentSessionMode.getValue() != SessionMode.PAUSE)
+            return;
+
          currentBufferIndexSlider.setMax(m.getSize());
+         if (startIndex.getValue() == -1)
+            startIndex.setValue(m.getInPoint());
+         if (endIndex.getValue() == -1)
+            endIndex.setValue(m.getOutPoint());
 
          if (updatingBufferIndex.isFalse())
          {
@@ -175,6 +210,9 @@ public class VideoRecordingPreviewPaneController
 
       currentBufferIndexSlider.valueProperty().addListener((o, oldValue, newValue) ->
       {
+         if (currentSessionMode.getValue() != SessionMode.PAUSE)
+            return;
+
          if (updatingBufferIndex.isFalse())
          {
             updatingBufferIndex.setTrue();
@@ -252,6 +290,7 @@ public class VideoRecordingPreviewPaneController
          WritableImage snapshot = targetScene.snapshot(paramsProperty.getValue(), null);
          imageView.setImage(snapshot);
          computeViewport(outputRatio, inputRatio, outputWidth, outputHeight, viewportRectangle);
+         stage.sizeToScene();
       });
    }
 
