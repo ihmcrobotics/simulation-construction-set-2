@@ -565,33 +565,22 @@ public abstract class Session
 
    protected abstract void doSpecificRunTick();
 
-   // TODO Remove when optimized
-   private final YoTimer bufferWrite = new YoTimer("bufferWriteTimer", TimeUnit.MILLISECONDS, runRegistry);
-   private final YoTimer bufferPull = new YoTimer("bufferPullTimer", TimeUnit.MILLISECONDS, runRegistry);
-   private final YoTimer bufferRequests = new YoTimer("bufferRequestsTimer", TimeUnit.MILLISECONDS, runRegistry);
-
    protected void finalizeRunTick()
    {
       if (nextBufferRecordTickCounter <= 0)
       {
-         bufferWrite.start();
          sharedBuffer.writeBuffer();
-         bufferWrite.stop();
 
          long currentTimestamp = System.nanoTime();
 
-         bufferPull.start();
          if (currentTimestamp - lastPublishedBufferTimestamp > desiredBufferPublishPeriod.get())
          {
             sharedBuffer.prepareLinkedBuffersForPull();
             lastPublishedBufferTimestamp = currentTimestamp;
          }
-         bufferPull.stop();
 
-         bufferRequests.start();
          processBufferRequests(false);
          publishBufferProperties(sharedBuffer.getProperties());
-         bufferRequests.stop();
 
          nextBufferRecordTickCounter = Math.max(1, bufferRecordTickPeriod.get());
       }
