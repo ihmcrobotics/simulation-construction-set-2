@@ -266,6 +266,13 @@ public class SessionVisualizer
       }
 
       @Override
+      public void exportVideo(SceneVideoRecordingRequest request)
+      {
+         checkVisualizerRunning();
+         messager.submitMessage(topics.getSceneVideoRecordingRequest(), request);
+      }
+
+      @Override
       public void shutdown()
       {
          JavaFXMissingTools.runAndWait(getClass(), () -> stop());
