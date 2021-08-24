@@ -11,7 +11,6 @@ import javafx.scene.SnapshotParameters;
 import javafx.scene.SubScene;
 import javafx.scene.image.WritableImage;
 import javafx.scene.transform.Scale;
-import javafx.stage.Window;
 import us.ihmc.codecs.builder.H264Settings;
 import us.ihmc.codecs.builder.MP4H264MovieBuilder;
 import us.ihmc.codecs.generated.EProfileIdc;
@@ -28,10 +27,9 @@ import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 
 public class VideoRecordingManager
 {
-   private final BufferedJavaFXMessager messager;
-   private final SessionVisualizerTopics topics;
-
    private final SubScene scene;
+   private final SessionVisualizerTopics topics;
+   private final BufferedJavaFXMessager messager;
 
    private final AtomicReference<YoBufferPropertiesReadOnly> currentBufferProperties;
    private final AtomicReference<SessionMode> currentSessionMode;
@@ -39,14 +37,12 @@ public class VideoRecordingManager
    private final AtomicReference<Integer> bufferRecordTickPeriod;
 
    private final AtomicReference<Recorder> activeRecorder = new AtomicReference<>(null);
-   private final Window owner;
 
-   public VideoRecordingManager(Window owner, BufferedJavaFXMessager messager, SessionVisualizerTopics topics, SubScene scene)
+   public VideoRecordingManager(SubScene scene, SessionVisualizerTopics topics, BufferedJavaFXMessager messager)
    {
-      this.owner = owner;
+      this.scene = scene;
       this.messager = messager;
       this.topics = topics;
-      this.scene = scene;
 
       currentBufferProperties = messager.createInput(topics.getYoBufferCurrentProperties());
       currentSessionMode = messager.createInput(topics.getSessionCurrentMode());
@@ -130,12 +126,13 @@ public class VideoRecordingManager
       private int currentPhase = 0;
 
       private MP4H264MovieBuilder movieBuilder;
-      private BufferedImage bufferedImage;
-      private WritableImage jfxImage;
 
       private final SnapshotParameters params;
 
       private final Runnable stopListener;
+
+      private BufferedImage bufferedImage;
+      private WritableImage jfxImage;
 
       public Recorder(SceneVideoRecordingRequest request, SnapshotParameters params, Runnable stopListener)
       {
@@ -144,8 +141,6 @@ public class VideoRecordingManager
          this.stopListener = stopListener;
          bufferStart = request.getBufferStart();
          bufferEnd = request.getBufferEnd();
-         bufferedImage = new BufferedImage(request.getWidth(), request.getHeight(), BufferedImage.TYPE_INT_ARGB);
-         jfxImage = new WritableImage(request.getWidth(), request.getHeight());
 
          H264Settings settings = new H264Settings();
          settings.setBitrate(request.getWidth() * request.getHeight() / 100);
@@ -162,6 +157,8 @@ public class VideoRecordingManager
             return;
          }
 
+         bufferedImage = new BufferedImage(request.getWidth(), request.getHeight(), BufferedImage.TYPE_INT_ARGB);
+         jfxImage = new WritableImage(request.getWidth(), request.getHeight());
       }
 
       @Override
@@ -191,7 +188,7 @@ public class VideoRecordingManager
                if (recordNextFrame(bufferProperties))
                   currentPhase++;
                return;
-            default:
+            case 3:
                try
                {
                   movieBuilder.close();
@@ -227,18 +224,7 @@ public class VideoRecordingManager
          if (currentRecordingBufferIndex != bufferProperties.getCurrentIndex())
             return false;
 
-         scene.snapshot(params, jfxImage);
-         bufferedImage = SwingFXUtils.fromFXImage(jfxImage, bufferedImage);
-
-         try
-         {
-            movieBuilder.encodeFrame(bufferedImage);
-         }
-         catch (IOException e)
-         {
-            e.printStackTrace();
-            stop();
-         }
+         encodeNextFrame(scene.snapshot(params, jfxImage));
 
          numberOfBufferTicks -= bufferIndexIncrement;
 
@@ -249,6 +235,24 @@ public class VideoRecordingManager
          messager.submitMessage(topics.getYoBufferCurrentIndexRequest(), currentRecordingBufferIndex);
 
          return false;
+      }
+
+      private void encodeNextFrame(WritableImage jfxImageToEncode)
+      {
+         if (jfxImageToEncode == null)
+            return;
+
+         bufferedImage = SwingFXUtils.fromFXImage(jfxImageToEncode, bufferedImage);
+
+         try
+         {
+            movieBuilder.encodeFrame(bufferedImage);
+         }
+         catch (IOException e)
+         {
+            e.printStackTrace();
+            stop();
+         }
       }
 
       @Override

@@ -65,7 +65,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       messager.startMessager();
 
       snapshotManager = new SnapshotManager(mainWindow, messager, topics);
-      videoRecordingManager = new VideoRecordingManager(mainWindow, messager, topics, mainScene3D);
+      videoRecordingManager = new VideoRecordingManager(mainScene3D, topics, messager);
       chartDataManager = new ChartDataManager(messager, topics, yoManager, backgroundExecutorManager);
       yoGraphicFXManager = new YoGraphicFXManager(messager, topics, yoManager, backgroundExecutorManager, referenceFrameManager);
       yoCompositeSearchManager = new YoCompositeSearchManager(messager, topics, yoManager, backgroundExecutorManager);
@@ -281,6 +281,11 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    public BackgroundExecutorManager getBackgroundExecutorManager()
    {
       return backgroundExecutorManager;
+   }
+
+   public VideoRecordingManager getVideoRecordingManager()
+   {
+      return videoRecordingManager;
    }
 
    public SecondaryWindowManager getWindowManager()
