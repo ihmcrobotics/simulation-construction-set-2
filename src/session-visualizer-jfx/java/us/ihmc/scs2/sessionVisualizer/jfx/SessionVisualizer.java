@@ -109,11 +109,7 @@ public class SessionVisualizer
 
    public void startSession(Session session)
    {
-      startSession(session, null);
-   }
-
-   public void startSession(Session session, Runnable sessionLoadedCallback)
-   {
+      Runnable sessionLoadedCallback = () -> sessionVisualizerControls.visualizerReadyLatch.countDown();
       multiSessionManager.startSession(session, sessionLoadedCallback);
    }
 
@@ -155,6 +151,7 @@ public class SessionVisualizer
       LogTools.info("Simulation GUI is going down.");
       try
       {
+         sessionVisualizerControls.visualizerShutdownLatch.countDown();
          multiSessionManager.stopSession(saveConfiguration);
          multiSessionManager.shutdown();
          mainWindowController.stop();
@@ -203,7 +200,7 @@ public class SessionVisualizer
             SessionVisualizer sessionVisualizer = new SessionVisualizer(new Stage());
             sessionVisualizerControls.setValue(sessionVisualizer.sessionVisualizerControls);
             if (session != null)
-               sessionVisualizer.startSession(session, () -> sessionVisualizer.sessionVisualizerControls.visualizerReadyLatch.countDown());
+               sessionVisualizer.startSession(session);
             JavaFXApplicationCreator.attachStopListener(sessionVisualizer::stop);
          }
          catch (Exception e)
@@ -218,6 +215,7 @@ public class SessionVisualizer
    private class SessionVisualizerControlsImpl implements SessionVisualizerControls
    {
       private final CountDownLatch visualizerReadyLatch = new CountDownLatch(1);
+      private final CountDownLatch visualizerShutdownLatch = new CountDownLatch(1);
 
       public SessionVisualizerControlsImpl()
       {
@@ -229,6 +227,19 @@ public class SessionVisualizer
          try
          {
             visualizerReadyLatch.await();
+         }
+         catch (InterruptedException e)
+         {
+            e.printStackTrace();
+         }
+      }
+
+      @Override
+      public void waitUntilDown()
+      {
+         try
+         {
+            visualizerShutdownLatch.await();
          }
          catch (InterruptedException e)
          {

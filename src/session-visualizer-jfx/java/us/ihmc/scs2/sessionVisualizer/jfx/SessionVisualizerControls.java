@@ -28,4 +28,6 @@ public interface SessionVisualizerControls
    void addVisualizerShutdownListener(Runnable listener);
 
    void waitUntilFullyUp();
+
+   void waitUntilDown();
 }

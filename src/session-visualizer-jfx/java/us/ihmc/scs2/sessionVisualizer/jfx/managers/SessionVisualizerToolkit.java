@@ -105,33 +105,40 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
 
       backgroundExecutorManager.executeInBackground(() ->
       {
-         yoManager.startSession(session);
-         referenceFrameManager.startSession(session);
-         yoRobotFXManager.startSession(session);
-         environmentManager.startSession(session);
-         chartDataManager.startSession(session);
-         chartRenderManager.startSession(session);
-         yoGraphicFXManager.startSession(session);
-         yoCompositeSearchManager.startSession(session);
-         keyFrameManager.startSession(session);
-         secondaryWindowManager.startSession(session);
-
-         while (!yoRobotFXManager.isSessionLoaded())
+         try
          {
-            try
-            {
-               Thread.sleep(100);
-            }
-            catch (InterruptedException e)
-            {
-               e.printStackTrace();
-               return;
-            }
-         }
+            yoManager.startSession(session);
+            referenceFrameManager.startSession(session);
+            yoRobotFXManager.startSession(session);
+            environmentManager.startSession(session);
+            chartDataManager.startSession(session);
+            chartRenderManager.startSession(session);
+            yoGraphicFXManager.startSession(session);
+            yoCompositeSearchManager.startSession(session);
+            keyFrameManager.startSession(session);
+            secondaryWindowManager.startSession(session);
 
-         referenceFrameManager.refreshReferenceFramesNow();
-         messager.submitMessage(topics.getSessionCurrentState(), SessionState.ACTIVE);
-         sessionLoadedCallback.run();
+            while (!yoRobotFXManager.isSessionLoaded())
+            {
+               try
+               {
+                  Thread.sleep(100);
+               }
+               catch (InterruptedException e)
+               {
+                  e.printStackTrace();
+                  return;
+               }
+            }
+
+            referenceFrameManager.refreshReferenceFramesNow();
+            messager.submitMessage(topics.getSessionCurrentState(), SessionState.ACTIVE);
+         }
+         finally
+         {
+            if (sessionLoadedCallback != null)
+               sessionLoadedCallback.run();
+         }
       });
 
       mainWindow.setTitle(session.getSessionName());

@@ -71,7 +71,8 @@ public class MultiSessionManager
       messager.registerJavaFXSyncedTopicListener(topics.getLogSessionControlsRequest(), m -> openLogSessionControls());
       messager.registerJavaFXSyncedTopicListener(topics.getSessionVisualizerConfigurationLoadRequest(), m -> loadSessionConfiguration(m));
       messager.registerJavaFXSyncedTopicListener(topics.getSessionVisualizerConfigurationSaveRequest(), m -> saveSessionConfiguration(m));
-      messager.registerJavaFXSyncedTopicListener(topics.getSessionVisualizerDefaultConfigurationLoadRequest(), m -> loadSessionDefaultConfiguration(toolkit.getSession()));
+      messager.registerJavaFXSyncedTopicListener(topics.getSessionVisualizerDefaultConfigurationLoadRequest(),
+                                                 m -> loadSessionDefaultConfiguration(toolkit.getSession()));
       messager.registerJavaFXSyncedTopicListener(topics.getSessionVisualizerDefaultConfigurationSaveRequest(), m -> saveSessionDefaultConfiguration());
    }
 
@@ -79,9 +80,15 @@ public class MultiSessionManager
    {
       Runnable callback = () ->
       {
-         loadSessionDefaultConfiguration(session);
-         if (sessionLoadedCallback != null)
-            sessionLoadedCallback.run();
+         try
+         {
+            loadSessionDefaultConfiguration(session);
+         }
+         finally
+         {
+            if (sessionLoadedCallback != null)
+               sessionLoadedCallback.run();
+         }
       };
       JavaFXMissingTools.runLaterIfNeeded(getClass(), () ->
       {
