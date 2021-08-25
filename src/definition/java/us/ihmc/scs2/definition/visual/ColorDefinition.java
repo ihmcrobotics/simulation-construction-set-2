@@ -390,15 +390,22 @@ public class ColorDefinition
    public ColorDefinition derive(double hueOffset, double saturationScale, double brightnessScale, double opacityScale)
    {
       double outputHue = getHue() + hueOffset;
+
       double outputSaturation = getSaturation();
       if (saturationScale > 1.0 && outputSaturation <= 1.0e-6)
          outputSaturation = 0.05;
+      outputSaturation *= saturationScale;
+
       double outputBrightness = getBrightness();
       if (brightnessScale > 1.0 && outputBrightness <= 1.0e-6)
          outputBrightness = 0.05;
+      outputBrightness *= brightnessScale;
+
       double outputAlpha = getAlpha();
       if (opacityScale > 1.0 && outputAlpha <= 1.0e-6)
          outputAlpha = 0.05;
+      outputAlpha *= opacityScale;
+
       return hsba(outputHue, outputSaturation, outputBrightness, outputAlpha);
    }
 
