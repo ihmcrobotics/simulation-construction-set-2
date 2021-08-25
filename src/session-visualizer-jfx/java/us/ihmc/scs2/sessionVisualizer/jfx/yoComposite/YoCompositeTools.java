@@ -240,7 +240,9 @@ public class YoCompositeTools
       return result;
    }
 
-   private static Pair<List<YoComposite>, List<YoVariable>> searchYoComposites(YoCompositePattern pattern, List<YoVariable> variables, YoNamespace namespace,
+   private static Pair<List<YoComposite>, List<YoVariable>> searchYoComposites(YoCompositePattern pattern,
+                                                                               List<YoVariable> variables,
+                                                                               YoNamespace namespace,
                                                                                boolean useUniqueNames)
    {
       variables = variables.stream().filter(variable -> containsAnyIgnoreCase(variable.getName(), pattern.getComponentIdentifiers()))
@@ -451,7 +453,8 @@ public class YoCompositeTools
       return componentNames;
    }
 
-   public static <T> Map<T, String> computeUniqueNames(Collection<T> nameObjectCollection, Function<T, List<String>> namespaceFunction,
+   public static <T> Map<T, String> computeUniqueNames(Collection<T> nameObjectCollection,
+                                                       Function<T, List<String>> namespaceFunction,
                                                        Function<T, String> nameFunction)
    {
       List<NamedObjectHolder<T>> nameObjectHolderList = new ArrayList<>();
@@ -487,6 +490,12 @@ public class YoCompositeTools
 
             List<String> namespace1 = h1.namespace;
             List<String> namespace2 = h2.namespace;
+
+            if (namespace1 == null ? namespace2 == null : namespace1.equals(namespace2))
+            {
+               throw new IllegalArgumentException("Unsupported data structure, two elements have the same fullname: " + h1.originalObject + " and "
+                     + h2.originalObject);
+            }
 
             int namespaceIndex1 = namespace1.size() - 1;
             int namespaceIndex2 = namespace2.size() - 1;
