@@ -9,6 +9,7 @@ import org.apache.commons.lang3.mutable.MutableObject;
 
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -46,6 +47,7 @@ public class SessionVisualizer
    private final SessionVisualizerToolkit toolkit;
    private final MultiSessionManager multiSessionManager;
 
+   private final Group view3DRoot;
    private final Plotter2D plotter2D = new Plotter2D();
    private final MainWindowController mainWindowController;
    private final FocusBasedCameraMouseEventHandler cameraController;
@@ -67,6 +69,7 @@ public class SessionVisualizer
       primaryStage.setTitle(NO_ACTIVE_SESSION_TITLE);
 
       View3DFactory view3DFactory = View3DFactory.createSubscene();
+      view3DRoot = view3DFactory.getRoot();
       view3DFactory.addDefaultLighting();
 
       toolkit = new SessionVisualizerToolkit(primaryStage, view3DFactory.getSubScene());
@@ -160,6 +163,8 @@ public class SessionVisualizer
          toolkit.stop();
          if (primaryStage.isShowing())
             primaryStage.close();
+         primaryStage.setScene(null);
+         view3DRoot.getChildren().clear();
 
          stopListeners.forEach(Runnable::run);
       }
