@@ -7,6 +7,7 @@ import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.lang3.mutable.MutableObject;
 
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -189,6 +190,14 @@ public class SessionVisualizer
 
    public static SessionVisualizerControls startSessionVisualizer(Session session)
    {
+      return startSessionVisualizer(session, null);
+   }
+
+   public static SessionVisualizerControls startSessionVisualizer(Session session, Boolean javaFXThreadImplicitExit)
+   {
+      if (javaFXThreadImplicitExit != null && Platform.isImplicitExit() != javaFXThreadImplicitExit)
+         Platform.setImplicitExit(javaFXThreadImplicitExit);
+
       MutableObject<SessionVisualizerControls> sessionVisualizerControls = new MutableObject<>();
 
       JavaFXApplicationCreator.spawnJavaFXMainApplication();
