@@ -73,6 +73,7 @@ public class SharedMemoryMessager implements Messager
    }
 
    /** {@inheritDoc} */
+   @SuppressWarnings("unchecked")
    @Override
    public <T> void attachInput(Topic<T> topic, AtomicReference<T> input)
    {
@@ -130,6 +131,11 @@ public class SharedMemoryMessager implements Messager
    {
       isConnected.set(false);
       notifyMessagerStateListeners();
+      boundVariables.values().forEach(ConcurrentLinkedQueue::clear);
+      topicListenersMap.values().forEach(ConcurrentLinkedQueue::clear);
+      boundVariables.clear();
+      topicListenersMap.clear();
+      connectionStateListeners.clear();
    }
 
    /** {@inheritDoc} */

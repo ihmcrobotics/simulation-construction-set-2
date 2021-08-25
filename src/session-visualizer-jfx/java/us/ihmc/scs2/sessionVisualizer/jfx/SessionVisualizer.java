@@ -153,6 +153,7 @@ public class SessionVisualizer
       try
       {
          sessionVisualizerControls.visualizerShutdownLatch.countDown();
+         cameraController.dispose();
          multiSessionManager.stopSession(saveConfiguration);
          multiSessionManager.shutdown();
          mainWindowController.stop();

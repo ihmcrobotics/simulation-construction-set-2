@@ -59,11 +59,13 @@ public class YoManager extends ObservedAnimationTimer implements Manager
    @Override
    public void stopSession()
    {
-      rootRegistry = null;
+      rootRegistryDatabase.dispose();
+      rootRegistryDatabase = null;
       linkedYoVariableFactory = null;
       linkedRootRegistry = null;
       linkedBufferProperties = null;
-      rootRegistryDatabase = null;
+      rootRegistry.clear();
+      rootRegistry = null;
       rootRegistryHashCodeProperty.set(-1L);
    }
 

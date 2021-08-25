@@ -187,17 +187,12 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    public void stop()
    {
       super.stop();
+      yoManager.stop();
       yoRobotFXManager.stop();
       yoGraphicFXManager.stop();
       backgroundExecutorManager.shutdown();
-      try
-      {
-         messager.closeMessager();
-      }
-      catch (Exception e)
-      {
-         e.printStackTrace();
-      }
+      environmentManager.dispose();
+      messager.closeMessager();
    }
 
    public BufferedJavaFXMessager getMessager()
