@@ -14,9 +14,11 @@ public class LinkedBufferArray extends LinkedBuffer
    private LinkedBuffer[] linkedBuffers = new LinkedBuffer[8];
 
    private final Set<LinkedBuffer> linkedBuffersWithPendingPushRequest = new HashSet<>();
-   private final PushRequestListener listener = target -> this.linkedBuffersWithPendingPushRequest.add(target);
+   private final PushRequestListener listener = target -> linkedBuffersWithPendingPushRequest.add(target);
 
    private final List<LinkedBufferChangeListener> changeListeners = new ArrayList<>();
+
+   private boolean isDisposed = false;
 
    public LinkedBufferArray()
    {
@@ -182,10 +184,31 @@ public class LinkedBufferArray extends LinkedBuffer
    {
       if (minCapacity < 0) // overflow
          throw new OutOfMemoryError();
-      return (minCapacity > MAX_ARRAY_SIZE) ? Integer.MAX_VALUE : MAX_ARRAY_SIZE;
+      return minCapacity > MAX_ARRAY_SIZE ? Integer.MAX_VALUE : MAX_ARRAY_SIZE;
    }
 
-   public static interface LinkedBufferChangeListener
+   @Override
+   public void dispose()
+   {
+      if (isDisposed)
+         return;
+
+      isDisposed = true;
+
+      for (int i = 0; i < linkedBuffers.length; i++)
+      {
+         if (linkedBuffers[i] != null)
+         {
+            linkedBuffers[i].dispose();
+            linkedBuffers[i] = null;
+         }
+      }
+      linkedBuffers = null;
+      linkedBuffersWithPendingPushRequest.clear();
+      changeListeners.clear();
+   }
+
+   public interface LinkedBufferChangeListener
    {
       void onChange(Change change);
    }

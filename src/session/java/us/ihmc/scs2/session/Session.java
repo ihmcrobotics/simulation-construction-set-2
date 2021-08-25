@@ -374,6 +374,8 @@ public abstract class Session
 
       sessionTopicListenerManagers.forEach(SessionTopicListenerManager::detachFromMessager);
       sessionTopicListenerManagers.clear();
+      sharedBuffer.dispose();
+      rootRegistry.clear();
 
       executorService.shutdown();
    }

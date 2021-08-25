@@ -79,6 +79,8 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
 
    private final YoBufferProperties properties = new YoBufferProperties();
 
+   private boolean isDisposed = false;
+
    public YoSharedBuffer(YoRegistry rootRegistry, int initialBufferSize)
    {
       properties.setSize(initialBufferSize);
@@ -478,6 +480,18 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
    public YoRegistryBuffer getRegistryBuffer()
    {
       return registryBuffer;
+   }
+
+   public void dispose()
+   {
+      if (isDisposed)
+         return;
+
+      isDisposed = true;
+      registryBuffer.dispose();
+      linkedBuffers.dispose();
+      linkedBufferProperties.forEach(l -> l.dispose());
+      linkedBufferProperties.clear();
    }
 
    @Override

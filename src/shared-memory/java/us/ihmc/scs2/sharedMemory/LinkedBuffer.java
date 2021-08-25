@@ -77,6 +77,8 @@ public abstract class LinkedBuffer
       return false;
    }
 
+   public abstract void dispose();
+
    public static interface PushRequestListener
    {
       void pushRequested(LinkedBuffer target);

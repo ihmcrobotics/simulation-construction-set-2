@@ -18,6 +18,7 @@ public class YoRegistryBuffer
    private final YoVariableBufferList yoVariableBuffers = new YoVariableBufferList();
    private final Map<String, YoVariableBuffer<?>> yoVariableFullnameToBufferMap = new HashMap<>();
    private final YoBufferPropertiesReadOnly properties;
+   private final YoRegistryChangedListener registryBufferUpdater;
 
    private final ReentrantLock lock = new ReentrantLock();
 
@@ -29,17 +30,15 @@ public class YoRegistryBuffer
       for (YoVariable yoVariable : rootRegistry.collectSubtreeVariables())
          registerNewYoVariable(yoVariable);
 
-      this.rootRegistry.addListener(new YoRegistryChangedListener()
+      registryBufferUpdater = (change) ->
       {
-         @Override
-         public void changed(Change change)
-         {
-            if (change.wasVariableAdded())
-               registerNewYoVariable(change.getTargetVariable());
-            if (change.wasRegistryAdded())
-               registerNewYoVariables(change.getTargetRegistry().collectSubtreeVariables());
-         }
-      });
+         if (change.wasVariableAdded())
+            registerNewYoVariable(change.getTargetVariable());
+         if (change.wasRegistryAdded())
+            registerNewYoVariables(change.getTargetRegistry().collectSubtreeVariables());
+      };
+
+      this.rootRegistry.addListener(registryBufferUpdater);
    }
 
    private void registerNewYoVariables(Collection<? extends YoVariable> yoVariables)
@@ -154,5 +153,12 @@ public class YoRegistryBuffer
    public YoBufferPropertiesReadOnly getProperties()
    {
       return properties;
+   }
+
+   public void dispose()
+   {
+      rootRegistry.removeListener(registryBufferUpdater);
+      yoVariableBuffers.dispose();
+      yoVariableFullnameToBufferMap.clear();
    }
 }

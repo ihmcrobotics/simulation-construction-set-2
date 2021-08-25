@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
+import us.ihmc.yoVariables.listener.YoRegistryChangedListener;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -21,6 +22,12 @@ public class LinkedYoRegistry extends LinkedBuffer
    private final Map<YoVariable, LinkedYoVariable> linkedYoVariableMap = new HashMap<>();
    private final List<PushRequestListener> listeners = new ArrayList<>();
    private final PushRequestListener pushRequestForwarder = target -> listeners.forEach(listener -> listener.pushRequested(this));
+
+   private YoRegistryChangedListener rootRegistryListener;
+   private YoRegistryChangedListener bufferRootRegistryListener;
+   private YoRegistry bufferRootRegistry;
+
+   private boolean isDisposed = false;
 
    LinkedYoRegistry(YoRegistry rootRegistry, YoRegistryBuffer yoRegistryBuffer)
    {
@@ -44,10 +51,10 @@ public class LinkedYoRegistry extends LinkedBuffer
          }
       });
 
-      YoRegistry bufferRootRegistry = yoRegistryBuffer.getRootRegistry().findRegistry(rootRegistry.getNamespace());
+      bufferRootRegistry = yoRegistryBuffer.getRootRegistry().findRegistry(rootRegistry.getNamespace());
       SharedMemoryTools.duplicateMissingYoVariablesInTarget(bufferRootRegistry, rootRegistry);
 
-      bufferRootRegistry.addListener(change ->
+      bufferRootRegistryListener = change ->
       {
          lock.lock();
          try
@@ -74,9 +81,10 @@ public class LinkedYoRegistry extends LinkedBuffer
          {
             lock.unlock();
          }
-      });
+      };
+      bufferRootRegistry.addListener(bufferRootRegistryListener);
 
-      rootRegistry.addListener(change ->
+      rootRegistryListener = change ->
       {
          lock.lock();
          try
@@ -90,7 +98,8 @@ public class LinkedYoRegistry extends LinkedBuffer
          {
             lock.unlock();
          }
-      });
+      };
+      rootRegistry.addListener(rootRegistryListener);
    }
 
    public <L extends LinkedYoVariable<T>, T extends YoVariable> L linkYoVariable(T variableToLink)
@@ -219,5 +228,22 @@ public class LinkedYoRegistry extends LinkedBuffer
    public YoRegistry getRootRegistry()
    {
       return rootRegistry;
+   }
+
+   @Override
+   public void dispose()
+   {
+      if (isDisposed)
+         return;
+
+      isDisposed = true;
+      linkedYoVariables.dispose();
+      linkedYoVariableMap.clear();
+      listeners.clear();
+      rootRegistry.removeListener(rootRegistryListener);
+      bufferRootRegistry.removeListener(bufferRootRegistryListener);
+      rootRegistryListener = null;
+      bufferRootRegistryListener = null;
+      bufferRootRegistry = null;
    }
 }

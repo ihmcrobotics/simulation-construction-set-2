@@ -63,4 +63,10 @@ public class YoBooleanBuffer extends YoVariableBuffer<YoBoolean>
    {
       return buffer;
    }
+
+   @Override
+   public void dispose()
+   {
+      buffer = null;
+   }
 }

@@ -63,4 +63,10 @@ public class YoIntegerBuffer extends YoVariableBuffer<YoInteger>
    {
       return buffer;
    }
+
+   @Override
+   public void dispose()
+   {
+      buffer = null;
+   }
 }

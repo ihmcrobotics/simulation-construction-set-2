@@ -30,6 +30,8 @@ public abstract class LinkedYoVariable<T extends YoVariable> extends LinkedBuffe
    private final List<PushRequestListener> pushRequestListeners = new ArrayList<>();
    private final Set<Object> users = new HashSet<>();
 
+   private boolean isDisposed = false;
+
    @SuppressWarnings({"rawtypes", "unchecked"})
    static LinkedYoVariable newLinkedYoVariable(YoVariable yoVariableToLink, YoVariableBuffer<?> buffer)
    {
@@ -231,5 +233,20 @@ public abstract class LinkedYoVariable<T extends YoVariable> extends LinkedBuffe
    public boolean isActive()
    {
       return !users.isEmpty();
+   }
+
+   @Override
+   public void dispose()
+   {
+      if (isDisposed)
+         return;
+
+      isDisposed = true;
+      pushRequestToProcess = null;
+      pullRequest = null;
+      bufferSampleRequest = null;
+      bufferSample = null;
+      pushRequestListeners.clear();
+      users.clear();
    }
 }
