@@ -7,7 +7,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.log.LogTools;
+import us.ihmc.mecano.frames.MovingReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointMatrixIndexProvider;
 import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
 import us.ihmc.scs2.definition.robot.FixedJointDefinition;
@@ -49,6 +51,7 @@ public class Robot implements SimMultiBodySystemBasics
    protected final String name;
    protected final SimRigidBody rootBody;
    protected final ReferenceFrame inertialFrame;
+   protected final ReferenceFrame robotRootFrame;
 
    protected final List<SimJointBasics> allJoints;
    protected final List<SimRigidBodyBasics> allRigidBodies;
@@ -65,12 +68,13 @@ public class Robot implements SimMultiBodySystemBasics
    {
       this.robotDefinition = robotDefinition;
       this.inertialFrame = inertialFrame;
+      robotRootFrame = createRobotRootFrame(robotDefinition, inertialFrame);
 
       name = robotDefinition.getName();
 
       registry = new YoRegistry(name);
 
-      rootBody = createRobot(robotDefinition.getRootBodyDefinition(), inertialFrame, DEFAULT_JOINT_BUILDER, DEFAULT_BODY_BUILDER, registry);
+      rootBody = createRobot(robotDefinition.getRootBodyDefinition(), robotRootFrame, DEFAULT_JOINT_BUILDER, DEFAULT_BODY_BUILDER, registry);
       allJoints = SubtreeStreams.fromChildren(SimJointBasics.class, rootBody).collect(Collectors.toList());
       allRigidBodies = new ArrayList<>(rootBody.subtreeList());
       nameToJointMap = allJoints.stream().collect(Collectors.toMap(SimJointBasics::getName, Function.identity()));
@@ -83,6 +87,11 @@ public class Robot implements SimMultiBodySystemBasics
 
       controllerManager = new RobotControllerManager(this, registry);
       robotDefinition.getControllerDefinitions().forEach(controllerManager::addController);
+   }
+
+   public static ReferenceFrame createRobotRootFrame(RobotDefinition robotDefinition, ReferenceFrame inertialFrame)
+   {
+      return MovingReferenceFrame.constructFrameFixedInParent(robotDefinition.getName() + "RootFrame", inertialFrame, new RigidBodyTransform());
    }
 
    public static SimRigidBody createRobot(RigidBodyDefinition rootBodyDefinition,
