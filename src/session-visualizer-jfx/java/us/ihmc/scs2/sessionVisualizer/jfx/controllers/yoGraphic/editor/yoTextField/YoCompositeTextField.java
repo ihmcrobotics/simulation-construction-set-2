@@ -66,7 +66,7 @@ public class YoCompositeTextField
       {
          YoComposite yoVariableAsComposite = yoVariableCollection.getYoCompositeFromUniqueName(componentTextFields[i].getText());
 
-         if (yoVariableAsComposite == null || !yoVariableAsComposite.getPattern().equals(YoCompositeSearchManager.yoVariablePattern))
+         if (yoVariableAsComposite == null || !yoVariableAsComposite.getPattern().getType().equals(YoCompositeTools.YO_VARIABLE))
             return;
 
          components.add(yoVariableAsComposite.getYoComponents().get(0));
