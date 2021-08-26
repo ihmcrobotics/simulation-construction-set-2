@@ -148,6 +148,7 @@ public abstract class Session
    protected void setSessionMode(SessionMode sessionMode, BooleanSupplier terminalCondition, SessionMode nextMode)
    {
       SessionMode currentMode = activeMode.get();
+
       if (sessionMode != currentMode)
       {
          activeMode.set(sessionMode);
@@ -357,7 +358,7 @@ public abstract class Session
 
       Runnable stopTask = () ->
       {
-         while (activeScheduledFuture != null && !activeScheduledFuture.isCancelled())
+         while (activeScheduledFuture != null && !activeScheduledFuture.isDone())
          {
             try
             {
@@ -403,50 +404,68 @@ public abstract class Session
          return;
 
       stopCurrentSessionTask.set(true);
+      SessionMode currentMode = activeMode.get();
 
       Runnable restartTask = () ->
       {
-         while (activeScheduledFuture != null && !activeScheduledFuture.isCancelled())
+         try
          {
-            try
-            {
-               Thread.sleep(10);
-            }
-            catch (InterruptedException e)
-            {
-               e.printStackTrace();
+            if (isSessionShutdown)
                return;
-            }
-         }
 
-         runActualDT.reset();
-         playbackActualDT.reset();
-         pauseActualDT.reset();
-         stopCurrentSessionTask.set(false);
-
-         Runnable command;
-         Runnable sessionModeTask = sessionModeToTaskMap.get(activeMode.get());
-
-         if (terminalCondition == null)
-         {
-            command = sessionModeTask;
-         }
-         else
-         {
-            Objects.requireNonNull(nextMode, "nextMode argument is required when providing a terminalCondition");
-
-            command = () ->
+            while (activeScheduledFuture != null && !activeScheduledFuture.isDone())
             {
-               sessionModeTask.run();
+               try
+               {
+                  Thread.sleep(10);
+               }
+               catch (InterruptedException e)
+               {
+                  e.printStackTrace();
+                  return;
+               }
+            }
 
-               if (terminalCondition.getAsBoolean())
-                  setSessionMode(nextMode);
-            };
+            if (isSessionShutdown)
+               return;
+
+            runActualDT.reset();
+            playbackActualDT.reset();
+            pauseActualDT.reset();
+            stopCurrentSessionTask.set(false);
+
+            Runnable command;
+            Runnable sessionModeTask = sessionModeToTaskMap.get(currentMode);
+
+            if (terminalCondition == null)
+            {
+               command = sessionModeTask;
+            }
+            else
+            {
+               Objects.requireNonNull(nextMode, "nextMode argument is required when providing a terminalCondition");
+
+               command = () ->
+               {
+                  sessionModeTask.run();
+
+                  if (terminalCondition.getAsBoolean())
+                     setSessionMode(nextMode);
+               };
+            }
+
+            if (isSessionShutdown)
+               return;
+
+            activeScheduledFuture = executorService.scheduleAtFixedRate(command, 0, computeThreadPeriod(currentMode), TimeUnit.NANOSECONDS);
+            reportActiveMode();
          }
-
-         activeScheduledFuture = executorService.scheduleAtFixedRate(command, 0, computeThreadPeriod(activeMode.get()), TimeUnit.NANOSECONDS);
-         reportActiveMode();
+         catch (Throwable e)
+         {
+            e.printStackTrace();
+         }
       };
+
       executorService.execute(restartTask);
    }
 
@@ -500,14 +519,14 @@ public abstract class Session
    /**
     * Stuff that needs to be done no matter the active session mode.
     */
-   protected void doGeneric()
+   protected void doGeneric(SessionMode currentMode)
    {
       if (!sessionInitialized)
       {
          initializeSession();
          // Not sure why we wouldn't want that when starting in RUNNING.
          // When running simulation, the session starts in PAUSE, writing in the buffer allows to write the robot initial state.
-         if (activeMode.get() == SessionMode.PAUSE || activeMode.get() == SessionMode.PLAYBACK)
+         if (currentMode == SessionMode.PAUSE || currentMode == SessionMode.PLAYBACK)
             sharedBuffer.writeBuffer();
          sessionInitialized = true;
       }
@@ -534,7 +553,7 @@ public abstract class Session
       runTimer.start();
       runActualDT.update();
 
-      doGeneric();
+      doGeneric(SessionMode.RUNNING);
 
       runInitializeTimer.start();
       initializeRunTick();
@@ -640,7 +659,7 @@ public abstract class Session
       playbackTimer.start();
       playbackActualDT.update();
 
-      doGeneric();
+      doGeneric(SessionMode.PLAYBACK);
 
       initializePlaybackTick();
 
@@ -707,7 +726,7 @@ public abstract class Session
       pauseTimer.start();
       pauseActualDT.update();
 
-      doGeneric();
+      doGeneric(SessionMode.PAUSE);
 
       boolean shouldReadBuffer = initializePauseTick();
       shouldReadBuffer |= doSpecificPauseTick();
