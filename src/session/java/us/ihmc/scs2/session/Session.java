@@ -5,8 +5,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -352,26 +351,39 @@ public abstract class Session
 
       LogTools.info("Stopped session's thread");
       sessionStarted = false;
+      stopCurrentSessionTask.set(true);
 
-      if (activeScheduledFuture != null)
+      CountDownLatch stopDoneLatch = new CountDownLatch(1);
+
+      Runnable stopTask = () ->
       {
-         activeScheduledFuture.cancel(false);
-         try
+         while (activeScheduledFuture != null && !activeScheduledFuture.isCancelled())
          {
-            // Invoke get() to make sure we wait until the task is done.
-            activeScheduledFuture.get();
+            try
+            {
+               Thread.sleep(10);
+            }
+            catch (InterruptedException e)
+            {
+               e.printStackTrace();
+               break;
+            }
          }
-         catch (CancellationException e)
-         {
-            // We will get a CancellationException because we're canceling the task.
-         }
-         catch (InterruptedException | ExecutionException e)
-         {
-            e.printStackTrace();
-         }
-         activeScheduledFuture = null;
+         stopDoneLatch.countDown();
+      };
+
+      executorService.execute(stopTask);
+
+      try
+      {
+         stopDoneLatch.await();
+      }
+      catch (InterruptedException e)
+      {
+         e.printStackTrace();
       }
 
+      activeScheduledFuture = null;
       sessionTopicListenerManagers.forEach(SessionTopicListenerManager::detachFromMessager);
       sessionTopicListenerManagers.clear();
       sharedBuffer.dispose();
