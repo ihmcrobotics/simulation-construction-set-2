@@ -104,6 +104,9 @@ public class LinkedYoRegistry extends LinkedBuffer
 
    public <L extends LinkedYoVariable<T>, T extends YoVariable> L linkYoVariable(T variableToLink)
    {
+      if (isDisposed)
+         return null;
+
       LinkedYoVariable linkedYoVariable = linkedYoVariableMap.get(variableToLink);
 
       if (linkedYoVariable == null)
@@ -122,6 +125,9 @@ public class LinkedYoRegistry extends LinkedBuffer
    @Override
    public void push()
    {
+      if (isDisposed)
+         return;
+
       lock.lock();
       try
       {
@@ -137,6 +143,9 @@ public class LinkedYoRegistry extends LinkedBuffer
    @Override
    public boolean pull()
    {
+      if (isDisposed)
+         return false;
+
       lock.lock();
       try
       {
@@ -153,6 +162,9 @@ public class LinkedYoRegistry extends LinkedBuffer
    @Override
    boolean processPush(boolean writeBuffer)
    {
+      if (isDisposed)
+         return false;
+
       lock.lock();
       try
       {
@@ -169,6 +181,9 @@ public class LinkedYoRegistry extends LinkedBuffer
    @Override
    void flushPush()
    {
+      if (isDisposed)
+         return;
+
       lock.lock();
       try
       {
@@ -183,12 +198,18 @@ public class LinkedYoRegistry extends LinkedBuffer
    @Override
    void addPushRequestListener(PushRequestListener listener)
    {
+      if (isDisposed)
+         return;
+
       listeners.add(listener);
    }
 
    @Override
    boolean removePushRequestListener(PushRequestListener listener)
    {
+      if (isDisposed)
+         return false;
+
       return listeners.remove(listener);
    }
 
@@ -197,6 +218,9 @@ public class LinkedYoRegistry extends LinkedBuffer
    @Override
    void prepareForPull()
    {
+      if (isDisposed)
+         return;
+
       lock.lock();
       try
       {
@@ -213,6 +237,9 @@ public class LinkedYoRegistry extends LinkedBuffer
    @Override
    boolean hasRequestPending()
    {
+      if (isDisposed)
+         return false;
+
       lock.lock();
 
       try

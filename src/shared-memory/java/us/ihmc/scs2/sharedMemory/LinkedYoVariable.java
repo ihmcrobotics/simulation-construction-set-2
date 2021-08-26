@@ -74,12 +74,18 @@ public abstract class LinkedYoVariable<T extends YoVariable> extends LinkedBuffe
 
    public void requestBufferWindow(int from, int length)
    {
+      if (isDisposed)
+         return;
+
       bufferSampleRequest = new BufferSampleRequest(from, length);
    }
 
    @Override
    void addPushRequestListener(PushRequestListener listener)
    {
+      if (isDisposed)
+         return;
+
       pushRequestListeners.add(listener);
    }
 
@@ -92,6 +98,9 @@ public abstract class LinkedYoVariable<T extends YoVariable> extends LinkedBuffe
    @Override
    public void push()
    {
+      if (isDisposed)
+         return;
+
       pushRequestToProcess = toPushRequest();
       pushRequestListeners.forEach(listener -> listener.pushRequested(this));
    }
@@ -99,7 +108,7 @@ public abstract class LinkedYoVariable<T extends YoVariable> extends LinkedBuffe
    @Override
    boolean processPush(boolean writeBuffer)
    {
-      if (pushRequestToProcess == null)
+      if (isDisposed || pushRequestToProcess == null)
          return false;
 
       PushRequest<T> push = pushRequestToProcess;
@@ -122,13 +131,16 @@ public abstract class LinkedYoVariable<T extends YoVariable> extends LinkedBuffe
    @Override
    void prepareForPull()
    {
+      if (isDisposed)
+         return;
+
       pullRequest = toPullRequest();
       consumeBufferSampleRequest();
    }
 
    private void consumeBufferSampleRequest()
    {
-      if (bufferSampleRequest == null)
+      if (isDisposed || bufferSampleRequest == null)
          return;
 
       BufferSampleRequest localRequest = bufferSampleRequest;
@@ -175,6 +187,9 @@ public abstract class LinkedYoVariable<T extends YoVariable> extends LinkedBuffe
    @Override
    public boolean pull()
    {
+      if (isDisposed)
+         return false;
+
       PullRequest<T> pull = pullRequest;
       pullRequest = null;
 
@@ -200,6 +215,9 @@ public abstract class LinkedYoVariable<T extends YoVariable> extends LinkedBuffe
    @SuppressWarnings("rawtypes")
    public BufferSample pollRequestedBufferSample()
    {
+      if (isDisposed)
+         return null;
+
       BufferSample localSample = bufferSample;
       bufferSample = null;
       return localSample;
@@ -232,7 +250,7 @@ public abstract class LinkedYoVariable<T extends YoVariable> extends LinkedBuffe
    @Override
    public boolean isActive()
    {
-      return !users.isEmpty();
+      return !isDisposed && !users.isEmpty();
    }
 
    @Override
