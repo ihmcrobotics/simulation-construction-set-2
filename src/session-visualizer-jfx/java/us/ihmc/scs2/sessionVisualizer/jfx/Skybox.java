@@ -31,10 +31,6 @@ package us.ihmc.scs2.sessionVisualizer.jfx;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
-import com.sun.javafx.tk.PlatformImage;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -169,7 +165,13 @@ public class Skybox extends Group
 
    public void setupCloudyCrown()
    {
-      setupSkybox("cloudy", "png");
+      Image topImage = SessionVisualizerIOTools.SKYBOX_TOP_IMAGE;
+      Image bottomImage = SessionVisualizerIOTools.SKYBOX_BOTTOM_IMAGE;
+      Image leftImage = SessionVisualizerIOTools.SKYBOX_LEFT_IMAGE;
+      Image rightImage = SessionVisualizerIOTools.SKYBOX_RIGHT_IMAGE;
+      Image frontImage = SessionVisualizerIOTools.SKYBOX_FRONT_IMAGE;
+      Image backImage = SessionVisualizerIOTools.SKYBOX_BACK_IMAGE;
+      setupSkybox(topImage, bottomImage, leftImage, rightImage, frontImage, backImage);
    }
 
    public void setupCamera(Camera camera)
@@ -200,24 +202,8 @@ public class Skybox extends Group
    {
       setupCamera(null);
 
-      try
-      {
-         Method method = Image.class.getDeclaredMethod("setPlatformImage", PlatformImage.class);
-         method.setAccessible(true);
-         for (ImageView view : views)
-         {
-            if (view.getImage() != null)
-               method.invoke(view.getImage(), (PlatformImage) null);
-         }
-      }
-      catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e)
-      {
-         e.printStackTrace();
-      }
-
       for (ImageView view : views)
       {
-
          view.setImage(null);
       }
    }

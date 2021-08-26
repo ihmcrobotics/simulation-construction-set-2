@@ -155,6 +155,15 @@ public class SessionVisualizerIOTools
    public static final URL LOG_SESSION_MANAGER_PANE_FXML_URL = getFXMLResource(SESSION_FOLDER, "LogSessionManagerPane");
    public static final URL LOG_CROP_PROGRESS_PANE_FXML_URL = getFXMLResource(SESSION_FOLDER, "LogCropProgressPane");
 
+   // Skybox
+   public static final String SKYBOX_CLOUDY_FOLDER = "cloudy/";
+   public static final Image SKYBOX_TOP_IMAGE = createImage(getSkyboxResource(SKYBOX_CLOUDY_FOLDER + "Up.png"));
+   public static final Image SKYBOX_BOTTOM_IMAGE = createImage(getSkyboxResource(SKYBOX_CLOUDY_FOLDER + "Down.png"));
+   public static final Image SKYBOX_LEFT_IMAGE = createImage(getSkyboxResource(SKYBOX_CLOUDY_FOLDER + "Left.png"));
+   public static final Image SKYBOX_RIGHT_IMAGE = createImage(getSkyboxResource(SKYBOX_CLOUDY_FOLDER + "Right.png"));
+   public static final Image SKYBOX_FRONT_IMAGE = createImage(getSkyboxResource(SKYBOX_CLOUDY_FOLDER + "Front.png"));
+   public static final Image SKYBOX_BACK_IMAGE = createImage(getSkyboxResource(SKYBOX_CLOUDY_FOLDER + "Back.png"));
+
    public static void addSCSIconToDialog(Dialog<?> dialog)
    {
       addSCSIconToWindow(dialog.getDialogPane().getScene().getWindow());
@@ -245,12 +254,26 @@ public class SessionVisualizerIOTools
 
    public static Image loadIcon(String iconNameWithExtension)
    {
-      return new Image(getIconResource(iconNameWithExtension));
+      return createImage(getIconResource(iconNameWithExtension));
    }
 
    public static Image loadImage(String imageNameWithExtension)
    {
-      return new Image(getImageResource(imageNameWithExtension));
+      return createImage(getImageResource(imageNameWithExtension));
+   }
+
+   public static Image createImage(InputStream is)
+   {
+      Image image = new Image(is);
+      try
+      {
+         is.close();
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+      }
+      return image;
    }
 
    public static File scs2ConfigurationOpenFileDialog(Window owner)
