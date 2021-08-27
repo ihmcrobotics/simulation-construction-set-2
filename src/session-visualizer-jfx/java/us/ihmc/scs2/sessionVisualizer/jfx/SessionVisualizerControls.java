@@ -10,15 +10,17 @@ public interface SessionVisualizerControls
 
    void setCameraFocusPosition(double x, double y, double z);
 
+   void setCameraZoom(double distanceFromFocus);
+
    void requestCameraRigidBodyTracking(String robotName, String rigidBodyName);
-   
+
    default void exportVideo(File file)
    {
       SceneVideoRecordingRequest request = new SceneVideoRecordingRequest();
       request.setFile(file);
       exportVideo(request);
    }
-   
+
    void exportVideo(SceneVideoRecordingRequest request);
 
    void shutdown();

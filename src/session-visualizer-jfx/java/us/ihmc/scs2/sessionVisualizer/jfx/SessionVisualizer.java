@@ -18,6 +18,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import us.ihmc.javaFXToolkit.cameraControllers.CameraZoomCalculator;
 import us.ihmc.javaFXToolkit.cameraControllers.FocusBasedCameraMouseEventHandler;
 import us.ihmc.javaFXToolkit.scenes.View3DFactory;
 import us.ihmc.log.LogTools;
@@ -281,6 +282,16 @@ public class SessionVisualizer
       {
          checkVisualizerRunning();
          cameraController.changeFocusPosition(x, y, z, false);
+      }
+
+      @Override
+      public void setCameraZoom(double distanceFromFocus)
+      {
+         checkVisualizerRunning();
+         CameraZoomCalculator zoomCalculator = cameraController.getZoomCalculator();
+         if (zoomCalculator.isInvertZoomDirection())
+            distanceFromFocus = -distanceFromFocus;
+         zoomCalculator.setZoom(distanceFromFocus);
       }
 
       @Override
