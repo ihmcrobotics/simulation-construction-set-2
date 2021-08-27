@@ -8,7 +8,6 @@ import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -75,7 +74,7 @@ public abstract class Session
    // State listener to publish internal to outside world
    private final long sessionPropertiesPublishPeriod = 500L;
    private long lastSessionPropertiesPublishTimestamp = -1L;
-   private final List<Consumer<SessionMode>> sessionModeChangedListeners = new ArrayList<>();
+   private final List<SessionModeChangeListener> sessionModeChangeListeners = new ArrayList<>();
    private final List<Consumer<SessionState>> sessionStateChangedListeners = new ArrayList<>();
    private final List<Consumer<SessionProperties>> sessionPropertiesListeners = new ArrayList<>();
    private final List<Consumer<YoBufferPropertiesReadOnly>> currentBufferPropertiesListeners = new ArrayList<>();
@@ -105,8 +104,7 @@ public abstract class Session
    protected boolean firstPauseTick = true;
 
    protected final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(2, new DaemonThreadFactory("SCS2-Session-Thread"));
-   protected ScheduledFuture<?> activeScheduledFuture;
-   protected final AtomicBoolean stopCurrentSessionTask = new AtomicBoolean(false);
+   protected PeriodicTaskWrapper activePeriodicTask;
 
    private final EnumMap<SessionMode, Runnable> sessionModeToTaskMap = new EnumMap<>(SessionMode.class);
 
@@ -142,31 +140,25 @@ public abstract class Session
 
    public void setSessionMode(SessionMode sessionMode)
    {
-      setSessionMode(sessionMode, null, null);
+      setSessionMode(sessionMode, null);
    }
 
-   protected void setSessionMode(SessionMode sessionMode, BooleanSupplier terminalCondition, SessionMode nextMode)
+   protected void setSessionMode(SessionMode sessionMode, SessionModeTransition transition)
    {
       SessionMode currentMode = activeMode.get();
 
       if (sessionMode != currentMode)
-      {
-         activeMode.set(sessionMode);
-         firstRunTick = true;
-         firstPauseTick = true;
-         sessionModeChangedListeners.forEach(listener -> listener.accept(sessionMode));
-         restartSessionTask(terminalCondition, nextMode);
-      }
+         scheduleSessionTask(sessionMode, transition);
    }
 
-   public void addSessionModeChangedListener(Consumer<SessionMode> listener)
+   public void addSessionModeChangeListener(SessionModeChangeListener listener)
    {
-      sessionModeChangedListeners.add(listener);
+      sessionModeChangeListeners.add(listener);
    }
 
-   public void removeSessionModeChangedListener(Consumer<SessionMode> listener)
+   public void removeSessionModeChangeListener(SessionModeChangeListener listener)
    {
-      sessionModeChangedListeners.remove(listener);
+      sessionModeChangeListeners.remove(listener);
    }
 
    public void addSessionStateChangedListener(Consumer<SessionState> listener)
@@ -240,7 +232,7 @@ public abstract class Session
          return;
 
       this.sessionDTNanoseconds.set(sessionDTNanoseconds);
-      restartSessionTask();
+      scheduleSessionTask(getActiveMode());
    }
 
    public void submitRunAtRealTimeRate(boolean runAtRealTimeRate)
@@ -249,7 +241,7 @@ public abstract class Session
          return;
 
       this.runAtRealTimeRate.set(runAtRealTimeRate);
-      restartSessionTask();
+      scheduleSessionTask(getActiveMode());
    }
 
    public void submitPlaybackRealTimeRate(double realTimeRate)
@@ -258,7 +250,7 @@ public abstract class Session
          return;
 
       playbackRealTimeRate.set(Double.valueOf(realTimeRate));
-      restartSessionTask();
+      scheduleSessionTask(getActiveMode());
    }
 
    public void submitBufferRecordTickPeriod(int bufferRecordTickPeriod)
@@ -338,7 +330,7 @@ public abstract class Session
    {
       LogTools.info("Started session's thread");
       sessionStarted = true;
-      restartSessionTask();
+      scheduleSessionTask(getActiveMode());
    }
 
    public void shutdownSession()
@@ -352,39 +344,13 @@ public abstract class Session
 
       LogTools.info("Stopped session's thread");
       sessionStarted = false;
-      stopCurrentSessionTask.set(true);
 
-      CountDownLatch stopDoneLatch = new CountDownLatch(1);
-
-      Runnable stopTask = () ->
+      if (activePeriodicTask != null)
       {
-         while (activeScheduledFuture != null && !activeScheduledFuture.isDone())
-         {
-            try
-            {
-               Thread.sleep(10);
-            }
-            catch (InterruptedException e)
-            {
-               e.printStackTrace();
-               break;
-            }
-         }
-         stopDoneLatch.countDown();
-      };
-
-      executorService.execute(stopTask);
-
-      try
-      {
-         stopDoneLatch.await();
-      }
-      catch (InterruptedException e)
-      {
-         e.printStackTrace();
+         activePeriodicTask.stopAndWait();
+         activePeriodicTask = null;
       }
 
-      activeScheduledFuture = null;
       sessionTopicListenerManagers.forEach(SessionTopicListenerManager::detachFromMessager);
       sessionTopicListenerManagers.clear();
       sharedBuffer.dispose();
@@ -393,80 +359,88 @@ public abstract class Session
       executorService.shutdown();
    }
 
-   private void restartSessionTask()
+   private void scheduleSessionTask(SessionMode sessionMode)
    {
-      restartSessionTask(null, null);
+      scheduleSessionTask(sessionMode, null);
    }
 
-   private void restartSessionTask(BooleanSupplier terminalCondition, SessionMode nextMode)
+   private void scheduleSessionTask(SessionMode newMode, SessionModeTransition transition)
    {
       if (!sessionStarted)
          return;
 
-      stopCurrentSessionTask.set(true);
-      SessionMode currentMode = activeMode.get();
+      SessionMode previousMode = activeMode.get();
 
-      Runnable restartTask = () ->
+      if (activePeriodicTask != null)
       {
-         try
-         {
-            if (isSessionShutdown)
-               return;
+         activePeriodicTask.stopAndWait();
+         activePeriodicTask = null;
+      }
 
-            while (activeScheduledFuture != null && !activeScheduledFuture.isDone())
+      if (isSessionShutdown)
+         return;
+
+      if (newMode != previousMode)
+      {
+         firstRunTick = true;
+         firstPauseTick = true;
+      }
+
+      runActualDT.reset();
+      playbackActualDT.reset();
+      pauseActualDT.reset();
+
+      Runnable command;
+      Runnable sessionModeTask = sessionModeToTaskMap.get(newMode);
+
+      if (transition == null)
+      {
+         command = sessionModeTask;
+      }
+      else
+      {
+         Objects.requireNonNull(transition.getNextMode(), "nextMode argument is required when providing a terminalCondition");
+
+         command = new Runnable()
+         {
+            private boolean terminated = false;
+
+            @Override
+            public void run()
             {
-               try
-               {
-                  Thread.sleep(10);
-               }
-               catch (InterruptedException e)
-               {
-                  e.printStackTrace();
+               sessionModeTask.run();
+
+               if (terminated)
                   return;
+
+               terminated = transition.isDone();
+
+               if (terminated)
+               {
+                  executorService.execute(() ->
+                  {
+                     setSessionMode(transition.getNextMode());
+                     transition.notifyTransitionComplete();
+                  });
                }
             }
+         };
+      }
 
-            if (isSessionShutdown)
-               return;
+      if (isSessionShutdown)
+         return;
 
-            runActualDT.reset();
-            playbackActualDT.reset();
-            pauseActualDT.reset();
-            stopCurrentSessionTask.set(false);
+      activePeriodicTask = new PeriodicTaskWrapper(command, computeThreadPeriod(newMode), TimeUnit.NANOSECONDS);
+      activeMode.set(newMode);
+      schedulingSessionMode(previousMode, newMode);
+      executorService.execute(activePeriodicTask);
+      sessionModeChangeListeners.forEach(listener -> listener.onChange(previousMode, newMode));
+      reportActiveMode();
+   }
 
-            Runnable command;
-            Runnable sessionModeTask = sessionModeToTaskMap.get(currentMode);
+   protected void schedulingSessionMode(SessionMode previousMode, SessionMode newMode)
+   {
 
-            if (terminalCondition == null)
-            {
-               command = sessionModeTask;
-            }
-            else
-            {
-               Objects.requireNonNull(nextMode, "nextMode argument is required when providing a terminalCondition");
-
-               command = () ->
-               {
-                  sessionModeTask.run();
-
-                  if (terminalCondition.getAsBoolean())
-                     setSessionMode(nextMode);
-               };
-            }
-
-            if (isSessionShutdown)
-               return;
-
-            activeScheduledFuture = executorService.scheduleAtFixedRate(command, 0, computeThreadPeriod(currentMode), TimeUnit.NANOSECONDS);
-            reportActiveMode();
-         }
-         catch (Throwable e)
-         {
-            e.printStackTrace();
-         }
-      };
-
-      executorService.execute(restartTask);
    }
 
    private long computeThreadPeriod(SessionMode mode)
@@ -544,12 +518,6 @@ public abstract class Session
 
    public void runTick()
    {
-      if (stopCurrentSessionTask.get())
-      {
-         activeScheduledFuture.cancel(false);
-         return;
-      }
-
       runTimer.start();
       runActualDT.update();
 
@@ -577,7 +545,7 @@ public abstract class Session
       jvmStatisticsGenerator.update();
 
       runFinalizeTimer.start();
-      finalizeRunTick();
+      finalizeRunTick(false);
       runFinalizeTimer.stop();
 
       runTimer.stop();
@@ -591,7 +559,6 @@ public abstract class Session
       if (firstRunTick)
       {
          sharedBuffer.incrementBufferIndex(true);
-         sharedBuffer.setInPoint(sharedBuffer.getProperties().getCurrentIndex());
          sharedBuffer.processLinkedPushRequests(false);
          firstRunTick = false;
       }
@@ -609,9 +576,18 @@ public abstract class Session
     */
    protected abstract double doSpecificRunTick();
 
-   protected void finalizeRunTick()
+   protected void finalizeRunTick(boolean forceWriteBuffer)
    {
-      if (nextBufferRecordTickCounter <= 0)
+      boolean writeBuffer = nextBufferRecordTickCounter <= 0;
+
+      if (!writeBuffer)
+      {
+         if (forceWriteBuffer)
+            sharedBuffer.incrementBufferIndex(true);
+         writeBuffer = true;
+      }
+
+      if (writeBuffer)
       {
          sharedBuffer.writeBuffer();
 
@@ -650,12 +626,6 @@ public abstract class Session
 
    public void playbackTick()
    {
-      if (stopCurrentSessionTask.get())
-      {
-         activeScheduledFuture.cancel(false);
-         return;
-      }
-
       playbackTimer.start();
       playbackActualDT.update();
 
@@ -717,12 +687,6 @@ public abstract class Session
 
    public void pauseTick()
    {
-      if (stopCurrentSessionTask.get())
-      {
-         activeScheduledFuture.cancel(false);
-         return;
-      }
-
       pauseTimer.start();
       pauseActualDT.update();
 
@@ -842,6 +806,11 @@ public abstract class Session
          pendingCropBufferRequest.set(null);
          return hasBufferBeenUpdated;
       }
+   }
+
+   public YoRegistry getRootRegistry()
+   {
+      return rootRegistry;
    }
 
    public boolean hasSessionStarted()
@@ -989,6 +958,118 @@ public abstract class Session
             messager.submitMessage(SessionMessagerAPI.RunAtRealTimeRate, sessionProperties.isRunAtRealTimeRate());
             messager.submitMessage(SessionMessagerAPI.BufferRecordTickPeriod, sessionProperties.getBufferRecordTickPeriod());
          };
+      }
+   }
+
+   public static interface SessionModeTransition
+   {
+      SessionMode getNextMode();
+
+      boolean isDone();
+
+      default void notifyTransitionComplete()
+      {
+      }
+
+      public static SessionModeTransition newTransition(BooleanSupplier doneCondition, SessionMode nextMode)
+      {
+         return new SessionModeTransition()
+         {
+            @Override
+            public boolean isDone()
+            {
+               return doneCondition.getAsBoolean();
+            }
+
+            @Override
+            public SessionMode getNextMode()
+            {
+               return nextMode;
+            }
+         };
+      }
+   }
+
+   public static interface SessionModeChangeListener
+   {
+      void onChange(SessionMode previousMode, SessionMode newMode);
+   }
+
+   public static class PeriodicTaskWrapper implements Runnable
+   {
+      private static final int ONE_MILLION = 1000000;
+
+      private final Runnable task;
+      private final long periodInNanos;
+      private final AtomicBoolean running = new AtomicBoolean(true);
+      private final AtomicBoolean isDone = new AtomicBoolean(false);
+      private final CountDownLatch doneLatch = new CountDownLatch(1);
+
+      public PeriodicTaskWrapper(Runnable task, long period, TimeUnit timeUnit)
+      {
+         this.task = task;
+         this.periodInNanos = timeUnit.toNanos(period);
+      }
+
+      public void stop()
+      {
+         running.set(false);
+      }
+
+      public boolean isDone()
+      {
+         return isDone.get();
+      }
+
+      public void stopAndWait()
+      {
+         stop();
+         try
+         {
+            doneLatch.await();
+         }
+         catch (InterruptedException e)
+         {
+            e.printStackTrace();
+         }
+      }
+
+      @Override
+      public void run()
+      {
+         try
+         {
+            while (running.get())
+            {
+               long timeElapsed = System.nanoTime();
+               task.run();
+               timeElapsed = System.nanoTime() - timeElapsed;
+
+               if (timeElapsed < periodInNanos)
+               {
+                  long nanos = periodInNanos - timeElapsed;
+                  long millis = nanos / ONE_MILLION;
+                  nanos -= millis * ONE_MILLION;
+
+                  try
+                  {
+                     Thread.sleep(millis, (int) nanos);
+                  }
+                  catch (InterruptedException e)
+                  {
+                     e.printStackTrace();
+                     running.set(false);
+                  }
+               }
+            }
+         }
+         catch (Throwable e)
+         {
+            e.printStackTrace();
+         }
+
+         isDone.set(true);
+         doneLatch.countDown();
       }
    }
 }

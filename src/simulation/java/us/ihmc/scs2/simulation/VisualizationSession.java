@@ -39,8 +39,6 @@ public class VisualizationSession extends Session
       this.sessionName = sessionName;
       setSessionModeTask(SessionMode.RUNNING, () ->
       {
-         if (stopCurrentSessionTask.get())
-            activeScheduledFuture.cancel(false);
          // Do Nothing, the use is responsible for invoking runTick();
       });
       setSessionMode(SessionMode.RUNNING);
@@ -65,6 +63,26 @@ public class VisualizationSession extends Session
       }
 
       return time.getValue() + dt;
+   }
+
+   @Override
+   protected void schedulingSessionMode(SessionMode previousMode, SessionMode newMode)
+   {
+      if (previousMode == newMode)
+         return;
+
+      if (previousMode == SessionMode.RUNNING)
+      {
+         for (Robot robot : robots)
+         {
+            robot.getControllerManager().pauseControllers();
+         }
+
+         for (Controller controller : controllers)
+         {
+            controller.pause();
+         }
+      }
    }
 
    public void addController(Controller controller)

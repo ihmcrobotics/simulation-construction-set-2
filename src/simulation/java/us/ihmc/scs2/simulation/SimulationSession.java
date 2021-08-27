@@ -100,6 +100,19 @@ public class SimulationSession extends Session
       return time.getValue() + dt;
    }
 
+   @Override
+   protected void schedulingSessionMode(SessionMode previousMode, SessionMode newMode)
+   {
+      if (previousMode == newMode)
+         return;
+
+      if (previousMode == SessionMode.RUNNING)
+      {
+         physicsEngine.pause();
+         finalizeRunTick(true);
+      }
+   }
+
    public Robot addRobot(RobotDefinition robotDefinition)
    {
       checkSessionHasNotStarted();
@@ -205,7 +218,7 @@ public class SimulationSession extends Session
 
          double startTime = time.getValue();
          BooleanSupplier terminalCondition = () -> time.getValue() - startTime >= duration;
-         setSessionMode(SessionMode.RUNNING, terminalCondition, SessionMode.PAUSE);
+         setSessionMode(SessionMode.RUNNING, SessionModeTransition.newTransition(terminalCondition, SessionMode.PAUSE));
       }
 
       @Override
@@ -225,7 +238,7 @@ public class SimulationSession extends Session
                return tickCounter >= numberOfTicks;
             }
          };
-         setSessionMode(SessionMode.RUNNING, terminalCondition, SessionMode.PAUSE);
+         setSessionMode(SessionMode.RUNNING, SessionModeTransition.newTransition(terminalCondition, SessionMode.PAUSE));
       }
 
       @Override
@@ -244,15 +257,15 @@ public class SimulationSession extends Session
          MutableBoolean success = new MutableBoolean(false);
          CountDownLatch doneLatch = new CountDownLatch(1);
 
-         Consumer<SessionMode> modeListener = mode ->
+         SessionModeChangeListener modeListener = (prevMode, newMode) ->
          {
-            if (mode != SessionMode.RUNNING)
+            if (newMode != SessionMode.RUNNING)
                doneLatch.countDown();
          };
 
          Runnable shutdownListener = doneLatch::countDown;
 
-         addSessionModeChangedListener(modeListener);
+         addSessionModeChangeListener(modeListener);
          addShutdownListener(shutdownListener);
 
          BooleanSupplier terminalCondition = new BooleanSupplier()
@@ -266,15 +279,12 @@ public class SimulationSession extends Session
                boolean done = tickCounter >= numberOfTicks;
 
                if (done)
-               {
                   success.setTrue();
-                  doneLatch.countDown();
-               }
                return done;
             }
          };
 
-         setSessionMode(SessionMode.RUNNING, terminalCondition, SessionMode.PAUSE);
+         setSessionMode(SessionMode.RUNNING, SessionModeTransition.newTransition(terminalCondition, SessionMode.PAUSE));
 
          try
          {
@@ -285,7 +295,7 @@ public class SimulationSession extends Session
             e.printStackTrace();
          }
 
-         removeSessionModeChangedListener(modeListener);
+         removeSessionModeChangeListener(modeListener);
          removeShutdownListener(shutdownListener);
 
          return success.isTrue();
@@ -299,15 +309,27 @@ public class SimulationSession extends Session
 
       // Buffer controls
       @Override
-      public void setBufferInPointToCurrent()
+      public void setBufferInPointIndexToCurrent()
       {
          submitBufferInPointIndexRequest(sharedBuffer.getProperties().getCurrentIndex());
       }
 
       @Override
-      public void setBufferOutPointToCurrent()
+      public void setBufferOutPointIndexToCurrent()
       {
          submitBufferOutPointIndexRequest(sharedBuffer.getProperties().getCurrentIndex());
+      }
+
+      @Override
+      public void setBufferCurrentIndexToInPoint()
+      {
+         submitBufferIndexRequest(sharedBuffer.getProperties().getInPoint());
+      }
+
+      @Override
+      public void setBufferCurrentIndexToOutPoint()
+      {
+         submitBufferIndexRequest(sharedBuffer.getProperties().getOutPoint());
       }
    }
 }

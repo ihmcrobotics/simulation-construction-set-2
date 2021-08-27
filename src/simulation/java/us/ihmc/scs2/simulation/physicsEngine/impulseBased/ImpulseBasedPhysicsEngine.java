@@ -246,6 +246,15 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
    }
 
    @Override
+   public void pause()
+   {
+      for (ImpulseBasedRobot robot : robotList)
+      {
+         robot.getControllerManager().pauseControllers();
+      }
+   }
+
+   @Override
    public ReferenceFrame getInertialFrame()
    {
       return inertialFrame;

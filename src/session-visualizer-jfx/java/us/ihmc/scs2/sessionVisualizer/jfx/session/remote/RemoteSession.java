@@ -66,9 +66,6 @@ public class RemoteSession extends Session
       {
          if (!this.yoVariableClientInterface.isConnected())
             setSessionMode(SessionMode.PAUSE);
-
-         if (stopCurrentSessionTask.get())
-            activeScheduledFuture.cancel(false);
          /* Do nothing, the client thread calls runTick(). */
       });
       addSessionPropertiesListener(properties ->
@@ -171,11 +168,27 @@ public class RemoteSession extends Session
    }
 
    @Override
-   protected void finalizeRunTick()
+   protected void initializeRunTick()
    {
-      if (Conversions.nanosecondsToMilliseconds(getDelay()) < MAX_DELAY_MILLI * bufferRecordTickPeriod)
+      if (firstRunTick)
       {
-         super.finalizeRunTick();
+         sharedBuffer.incrementBufferIndex(true);
+         sharedBuffer.setInPoint(sharedBuffer.getProperties().getCurrentIndex());
+         sharedBuffer.processLinkedPushRequests(false);
+         firstRunTick = false;
+      }
+      else
+      {
+         super.initializeRunTick();
+      }
+   }
+
+   @Override
+   protected void finalizeRunTick(boolean forceWriteBuffer)
+   {
+      if (forceWriteBuffer || Conversions.nanosecondsToMilliseconds(getDelay()) < MAX_DELAY_MILLI * bufferRecordTickPeriod)
+      {
+         super.finalizeRunTick(forceWriteBuffer);
       }
       else
       {
