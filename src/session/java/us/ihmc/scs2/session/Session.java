@@ -808,6 +808,11 @@ public abstract class Session
       }
    }
 
+   public YoDouble getTime()
+   {
+      return time;
+   }
+
    public YoRegistry getRootRegistry()
    {
       return rootRegistry;
@@ -1005,6 +1010,8 @@ public abstract class Session
       private final AtomicBoolean isDone = new AtomicBoolean(false);
       private final CountDownLatch doneLatch = new CountDownLatch(1);
 
+      private Thread owner;
+
       public PeriodicTaskWrapper(Runnable task, long period, TimeUnit timeUnit)
       {
          this.task = task;
@@ -1024,6 +1031,10 @@ public abstract class Session
       public void stopAndWait()
       {
          stop();
+
+         if (Thread.currentThread() == owner)
+            return;
+
          try
          {
             doneLatch.await();
@@ -1037,6 +1048,9 @@ public abstract class Session
       @Override
       public void run()
       {
+         if (owner == null)
+            owner = Thread.currentThread();
+
          try
          {
             while (running.get())
