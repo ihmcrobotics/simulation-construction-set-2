@@ -571,7 +571,7 @@ public abstract class Session
 
    /**
     * Performs action specific to the implementation of this session.
-    * 
+    *
     * @return the current time in seconds.
     */
    protected abstract double doSpecificRunTick();
@@ -580,10 +580,9 @@ public abstract class Session
    {
       boolean writeBuffer = nextBufferRecordTickCounter <= 0;
 
-      if (!writeBuffer)
+      if (!writeBuffer && forceWriteBuffer)
       {
-         if (forceWriteBuffer)
-            sharedBuffer.incrementBufferIndex(true);
+         sharedBuffer.incrementBufferIndex(true);
          writeBuffer = true;
       }
 
@@ -966,7 +965,7 @@ public abstract class Session
       }
    }
 
-   public static interface SessionModeTransition
+   public interface SessionModeTransition
    {
       SessionMode getNextMode();
 
@@ -976,7 +975,7 @@ public abstract class Session
       {
       }
 
-      public static SessionModeTransition newTransition(BooleanSupplier doneCondition, SessionMode nextMode)
+      static SessionModeTransition newTransition(BooleanSupplier doneCondition, SessionMode nextMode)
       {
          return new SessionModeTransition()
          {
@@ -995,7 +994,7 @@ public abstract class Session
       }
    }
 
-   public static interface SessionModeChangeListener
+   public interface SessionModeChangeListener
    {
       void onChange(SessionMode previousMode, SessionMode newMode);
    }
@@ -1015,7 +1014,7 @@ public abstract class Session
       public PeriodicTaskWrapper(Runnable task, long period, TimeUnit timeUnit)
       {
          this.task = task;
-         this.periodInNanos = timeUnit.toNanos(period);
+         periodInNanos = timeUnit.toNanos(period);
       }
 
       public void stop()
