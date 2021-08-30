@@ -41,29 +41,39 @@ public class SimJointAuxiliaryData
       wrenchSensors.forEach(wrench -> wrench.update(physicsOutput));
    }
 
-   public void addKinematicPoint(KinematicPointDefinition definition)
+   public KinematicPoint addKinematicPoint(KinematicPointDefinition definition)
    {
-      kinematicPoints.add(new KinematicPoint(definition, joint));
+      KinematicPoint kinematicPoint = new KinematicPoint(definition, joint);
+      kinematicPoints.add(kinematicPoint);
+      return kinematicPoint;
    }
 
-   public void addExternalWrenchPoint(ExternalWrenchPointDefinition definition)
+   public ExternalWrenchPoint addExternalWrenchPoint(ExternalWrenchPointDefinition definition)
    {
-      externalWrenchPoints.add(new ExternalWrenchPoint(definition, joint));
+      ExternalWrenchPoint externalWrenchPoint = new ExternalWrenchPoint(definition, joint);
+      externalWrenchPoints.add(externalWrenchPoint);
+      return externalWrenchPoint;
    }
 
-   public void addGroundContactPoint(GroundContactPointDefinition definition)
+   public GroundContactPoint addGroundContactPoint(GroundContactPointDefinition definition)
    {
-      groundContactPoints.add(new GroundContactPoint(definition, joint));
+      GroundContactPoint groundContactPoint = new GroundContactPoint(definition, joint);
+      groundContactPoints.add(groundContactPoint);
+      return groundContactPoint;
    }
 
-   public void addIMUSensor(IMUSensorDefinition definition)
+   public SimIMUSensor addIMUSensor(IMUSensorDefinition definition)
    {
-      imuSensors.add(new SimIMUSensor(definition, joint));
+      SimIMUSensor newSensor = new SimIMUSensor(definition, joint);
+      imuSensors.add(newSensor);
+      return newSensor;
    }
 
-   public void addWrenchSensor(WrenchSensorDefinition definition)
+   public SimWrenchSensor addWrenchSensor(WrenchSensorDefinition definition)
    {
-      wrenchSensors.add(new SimWrenchSensor(definition, joint));
+      SimWrenchSensor newSensor = new SimWrenchSensor(definition, joint);
+      wrenchSensors.add(newSensor);
+      return newSensor;
    }
 
    public SimJointBasics getJoint()
