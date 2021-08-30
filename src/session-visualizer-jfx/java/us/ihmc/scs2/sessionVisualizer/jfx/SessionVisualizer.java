@@ -22,6 +22,7 @@ import us.ihmc.javaFXToolkit.cameraControllers.CameraZoomCalculator;
 import us.ihmc.javaFXToolkit.cameraControllers.FocusBasedCameraMouseEventHandler;
 import us.ihmc.javaFXToolkit.scenes.View3DFactory;
 import us.ihmc.log.LogTools;
+import us.ihmc.scs2.definition.visual.VisualDefinition;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.MultiSessionManager;
@@ -300,6 +301,13 @@ public class SessionVisualizer
          checkVisualizerRunning();
          waitUntilFullyUp();
          messager.submitMessage(topics.getCameraTrackObject(), new CameraObjectTrackingRequest(robotName, rigidBodyName));
+      }
+
+      @Override
+      public void addStaticVisual(VisualDefinition visualDefinition)
+      {
+         checkVisualizerRunning();
+         toolkit.getEnvironmentManager().addStaticVisual(visualDefinition);
       }
 
       @Override

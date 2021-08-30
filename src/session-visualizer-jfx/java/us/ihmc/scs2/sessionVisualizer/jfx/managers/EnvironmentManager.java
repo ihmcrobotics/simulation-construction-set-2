@@ -7,6 +7,7 @@ import javafx.scene.Node;
 import javafx.scene.SubScene;
 import us.ihmc.javaFXToolkit.shapes.JavaFXCoordinateSystem;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
+import us.ihmc.scs2.definition.visual.VisualDefinition;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.Skybox;
 import us.ihmc.scs2.sessionVisualizer.jfx.definition.JavaFXVisualTools;
@@ -16,6 +17,7 @@ public class EnvironmentManager implements Manager
 {
    private final Group rootNode = new Group();
    private final Group terrainObjectGraphics = new Group();
+   private Group staticVisualsRoot;
    private Skybox skybox;
 
    private final BackgroundExecutorManager backgroundExecutorManager;
@@ -48,6 +50,28 @@ public class EnvironmentManager implements Manager
       {
          JavaFXMissingTools.runLater(getClass(), () -> rootNode.getChildren().add(skybox));
       });
+   }
+
+   public void addStaticVisual(VisualDefinition visualDefinition)
+   {
+      Node node = JavaFXVisualTools.toNode(visualDefinition, null);
+
+      if (staticVisualsRoot == null)
+      {
+         staticVisualsRoot = new Group();
+         JavaFXMissingTools.runLater(getClass(), () ->
+         {
+            staticVisualsRoot.getChildren().add(node);
+            rootNode.getChildren().add(staticVisualsRoot);
+         });
+      }
+      else
+      {
+         JavaFXMissingTools.runLater(getClass(), () ->
+         {
+            staticVisualsRoot.getChildren().add(node);
+         });
+      }
    }
 
    @Override
@@ -89,7 +113,14 @@ public class EnvironmentManager implements Manager
          skybox.dispose();
          skybox = null;
       }
+
       rootNode.getChildren().clear();
       terrainObjectGraphics.getChildren().clear();
+
+      if (staticVisualsRoot != null)
+      {
+         staticVisualsRoot.getChildren().clear();
+         staticVisualsRoot = null;
+      }
    }
 }

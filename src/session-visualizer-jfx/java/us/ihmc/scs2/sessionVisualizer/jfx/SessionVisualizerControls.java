@@ -1,6 +1,9 @@
 package us.ihmc.scs2.sessionVisualizer.jfx;
 
 import java.io.File;
+import java.util.Collection;
+
+import us.ihmc.scs2.definition.visual.VisualDefinition;
 
 public interface SessionVisualizerControls
 {
@@ -13,6 +16,16 @@ public interface SessionVisualizerControls
    void setCameraZoom(double distanceFromFocus);
 
    void requestCameraRigidBodyTracking(String robotName, String rigidBodyName);
+
+   default void addStaticVisuals(Collection<? extends VisualDefinition> visualDefinitions)
+   {
+      for (VisualDefinition visualDefinition : visualDefinitions)
+      {
+         addStaticVisual(visualDefinition);
+      }
+   }
+
+   void addStaticVisual(VisualDefinition visualDefinition);
 
    default void exportVideo(File file)
    {
