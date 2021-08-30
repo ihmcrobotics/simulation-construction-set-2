@@ -14,14 +14,15 @@ import javafx.scene.shape.Shape;
 import javafx.scene.shape.Shape3D;
 import us.ihmc.euclid.Axis3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
+import us.ihmc.euclid.tools.SingularValueDecomposition3D;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.log.LogTools;
-import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyReadOnly;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
 import us.ihmc.scs2.definition.geometry.Box3DDefinition;
@@ -723,18 +724,16 @@ public class YoGraphicTools
       yoGraphicFXToPack.setMaximumMargin(CompositePropertyTools.toDoubleProperty(yoVariableDatabase, definition.getMaximumMargin()));
    }
 
-   public static YoGroupFX convertRobotCollisionShapeDefinitions(ReferenceFrameManager referenceFrameManager, RobotDefinition robotDefinition)
+   public static YoGroupFX convertRobotCollisionShapeDefinitions(RigidBodyReadOnly rootBody, RobotDefinition robotDefinition)
    {
       Color color = Color.AQUAMARINE.deriveColor(0.0, 1.0, 1.0, 0.4); // Transparent aquamarine
-      return convertRobotCollisionShapeDefinitions(referenceFrameManager, robotDefinition, color);
+      return convertRobotCollisionShapeDefinitions(rootBody, robotDefinition, color);
    }
 
-   public static YoGroupFX convertRobotCollisionShapeDefinitions(ReferenceFrameManager referenceFrameManager, RobotDefinition robotDefinition, Color color)
+   public static YoGroupFX convertRobotCollisionShapeDefinitions(RigidBodyReadOnly rootBody, RobotDefinition robotDefinition, Color color)
    {
       YoGroupFX robotCollisionGroup = new YoGroupFX(robotDefinition.getName());
 
-      // We only use the instance of the robot to find the frame names.
-      RigidBodyBasics rootBody = robotDefinition.newIntance(ReferenceFrameTools.constructARootFrame(referenceFrameManager.getWorldFrame().getName()));
       List<RigidBodyDefinition> allRigidBodies = robotDefinition.getAllRigidBodies();
 
       for (RigidBodyDefinition rigidBodyDefinition : allRigidBodies)
@@ -744,11 +743,8 @@ public class YoGraphicTools
          if (rigidBodyDefinition.getCollisionShapeDefinitions().isEmpty())
             continue;
 
-         // We use the instantiated rigid-body to get the name of the reference frame we want to use.
-         RigidBodyBasics rigidBody = MultiBodySystemTools.findRigidBody(rootBody, rigidBodyDefinition.getName());
+         RigidBodyReadOnly rigidBody = MultiBodySystemTools.findRigidBody(rootBody, rigidBodyDefinition.getName());
          ReferenceFrame referenceFrame = rigidBody.isRootBody() ? rigidBody.getBodyFixedFrame() : rigidBody.getParentJoint().getFrameAfterJoint();
-         // Finally, we use the manager to retrieve the right instance of the frame to use.
-         referenceFrame = referenceFrameManager.getReferenceFrameFromFullname(ReferenceFrameManager.getFullname(referenceFrame));
          YoGroupFX collisionGroup = convertRigidBodyCollisionShapeDefinitions(referenceFrame, rigidBodyDefinition, color);
 
          if (collisionGroup != null)
@@ -895,15 +891,69 @@ public class YoGraphicTools
                + geometryDefinition.getClass().getSimpleName());
    }
 
-   public static YoGroupFX convertRobotMassPropertiesShapeDefinitions(ReferenceFrameManager referenceFrameManager, RobotDefinition robotDefinition)
+   public static YoGroupFX convertRobotMassPropertiesShapeDefinitions(RigidBodyReadOnly rootBody, RobotDefinition robotDefinition)
    {
       Color color = Color.DARKSEAGREEN.deriveColor(0.0, 1.0, 1.0, 0.4); // Transparent
-      return convertRobotMassPropertiesShapeDefinitions(referenceFrameManager, robotDefinition, color);
+      return convertRobotMassPropertiesShapeDefinitions(rootBody, robotDefinition, color);
    }
 
-   public static YoGroupFX convertRobotMassPropertiesShapeDefinitions(ReferenceFrameManager referenceFrameManager, RobotDefinition robotDefinition, Color color)
+   public static YoGroupFX convertRobotMassPropertiesShapeDefinitions(RigidBodyReadOnly rootBody, RobotDefinition robotDefinition, Color color)
    {
-      throw new RuntimeException("Implement me");
+      YoGroupFX robotMassPropertiesGroup = new YoGroupFX(robotDefinition.getName());
+
+      List<RigidBodyDefinition> allRigidBodies = robotDefinition.getAllRigidBodies();
+
+      for (RigidBodyDefinition rigidBodyDefinition : allRigidBodies)
+      {
+         if (rigidBodyDefinition.getInertiaPose() == null)
+            continue;
+         if (rigidBodyDefinition.getMomentOfInertia() == null)
+            continue;
+
+         SingularValueDecomposition3D svd = new SingularValueDecomposition3D();
+         if (!svd.decompose(rigidBodyDefinition.getMomentOfInertia()))
+            continue;
+
+         RigidBodyReadOnly rigidBody = MultiBodySystemTools.findRigidBody(rootBody, rigidBodyDefinition.getName());
+
+         if (rigidBody.isRootBody())
+            continue;
+
+         ReferenceFrame referenceFrame = rigidBody.getParentJoint().getFrameAfterJoint();
+
+         RigidBodyTransform ellipsoidPose = new RigidBodyTransform(rigidBodyDefinition.getInertiaPose());
+         ellipsoidPose.appendOrientation(svd.getU());
+         Vector3D radii = computeInertiaEllipsoidRadii(svd.getW(), rigidBodyDefinition.getMass());
+         YoEllipsoidFX3D ellipsoid = convertEllipsoid3DDefinition(referenceFrame, ellipsoidPose, new Ellipsoid3DDefinition(radii));
+         ellipsoid.setName(rigidBody.getName() + " inertia");
+         ellipsoid.setColor(color);
+         robotMassPropertiesGroup.addYoGraphicFX3D(ellipsoid);
+      }
+
+      return robotMassPropertiesGroup;
+   }
+
+   /**
+    * Returns the radii of an ellipsoid given the inertia parameters, assuming a uniform mass
+    * distribution.
+    * 
+    * @param principalMomentsOfInertia principal moments of inertia {Ixx, Iyy, Izz}
+    * @param mass                      mass of the link
+    * @return the three radii of the inertia ellipsoid
+    */
+   public static Vector3D computeInertiaEllipsoidRadii(Vector3DReadOnly principalMomentsOfInertia, double mass)
+   {
+      double Ixx = principalMomentsOfInertia.getX();
+      double Iyy = principalMomentsOfInertia.getY();
+      double Izz = principalMomentsOfInertia.getZ();
+
+      //    http://en.wikipedia.org/wiki/Ellipsoid#Mass_properties
+      Vector3D radii = new Vector3D();
+      radii.setX(Math.sqrt(5.0 / 2.0 * (Iyy + Izz - Ixx) / mass));
+      radii.setY(Math.sqrt(5.0 / 2.0 * (Izz + Ixx - Iyy) / mass));
+      radii.setZ(Math.sqrt(5.0 / 2.0 * (Ixx + Iyy - Izz) / mass));
+
+      return radii;
    }
 
    public static YoBoxFX3D convertBox3DDefinition(ReferenceFrame referenceFrame, RigidBodyTransformReadOnly originPose, Box3DDefinition geometryDefinition)

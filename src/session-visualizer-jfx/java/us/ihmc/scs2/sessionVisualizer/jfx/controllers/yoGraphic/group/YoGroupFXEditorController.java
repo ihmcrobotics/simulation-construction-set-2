@@ -121,8 +121,12 @@ public abstract class YoGroupFXEditorController<T extends YoGraphicFX> implement
 
       tuple3DEditorController.initialize(toolkit, yoCompositeSearchManager.getYoTuple3DCollection(), setupReferenceFrameFields);
       tuple3DEditorController.setCompositeName(entryName);
-      registerResetAction(() -> tuple3DEditorController.setInput(YoGroupFXEditorTools.getCommonTuple3DProperty(yoCompositeSearchManager,
-                                                                                                               getField(graphicChildren, getter))));
+      registerResetAction(() ->
+      {
+         Tuple3DProperty commonTuple3DProperty = YoGroupFXEditorTools.getCommonTuple3DProperty(yoCompositeSearchManager, getField(graphicChildren, getter));
+         if (commonTuple3DProperty != null)
+            tuple3DEditorController.setInput(commonTuple3DProperty);
+      });
       if (setupReferenceFrameFields)
       {
          tuple3DEditorController.addInputListener((components, frame) ->

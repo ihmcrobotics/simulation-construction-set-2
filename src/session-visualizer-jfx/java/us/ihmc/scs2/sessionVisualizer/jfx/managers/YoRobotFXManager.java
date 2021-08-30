@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
+import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyReadOnly;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.CameraObjectTrackingRequest;
@@ -145,6 +146,11 @@ public class YoRobotFXManager extends ObservedAnimationTimer implements Manager
       if (robots.size() < numberOfRobotDefinitions)
          return false;
       return robots.stream().allMatch(YoRobotFX::isRobotLoaded);
+   }
+
+   public RigidBodyReadOnly getRobotRootBody(String robotName)
+   {
+      return robots.stream().filter(robot -> robot.getRobotDefinition().getName().equals(robotName)).findFirst().map(YoRobotFX::getRootBody).orElse(null);
    }
 
    public Group getRootNode()

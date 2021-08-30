@@ -14,6 +14,7 @@ import javafx.util.Duration;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.log.LogTools;
+import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyReadOnly;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameManager;
@@ -129,6 +130,11 @@ public class YoRobotFX
             initialize = false;
          }
       }
+   }
+
+   public RigidBodyReadOnly getRootBody()
+   {
+      return rootBody;
    }
 
    public JavaFXRigidBody findRigidBody(String rigidBodyName)

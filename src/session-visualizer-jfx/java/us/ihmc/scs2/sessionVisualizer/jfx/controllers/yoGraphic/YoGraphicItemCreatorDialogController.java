@@ -37,6 +37,7 @@ import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoRobotFXManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoArrowFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoBoxFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoCapsuleFX3D;
@@ -67,8 +68,8 @@ public class YoGraphicItemCreatorDialogController
    private ToggleButton yoLineFX2DToggleButton, yoPointcloudFX2DToggleButton, yoPointFX2DToggleButton, yoPolygonFX2DToggleButton;
    @FXML
    private ToggleButton yoArrowFX3DToggleButton, yoBoxFX3DToggleButton, yoCapsuleFX3DToggleButton, yoConeFX3DToggleButton, yoCoordinateSystemFX3DToggleButton,
-         yoCylinderFX3DToggleButton, yoEllipsoidFX3DToggleButton, yoPointcloudFX3DToggleButton, yoPointFX3DToggleButton, yoPolygonExtrudedFX3DToggleButton, yoPolynomialFX3DToggleButton,
-         yoSTPBoxFX3DToggleButton;
+         yoCylinderFX3DToggleButton, yoEllipsoidFX3DToggleButton, yoPointcloudFX3DToggleButton, yoPointFX3DToggleButton, yoPolygonExtrudedFX3DToggleButton,
+         yoPolynomialFX3DToggleButton, yoSTPBoxFX3DToggleButton;
    @FXML
    private FlowPane miscFlowPane;
    @FXML
@@ -99,6 +100,7 @@ public class YoGraphicItemCreatorDialogController
    private final Map<Class<? extends YoGraphicFXItem>, String> typeToDefaultNameMap = new LinkedHashMap<>();
 
    private ReferenceFrame worldFrame;
+   private YoRobotFXManager robotFXManager;
    private ReferenceFrameManager referenceFrameManager;
    private ObservableList<RobotDefinition> sessionRobotDefinitions;
    private ObservableList<TerrainObjectDefinition> sessionTerrainObjectDefinitions;
@@ -111,6 +113,7 @@ public class YoGraphicItemCreatorDialogController
 
       referenceFrameManager = toolkit.getReferenceFrameManager();
       worldFrame = referenceFrameManager.getWorldFrame();
+      robotFXManager = toolkit.getYoRobotFXManager();
       sessionRobotDefinitions = toolkit.getSessionRobotDefinitions();
       sessionTerrainObjectDefinitions = toolkit.getSessionTerrainObjectDefinitions();
 
@@ -306,7 +309,8 @@ public class YoGraphicItemCreatorDialogController
       else if (robotCollisionsToggleButtons.contains(toggleGroup.getSelectedToggle()))
       {
          RobotDefinition robotDefinition = sessionRobotDefinitions.get(robotCollisionsToggleButtons.indexOf(toggleGroup.getSelectedToggle()));
-         YoGroupFX robotCollisionShapeDefinitions = YoGraphicTools.convertRobotCollisionShapeDefinitions(referenceFrameManager, robotDefinition);
+         YoGroupFX robotCollisionShapeDefinitions = YoGraphicTools.convertRobotCollisionShapeDefinitions(robotFXManager.getRobotRootBody(robotDefinition.getName()),
+                                                                                                         robotDefinition);
          robotCollisionShapeDefinitions.setName(itemNameTextField.getText());
          boolean success = parent.addChild(robotCollisionShapeDefinitions);
          return success ? robotCollisionShapeDefinitions : null;
@@ -322,7 +326,8 @@ public class YoGraphicItemCreatorDialogController
       else if (robotMassPropertiesToggleButtons.contains(toggleGroup.getSelectedToggle()))
       {
          RobotDefinition robotDefinition = sessionRobotDefinitions.get(robotMassPropertiesToggleButtons.indexOf(toggleGroup.getSelectedToggle()));
-         YoGroupFX robotMassPropertiesShapeDefinitions = YoGraphicTools.convertRobotCollisionShapeDefinitions(referenceFrameManager, robotDefinition);
+         YoGroupFX robotMassPropertiesShapeDefinitions = YoGraphicTools.convertRobotMassPropertiesShapeDefinitions(robotFXManager.getRobotRootBody(robotDefinition.getName()),
+                                                                                                                   robotDefinition);
          robotMassPropertiesShapeDefinitions.setName(itemNameTextField.getText());
          boolean success = parent.addChild(robotMassPropertiesShapeDefinitions);
          return success ? robotMassPropertiesShapeDefinitions : null;

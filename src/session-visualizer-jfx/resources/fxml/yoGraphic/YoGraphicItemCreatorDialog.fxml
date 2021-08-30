@@ -123,7 +123,7 @@
                               </ImageView>
                            </graphic>
                         </ToggleButton>
-                        <ToggleButton fx:id="yoEFX3DToggleButton" contentDisplay="TOP" mnemonicParsing="false" styleClass="graphic-editor-preview-button" text="Ellipsoid">
+                        <ToggleButton fx:id="yoEllipsoidFX3DToggleButton" contentDisplay="TOP" mnemonicParsing="false" styleClass="graphic-editor-preview-button" text="Ellipsoid">
                            <graphic>
                               <ImageView fitHeight="100.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true" styleClass="graphic-editor-preview-icon">
                                  <image>
