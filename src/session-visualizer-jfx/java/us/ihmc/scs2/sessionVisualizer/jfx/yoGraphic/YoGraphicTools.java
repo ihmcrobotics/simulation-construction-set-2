@@ -871,6 +871,17 @@ public class YoGraphicTools
                + geometryDefinition.getClass().getSimpleName());
    }
 
+   public static YoGroupFX convertRobotMassPropertiesShapeDefinitions(ReferenceFrameManager referenceFrameManager, RobotDefinition robotDefinition)
+   {
+      Color color = Color.DARKSEAGREEN.deriveColor(0.0, 1.0, 1.0, 0.4); // Transparent
+      return convertRobotMassPropertiesShapeDefinitions(referenceFrameManager, robotDefinition, color);
+   }
+
+   public static YoGroupFX convertRobotMassPropertiesShapeDefinitions(ReferenceFrameManager referenceFrameManager, RobotDefinition robotDefinition, Color color)
+   {
+      throw new RuntimeException("Implement me");
+   }
+
    public static YoBoxFX3D convertBox3DDefinition(ReferenceFrame referenceFrame, RigidBodyTransformReadOnly originPose, Box3DDefinition geometryDefinition)
    {
       YoBoxFX3D yoGraphicFX = new YoBoxFX3D();
