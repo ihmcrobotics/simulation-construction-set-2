@@ -43,6 +43,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoCapsuleFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoConeFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoCoordinateSystemFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoCylinderFX3D;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoEllipsoidFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXItem;
@@ -66,7 +67,7 @@ public class YoGraphicItemCreatorDialogController
    private ToggleButton yoLineFX2DToggleButton, yoPointcloudFX2DToggleButton, yoPointFX2DToggleButton, yoPolygonFX2DToggleButton;
    @FXML
    private ToggleButton yoArrowFX3DToggleButton, yoBoxFX3DToggleButton, yoCapsuleFX3DToggleButton, yoConeFX3DToggleButton, yoCoordinateSystemFX3DToggleButton,
-         yoCylinderFX3DToggleButton, yoPointcloudFX3DToggleButton, yoPointFX3DToggleButton, yoPolygonExtrudedFX3DToggleButton, yoPolynomialFX3DToggleButton,
+         yoCylinderFX3DToggleButton, yoEllipsoidFX3DToggleButton, yoPointcloudFX3DToggleButton, yoPointFX3DToggleButton, yoPolygonExtrudedFX3DToggleButton, yoPolynomialFX3DToggleButton,
          yoSTPBoxFX3DToggleButton;
    @FXML
    private FlowPane miscFlowPane;
@@ -126,6 +127,7 @@ public class YoGraphicItemCreatorDialogController
       buttonToTypeMap.put(yoConeFX3DToggleButton, YoConeFX3D.class);
       buttonToTypeMap.put(yoCoordinateSystemFX3DToggleButton, YoCoordinateSystemFX3D.class);
       buttonToTypeMap.put(yoCylinderFX3DToggleButton, YoCylinderFX3D.class);
+      buttonToTypeMap.put(yoEllipsoidFX3DToggleButton, YoEllipsoidFX3D.class);
       buttonToTypeMap.put(yoPointcloudFX3DToggleButton, YoPointcloudFX3D.class);
       buttonToTypeMap.put(yoPointFX3DToggleButton, YoPointFX3D.class);
       buttonToTypeMap.put(yoPolygonExtrudedFX3DToggleButton, YoPolygonExtrudedFX3D.class);
@@ -147,6 +149,7 @@ public class YoGraphicItemCreatorDialogController
       typeToDefaultNameMap.put(YoConeFX3D.class, "Cone 3D");
       typeToDefaultNameMap.put(YoCoordinateSystemFX3D.class, "Coordinate System 3D");
       typeToDefaultNameMap.put(YoCylinderFX3D.class, "Cylinder 3D");
+      typeToDefaultNameMap.put(YoEllipsoidFX3D.class, "Ellipsoid 3D");
       typeToDefaultNameMap.put(YoPointcloudFX3D.class, "Pointcloud 3D");
       typeToDefaultNameMap.put(YoPointFX3D.class, "Point 3D");
       typeToDefaultNameMap.put(YoPolygonExtrudedFX3D.class, "Polygon Extruded 3D");
