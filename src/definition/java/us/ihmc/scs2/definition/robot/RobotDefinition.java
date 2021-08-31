@@ -38,6 +38,14 @@ public class RobotDefinition
       this.rootBodyDefinition = rootBodyDefinition;
    }
 
+   public void ignoreAllJoints()
+   {
+      for (JointDefinition jointDefinition : collectSubtreeJointDefinitions(rootBodyDefinition))
+      {
+         addJointToIgnore(jointDefinition.getName());
+      }
+   }
+
    public void addJointToIgnore(String nameOfJointToIgnore)
    {
       nameOfJointsToIgnore.add(nameOfJointToIgnore);

@@ -113,24 +113,28 @@ public class SimulationSession extends Session
       }
    }
 
-   public Robot addRobot(RobotDefinition robotDefinition)
+   public void addRobot(Robot robot)
    {
       checkSessionHasNotStarted();
+      physicsEngine.addRobot(robot);
+   }
 
-      return physicsEngine.addRobot(robotDefinition);
+   public Robot addRobot(RobotDefinition robotDefinition)
+   {
+      Robot robot = new Robot(robotDefinition, inertialFrame);
+      addRobot(robot);
+      return robot;
    }
 
    public void addTerrainObject(TerrainObjectDefinition terrainObjectDefinition)
    {
       checkSessionHasNotStarted();
-
       physicsEngine.addTerrainObject(terrainObjectDefinition);
    }
 
    public void addYoGraphicDefinition(YoGraphicDefinition yoGraphicDefinition)
    {
       checkSessionHasNotStarted();
-
       yoGraphicDefinitions.add(yoGraphicDefinition);
    }
 

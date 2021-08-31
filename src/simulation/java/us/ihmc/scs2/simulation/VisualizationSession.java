@@ -98,7 +98,7 @@ public class VisualizationSession extends Session
       robots.add(robot);
    }
 
-   public RobotInterface addRobot(RobotDefinition robotDefinition)
+   public Robot addRobot(RobotDefinition robotDefinition)
    {
       Robot robot = new Robot(robotDefinition, DEFAULT_INERTIAL_FRAME);
       addRobot(robot);
