@@ -188,7 +188,7 @@ public class VideoRecordingManager
                if (recordNextFrame(bufferProperties))
                   currentPhase++;
                return;
-            case 3:
+            default:
                try
                {
                   movieBuilder.close();
