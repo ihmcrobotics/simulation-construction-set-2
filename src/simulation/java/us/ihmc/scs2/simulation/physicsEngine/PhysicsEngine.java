@@ -17,7 +17,14 @@ public interface PhysicsEngine
 
    void pause();
 
-   Robot addRobot(RobotDefinition robotDefinition);
+   default Robot addRobot(RobotDefinition robotDefinition)
+   {
+      Robot robot = new Robot(robotDefinition, getInertialFrame());
+      addRobot(robot);
+      return robot;
+   }
+
+   void addRobot(Robot robot);
 
    void addTerrainObject(TerrainObjectDefinition terrainObjectDefinition);
 

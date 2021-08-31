@@ -32,11 +32,10 @@ import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRevoluteJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRigidBody;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimSixDoFJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimMultiBodySystemBasics;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
-public class Robot implements SimMultiBodySystemBasics
+public class Robot implements RobotInterface
 {
    public static final JointBuilderFromDefinition DEFAULT_JOINT_BUILDER = new JointBuilderFromDefinition()
    {
@@ -133,21 +132,25 @@ public class Robot implements SimMultiBodySystemBasics
       }
    }
 
+   @Override
    public String getName()
    {
       return name;
    }
 
+   @Override
    public RobotDefinition getRobotDefinition()
    {
       return robotDefinition;
    }
 
+   @Override
    public RobotControllerManager getControllerManager()
    {
       return controllerManager;
    }
 
+   @Override
    public void initializeState()
    {
       for (int i = 0; i < allJoints.size(); i++)
@@ -159,22 +162,19 @@ public class Robot implements SimMultiBodySystemBasics
       rootBody.updateFramesRecursively();
    }
 
-   public void updateFrames()
-   {
-      rootBody.updateFramesRecursively();
-   }
-
    @Override
    public SimRigidBodyBasics getRootBody()
    {
       return rootBody;
    }
 
+   @Override
    public SimRigidBodyBasics getRigidBody(String name)
    {
       return nameToBodyMap.get(name);
    }
 
+   @Override
    public SimJointBasics getJoint(String name)
    {
       return nameToJointMap.get(name);

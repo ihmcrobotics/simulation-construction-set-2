@@ -13,11 +13,18 @@ import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.simulation.collision.Collidable;
 import us.ihmc.scs2.simulation.collision.CollidableHolder;
 import us.ihmc.scs2.simulation.robot.Robot;
+import us.ihmc.scs2.simulation.robot.RobotExtension;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
 
-public class ImpulseBasedRobot extends Robot implements CollidableHolder
+public class ImpulseBasedRobot extends RobotExtension implements CollidableHolder
 {
    private final ImpulseBasedRobotPhysics robotPhysics;
+
+   public ImpulseBasedRobot(Robot robot)
+   {
+      super(robot);
+      robotPhysics = new ImpulseBasedRobotPhysics(this);
+   }
 
    public ImpulseBasedRobot(RobotDefinition robotDefinition, ReferenceFrame inertialFrame)
    {
@@ -87,7 +94,7 @@ public class ImpulseBasedRobot extends Robot implements CollidableHolder
 
    public void updateSensors()
    {
-      for (SimJointBasics joint : rootBody.childrenSubtreeIterable())
+      for (SimJointBasics joint : getRootBody().childrenSubtreeIterable())
       {
          joint.getAuxialiryData().update(robotPhysics.getPhysicsOutput());
       }

@@ -178,10 +178,15 @@ public class LinkedBufferArray extends LinkedBuffer
 
       for (int i = size - 1; i >= 0; i--)
       {
-         if (!linkedBuffers[i].isActive())
+         LinkedBuffer linkedBuffer = linkedBuffers[i];
+
+         if (linkedBuffer == null)
+            LogTools.error("Unexpected null pointer");
+
+         if (!linkedBuffer.isActive())
             remove(i);
          else
-            linkedBuffers[i].prepareForPull();
+            linkedBuffer.prepareForPull();
       }
    }
 

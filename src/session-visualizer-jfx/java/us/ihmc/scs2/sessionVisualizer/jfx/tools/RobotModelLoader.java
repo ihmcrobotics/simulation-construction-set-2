@@ -34,6 +34,7 @@ import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.robot.sdf.SDFTools;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFRoot;
 import us.ihmc.scs2.simulation.robot.Robot;
+import us.ihmc.scs2.simulation.robot.RobotInterface;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class RobotModelLoader
@@ -47,7 +48,7 @@ public class RobotModelLoader
       if (robotDefinition == null)
          return null;
 
-      Robot robot = new Robot(robotDefinition, ReferenceFrame.getWorldFrame());
+      RobotInterface robot = new Robot(robotDefinition, ReferenceFrame.getWorldFrame());
 
       Map<String, JointState> jointNameToState = handshakeParser.getJointStates().stream().collect(Collectors.toMap(JointState::getName, Function.identity()));
 

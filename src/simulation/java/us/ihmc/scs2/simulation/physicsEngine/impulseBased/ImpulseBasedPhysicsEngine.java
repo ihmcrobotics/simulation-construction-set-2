@@ -106,13 +106,13 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
    }
 
    @Override
-   public Robot addRobot(RobotDefinition robotDefinition)
+   public void addRobot(Robot robot)
    {
-      ImpulseBasedRobot ibRobot = new ImpulseBasedRobot(robotDefinition, inertialFrame);
+      inertialFrame.checkReferenceFrameMatch(robot.getInertialFrame());
+      ImpulseBasedRobot ibRobot = new ImpulseBasedRobot(robot);
       robotMap.put(ibRobot.getRootBody(), ibRobot);
       rootRegistry.addChild(ibRobot.getRegistry());
       robotList.add(ibRobot);
-      return ibRobot;
    }
 
    public void setGlobalConstraintParameters(ConstraintParametersReadOnly parameters)
@@ -261,9 +261,9 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
    }
 
    @Override
-   public List<ImpulseBasedRobot> getRobots()
+   public List<Robot> getRobots()
    {
-      return robotList;
+      return robotList.stream().map(ImpulseBasedRobot::getRobot).collect(Collectors.toList());
    }
 
    @Override

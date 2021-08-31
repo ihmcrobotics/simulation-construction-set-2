@@ -16,6 +16,7 @@ import us.ihmc.scs2.simulation.collision.CollisionTools;
 import us.ihmc.scs2.simulation.parameters.ContactPointBasedContactParametersReadOnly;
 import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngine;
 import us.ihmc.scs2.simulation.robot.Robot;
+import us.ihmc.scs2.simulation.robot.RobotInterface;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
 import us.ihmc.scs2.simulation.robot.trackers.GroundContactPoint;
@@ -156,12 +157,12 @@ public class ContactPointBasedPhysicsEngine implements PhysicsEngine
    }
 
    @Override
-   public Robot addRobot(RobotDefinition robotDefinition)
+   public void addRobot(Robot robot)
    {
-      ContactPointBasedRobot cpbRobot = new ContactPointBasedRobot(robotDefinition, inertialFrame);
+      inertialFrame.checkReferenceFrameMatch(robot.getInertialFrame());
+      ContactPointBasedRobot cpbRobot = new ContactPointBasedRobot(robot);
       rootRegistry.addChild(cpbRobot.getRegistry());
       robotList.add(cpbRobot);
-      return cpbRobot;
    }
 
    @Override
@@ -178,15 +179,15 @@ public class ContactPointBasedPhysicsEngine implements PhysicsEngine
    }
 
    @Override
-   public List<ContactPointBasedRobot> getRobots()
+   public List<Robot> getRobots()
    {
-      return robotList;
+      return robotList.stream().map(ContactPointBasedRobot::getRobot).collect(Collectors.toList());
    }
 
    @Override
    public List<RobotDefinition> getRobotDefinitions()
    {
-      return robotList.stream().map(Robot::getRobotDefinition).collect(Collectors.toList());
+      return robotList.stream().map(RobotInterface::getRobotDefinition).collect(Collectors.toList());
    }
 
    @Override

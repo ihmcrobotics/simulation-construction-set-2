@@ -16,6 +16,7 @@ import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.session.SessionState;
 import us.ihmc.scs2.simulation.robot.Robot;
+import us.ihmc.scs2.simulation.robot.RobotInterface;
 import us.ihmc.scs2.simulation.robot.controller.RobotControllerManager;
 
 public class VisualizationSession extends Session
@@ -50,7 +51,7 @@ public class VisualizationSession extends Session
    {
       double dt = Conversions.nanosecondsToSeconds(getSessionDTNanoseconds());
 
-      for (Robot robot : robots)
+      for (RobotInterface robot : robots)
       {
          RobotControllerManager controllerManager = robot.getControllerManager();
          controllerManager.updateControllers(time.getValue());
@@ -73,7 +74,7 @@ public class VisualizationSession extends Session
 
       if (previousMode == SessionMode.RUNNING)
       {
-         for (Robot robot : robots)
+         for (RobotInterface robot : robots)
          {
             robot.getControllerManager().pauseControllers();
          }
@@ -97,7 +98,7 @@ public class VisualizationSession extends Session
       robots.add(robot);
    }
 
-   public Robot addRobot(RobotDefinition robotDefinition)
+   public RobotInterface addRobot(RobotDefinition robotDefinition)
    {
       Robot robot = new Robot(robotDefinition, DEFAULT_INERTIAL_FRAME);
       addRobot(robot);

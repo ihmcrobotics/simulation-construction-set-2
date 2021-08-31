@@ -20,7 +20,7 @@ import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.scs2.simulation.collision.Collidable;
 import us.ihmc.scs2.simulation.collision.FrameShapePosePredictor;
-import us.ihmc.scs2.simulation.robot.Robot;
+import us.ihmc.scs2.simulation.robot.RobotInterface;
 import us.ihmc.scs2.simulation.robot.RobotPhysicsOutput;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
 import us.ihmc.scs2.simulation.screwTools.RigidBodyDeltaTwistCalculator;
@@ -35,7 +35,7 @@ public class ImpulseBasedRobotPhysics
 {
    private static final String ContactCalculatorNameSuffix = SingleContactImpulseCalculator.class.getSimpleName();
 
-   private final Robot owner;
+   private final RobotInterface owner;
    private final ReferenceFrame inertialFrame;
 
    private final YoRegistry environmentContactCalculatorRegistry = new YoRegistry("Environment" + ContactCalculatorNameSuffix);
@@ -61,7 +61,7 @@ public class ImpulseBasedRobotPhysics
 
    private final RobotPhysicsOutput physicsOutput;
 
-   public ImpulseBasedRobotPhysics(Robot owner)
+   public ImpulseBasedRobotPhysics(RobotInterface owner)
    {
       this.owner = owner;
       inertialFrame = owner.getInertialFrame();

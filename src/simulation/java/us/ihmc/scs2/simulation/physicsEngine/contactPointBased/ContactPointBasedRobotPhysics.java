@@ -12,7 +12,7 @@ import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.scs2.simulation.collision.Collidable;
 import us.ihmc.scs2.simulation.collision.FrameShapePosePredictor;
-import us.ihmc.scs2.simulation.robot.Robot;
+import us.ihmc.scs2.simulation.robot.RobotInterface;
 import us.ihmc.scs2.simulation.robot.RobotPhysicsOutput;
 import us.ihmc.scs2.simulation.robot.controller.RobotOneDoFJointDampingCalculator;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
@@ -21,7 +21,7 @@ import us.ihmc.scs2.simulation.screwTools.SingleRobotFirstOrderIntegrator;
 
 public class ContactPointBasedRobotPhysics
 {
-   private final Robot owner;
+   private final RobotInterface owner;
    private final ReferenceFrame inertialFrame;
 
    private final RobotOneDoFJointDampingCalculator robotOneDoFJointDampingCalculator;
@@ -38,7 +38,7 @@ public class ContactPointBasedRobotPhysics
 
    private final RobotPhysicsOutput physicsOutput;
 
-   public ContactPointBasedRobotPhysics(Robot owner)
+   public ContactPointBasedRobotPhysics(RobotInterface owner)
    {
       this.owner = owner;
       inertialFrame = owner.getInertialFrame();
