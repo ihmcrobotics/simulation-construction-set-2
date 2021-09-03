@@ -1,8 +1,14 @@
 package us.ihmc.scs2.simulation;
 
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
@@ -11,15 +17,25 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 import us.ihmc.commons.Conversions;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
+import us.ihmc.messager.Messager;
+import us.ihmc.messager.TopicListener;
+import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
+import us.ihmc.scs2.session.DaemonThreadFactory;
 import us.ihmc.scs2.session.Session;
+import us.ihmc.scs2.session.SessionMessagerAPI;
+import us.ihmc.scs2.session.SessionMessagerAPI.Sensors.SensorMessage;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
 import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngine;
 import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngineFactory;
 import us.ihmc.scs2.simulation.robot.Robot;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
+import us.ihmc.scs2.simulation.robot.sensors.SimCameraSensor;
+import us.ihmc.scs2.simulation.robot.sensors.SimCameraSensor.CameraDefinitionConsumer;
+import us.ihmc.scs2.simulation.robot.sensors.SimCameraSensor.CameraFrameConsumer;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
 import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 
@@ -32,6 +48,12 @@ public class SimulationSession extends Session
    private final YoFrameVector3D gravity = new YoFrameVector3D("gravity", ReferenceFrame.getWorldFrame(), rootRegistry);
    private final String simulationName;
    private final List<YoGraphicDefinition> yoGraphicDefinitions = new ArrayList<>();
+   private final List<Consumer<SensorMessage<CameraSensorDefinition>>> cameraDefinitionListeners = new ArrayList<>();
+   private final List<CameraDefinitionConsumer> cameraDefinitionNotifiers = new ArrayList<>();
+   private final Map<String, Map<String, SimCameraSensor>> robotNameToSensorNameToCameraMap = new HashMap<>();
+   private final ExecutorService cameraBroadcastExecutor = Executors.newSingleThreadExecutor(new DaemonThreadFactory("SCS2-Camera-Server"));
+
+   private final List<Runnable> cleanupActions = new ArrayList<>();
 
    private SimulationSessionControlsImpl controls = null;
 
@@ -93,6 +115,23 @@ public class SimulationSession extends Session
    }
 
    @Override
+   public void shutdownSession()
+   {
+      super.shutdownSession();
+      cleanupActions.forEach(Runnable::run);
+      cleanupActions.clear();
+      cameraBroadcastExecutor.shutdown();
+   }
+
+   @Override
+   protected void doGeneric(SessionMode currentMode)
+   {
+      super.doGeneric(currentMode);
+
+      cameraDefinitionNotifiers.forEach(notifier -> notifier.nextDefinition(null));
+   }
+
+   @Override
    protected double doSpecificRunTick()
    {
       double dt = Conversions.nanosecondsToSeconds(getSessionDTNanoseconds());
@@ -122,8 +161,58 @@ public class SimulationSession extends Session
    public Robot addRobot(RobotDefinition robotDefinition)
    {
       Robot robot = new Robot(robotDefinition, inertialFrame);
+      configureCameraSensors(robot);
       addRobot(robot);
       return robot;
+   }
+
+   private void configureCameraSensors(Robot robot)
+   {
+      for (SimJointBasics joint : robot.getAllJoints())
+      {
+         for (SimCameraSensor cameraSensor : joint.getAuxialiryData().getCameraSensors())
+            configureCameraSensor(robot.getName(), cameraSensor);
+      }
+   }
+
+   private void configureCameraSensor(String robotName, SimCameraSensor cameraSensor)
+   {
+      robotNameToSensorNameToCameraMap.computeIfAbsent(robotName, s -> new HashMap<>()).put(cameraSensor.getName(), cameraSensor);
+
+      CameraDefinitionConsumer cameraDefinitionNotifier = newDefinition ->
+      {
+         String sensorName = cameraSensor.getName();
+         CameraSensorDefinition definitionData = newDefinition != null ? newDefinition : cameraSensor.toCameraSensorDefinition();
+         SensorMessage<CameraSensorDefinition> newMessage = new SensorMessage<>(robotName, sensorName, definitionData);
+         cameraDefinitionListeners.forEach(listener -> listener.accept(newMessage));
+      };
+      cameraDefinitionNotifiers.add(cameraDefinitionNotifier);
+      cameraSensor.addCameraDefinitionConsumer(cameraDefinitionNotifier);
+   }
+
+   @Override
+   public void setupWithMessager(Messager messager)
+   {
+      super.setupWithMessager(messager);
+
+      cameraDefinitionListeners.add(message -> messager.submitMessage(SessionMessagerAPI.Sensors.CameraSensorDefinitionData, message));
+      TopicListener<SensorMessage<BufferedImage>> listener = message ->
+      {
+         long timestamp = Conversions.secondsToNanoseconds(time.getValue());
+
+         SimCameraSensor cameraSensor = robotNameToSensorNameToCameraMap.getOrDefault(message.getRobotName(), Collections.emptyMap())
+                                                                        .get(message.getSensorName());
+
+         cameraBroadcastExecutor.execute(() ->
+         {
+            for (CameraFrameConsumer consumer : cameraSensor.getCameraFrameConsumers())
+            {
+               consumer.nextFrame(timestamp, message.getMessageContent());
+            }
+         });
+      };
+      messager.registerTopicListener(SessionMessagerAPI.Sensors.CameraSensorFrame, listener);
+      cleanupActions.add(() -> messager.removeTopicListener(SessionMessagerAPI.Sensors.CameraSensorFrame, listener));
    }
 
    public void addTerrainObject(TerrainObjectDefinition terrainObjectDefinition)

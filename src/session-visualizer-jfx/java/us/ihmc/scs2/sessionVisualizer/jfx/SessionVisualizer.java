@@ -74,7 +74,7 @@ public class SessionVisualizer
       view3DRoot = view3DFactory.getRoot();
       view3DFactory.addDefaultLighting();
 
-      toolkit = new SessionVisualizerToolkit(primaryStage, view3DFactory.getSubScene());
+      toolkit = new SessionVisualizerToolkit(primaryStage, view3DFactory.getSubScene(), view3DRoot);
       messager = toolkit.getMessager();
       topics = toolkit.getTopics();
 

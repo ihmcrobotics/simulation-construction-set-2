@@ -1,12 +1,15 @@
 package us.ihmc.scs2.sessionVisualizer.jfx;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.List;
 
 import javafx.stage.Window;
 import javafx.util.Pair;
 import us.ihmc.messager.MessagerAPIFactory.Topic;
+import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
 import us.ihmc.scs2.session.SessionMessagerAPI;
+import us.ihmc.scs2.session.SessionMessagerAPI.Sensors.SensorMessage;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.session.SessionState;
 import us.ihmc.scs2.session.YoSharedBufferMessagerAPI;
@@ -78,6 +81,8 @@ public class SessionVisualizerTopics
    private Topic<FillBufferRequest> yoBufferFillRequest;
    private Topic<Integer> yoBufferCurrentSizeRequest;
    private Topic<YoBufferPropertiesReadOnly> yoBufferCurrentProperties;
+   private Topic<SensorMessage<CameraSensorDefinition>> cameraSensorDefinitionData;
+   private Topic<SensorMessage<BufferedImage>> cameraSensorFrame;
 
    public void setupTopics()
    {
@@ -144,6 +149,9 @@ public class SessionVisualizerTopics
       yoBufferFillRequest = YoSharedBufferMessagerAPI.FillRequest;
       yoBufferCurrentSizeRequest = YoSharedBufferMessagerAPI.CurrentBufferSizeRequest;
       yoBufferCurrentProperties = YoSharedBufferMessagerAPI.CurrentBufferProperties;
+
+      cameraSensorDefinitionData = SessionMessagerAPI.Sensors.CameraSensorDefinitionData;
+      cameraSensorFrame = SessionMessagerAPI.Sensors.CameraSensorFrame;
    }
 
    public Topic<Boolean> getDisableUserControls()
@@ -414,5 +422,15 @@ public class SessionVisualizerTopics
    public Topic<YoBufferPropertiesReadOnly> getYoBufferCurrentProperties()
    {
       return yoBufferCurrentProperties;
+   }
+
+   public Topic<SensorMessage<CameraSensorDefinition>> getCameraSensorDefinitionData()
+   {
+      return cameraSensorDefinitionData;
+   }
+
+   public Topic<SensorMessage<BufferedImage>> getCameraSensorFrame()
+   {
+      return cameraSensorFrame;
    }
 }

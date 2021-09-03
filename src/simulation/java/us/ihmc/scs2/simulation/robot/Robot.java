@@ -12,6 +12,7 @@ import us.ihmc.log.LogTools;
 import us.ihmc.mecano.frames.MovingReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointMatrixIndexProvider;
 import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
+import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
 import us.ihmc.scs2.definition.robot.FixedJointDefinition;
 import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
 import us.ihmc.scs2.definition.robot.JointDefinition;
@@ -124,6 +125,8 @@ public class Robot implements RobotInterface
                childJoint.getAuxialiryData().addIMUSensor((IMUSensorDefinition) sensorDefinition);
             else if (sensorDefinition instanceof WrenchSensorDefinition)
                childJoint.getAuxialiryData().addWrenchSensor((WrenchSensorDefinition) sensorDefinition);
+            else if (sensorDefinition instanceof CameraSensorDefinition)
+               childJoint.getAuxialiryData().addCameraSensor((CameraSensorDefinition) sensorDefinition);
             else
                LogTools.warn("Unsupported sensor: " + sensorDefinition);
          }

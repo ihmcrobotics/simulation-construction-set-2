@@ -5,6 +5,8 @@ import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 
 public class CameraSensorDefinition extends SensorDefinition
 {
+   private boolean enable;
+
    private double fieldOfView;
    private double clipNear;
    private double clipFar;
@@ -40,11 +42,22 @@ public class CameraSensorDefinition extends SensorDefinition
    {
       super(other);
 
+      enable = other.enable;
       fieldOfView = other.fieldOfView;
       clipNear = other.clipNear;
       clipFar = other.clipFar;
       imageWidth = other.imageWidth;
       imageHeight = other.imageHeight;
+   }
+
+   public boolean isEnabled()
+   {
+      return enable;
+   }
+
+   public void setEnable(boolean enable)
+   {
+      this.enable = enable;
    }
 
    public double getFieldOfView()
