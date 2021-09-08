@@ -4,6 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.util.Arrays;
@@ -14,10 +19,13 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import javax.xml.bind.JAXBException;
+
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.matrix.interfaces.Matrix3DReadOnly;
+import us.ihmc.euclid.orientation.interfaces.Orientation3DBasics;
 import us.ihmc.euclid.tools.EuclidCoreTestTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -26,6 +34,7 @@ import us.ihmc.scs2.definition.robot.sdf.SDFTools;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFRoot;
 import us.ihmc.scs2.definition.robot.urdf.URDFTools;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFModel;
+import us.ihmc.scs2.session.DefinitionIOTools;
 
 public class ValkyrieModelLoadingTest
 {
@@ -187,7 +196,7 @@ public class ValkyrieModelLoadingTest
       InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream("models/valkyrie/valkyrie_sim.sdf");
       SDFRoot sdfRoot = SDFTools.loadSDFRoot(resourceAsStream, Collections.emptyList(), this.getClass().getClassLoader());
       RobotDefinition robotDefinition = SDFTools.toFloatingRobotDefinition(sdfRoot.getModels().get(0));
-      performAssertionsOnRobotDescription(robotDefinition);
+      performAssertionsOnRobotDefinition(robotDefinition);
    }
 
    @Test
@@ -196,10 +205,23 @@ public class ValkyrieModelLoadingTest
       InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream("models/valkyrie/valkyrie_sim.urdf");
       URDFModel urdfModel = URDFTools.loadURDFModel(resourceAsStream, Collections.emptyList(), this.getClass().getClassLoader());
       RobotDefinition robotDefinition = URDFTools.toFloatingRobotDefinition(urdfModel);
-      performAssertionsOnRobotDescription(robotDefinition);
+      performAssertionsOnRobotDefinition(robotDefinition);
    }
 
-   private void performAssertionsOnRobotDescription(RobotDefinition robotDefinition)
+   @Test
+   public void testSaveLoadRobotDefinitionXML() throws JAXBException, FileNotFoundException, IOException
+   {
+      InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream("models/valkyrie/valkyrie_sim.urdf");
+      URDFModel urdfModel = URDFTools.loadURDFModel(resourceAsStream, Collections.emptyList(), this.getClass().getClassLoader());
+      RobotDefinition exportedRobotDefinition = URDFTools.toFloatingRobotDefinition(urdfModel);
+      File testFile = new File("test.xml");
+      DefinitionIOTools.saveRobotDefinition(new FileOutputStream(testFile), exportedRobotDefinition);
+      RobotDefinition importedRobotDefinition = DefinitionIOTools.loadRobotDefinition(new FileInputStream(testFile));
+      performAssertionsOnRobotDefinition(importedRobotDefinition);
+      testFile.delete();
+   }
+
+   private void performAssertionsOnRobotDefinition(RobotDefinition robotDefinition)
    {
       for (String jointName : AllJointNames)
       {
@@ -236,7 +258,9 @@ public class ValkyrieModelLoadingTest
       assertSensorsProperties(robotDefinition, valkyrieSensorProperties(), AllJointNames);
    }
 
-   public static void assertPhysicalProperties(RobotDefinition robotDefinition, Map<String, Map<String, Object>> robotProperties, String[] allJointNames,
+   public static void assertPhysicalProperties(RobotDefinition robotDefinition,
+                                               Map<String, Map<String, Object>> robotProperties,
+                                               String[] allJointNames,
                                                String[] allLinkNames)
    {
       for (String jointName : allJointNames)
@@ -244,12 +268,10 @@ public class ValkyrieModelLoadingTest
          Map<String, Object> jointProperties = robotProperties.get(jointName);
          JointDefinition jointDefinition = robotDefinition.getJointDefinition(jointName);
          String messagePrefix = "Joint: " + jointName;
-         assertTrue(jointDefinition.getTransformToParent().getRotation().isIdentity(EPSILON),
-                    "Expected zero rotation, was: " + jointDefinition.getTransformToParent().getRotation());
-         EuclidCoreTestTools.assertTuple3DEquals(messagePrefix,
-                                                 (Tuple3DReadOnly) jointProperties.get("offsetFromParentJoint"),
-                                                 jointDefinition.getTransformToParent().getTranslation(),
-                                                 EPSILON);
+         Orientation3DBasics rotation = jointDefinition.getTransformToParent().getRotation();
+         Vector3D translation = jointDefinition.getTransformToParent().getTranslation();
+         assertTrue(rotation.isZeroOrientation(EPSILON), "Expected zero rotation, was: " + rotation);
+         EuclidCoreTestTools.assertTuple3DEquals(messagePrefix, (Tuple3DReadOnly) jointProperties.get("offsetFromParentJoint"), translation, EPSILON);
          if (jointDefinition instanceof OneDoFJointDefinition)
          {
             OneDoFJointDefinition oneDoFJointDefinition = (OneDoFJointDefinition) jointDefinition;
@@ -321,7 +343,7 @@ public class ValkyrieModelLoadingTest
 
       EuclidCoreTestTools.assertRigidBodyTransformEquals("Sensor: " + sensorDefinition.getName(),
                                                          (RigidBodyTransform) sensorProperties.get("transformToJoint"),
-                                                         sensorDefinition.getTransformToJoint(),
+                                                         new RigidBodyTransform(sensorDefinition.getTransformToJoint()),
                                                          EPSILON);
 
       if (sensorDefinition instanceof CameraSensorDefinition)

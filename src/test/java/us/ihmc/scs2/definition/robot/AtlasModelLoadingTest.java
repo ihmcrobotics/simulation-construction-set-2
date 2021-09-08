@@ -7,10 +7,17 @@ import static us.ihmc.scs2.definition.robot.ValkyrieModelLoadingTest.assertPhysi
 import static us.ihmc.scs2.definition.robot.ValkyrieModelLoadingTest.assertSensorsProperties;
 import static us.ihmc.scs2.definition.robot.ValkyrieModelLoadingTest.subtract;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.xml.bind.JAXBException;
 
 import org.junit.jupiter.api.Test;
 
@@ -21,6 +28,7 @@ import us.ihmc.scs2.definition.robot.sdf.SDFTools;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFRoot;
 import us.ihmc.scs2.definition.robot.urdf.URDFTools;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFModel;
+import us.ihmc.scs2.session.DefinitionIOTools;
 
 public class AtlasModelLoadingTest
 {
@@ -184,6 +192,19 @@ public class AtlasModelLoadingTest
       URDFModel urdfModel = URDFTools.loadURDFModel(resourceAsStream, Collections.emptyList(), this.getClass().getClassLoader());
       RobotDefinition robotDefinition = URDFTools.toFloatingRobotDefinition(urdfModel);
       performAssertionsOnRobotDefinition(robotDefinition);
+   }
+
+   @Test
+   public void testSaveLoadRobotDefinitionXML() throws JAXBException, FileNotFoundException, IOException
+   {
+      InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream("models/atlas/atlas_unplugged_v5_dual_robotiq_with_head.urdf");
+      URDFModel urdfModel = URDFTools.loadURDFModel(resourceAsStream, Collections.emptyList(), this.getClass().getClassLoader());
+      RobotDefinition exportedRobotDefinition = URDFTools.toFloatingRobotDefinition(urdfModel);
+      File testFile = new File("test.xml");
+      DefinitionIOTools.saveRobotDefinition(new FileOutputStream(testFile), exportedRobotDefinition);
+      RobotDefinition importedRobotDefinition = DefinitionIOTools.loadRobotDefinition(new FileInputStream(testFile));
+      performAssertionsOnRobotDefinition(importedRobotDefinition);
+      testFile.delete();
    }
 
    private void performAssertionsOnRobotDefinition(RobotDefinition robotDefinition)
