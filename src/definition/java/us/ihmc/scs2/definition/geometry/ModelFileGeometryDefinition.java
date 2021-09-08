@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.tuple3D.Vector3D;
 
 /**
@@ -53,6 +55,7 @@ public class ModelFileGeometryDefinition extends GeometryDefinition
     * 
     * @param fileName the path to the model file.
     */
+   @XmlElement
    public void setFileName(String fileName)
    {
       this.fileName = fileName;
@@ -63,6 +66,7 @@ public class ModelFileGeometryDefinition extends GeometryDefinition
     * 
     * @param submeshes the list of the sub-meshes.
     */
+   @XmlElement(name = "submesh")
    public void setSubmeshes(List<SubMeshDefinition> submeshes)
    {
       this.submeshes = submeshes;
@@ -194,6 +198,7 @@ public class ModelFileGeometryDefinition extends GeometryDefinition
        * 
        * @param name the name of the sub-mesh.
        */
+      @XmlElement
       public void setName(String name)
       {
          this.name = name;
@@ -205,6 +210,7 @@ public class ModelFileGeometryDefinition extends GeometryDefinition
        * 
        * @param center whether to center this sub-mesh vertices at the origin or load the sub-mesh as is.
        */
+      @XmlElement
       public void setCenter(boolean center)
       {
          this.center = center;

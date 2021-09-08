@@ -1,5 +1,7 @@
 package us.ihmc.scs2.definition.geometry;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
@@ -63,6 +65,7 @@ public class Ramp3DDefinition extends GeometryDefinition
     * 
     * @param sizeX the length of the ramp along the x-axis.
     */
+   @XmlElement
    public void setSizeX(double sizeX)
    {
       this.sizeX = sizeX;
@@ -73,6 +76,7 @@ public class Ramp3DDefinition extends GeometryDefinition
     * 
     * @param sizeY the width of the ramp along the y-axis.
     */
+   @XmlElement
    public void setSizeY(double sizeY)
    {
       this.sizeY = sizeY;
@@ -83,6 +87,7 @@ public class Ramp3DDefinition extends GeometryDefinition
     * 
     * @param sizeZ the height of the ramp along the z-axis.
     */
+   @XmlElement
    public void setSizeZ(double sizeZ)
    {
       this.sizeZ = sizeZ;

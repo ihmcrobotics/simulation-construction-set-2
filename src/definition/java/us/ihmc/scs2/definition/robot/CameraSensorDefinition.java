@@ -1,5 +1,7 @@
 package us.ihmc.scs2.definition.robot;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 
@@ -50,11 +52,12 @@ public class CameraSensorDefinition extends SensorDefinition
       imageHeight = other.imageHeight;
    }
 
-   public boolean isEnabled()
+   public boolean getEnable()
    {
       return enable;
    }
 
+   @XmlElement
    public void setEnable(boolean enable)
    {
       this.enable = enable;
@@ -65,6 +68,7 @@ public class CameraSensorDefinition extends SensorDefinition
       return fieldOfView;
    }
 
+   @XmlElement
    public void setFieldOfView(double fieldOfView)
    {
       this.fieldOfView = fieldOfView;
@@ -75,6 +79,7 @@ public class CameraSensorDefinition extends SensorDefinition
       return clipNear;
    }
 
+   @XmlElement
    public void setClipNear(double clipNear)
    {
       this.clipNear = clipNear;
@@ -85,6 +90,7 @@ public class CameraSensorDefinition extends SensorDefinition
       return clipFar;
    }
 
+   @XmlElement
    public void setClipFar(double clipFar)
    {
       this.clipFar = clipFar;
@@ -95,6 +101,7 @@ public class CameraSensorDefinition extends SensorDefinition
       return imageWidth;
    }
 
+   @XmlElement
    public void setImageWidth(int imageWidth)
    {
       this.imageWidth = imageWidth;
@@ -105,6 +112,7 @@ public class CameraSensorDefinition extends SensorDefinition
       return imageHeight;
    }
 
+   @XmlElement
    public void setImageHeight(int imageHeight)
    {
       this.imageHeight = imageHeight;

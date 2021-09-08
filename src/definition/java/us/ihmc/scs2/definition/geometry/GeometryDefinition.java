@@ -1,5 +1,7 @@
 package us.ihmc.scs2.definition.geometry;
 
+import javax.xml.bind.annotation.XmlAttribute;
+
 public abstract class GeometryDefinition
 {
    private String name;
@@ -10,6 +12,7 @@ public abstract class GeometryDefinition
     *
     * @param name the geometry's name.
     */
+   @XmlAttribute
    public void setName(String name)
    {
       this.name = name;

@@ -1,5 +1,7 @@
 package us.ihmc.scs2.definition.robot;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 
 public class LidarSensorDefinition extends SensorDefinition
@@ -107,11 +109,13 @@ public class LidarSensorDefinition extends SensorDefinition
       sweepYawMax = max;
    }
 
+   @XmlElement
    public void setSweepYawMin(double sweepYawMin)
    {
       this.sweepYawMin = sweepYawMin;
    }
 
+   @XmlElement
    public void setSweepYawMax(double sweepYawMax)
    {
       this.sweepYawMax = sweepYawMax;
@@ -123,11 +127,13 @@ public class LidarSensorDefinition extends SensorDefinition
       heightPitchMax = max;
    }
 
+   @XmlElement
    public void setHeightPitchMin(double heightPitchMin)
    {
       this.heightPitchMin = heightPitchMin;
    }
 
+   @XmlElement
    public void setHeightPitchMax(double heightPitchMax)
    {
       this.heightPitchMax = heightPitchMax;
@@ -139,36 +145,43 @@ public class LidarSensorDefinition extends SensorDefinition
       maxRange = max;
    }
 
+   @XmlElement
    public void setMinRange(double minRange)
    {
       this.minRange = minRange;
    }
 
+   @XmlElement
    public void setMaxRange(double maxRange)
    {
       this.maxRange = maxRange;
    }
 
+   @XmlElement
    public void setRangeResolution(double rangeResolution)
    {
       this.rangeResolution = rangeResolution;
    }
 
+   @XmlElement
    public void setPointsPerSweep(int pointsPerSweep)
    {
       this.pointsPerSweep = pointsPerSweep;
    }
 
+   @XmlElement
    public void setScanHeight(int scanHeight)
    {
       this.scanHeight = scanHeight;
    }
 
+   @XmlElement
    public void setGaussianNoiseMean(double gaussianNoiseMean)
    {
       this.gaussianNoiseMean = gaussianNoiseMean;
    }
 
+   @XmlElement
    public void setGaussianNoiseStandardDeviation(double gaussianNoiseStandardDeviation)
    {
       this.gaussianNoiseStandardDeviation = gaussianNoiseStandardDeviation;

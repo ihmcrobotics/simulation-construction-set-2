@@ -3,6 +3,8 @@ package us.ihmc.scs2.definition.geometry;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
 import us.ihmc.euclid.tuple2D.Point2D;
@@ -79,6 +81,7 @@ public class ExtrudedPolygon2DDefinition extends GeometryDefinition
     * 
     * @param polygonVertices the polygon's vertices.
     */
+   @XmlElement
    public void setPolygonVertices(List<Point2D> polygonVertices)
    {
       this.polygonVertices = polygonVertices;
@@ -90,6 +93,7 @@ public class ExtrudedPolygon2DDefinition extends GeometryDefinition
     * @param counterClockwiseOrdered indicate the winding of the polygon: {@code true} if the polygon
     *                                is counter clockwise, {@code false} if clockwise.
     */
+   @XmlElement
    public void setCounterClockwiseOrdered(boolean counterClockwiseOrdered)
    {
       this.counterClockwiseOrdered = counterClockwiseOrdered;
@@ -100,6 +104,7 @@ public class ExtrudedPolygon2DDefinition extends GeometryDefinition
     * 
     * @param topZ the z-coordinate of the top face of the extrusion.
     */
+   @XmlElement
    public void setTopZ(double topZ)
    {
       this.topZ = topZ;
@@ -110,6 +115,7 @@ public class ExtrudedPolygon2DDefinition extends GeometryDefinition
     * 
     * @param bottomZ the z-coordinate of the bottom face of the extrusion.
     */
+   @XmlElement
    public void setBottomZ(double bottomZ)
    {
       this.bottomZ = bottomZ;

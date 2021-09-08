@@ -1,5 +1,7 @@
 package us.ihmc.scs2.definition.geometry;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
 
@@ -66,6 +68,7 @@ public class Cone3DDefinition extends GeometryDefinition
     * 
     * @param height the height of the cone.
     */
+   @XmlElement
    public void setHeight(double height)
    {
       this.height = height;
@@ -76,6 +79,7 @@ public class Cone3DDefinition extends GeometryDefinition
     * 
     * @param radius the radius of the base.
     */
+   @XmlElement
    public void setRadius(double radius)
    {
       this.radius = radius;
@@ -86,6 +90,7 @@ public class Cone3DDefinition extends GeometryDefinition
     * 
     * @param resolution the cone's resolution.
     */
+   @XmlElement
    public void setResolution(int resolution)
    {
       this.resolution = resolution;

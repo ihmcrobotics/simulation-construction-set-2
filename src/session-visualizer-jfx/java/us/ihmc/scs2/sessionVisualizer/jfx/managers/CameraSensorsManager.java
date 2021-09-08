@@ -162,7 +162,7 @@ public class CameraSensorsManager extends ObservedAnimationTimer implements Mana
 
       public void configure(CameraSensorDefinition definition)
       {
-         enable = definition.isEnabled();
+         enable = definition.getEnable();
          period = TimeUnit.MILLISECONDS.toNanos(definition.getUpdatePeriod());
 
          camera.setFieldOfView(Math.toDegrees(definition.getFieldOfView()));

@@ -4,11 +4,16 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.scs2.definition.controller.interfaces.ControllerDefinition;
 
+@XmlRootElement(name = "Robot")
 public class RobotDefinition
 {
    private String name;
@@ -28,11 +33,13 @@ public class RobotDefinition
       setName(name);
    }
 
+   @XmlAttribute
    public void setName(String name)
    {
       this.name = name;
    }
 
+   @XmlElement(name = "rootBody")
    public void setRootBodyDefinition(RigidBodyDefinition rootBodyDefinition)
    {
       this.rootBodyDefinition = rootBodyDefinition;
@@ -44,6 +51,12 @@ public class RobotDefinition
       {
          addJointToIgnore(jointDefinition.getName());
       }
+   }
+
+   @XmlElement(name = "jointToIgnore")
+   public void setNameOfJointsToIgnore(List<String> nameOfJointsToIgnore)
+   {
+      this.nameOfJointsToIgnore = nameOfJointsToIgnore;
    }
 
    public void addJointToIgnore(String nameOfJointToIgnore)
@@ -130,7 +143,7 @@ public class RobotDefinition
 
    private static List<JointDefinition> collectSubtreeJointDefinitions(RigidBodyDefinition start, List<JointDefinition> jointsToPack)
    {
-      if (start == null)
+      if (start == null || start.getChildrenJoints() == null)
          return Collections.emptyList();
 
       for (JointDefinition childJoint : start.getChildrenJoints())
@@ -149,7 +162,7 @@ public class RobotDefinition
 
    private static List<RigidBodyDefinition> collectSubtreeRigidBodyDefinitions(RigidBodyDefinition start, List<RigidBodyDefinition> rigidBodiesToPack)
    {
-      if (start == null)
+      if (start == null || start.getChildrenJoints() == null)
          return Collections.emptyList();
 
       rigidBodiesToPack.add(start);

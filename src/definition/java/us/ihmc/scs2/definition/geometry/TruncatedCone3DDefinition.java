@@ -1,5 +1,7 @@
 package us.ihmc.scs2.definition.geometry;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
 
@@ -208,6 +210,7 @@ public class TruncatedCone3DDefinition extends GeometryDefinition
     *
     * @param height the height of the truncated cone.
     */
+   @XmlElement
    public void setHeight(double height)
    {
       this.height = height;
@@ -218,6 +221,7 @@ public class TruncatedCone3DDefinition extends GeometryDefinition
     *
     * @param topRadiusX the radius of the top face along the x-axis.
     */
+   @XmlElement
    public void setTopRadiusX(double topRadiusX)
    {
       this.topRadiusX = topRadiusX;
@@ -228,6 +232,7 @@ public class TruncatedCone3DDefinition extends GeometryDefinition
     *
     * @param topRadiusY the radius of the top face along the y-axis.
     */
+   @XmlElement
    public void setTopRadiusY(double topRadiusY)
    {
       this.topRadiusY = topRadiusY;
@@ -260,6 +265,7 @@ public class TruncatedCone3DDefinition extends GeometryDefinition
     *
     * @param baseRadiusX the radius of the bottom face along the x-axis.
     */
+   @XmlElement
    public void setBaseRadiusX(double baseRadiusX)
    {
       this.baseRadiusX = baseRadiusX;
@@ -270,6 +276,7 @@ public class TruncatedCone3DDefinition extends GeometryDefinition
     *
     * @param baseRadiusY the radius of the bottom face along the y-axis.
     */
+   @XmlElement
    public void setBaseRadiusY(double baseRadiusY)
    {
       this.baseRadiusY = baseRadiusY;
@@ -303,6 +310,7 @@ public class TruncatedCone3DDefinition extends GeometryDefinition
     * @param centered {@code true} for the truncated cone to be centered at the origin, {@code false}
     *                 for the bottom face to be centered at the origin.
     */
+   @XmlElement
    public void setCentered(boolean centered)
    {
       this.centered = centered;
@@ -313,6 +321,7 @@ public class TruncatedCone3DDefinition extends GeometryDefinition
     * 
     * @param resolution the cone's resolution.
     */
+   @XmlElement
    public void setResolution(int resolution)
    {
       this.resolution = resolution;
@@ -374,7 +383,7 @@ public class TruncatedCone3DDefinition extends GeometryDefinition
     * @return {@code true} if the truncated cone should be centered at the origin, {@code false} if its
     *         bottom face should centered at the origin.
     */
-   public boolean isCentered()
+   public boolean getCentered()
    {
       return centered;
    }

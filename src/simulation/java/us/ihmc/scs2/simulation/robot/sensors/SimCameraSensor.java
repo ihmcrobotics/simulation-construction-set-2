@@ -35,7 +35,7 @@ public class SimCameraSensor extends SimSensor
    public SimCameraSensor(CameraSensorDefinition definition, SimJointBasics parentJoint)
    {
       this(definition.getName(), parentJoint, definition.getTransformToJoint());
-      setEnable(definition.isEnabled());
+      setEnable(definition.getEnable());
       setResolution(definition.getImageWidth(), definition.getImageHeight());
       setFieldOfView(definition.getFieldOfView());
       setClip(definition.getClipNear(), definition.getClipFar());
