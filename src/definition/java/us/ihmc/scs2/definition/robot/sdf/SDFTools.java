@@ -22,12 +22,13 @@ import javax.xml.bind.Unmarshaller;
 import us.ihmc.euclid.Axis3D;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
-import us.ihmc.euclid.transform.AffineTransform;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.yawPitchRoll.YawPitchRoll;
 import us.ihmc.log.LogTools;
+import us.ihmc.scs2.definition.AffineTransformDefinition;
+import us.ihmc.scs2.definition.YawPitchRollTransformDefinition;
 import us.ihmc.scs2.definition.geometry.Box3DDefinition;
 import us.ihmc.scs2.definition.geometry.Cylinder3DDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
@@ -305,14 +306,15 @@ public class SDFTools
          RigidBodyTransform childLinkPose = parsePose(childSDFLink.getPose());
 
          // Correct joint transform
-         RigidBodyTransform transformToParentJoint = jointDefinition.getTransformToParent();
+         YawPitchRollTransformDefinition transformToParentJoint = jointDefinition.getTransformToParent();
+
          transformToParentJoint.setAndInvert(parentLinkPose);
          transformToParentJoint.multiply(childLinkPose);
          transformToParentJoint.getRotation().setToZero();
          parentLinkPose.transform(transformToParentJoint.getTranslation());
 
          // Correct link inertia pose
-         RigidBodyTransform inertiaPose = childDefinition.getInertiaPose();
+         YawPitchRollTransformDefinition inertiaPose = childDefinition.getInertiaPose();
          inertiaPose.prependOrientation(childLinkPose.getRotation());
          inertiaPose.transform(childDefinition.getMomentOfInertia());
          inertiaPose.getRotation().setToZero();
@@ -320,7 +322,7 @@ public class SDFTools
          // Correct visual transform
          for (VisualDefinition visualDescription : childDefinition.getVisualDefinitions())
          {
-            AffineTransform visualPose = visualDescription.getOriginPose();
+            AffineTransformDefinition visualPose = visualDescription.getOriginPose();
             visualPose.prependOrientation(childLinkPose.getRotation());
          }
 
