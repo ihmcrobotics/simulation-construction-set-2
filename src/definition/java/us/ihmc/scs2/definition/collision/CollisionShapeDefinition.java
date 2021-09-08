@@ -2,13 +2,16 @@ package us.ihmc.scs2.definition.collision;
 
 import java.util.Objects;
 
-import us.ihmc.euclid.transform.RigidBodyTransform;
+import javax.xml.bind.annotation.XmlElement;
+
+import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
+import us.ihmc.scs2.definition.YawPitchRollTransformDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 
 public class CollisionShapeDefinition
 {
    private String name;
-   private RigidBodyTransform originPose;
+   private YawPitchRollTransformDefinition originPose = new YawPitchRollTransformDefinition();
    private GeometryDefinition geometryDefinition;
 
    /**
@@ -31,32 +34,47 @@ public class CollisionShapeDefinition
       this.geometryDefinition = geometryDefinition;
    }
 
-   public CollisionShapeDefinition(RigidBodyTransform originPose, GeometryDefinition geometryDefinition)
+   public CollisionShapeDefinition(RigidBodyTransformReadOnly originPose, GeometryDefinition geometryDefinition)
+   {
+      this(new YawPitchRollTransformDefinition(originPose), geometryDefinition);
+   }
+
+   public CollisionShapeDefinition(YawPitchRollTransformDefinition originPose, GeometryDefinition geometryDefinition)
    {
       this.originPose = originPose;
       this.geometryDefinition = geometryDefinition;
    }
 
+   @XmlElement
    public void setName(String name)
    {
       this.name = name;
    }
 
-   public void setOriginPose(RigidBodyTransform originPose)
+   public void setOriginPose(RigidBodyTransformReadOnly originPose)
+   {
+      this.originPose.set(originPose);
+   }
+
+   @XmlElement
+   public void setOriginPose(YawPitchRollTransformDefinition originPose)
    {
       this.originPose = originPose;
    }
 
+   @XmlElement
    public void setGeometryDefinition(GeometryDefinition geometryDefinition)
    {
       this.geometryDefinition = geometryDefinition;
    }
 
+   @XmlElement
    public void setCollisionMask(long collisionMask)
    {
       this.collisionMask = collisionMask;
    }
 
+   @XmlElement
    public void setCollisionGroup(long collisionGroup)
    {
       this.collisionGroup = collisionGroup;
@@ -67,7 +85,7 @@ public class CollisionShapeDefinition
       return name;
    }
 
-   public RigidBodyTransform getOriginPose()
+   public YawPitchRollTransformDefinition getOriginPose()
    {
       return originPose;
    }
