@@ -12,7 +12,7 @@ import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.scs2.definition.state.interfaces.SixDoFJointStateBasics;
 
-public class SixDoFJointState implements SixDoFJointStateBasics
+public class SixDoFJointState extends JointStateBase implements SixDoFJointStateBasics
 {
    private final Set<JointStateType> availableStates = EnumSet.noneOf(JointStateType.class);
    private final Pose3D configuration = new Pose3D();

@@ -14,7 +14,7 @@ import us.ihmc.mecano.multiBodySystem.interfaces.SphericalJointReadOnly;
 import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.scs2.definition.state.interfaces.JointStateBasics;
 
-public class SphericalJointState implements JointStateBasics
+public class SphericalJointState extends JointStateBase implements JointStateBasics
 {
    private final Set<JointStateType> availableStates = EnumSet.noneOf(JointStateType.class);
    private final Quaternion configuration = new Quaternion();

@@ -6,7 +6,7 @@ import java.util.Set;
 import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.scs2.definition.state.interfaces.OneDoFJointStateBasics;
 
-public class OneDoFJointState implements OneDoFJointStateBasics
+public class OneDoFJointState extends JointStateBase implements OneDoFJointStateBasics
 {
    private final Set<JointStateType> availableStates = EnumSet.noneOf(JointStateType.class);
    private double configuration = 0.0;
