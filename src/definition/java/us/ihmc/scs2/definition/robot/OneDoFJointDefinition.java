@@ -1,12 +1,14 @@
 package us.ihmc.scs2.definition.robot;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 
 public abstract class OneDoFJointDefinition extends JointDefinition
 {
-   private final Vector3D axis = new Vector3D();
+   private Vector3D axis = new Vector3D();
 
    private double positionLowerLimit = Double.NEGATIVE_INFINITY, positionUpperLimit = Double.POSITIVE_INFINITY;
    private double velocityLowerLimit = Double.NEGATIVE_INFINITY, velocityUpperLimit = Double.POSITIVE_INFINITY;
@@ -32,6 +34,12 @@ public abstract class OneDoFJointDefinition extends JointDefinition
       setAxis(axis);
    }
 
+   @XmlElement
+   public void setAxis(Vector3D axis)
+   {
+      this.axis = axis;
+   }
+
    public void setAxis(Vector3DReadOnly axis)
    {
       this.axis.set(axis);
@@ -42,11 +50,13 @@ public abstract class OneDoFJointDefinition extends JointDefinition
       return axis;
    }
 
+   @XmlElement
    public void setPositionLowerLimit(double positionLowerLimit)
    {
       this.positionLowerLimit = positionLowerLimit;
    }
 
+   @XmlElement
    public void setPositionUpperLimit(double positionUpperLimit)
    {
       this.positionUpperLimit = positionUpperLimit;
@@ -68,11 +78,13 @@ public abstract class OneDoFJointDefinition extends JointDefinition
       return positionUpperLimit;
    }
 
+   @XmlElement
    public void setVelocityLowerLimit(double velocityLowerLimit)
    {
       this.velocityLowerLimit = velocityLowerLimit;
    }
 
+   @XmlElement
    public void setVelocityUpperLimit(double velocityUpperLimit)
    {
       this.velocityUpperLimit = velocityUpperLimit;
@@ -100,11 +112,13 @@ public abstract class OneDoFJointDefinition extends JointDefinition
       return velocityUpperLimit;
    }
 
+   @XmlElement
    public void setEffortLowerLimit(double effortLowerLimit)
    {
       this.effortLowerLimit = effortLowerLimit;
    }
 
+   @XmlElement
    public void setEffortUpperLimit(double effortUpperLimit)
    {
       this.effortUpperLimit = effortUpperLimit;
@@ -132,6 +146,7 @@ public abstract class OneDoFJointDefinition extends JointDefinition
       return effortUpperLimit;
    }
 
+   @XmlElement
    public void setStiction(double stiction)
    {
       this.stiction = stiction;
@@ -142,6 +157,7 @@ public abstract class OneDoFJointDefinition extends JointDefinition
       return stiction;
    }
 
+   @XmlElement
    public void setDamping(double damping)
    {
       this.damping = damping;
@@ -152,11 +168,13 @@ public abstract class OneDoFJointDefinition extends JointDefinition
       return damping;
    }
 
+   @XmlElement
    public void setKpSoftLimitStop(double kpSoftLimitStop)
    {
       this.kpSoftLimitStop = kpSoftLimitStop;
    }
 
+   @XmlElement
    public void setKdSoftLimitStop(double kdSoftLimitStop)
    {
       this.kdSoftLimitStop = kdSoftLimitStop;

@@ -56,6 +56,7 @@ import us.ihmc.euclid.tools.EuclidCoreTools;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.javaFXToolkit.JavaFXTools;
 import us.ihmc.log.LogTools;
+import us.ihmc.scs2.definition.AffineTransformDefinition;
 import us.ihmc.scs2.definition.geometry.ArcTorus3DDefinition;
 import us.ihmc.scs2.definition.geometry.Box3DDefinition;
 import us.ihmc.scs2.definition.geometry.Capsule3DDefinition;
@@ -150,10 +151,12 @@ public class JavaFXVisualTools
    {
       Node node = toShape3D(visualDefinition.getGeometryDefinition(), visualDefinition.getMaterialDefinition(), resourceClassLoader);
 
-      if (node != null && visualDefinition.getOriginPose() != null)
+      AffineTransformDefinition originPose = visualDefinition.getOriginPose();
+
+      if (node != null && originPose != null && (originPose.hasTranslation() || originPose.hasLinearTransform()))
       {
          Affine nodeAffine = new Affine();
-         JavaFXTools.convertEuclidAffineToJavaFXAffine(visualDefinition.getOriginPose(), nodeAffine);
+         JavaFXTools.convertEuclidAffineToJavaFXAffine(originPose, nodeAffine);
          node.getTransforms().add(0, nodeAffine);
       }
 

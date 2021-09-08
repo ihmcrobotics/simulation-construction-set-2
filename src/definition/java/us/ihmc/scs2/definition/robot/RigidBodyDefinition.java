@@ -1,37 +1,42 @@
 package us.ihmc.scs2.definition.robot;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlType;
+
 import us.ihmc.euclid.interfaces.Transformable;
-import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.matrix.interfaces.Matrix3DReadOnly;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.transform.interfaces.Transform;
+import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
-import us.ihmc.euclid.tuple3D.interfaces.Vector3DBasics;
 import us.ihmc.mecano.multiBodySystem.RigidBody;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.scs2.definition.YawPitchRollTransformDefinition;
 import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
 
+@XmlType(propOrder = {"name", "mass", "momentOfInertia", "inertiaPose", "childrenJoints", "visualDefinitions", "collisionShapeDefinitions"})
 public class RigidBodyDefinition implements Transformable
 {
    private String name;
    private double mass;
-   private final Matrix3D momentOfInertia = new Matrix3D();
-   private final RigidBodyTransform inertiaPose = new RigidBodyTransform();
+   private MomentOfInertiaDefinition momentOfInertia = new MomentOfInertiaDefinition();
+   private YawPitchRollTransformDefinition inertiaPose = new YawPitchRollTransformDefinition();
 
    private JointDefinition parentJoint;
-   private final List<JointDefinition> childrenJoints = new ArrayList<>();
+   private List<JointDefinition> childrenJoints = new ArrayList<>();
 
-   private final List<VisualDefinition> visualDefinitions = new ArrayList<>();
-   private final List<CollisionShapeDefinition> collisionShapeDefinitions = new ArrayList<>();
+   private List<VisualDefinition> visualDefinitions = new ArrayList<>();
+   private List<CollisionShapeDefinition> collisionShapeDefinitions = new ArrayList<>();
 
    public RigidBodyDefinition()
    {
@@ -42,6 +47,7 @@ public class RigidBodyDefinition implements Transformable
       setName(name);
    }
 
+   @XmlAttribute
    public void setName(String name)
    {
       this.name = name;
@@ -52,6 +58,7 @@ public class RigidBodyDefinition implements Transformable
       return name;
    }
 
+   @XmlElement
    public void setMass(double mass)
    {
       this.mass = mass;
@@ -62,14 +69,26 @@ public class RigidBodyDefinition implements Transformable
       return mass;
    }
 
+   @XmlElement
+   public void setMomentOfInertia(MomentOfInertiaDefinition momentOfInertia)
+   {
+      this.momentOfInertia = momentOfInertia;
+   }
+
    public void setMomentOfInertia(Matrix3DReadOnly momentOfInertia)
    {
       this.momentOfInertia.set(momentOfInertia);
    }
 
-   public Matrix3D getMomentOfInertia()
+   public MomentOfInertiaDefinition getMomentOfInertia()
    {
       return momentOfInertia;
+   }
+
+   @XmlElement
+   public void setInertiaPose(YawPitchRollTransformDefinition inertiaPose)
+   {
+      this.inertiaPose = inertiaPose;
    }
 
    public void setInertiaPose(RigidBodyTransformReadOnly inertiaPose)
@@ -84,19 +103,20 @@ public class RigidBodyDefinition implements Transformable
 
    public void setCenterOfMassOffset(Tuple3DReadOnly centerOfMassOffset)
    {
-      inertiaPose.getTranslation().set(centerOfMassOffset);
+      setCenterOfMassOffset(centerOfMassOffset.getX(), centerOfMassOffset.getY(), centerOfMassOffset.getZ());
    }
 
-   public RigidBodyTransform getInertiaPose()
+   public YawPitchRollTransformDefinition getInertiaPose()
    {
       return inertiaPose;
    }
 
-   public Vector3DBasics getCenterOfMassOffset()
+   public Vector3D getCenterOfMassOffset()
    {
       return inertiaPose.getTranslation();
    }
 
+   @XmlTransient
    public void setParentJoint(JointDefinition parentJoint)
    {
       this.parentJoint = parentJoint;
@@ -105,6 +125,24 @@ public class RigidBodyDefinition implements Transformable
    public JointDefinition getParentJoint()
    {
       return parentJoint;
+   }
+
+   @XmlElement(name = "childJoint")
+   public void setChildrenJoints(List<JointDefinition> childrenJoints)
+   {
+      if (this.childrenJoints != null)
+      {
+         for (JointDefinition childJoint : this.childrenJoints)
+            childJoint.setPredecessor(null);
+      }
+
+      this.childrenJoints = childrenJoints;
+
+      if (this.childrenJoints != null)
+      {
+         for (JointDefinition childJoint : this.childrenJoints)
+            childJoint.setPredecessor(this);
+      }
    }
 
    public void addChildJoint(JointDefinition childJoint)
@@ -129,6 +167,12 @@ public class RigidBodyDefinition implements Transformable
       return childrenJoints;
    }
 
+   @XmlElement(name = "visual")
+   public void setVisualDefinitions(List<VisualDefinition> visualDefinitions)
+   {
+      this.visualDefinitions = visualDefinitions;
+   }
+
    public void addVisualDefinition(VisualDefinition visualDefinition)
    {
       visualDefinitions.add(visualDefinition);
@@ -142,6 +186,12 @@ public class RigidBodyDefinition implements Transformable
    public List<VisualDefinition> getVisualDefinitions()
    {
       return visualDefinitions;
+   }
+
+   @XmlElement(name = "collision")
+   public void setCollisionShapeDefinitions(List<CollisionShapeDefinition> collisionShapeDefinitions)
+   {
+      this.collisionShapeDefinitions = collisionShapeDefinitions;
    }
 
    public void addCollisionShapeDefinition(CollisionShapeDefinition collisionShapeDefinition)
@@ -169,8 +219,7 @@ public class RigidBodyDefinition implements Transformable
    {
       transform.transform(inertiaPose);
       transform.transform(momentOfInertia);
-      if (visualDefinitions != null)
-         visualDefinitions.forEach(visual -> transform.transform(visual.getOriginPose()));
+      visualDefinitions.forEach(visual -> transform.transform(visual.getOriginPose()));
    }
 
    @Override
@@ -178,14 +227,13 @@ public class RigidBodyDefinition implements Transformable
    {
       transform.inverseTransform(inertiaPose);
       transform.inverseTransform(momentOfInertia);
-      if (visualDefinitions != null)
-         visualDefinitions.forEach(visual -> transform.inverseTransform(visual.getOriginPose()));
+      visualDefinitions.forEach(visual -> transform.inverseTransform(visual.getOriginPose()));
    }
 
    @Override
    public String toString()
    {
-      return name + ": inertia pose: (x,y,z) " + inertiaPose.getTranslation() + "(y,p,r) " + inertiaPose.getRotation().toStringAsYawPitchRoll() + "children: "
-            + Arrays.toString(childrenJoints.stream().map(JointDefinition::getName).toArray(String[]::new));
+      String childrenString = childrenJoints == null ? "[]" : EuclidCoreIOTools.getCollectionString("[", "]", ", ", childrenJoints, JointDefinition::getName);
+      return name + ": inertia pose: " + inertiaPose + ", children: " + childrenString;
    }
 }
