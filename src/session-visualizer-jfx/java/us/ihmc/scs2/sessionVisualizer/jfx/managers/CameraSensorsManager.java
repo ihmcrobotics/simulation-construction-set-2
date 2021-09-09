@@ -163,19 +163,29 @@ public class CameraSensorsManager extends ObservedAnimationTimer implements Mana
       public void configure(CameraSensorDefinition definition)
       {
          enable = definition.getEnable();
-         period = TimeUnit.MILLISECONDS.toNanos(definition.getUpdatePeriod());
 
-         camera.setFieldOfView(Math.toDegrees(definition.getFieldOfView()));
-         camera.setNearClip(definition.getClipNear());
-         camera.setFarClip(definition.getClipFar());
-
-         if (bufferedImage == null || width != definition.getImageWidth() || height != definition.getImageHeight())
+         if (enable)
          {
-            width = definition.getImageWidth();
-            height = definition.getImageHeight();
+            period = TimeUnit.MILLISECONDS.toNanos(definition.getUpdatePeriod());
+            
+            camera.setFieldOfView(Math.toDegrees(definition.getFieldOfView()));
+            camera.setNearClip(definition.getClipNear());
+            camera.setFarClip(definition.getClipFar());
+            
+            if (bufferedImage == null || width != definition.getImageWidth() || height != definition.getImageHeight())
+            {
+               width = definition.getImageWidth();
+               height = definition.getImageHeight();
+               image = null;
+               snapshotParameters.setViewport(new Rectangle2D(0, 0, width, height));
+               bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+            }
+         }
+         else
+         {
+            period = -1;
             image = null;
-            snapshotParameters.setViewport(new Rectangle2D(0, 0, width, height));
-            bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+            bufferedImage = null;
          }
       }
 
