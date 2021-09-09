@@ -560,6 +560,7 @@ public abstract class Session
       {
          sharedBuffer.incrementBufferIndex(true);
          sharedBuffer.processLinkedPushRequests(false);
+         nextBufferRecordTickCounter = 0;
          firstRunTick = false;
       }
       else if (nextBufferRecordTickCounter <= 0)
