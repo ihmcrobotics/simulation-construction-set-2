@@ -8,6 +8,7 @@ import javafx.stage.Window;
 import javafx.util.Pair;
 import us.ihmc.messager.MessagerAPIFactory.Topic;
 import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
+import us.ihmc.scs2.session.SessionDataExportRequest;
 import us.ihmc.scs2.session.SessionMessagerAPI;
 import us.ihmc.scs2.session.SessionMessagerAPI.Sensors.SensorMessage;
 import us.ihmc.scs2.session.SessionMode;
@@ -71,6 +72,7 @@ public class SessionVisualizerTopics
    private Topic<Long> sessionDTNanoseconds;
    private Topic<Double> playbackRealTimeRate;
    private Topic<Integer> bufferRecordTickPeriod;
+   private Topic<SessionDataExportRequest> sessionDataExportRequest;
    private Topic<Boolean> remoteSessionControlsRequest;
    private Topic<Boolean> logSessionControlsRequest;
 
@@ -137,6 +139,7 @@ public class SessionVisualizerTopics
       sessionDTNanoseconds = SessionMessagerAPI.SessionDTNanoseconds;
       playbackRealTimeRate = SessionMessagerAPI.PlaybackRealTimeRate;
       bufferRecordTickPeriod = SessionMessagerAPI.BufferRecordTickPeriod;
+      sessionDataExportRequest = SessionMessagerAPI.SessionDataExportRequest;
       remoteSessionControlsRequest = SessionVisualizerMessagerAPI.Session.RemoteSessionControlsRequest;
       logSessionControlsRequest = SessionVisualizerMessagerAPI.Session.LogSessionControlsRequest;
 
@@ -367,6 +370,11 @@ public class SessionVisualizerTopics
    public Topic<Integer> getBufferRecordTickPeriod()
    {
       return bufferRecordTickPeriod;
+   }
+
+   public Topic<SessionDataExportRequest> getSessionDataExportRequest()
+   {
+      return sessionDataExportRequest;
    }
 
    public Topic<Boolean> getRemoteSessionControlsRequest()

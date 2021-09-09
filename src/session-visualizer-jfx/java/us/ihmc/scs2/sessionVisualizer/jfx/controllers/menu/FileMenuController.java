@@ -17,6 +17,7 @@ import javafx.stage.Stage;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
+import us.ihmc.scs2.sessionVisualizer.jfx.controllers.SessionDataExportStageController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.VideoRecordingPreviewPaneController;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
 
@@ -42,10 +43,13 @@ public class FileMenuController
    private SessionVisualizerTopics topics;
 
    private Property<VideoRecordingPreviewPaneController> videoExportController = new SimpleObjectProperty<>(this, "videoExportController", null);
+   private Property<SessionDataExportStageController> dataExportController = new SimpleObjectProperty<>(this, "dataExportController", null);
    private SubScene mainScene3D;
+   private SessionVisualizerWindowToolkit toolkit;
 
    public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
+      this.toolkit = toolkit;
       owner = toolkit.getWindow();
       messager = toolkit.getMessager();
       topics = toolkit.getTopics();
@@ -59,13 +63,30 @@ public class FileMenuController
    }
 
    @FXML
-   private void requestExportData()
+   private void exportData()
    {
-      // TODO implement me
+      if (dataExportController.getValue() != null)
+      {
+         dataExportController.getValue().close();
+         dataExportController.setValue(null);
+      }
+
+      try
+      {
+         FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.SESSION_DATA_EXPORT_STAGE_URL);
+         loader.load();
+         SessionDataExportStageController controller = loader.getController();
+         controller.initialize(toolkit);
+         controller.getStage().show();
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+      }
    }
 
    @FXML
-   private void requestImportData()
+   private void importData()
    {
       // TODO implement me
    }

@@ -21,6 +21,7 @@ import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.session.Session;
+import us.ihmc.scs2.session.SessionIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.MainWindowController;
 import us.ihmc.scs2.sessionVisualizer.jfx.SCSGuiConfiguration;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
@@ -31,7 +32,6 @@ import us.ihmc.scs2.sessionVisualizer.jfx.session.log.LogSessionManagerControlle
 import us.ihmc.scs2.sessionVisualizer.jfx.session.remote.RemoteSessionManagerController;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.BufferedJavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
 
 public class MultiSessionManager
 {
@@ -253,8 +253,8 @@ public class MultiSessionManager
 
       try
       {
-         File unzippedConfiguration = SessionVisualizerIOTools.getTemporaryDirectory("configuration");
-         SessionVisualizerIOTools.unzipFile(configurationFile, unzippedConfiguration);
+         File unzippedConfiguration = SessionIOTools.getTemporaryDirectory("configuration");
+         SessionIOTools.unzipFile(configurationFile, unzippedConfiguration);
          loadSessionConfiguration(SCSGuiConfiguration.loaderFromDirectory(robotName, sessionName, unzippedConfiguration));
       }
       catch (IOException e)
@@ -282,15 +282,14 @@ public class MultiSessionManager
    {
       SCSGuiConfiguration configuration = SCSGuiConfiguration.defaultSaver(robotName, sessionName);
       // Cleanup files with old extensions.
-      SessionVisualizerIOTools.emptyDirectory(configuration.getMainConfigurationFile().getParentFile());
+      SessionIOTools.emptyDirectory(configuration.getMainConfigurationFile().getParentFile());
       saveSessionConfiguration(configuration);
    }
 
    private void saveSessionConfiguration(SCSGuiConfiguration configuration)
    {
       // Can't use the messager as the JavaFX is going down which prevents to save properly.
-      if (XMLTools.isYoGraphicContextReady())
-         toolkit.getYoGraphicFXManager().saveYoGraphicToFile(configuration.getYoGraphicsConfigurationFile());
+      toolkit.getYoGraphicFXManager().saveYoGraphicToFile(configuration.getYoGraphicsConfigurationFile());
       toolkit.getYoCompositeSearchManager().saveYoCompositePatternToFile(configuration.getYoCompositeConfigurationFile());
       mainWindowController.getSidePaneController().getYoEntryTabPaneController().exportAllTabs(configuration.getYoEntryConfigurationFile());
       mainWindowController.getYoChartGroupPanelController().saveChartGroupConfiguration(toolkit.getMainWindow(),
@@ -319,9 +318,9 @@ public class MultiSessionManager
    {
       try
       {
-         File intermediate = SessionVisualizerIOTools.getTemporaryDirectory("configuration");
+         File intermediate = SessionIOTools.getTemporaryDirectory("configuration");
          saveSessionConfiguration(SCSGuiConfiguration.saverToDirectory(robotName, sessionName, intermediate));
-         SessionVisualizerIOTools.zipFile(intermediate, destinationFile);
+         SessionIOTools.zipFile(intermediate, destinationFile);
       }
       catch (IOException e)
       {

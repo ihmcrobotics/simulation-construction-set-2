@@ -1,8 +1,6 @@
 package us.ihmc.scs2.sessionVisualizer.jfx;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -11,11 +9,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.prefs.Preferences;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
-
-import org.apache.commons.io.FileUtils;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Dialog;
@@ -25,6 +18,7 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import us.ihmc.commons.nio.FileTools;
+import us.ihmc.scs2.session.SessionIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXItem;
@@ -33,16 +27,14 @@ public class SessionVisualizerIOTools
 {
    private static final ClassLoader classLoader = SessionVisualizerIOTools.class.getClassLoader();
 
-   public static final Path SCS2_HOME = Paths.get(System.getProperty("user.home"), ".ihmc", "scs2");
+   public static final Path SCS2_HOME = SessionIOTools.SCS2_HOME;
    public static final Path SCS2_CONFIGURATION_DEFAULT_PATH = SCS2_HOME.resolve("Configurations");
-   public static final Path SCS2_TEMP_FOLDER_PATH = SCS2_HOME.resolve(".temp");
    public static final String SCS2_CONFIGURATION_FOLDER_KEY = "scsConfigFolderPath";
 
    static
    {
       try
       {
-         FileTools.ensureDirectoryExists(SCS2_HOME);
          FileTools.ensureDirectoryExists(SCS2_CONFIGURATION_DEFAULT_PATH);
       }
       catch (IOException e)
@@ -54,7 +46,7 @@ public class SessionVisualizerIOTools
    public static final String scsConfigurationFileExtension = ".scs2";
    public static final String scsMainConfigurationFileExtension = ".scs2.main";
    public static final String yoChartGroupConfigurationFileExtension = ".scs2.chart";
-   public static final String yoGraphicConfigurationFileExtension = ".scs2.yoGraphic";
+   public static final String yoGraphicConfigurationFileExtension = SessionIOTools.yoGraphicConfigurationFileExtension;
    public static final String yoCompositeConfigurationFileExtension = ".scs2.yoComposite";
    public static final String yoEntryConfigurationFileExtension = ".scs2.yoEntry";
    public static final String yoSliderboardConfigurationFileExtension = ".scs2.yoSliderboard";
@@ -134,6 +126,7 @@ public class SessionVisualizerIOTools
 
    public static final URL SIDE_PANE_URL = getFXMLResource("SidePane");
    public static final URL VIDEO_PREVIEW_PANE_URL = getFXMLResource("VideoRecordingPreviewPane");
+   public static final URL SESSION_DATA_EXPORT_STAGE_URL = getFXMLResource("SessionDataExportStage");
 
    public static final URL CHART_PANEL_FXML_URL = getFXMLResource(CHART, "YoChartPanel");
    public static final URL CHART_GROUP_PANEL_URL = getFXMLResource(CHART, "YoChartGroupPanel");
@@ -415,153 +408,6 @@ public class SessionVisualizerIOTools
             file = file.getParentFile();
 
          prefs.put(key, file.getAbsolutePath());
-      }
-   }
-
-   public static void unzipFile(File input, File destination) throws IOException
-   {
-      ZipInputStream zis = null;
-      int length;
-      byte[] buffer = new byte[1024];
-
-      try
-      {
-         zis = new ZipInputStream(new FileInputStream(input));
-         ZipEntry ze = zis.getNextEntry();
-
-         while (ze != null)
-         {
-            File newFile = newFile(destination, ze);
-
-            if (ze.isDirectory())
-            {
-               if (!newFile.isDirectory() && !newFile.mkdirs())
-                  throw new IOException("Failed to create directory " + newFile);
-            }
-            else
-            {
-               File parent = newFile.getParentFile();
-
-               if (!parent.isDirectory() && !parent.mkdirs())
-                  throw new IOException("Failed to create directory " + parent);
-
-               FileOutputStream fos = new FileOutputStream(newFile);
-               while ((length = zis.read(buffer)) > 0)
-                  fos.write(buffer, 0, length);
-               fos.close();
-            }
-
-            ze = zis.getNextEntry();
-         }
-      }
-      finally
-      {
-         if (zis != null)
-         {
-            zis.closeEntry();
-            zis.close();
-         }
-      }
-   }
-
-   public static void zipFile(File input, File destination) throws IOException
-   {
-      try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(destination)))
-      {
-         if (input.isDirectory())
-         {
-            for (File subFile : input.listFiles())
-               zipFile(subFile.getName(), subFile, zipOut);
-         }
-         else
-         {
-            zipFile(input.getName(), input, zipOut);
-         }
-      }
-   }
-
-   private static void zipFile(String fileName, File fileToZip, ZipOutputStream zipOut) throws IOException
-   {
-      if (fileToZip.isHidden())
-      {
-         return;
-      }
-
-      if (fileToZip.isDirectory())
-      {
-         if (fileName.endsWith("/"))
-            zipOut.putNextEntry(new ZipEntry(fileName));
-         else
-            zipOut.putNextEntry(new ZipEntry(fileName + "/"));
-
-         zipOut.closeEntry();
-
-         File[] children = fileToZip.listFiles();
-
-         for (File childFile : children)
-         {
-            zipFile(fileName + "/" + childFile.getName(), childFile, zipOut);
-         }
-      }
-      else
-      {
-         try (FileInputStream fis = new FileInputStream(fileToZip))
-         {
-            ZipEntry zipEntry = new ZipEntry(fileName);
-            zipOut.putNextEntry(zipEntry);
-            byte[] bytes = new byte[1024];
-            int length;
-
-            while ((length = fis.read(bytes)) >= 0)
-               zipOut.write(bytes, 0, length);
-         }
-      }
-   }
-
-   public static File newFile(File destinationParent, ZipEntry zipEntry) throws IOException
-   {
-      File destinationFile = new File(destinationParent, zipEntry.getName());
-
-      if (destinationFile.getCanonicalPath().startsWith(destinationParent.getCanonicalPath() + File.separator))
-         return destinationFile;
-      else
-         throw new IOException("Attempted to unzip outside destination: " + zipEntry.getName());
-   }
-
-   public static File getTemporaryDirectory(String directoryName)
-   {
-      File tempDir = SessionVisualizerIOTools.SCS2_TEMP_FOLDER_PATH.resolve(directoryName).toFile();
-
-      if (tempDir.exists())
-      {
-         try
-         {
-            FileUtils.forceDelete(tempDir);
-         }
-         catch (IOException e)
-         {
-            e.printStackTrace();
-            return null;
-         }
-      }
-      tempDir.mkdirs();
-
-      return tempDir;
-   }
-
-   public static void emptyDirectory(File directoryToEmpty)
-   {
-      if (!directoryToEmpty.isDirectory())
-         return;
-
-      try
-      {
-         FileUtils.deleteDirectory(directoryToEmpty);
-         directoryToEmpty.mkdir();
-      }
-      catch (IOException e)
-      {
-         e.printStackTrace();
       }
    }
 }

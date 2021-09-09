@@ -68,6 +68,26 @@
             </FontAwesomeIconView>
          </graphic>
       </MenuItem>
+      <MenuItem fx:id="exportDataMenuItem" onAction="#exportData" text="Export data...">
+         <graphic>
+            <FontAwesomeIconView>
+               <styleClass>
+                  <String fx:value="export-data-icon-view" />
+                  <String fx:value="menu-item-icon-view" />
+               </styleClass>
+            </FontAwesomeIconView>
+         </graphic>
+      </MenuItem>
+      <MenuItem fx:id="importDataMenuItem" onAction="#importData" text="Import data...">
+         <graphic>
+            <FontAwesomeIconView>
+               <styleClass>
+                  <String fx:value="import-data-icon-view" />
+                  <String fx:value="menu-item-icon-view" />
+               </styleClass>
+            </FontAwesomeIconView>
+         </graphic>
+      </MenuItem>
       <MenuItem fx:id="closeMenuItem" onAction="#close" text="Close">
          <graphic>
             <OctIconView>

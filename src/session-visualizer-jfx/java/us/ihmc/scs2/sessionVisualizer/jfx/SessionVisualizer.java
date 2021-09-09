@@ -23,6 +23,7 @@ import us.ihmc.javaFXToolkit.cameraControllers.FocusBasedCameraMouseEventHandler
 import us.ihmc.javaFXToolkit.scenes.View3DFactory;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
+import us.ihmc.scs2.session.DefinitionIOTools;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.MultiSessionManager;
@@ -33,7 +34,6 @@ import us.ihmc.scs2.sessionVisualizer.jfx.tools.BufferedJavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.CameraTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXApplicationCreator;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
 import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 
 public class SessionVisualizer
@@ -42,7 +42,7 @@ public class SessionVisualizer
 
    static
    {
-      XMLTools.loadResources();
+      DefinitionIOTools.loadResources();
       YoGraphicFXControllerTools.loadResources();
    }
 

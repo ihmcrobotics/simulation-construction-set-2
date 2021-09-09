@@ -1,0 +1,458 @@
+package us.ihmc.scs2.session;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
+
+import javax.xml.bind.JAXBException;
+
+import org.apache.commons.io.FileUtils;
+
+import us.ihmc.commons.nio.FileTools;
+import us.ihmc.log.LogTools;
+import us.ihmc.scs2.definition.robot.RobotDefinition;
+import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicListDefinition;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryIOTools;
+
+public class SessionIOTools
+{
+   public enum DataFormat
+   {
+      ASCII(".scs2.ascii"), CSV(".scs2.csv"), MATLAB(".scs2.mat");
+
+      private final String fileExtension;
+
+      DataFormat(String fileExtension)
+      {
+         this.fileExtension = fileExtension;
+      }
+
+      public String getFileExtension()
+      {
+         return fileExtension;
+      }
+   }
+
+   public static final Path SCS2_HOME = Paths.get(System.getProperty("user.home"), ".ihmc", "scs2");
+   public static final Path SCS2_TEMP_FOLDER_PATH = SCS2_HOME.resolve(".temp");
+
+   static
+   {
+      try
+      {
+         FileTools.ensureDirectoryExists(SCS2_HOME);
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+      }
+   }
+
+   public static final String scsRobotDefinitionFileExtension = ".scs2.robot";
+   public static final String scsTerrainDefinitionFileExtension = ".scs2.terrain";
+   public static final String yoGraphicConfigurationFileExtension = ".scs2.yoGraphic";
+   public static final String yoRegistryDefinitionFileExtension = ".scs2.registry";
+
+   public static void exportSessionData(Session session, SessionDataExportRequest request) throws JAXBException, IOException
+   {
+      if (request.getOnExportStartCallback() != null)
+      {
+         try
+         {
+            request.getOnExportStartCallback().run();
+         }
+         catch (Exception e)
+         {
+            e.printStackTrace();
+         }
+      }
+
+      try
+      {
+         exportSessionDataImpl(session, request);
+      }
+      finally
+      {
+         if (request.getOnExportEndCallback() != null)
+         {
+            try
+            {
+               request.getOnExportEndCallback().run();
+            }
+            catch (Exception e)
+            {
+               e.printStackTrace();
+            }
+         }
+      }
+   }
+
+   private static void exportSessionDataImpl(Session session, SessionDataExportRequest request) throws JAXBException, IOException
+   {
+      File file = request.getFile();
+
+      if (file.exists())
+      {
+         if (file.isFile())
+         {
+            if (!request.getOverwrite())
+            {
+               LogTools.error("File exists and overwrite is set to false: {}", file);
+               return;
+            }
+
+            if (!file.delete())
+            {
+               LogTools.error("Could not delete file: {}", file);
+               return;
+            }
+
+            if (!file.mkdir())
+            {
+               LogTools.error("Could not create directory: {}", file);
+               return;
+            }
+         }
+         else if (file.isDirectory())
+         {
+            if (file.list().length > 0)
+            {
+               if (!request.getOverwrite())
+               {
+                  LogTools.error("Could not create directory: {}", file);
+                  return;
+               }
+            }
+         }
+      }
+
+      if (request.getExportRobotDefinitions())
+      {
+         for (RobotDefinition robotDefinition : session.getRobotDefinitions())
+         {
+            File robotFile = new File(file, robotDefinition.getName() + scsRobotDefinitionFileExtension);
+            if (robotFile.exists())
+            {
+               if (!request.getOverwrite())
+               {
+                  LogTools.error("Could not export robot definition to file: {}", robotFile);
+                  continue;
+               }
+
+               if (!robotFile.delete())
+               {
+                  LogTools.error("Could not overwrite file: {}", robotFile);
+                  continue;
+               }
+            }
+
+            LogTools.info("Exporting RobotDefinition for: . File: {}", robotDefinition.getName(), robotFile);
+            DefinitionIOTools.saveRobotDefinition(new FileOutputStream(robotFile), robotDefinition);
+         }
+      }
+
+      if (request.getExportTerrainObjectDefinitions())
+      {
+         Set<String> terrainNames = new HashSet<>();
+
+         for (TerrainObjectDefinition terrainObjectDefinition : session.getTerrainObjectDefinitions())
+         {
+            String name = terrainObjectDefinition.getName();
+            if (name == null || name.isEmpty())
+               name = "terrain";
+
+            if (terrainNames.contains(name))
+            {
+               int index = 1;
+               String uniqueName = name + "_" + index;
+               while (terrainNames.contains(uniqueName))
+               {
+                  index++;
+                  uniqueName = name + "_" + index;
+               }
+               name = uniqueName;
+            }
+
+            terrainNames.add(name);
+
+            File terrainFile = new File(file, name + scsTerrainDefinitionFileExtension);
+            if (terrainFile.exists())
+            {
+               if (!request.getOverwrite())
+               {
+                  LogTools.error("Could not export terrain definition to file: {}", terrainFile);
+                  continue;
+               }
+
+               if (!terrainFile.delete())
+               {
+                  LogTools.error("Could not overwrite file: {}", terrainFile);
+                  continue;
+               }
+            }
+
+            LogTools.info("Exporting TerrainObjectDefinition for: {}. File: {}", name, terrainFile);
+            DefinitionIOTools.saveTerrainObjectDefinition(new FileOutputStream(terrainFile), terrainObjectDefinition);
+         }
+      }
+
+      if (request.getExportSessionYoGraphicDefinitions())
+      {
+         File graphicFile = new File(file, "sessionGraphics" + yoGraphicConfigurationFileExtension);
+         boolean export = true;
+
+         if (graphicFile.exists())
+         {
+            if (!request.getOverwrite())
+            {
+               LogTools.error("Could not export session graphic definition to file: {}", graphicFile);
+               export = false;
+            }
+
+            if (!graphicFile.delete())
+            {
+               LogTools.error("Could not overwrite file: {}", graphicFile);
+               export = false;
+            }
+         }
+
+         if (export)
+         {
+
+            LogTools.info("Exporting session yoGraphics. File: {}", graphicFile);
+            DefinitionIOTools.saveYoGraphicListDefinition(new FileOutputStream(graphicFile), new YoGraphicListDefinition(session.getYoGraphicDefinitions()));
+         }
+      }
+
+      if (request.getExportSessionBufferRegistryDefinition())
+      {
+         File registryFile = new File(file, "variables" + yoRegistryDefinitionFileExtension);
+         boolean export = true;
+
+         if (registryFile.exists())
+         {
+            if (!request.getOverwrite())
+            {
+               LogTools.error("Could not export registry definition to file: {}", registryFile);
+               export = false;
+            }
+
+            if (!registryFile.delete())
+            {
+               LogTools.error("Could not overwrite file: {}", registryFile);
+               export = false;
+            }
+         }
+
+         if (export)
+         {
+            LogTools.info("Exporting session variable structure. File: {}", registryFile);
+            SharedMemoryIOTools.exportRegistry(session.getRootRegistry(),
+                                               new FileOutputStream(registryFile),
+                                               request.getVariableFilter(),
+                                               request.getRegistryFilter());
+         }
+      }
+
+      if (request.getExportSessionBufferDataFormat() != null)
+      {
+         boolean export = true;
+
+         for (DataFormat dataFormat : DataFormat.values())
+         {
+            File dataFile = new File(file, "data" + dataFormat.getFileExtension());
+
+            if (dataFile.exists() && (!request.getOverwrite() || !dataFile.delete()))
+            {
+               LogTools.error("Could not delete data file: {}", dataFile);
+               export = false;
+               break;
+            }
+         }
+
+         if (export)
+         {
+            File dataFile = new File(file, "data" + request.getExportSessionBufferDataFormat().getFileExtension());
+            LogTools.info("Exporting session data. File: {}", dataFile);
+            switch (request.getExportSessionBufferDataFormat())
+            {
+               case ASCII:
+                  SharedMemoryIOTools.exportDataASCII(session.getBuffer(),
+                                                      new FileOutputStream(dataFile),
+                                                      request.getVariableFilter(),
+                                                      request.getRegistryFilter());
+                  break;
+               case CSV:
+                  SharedMemoryIOTools.exportDataCSV(session.getBuffer(),
+                                                    new FileOutputStream(dataFile),
+                                                    request.getVariableFilter(),
+                                                    request.getRegistryFilter());
+                  break;
+               case MATLAB:
+                  SharedMemoryIOTools.exportDataMatlab(session.getBuffer(), dataFile, request.getVariableFilter(), request.getRegistryFilter());
+                  break;
+               default:
+                  LogTools.error("Unhandled data format: {}", request.getExportSessionBufferDataFormat());
+                  break;
+            }
+            LogTools.info("Done exporting session data.");
+         }
+      }
+   }
+
+   public static void emptyDirectory(File directoryToEmpty)
+   {
+      if (!directoryToEmpty.isDirectory())
+         return;
+
+      try
+      {
+         FileUtils.deleteDirectory(directoryToEmpty);
+         directoryToEmpty.mkdir();
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+      }
+   }
+
+   public static File getTemporaryDirectory(String directoryName)
+   {
+      File tempDir = SCS2_TEMP_FOLDER_PATH.resolve(directoryName).toFile();
+
+      if (tempDir.exists())
+      {
+         try
+         {
+            FileUtils.forceDelete(tempDir);
+         }
+         catch (IOException e)
+         {
+            e.printStackTrace();
+            return null;
+         }
+      }
+      tempDir.mkdirs();
+
+      return tempDir;
+   }
+
+   public static void unzipFile(File input, File destination) throws IOException
+   {
+      ZipInputStream zis = null;
+      int length;
+      byte[] buffer = new byte[1024];
+
+      try
+      {
+         zis = new ZipInputStream(new FileInputStream(input));
+         ZipEntry ze = zis.getNextEntry();
+
+         while (ze != null)
+         {
+            File newFile = newFile(destination, ze);
+
+            if (ze.isDirectory())
+            {
+               if (!newFile.isDirectory() && !newFile.mkdirs())
+                  throw new IOException("Failed to create directory " + newFile);
+            }
+            else
+            {
+               File parent = newFile.getParentFile();
+
+               if (!parent.isDirectory() && !parent.mkdirs())
+                  throw new IOException("Failed to create directory " + parent);
+
+               FileOutputStream fos = new FileOutputStream(newFile);
+               while ((length = zis.read(buffer)) > 0)
+                  fos.write(buffer, 0, length);
+               fos.close();
+            }
+
+            ze = zis.getNextEntry();
+         }
+      }
+      finally
+      {
+         if (zis != null)
+         {
+            zis.closeEntry();
+            zis.close();
+         }
+      }
+   }
+
+   public static void zipFile(File input, File destination) throws IOException
+   {
+      try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(destination)))
+      {
+         if (input.isDirectory())
+         {
+            for (File subFile : input.listFiles())
+               zipFile(subFile.getName(), subFile, zipOut);
+         }
+         else
+         {
+            zipFile(input.getName(), input, zipOut);
+         }
+      }
+   }
+
+   public static void zipFile(String fileName, File fileToZip, ZipOutputStream zipOut) throws IOException
+   {
+      if (fileToZip.isHidden())
+      {
+         return;
+      }
+
+      if (fileToZip.isDirectory())
+      {
+         if (fileName.endsWith("/"))
+            zipOut.putNextEntry(new ZipEntry(fileName));
+         else
+            zipOut.putNextEntry(new ZipEntry(fileName + "/"));
+
+         zipOut.closeEntry();
+
+         File[] children = fileToZip.listFiles();
+
+         for (File childFile : children)
+         {
+            zipFile(fileName + "/" + childFile.getName(), childFile, zipOut);
+         }
+      }
+      else
+      {
+         try (FileInputStream fis = new FileInputStream(fileToZip))
+         {
+            ZipEntry zipEntry = new ZipEntry(fileName);
+            zipOut.putNextEntry(zipEntry);
+            byte[] bytes = new byte[1024];
+            int length;
+
+            while ((length = fis.read(bytes)) >= 0)
+               zipOut.write(bytes, 0, length);
+         }
+      }
+   }
+
+   public static File newFile(File destinationParent, ZipEntry zipEntry) throws IOException
+   {
+      File destinationFile = new File(destinationParent, zipEntry.getName());
+
+      if (destinationFile.getCanonicalPath().startsWith(destinationParent.getCanonicalPath() + File.separator))
+         return destinationFile;
+      else
+         throw new IOException("Attempted to unzip outside destination: " + zipEntry.getName());
+   }
+}

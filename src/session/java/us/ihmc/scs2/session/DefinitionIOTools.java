@@ -64,6 +64,33 @@ import us.ihmc.scs2.definition.visual.MaterialDefinition;
 import us.ihmc.scs2.definition.visual.MaterialScriptDefinition;
 import us.ihmc.scs2.definition.visual.TextureDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
+import us.ihmc.scs2.definition.yoComposite.YoCompositeDefinition;
+import us.ihmc.scs2.definition.yoComposite.YoOrientation3DDefinition;
+import us.ihmc.scs2.definition.yoComposite.YoQuaternionDefinition;
+import us.ihmc.scs2.definition.yoComposite.YoTuple2DDefinition;
+import us.ihmc.scs2.definition.yoComposite.YoTuple3DDefinition;
+import us.ihmc.scs2.definition.yoComposite.YoYawPitchRollDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphic2DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphic3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicArrow3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicBox3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicCapsule3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicCone3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicCoordinateSystem3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicCylinder3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicEllipsoid3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicLine2DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicListDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicPoint2DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicPoint3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicPointcloud2DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicPointcloud3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicPolygon2DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicPolygonExtruded3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicPolynomial3DDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicSTPBox3DDefinition;
 
 public class DefinitionIOTools
 {
@@ -75,7 +102,9 @@ public class DefinitionIOTools
       {
          List<Class<?>> classesToBeBound = new ArrayList<>();
          classesToBeBound.add(CollisionShapeDefinition.class);
+         classesToBeBound.add(TerrainObjectDefinition.class);
 
+         // GeometryDefinitions
          classesToBeBound.add(GeometryDefinition.class);
          classesToBeBound.add(ArcTorus3DDefinition.class);
          classesToBeBound.add(Box3DDefinition.class);
@@ -104,16 +133,21 @@ public class DefinitionIOTools
          classesToBeBound.add(TriangleMesh3DDefinition.class);
          classesToBeBound.add(TruncatedCone3DDefinition.class);
 
+         // SensorDefinitions
          classesToBeBound.add(SensorDefinition.class);
          classesToBeBound.add(CameraSensorDefinition.class);
          classesToBeBound.add(IMUSensorDefinition.class);
          classesToBeBound.add(LidarSensorDefinition.class);
          classesToBeBound.add(WrenchSensorDefinition.class);
 
+         // Key robot points
          classesToBeBound.add(KinematicPointDefinition.class);
          classesToBeBound.add(ExternalWrenchPointDefinition.class);
          classesToBeBound.add(GroundContactPointDefinition.class);
 
+         // RobotDefinition
+         classesToBeBound.add(RobotDefinition.class);
+         classesToBeBound.add(RigidBodyDefinition.class);
          classesToBeBound.add(JointDefinition.class);
          classesToBeBound.add(FixedJointDefinition.class);
          classesToBeBound.add(OneDoFJointDefinition.class);
@@ -123,28 +157,87 @@ public class DefinitionIOTools
          classesToBeBound.add(SixDoFJointDefinition.class);
          classesToBeBound.add(SphericalJointDefinition.class);
 
-         classesToBeBound.add(RigidBodyDefinition.class);
-
-         classesToBeBound.add(RobotDefinition.class);
-
+         // JointState
          classesToBeBound.add(JointState.class);
          classesToBeBound.add(OneDoFJointState.class);
          classesToBeBound.add(SixDoFJointState.class);
          classesToBeBound.add(SphericalJointState.class);
 
-         classesToBeBound.add(TerrainObjectDefinition.class);
-
+         // Visuals
          classesToBeBound.add(ColorDefinition.class);
          classesToBeBound.add(MaterialDefinition.class);
          classesToBeBound.add(MaterialScriptDefinition.class);
          classesToBeBound.add(TextureDefinition.class);
          classesToBeBound.add(VisualDefinition.class);
 
+         // YoGraphicDefinition
+         classesToBeBound.add(YoGraphicListDefinition.class);
+         classesToBeBound.add(YoGraphicDefinition.class);
+         classesToBeBound.add(YoGraphicGroupDefinition.class);
+         classesToBeBound.add(YoGraphic2DDefinition.class);
+         classesToBeBound.add(YoGraphicLine2DDefinition.class);
+         classesToBeBound.add(YoGraphicPoint2DDefinition.class);
+         classesToBeBound.add(YoGraphicPointcloud2DDefinition.class);
+         classesToBeBound.add(YoGraphicPolygon2DDefinition.class);
+         classesToBeBound.add(YoGraphic3DDefinition.class);
+         classesToBeBound.add(YoGraphicArrow3DDefinition.class);
+         classesToBeBound.add(YoGraphicBox3DDefinition.class);
+         classesToBeBound.add(YoGraphicSTPBox3DDefinition.class);
+         classesToBeBound.add(YoGraphicCapsule3DDefinition.class);
+         classesToBeBound.add(YoGraphicCone3DDefinition.class);
+         classesToBeBound.add(YoGraphicCoordinateSystem3DDefinition.class);
+         classesToBeBound.add(YoGraphicCylinder3DDefinition.class);
+         classesToBeBound.add(YoGraphicEllipsoid3DDefinition.class);
+         classesToBeBound.add(YoGraphicPoint3DDefinition.class);
+         classesToBeBound.add(YoGraphicPointcloud3DDefinition.class);
+         classesToBeBound.add(YoGraphicPolygonExtruded3DDefinition.class);
+         classesToBeBound.add(YoGraphicPolynomial3DDefinition.class);
+
+         // YoCompositeDefinition
+         classesToBeBound.add(YoCompositeDefinition.class);
+         classesToBeBound.add(YoTuple2DDefinition.class);
+         classesToBeBound.add(YoTuple3DDefinition.class);
+         classesToBeBound.add(YoOrientation3DDefinition.class);
+         classesToBeBound.add(YoQuaternionDefinition.class);
+         classesToBeBound.add(YoYawPitchRollDefinition.class);
+
          definitionContext = JAXBContext.newInstance(classesToBeBound.toArray(new Class[classesToBeBound.size()]));
       }
       catch (JAXBException e)
       {
          throw new RuntimeException(e);
+      }
+   }
+
+   public static void loadResources()
+   {
+      // Only need to load this class to get the resources loaded.
+   }
+
+   public static YoGraphicListDefinition loadYoGraphicListDefinition(InputStream inputStream) throws JAXBException, IOException
+   {
+      try
+      {
+         Unmarshaller unmarshaller = definitionContext.createUnmarshaller();
+         return (YoGraphicListDefinition) unmarshaller.unmarshal(inputStream);
+      }
+      finally
+      {
+         inputStream.close();
+      }
+   }
+
+   public static void saveYoGraphicListDefinition(OutputStream outputStream, YoGraphicListDefinition definition) throws JAXBException, IOException
+   {
+      try
+      {
+         Marshaller marshaller = definitionContext.createMarshaller();
+         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+         marshaller.marshal(definition, outputStream);
+      }
+      finally
+      {
+         outputStream.close();
       }
    }
 

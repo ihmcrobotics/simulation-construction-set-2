@@ -1,5 +1,6 @@
 package us.ihmc.scs2.session;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -15,6 +16,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+
+import javax.xml.bind.JAXBException;
 
 import us.ihmc.commons.Conversions;
 import us.ihmc.log.LogTools;
@@ -93,6 +96,7 @@ public abstract class Session
    private final AtomicReference<Integer> pendingIncrementBufferIndexRequest = new AtomicReference<>(null);
    private final AtomicReference<Integer> pendingDecrementBufferIndexRequest = new AtomicReference<>(null);
    private final AtomicReference<Integer> pendingBufferSizeRequest = new AtomicReference<>(null);
+   private final AtomicReference<SessionDataExportRequest> pendingDataExportRequest = new AtomicReference<>(null);
 
    // Strictly internal fields
    private final List<SessionTopicListenerManager> sessionTopicListenerManagers = new ArrayList<>();
@@ -303,6 +307,11 @@ public abstract class Session
    public void submitBufferOutPointIndexRequest(Integer bufferOutPointIndexRequest)
    {
       pendingBufferOutPointIndexRequest.set(bufferOutPointIndexRequest);
+   }
+
+   public void submitSessionDataExportRequest(SessionDataExportRequest sessionDataExportRequest)
+   {
+      pendingDataExportRequest.set(sessionDataExportRequest);
    }
 
    public void setSessionState(SessionState state)
@@ -788,6 +797,19 @@ public abstract class Session
             hasBufferBeenUpdated = true;
          }
 
+         SessionDataExportRequest dataExportRequest = pendingDataExportRequest.getAndSet(null);
+         if (dataExportRequest != null)
+         {
+            try
+            {
+               SessionIOTools.exportSessionData(this, dataExportRequest);
+            }
+            catch (JAXBException | IOException e)
+            {
+               e.printStackTrace();
+            }
+         }
+
          return hasBufferBeenUpdated;
       }
       else
@@ -864,6 +886,11 @@ public abstract class Session
       return Collections.emptyList();
    }
 
+   YoSharedBuffer getBuffer()
+   {
+      return sharedBuffer;
+   }
+
    public LinkedYoVariableFactory getLinkedYoVariableFactory()
    {
       return sharedBuffer;
@@ -888,6 +915,7 @@ public abstract class Session
       private final TopicListener<Boolean> runAtRealTimeRateListener = Session.this::submitRunAtRealTimeRate;
       private final TopicListener<Double> playbackRealTimeRateListener = Session.this::submitPlaybackRealTimeRate;
       private final TopicListener<Integer> bufferRecordTickPeriodListener = Session.this::submitBufferRecordTickPeriod;
+      private final TopicListener<SessionDataExportRequest> sessionDataExportRequestListener = Session.this::submitSessionDataExportRequest;
 
       private final Consumer<YoBufferPropertiesReadOnly> bufferPropertiesListener = createBufferPropertiesListener();
       private final Consumer<SessionProperties> sessionPropertiesListener = createSessionPropertiesListener();
@@ -915,6 +943,7 @@ public abstract class Session
          messager.registerTopicListener(SessionMessagerAPI.RunAtRealTimeRate, runAtRealTimeRateListener);
          messager.registerTopicListener(SessionMessagerAPI.PlaybackRealTimeRate, playbackRealTimeRateListener);
          messager.registerTopicListener(SessionMessagerAPI.BufferRecordTickPeriod, bufferRecordTickPeriodListener);
+         messager.registerTopicListener(SessionMessagerAPI.SessionDataExportRequest, sessionDataExportRequestListener);
       }
 
       private void detachFromMessager()
@@ -937,6 +966,7 @@ public abstract class Session
          messager.removeTopicListener(SessionMessagerAPI.RunAtRealTimeRate, runAtRealTimeRateListener);
          messager.removeTopicListener(SessionMessagerAPI.PlaybackRealTimeRate, playbackRealTimeRateListener);
          messager.removeTopicListener(SessionMessagerAPI.BufferRecordTickPeriod, bufferRecordTickPeriodListener);
+         messager.removeTopicListener(SessionMessagerAPI.SessionDataExportRequest, sessionDataExportRequestListener);
       }
 
       private Consumer<YoBufferPropertiesReadOnly> createBufferPropertiesListener()

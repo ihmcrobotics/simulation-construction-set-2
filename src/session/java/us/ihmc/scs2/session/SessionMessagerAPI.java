@@ -22,6 +22,7 @@ public class SessionMessagerAPI
 
    private static final CategoryTheme Session = apiFactory.createCategoryTheme("Session");
    private static final CategoryTheme Record = apiFactory.createCategoryTheme("Record");
+   private static final CategoryTheme Export = apiFactory.createCategoryTheme("Export");
 
    private static final CategoryTheme Run = apiFactory.createCategoryTheme("Run");
    private static final CategoryTheme Playback = apiFactory.createCategoryTheme("Playback");
@@ -31,6 +32,7 @@ public class SessionMessagerAPI
    private static final TopicTheme State = apiFactory.createTypedTopicTheme("State");
    private static final TopicTheme Mode = apiFactory.createTypedTopicTheme("Mode");
    private static final TopicTheme TickPeriod = apiFactory.createTypedTopicTheme("TickPeriod");
+   private static final TopicTheme Data = apiFactory.createTypedTopicTheme("Data");
 
    public static final Topic<Long> SessionDTNanoseconds = root.child(Session).child(Run).topic(Period);
    public static final Topic<SessionState> SessionCurrentState = root.child(Session).topic(State);
@@ -39,6 +41,8 @@ public class SessionMessagerAPI
 
    public static final Topic<Boolean> RunAtRealTimeRate = root.child(Session).child(Run).topic(RealTimeRate);
    public static final Topic<Double> PlaybackRealTimeRate = root.child(Session).child(Playback).topic(RealTimeRate);
+
+   public static final Topic<SessionDataExportRequest> SessionDataExportRequest = root.child(Session).child(Export).topic(Data);
 
    static
    { // Ensure that the Sensors is loaded before closing the API.
