@@ -2,30 +2,30 @@ package us.ihmc.scs2.definition.geometry;
 
 import javax.xml.bind.annotation.XmlAttribute;
 
-import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
-import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
+import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple2D.interfaces.Point2DBasics;
+import us.ihmc.euclid.tuple2D.interfaces.Tuple2DReadOnly;
 
-public class Point3DDefinition extends GeometryDefinition implements Point3DBasics
+public class Point2DDefinition extends GeometryDefinition implements Point2DBasics
 {
-   private final Point3D position = new Point3D();
+   private final Point2D position = new Point2D();
 
-   public Point3DDefinition()
+   public Point2DDefinition()
    {
    }
 
-   public Point3DDefinition(Tuple3DReadOnly position)
+   public Point2DDefinition(Tuple2DReadOnly position)
    {
       this.position.set(position);
    }
 
-   public Point3DDefinition(Point3DDefinition other)
+   public Point2DDefinition(Point2DDefinition other)
    {
       setName(other.getName());
       position.set(other.position);
    }
 
-   public Point3D getPosition()
+   public Point2D getPosition()
    {
       return position;
    }
@@ -44,13 +44,6 @@ public class Point3DDefinition extends GeometryDefinition implements Point3DBasi
       position.setY(y);
    }
 
-   @XmlAttribute
-   @Override
-   public void setZ(double z)
-   {
-      position.setZ(z);
-   }
-
    @Override
    public double getX()
    {
@@ -64,18 +57,12 @@ public class Point3DDefinition extends GeometryDefinition implements Point3DBasi
    }
 
    @Override
-   public double getZ()
-   {
-      return position.getZ();
-   }
-
-   @Override
    public boolean equals(Object object)
    {
       if (object == this)
          return true;
-      if (object instanceof Point3DDefinition)
-         return position.equals(((Point3DDefinition) object).position);
+      if (object instanceof Point2DDefinition)
+         return position.equals(((Point2DDefinition) object).position);
       else
          return false;
    }
@@ -87,8 +74,8 @@ public class Point3DDefinition extends GeometryDefinition implements Point3DBasi
    }
 
    @Override
-   public Point3DDefinition copy()
+   public Point2DDefinition copy()
    {
-      return new Point3DDefinition(this);
+      return new Point2DDefinition(this);
    }
 }

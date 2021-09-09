@@ -1,5 +1,7 @@
 package us.ihmc.scs2.definition.geometry;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -7,7 +9,7 @@ import javax.xml.bind.annotation.XmlElement;
 
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
-import us.ihmc.euclid.tuple3D.Point3D;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 
 /**
  * Definition for creating a 3D polygon.
@@ -17,7 +19,7 @@ import us.ihmc.euclid.tuple3D.Point3D;
  */
 public class Polygon3DDefinition extends GeometryDefinition
 {
-   private List<Point3D> polygonVertices;
+   private List<Point3DDefinition> polygonVertices;
    private boolean counterClockwiseOrdered;
 
    /**
@@ -36,7 +38,7 @@ public class Polygon3DDefinition extends GeometryDefinition
     * @param counterClockwiseOrdered indicate the winding of the polygon: {@code true} if the polygon
     *                                is counter clockwise, {@code false} if clockwise.
     */
-   public Polygon3DDefinition(List<Point3D> polygonVertices, boolean counterClockwiseOrdered)
+   public Polygon3DDefinition(List<Point3DDefinition> polygonVertices, boolean counterClockwiseOrdered)
    {
       this();
       this.polygonVertices = polygonVertices;
@@ -47,8 +49,18 @@ public class Polygon3DDefinition extends GeometryDefinition
    {
       setName(other.getName());
       if (other.polygonVertices != null)
-         polygonVertices = other.polygonVertices.stream().map(Point3D::new).collect(Collectors.toList());
+         polygonVertices = other.polygonVertices.stream().map(Point3DDefinition::new).collect(Collectors.toList());
       counterClockwiseOrdered = other.counterClockwiseOrdered;
+   }
+
+   public static List<Point3DDefinition> toPoint3DDefinitionList(Collection<? extends Tuple3DReadOnly> tuple3DCollection)
+   {
+      return tuple3DCollection.stream().map(Point3DDefinition::new).collect(Collectors.toList());
+   }
+
+   public static List<Point3DDefinition> toPoint3DDefinitionList(Tuple3DReadOnly... tuple3Ds)
+   {
+      return toPoint3DDefinitionList(Arrays.asList(tuple3Ds));
    }
 
    /**
@@ -57,7 +69,7 @@ public class Polygon3DDefinition extends GeometryDefinition
     * @param polygonVertices the polygon's vertices.
     */
    @XmlElement
-   public void setPolygonVertices(List<Point3D> polygonVertices)
+   public void setPolygonVertices(List<Point3DDefinition> polygonVertices)
    {
       this.polygonVertices = polygonVertices;
    }
@@ -79,7 +91,7 @@ public class Polygon3DDefinition extends GeometryDefinition
     * 
     * @return the polygon's vertices.
     */
-   public List<Point3D> getPolygonVertices()
+   public List<Point3DDefinition> getPolygonVertices()
    {
       return polygonVertices;
    }

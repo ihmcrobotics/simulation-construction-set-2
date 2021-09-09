@@ -5,8 +5,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import us.ihmc.euclid.Axis3D;
 import us.ihmc.euclid.axisAngle.AxisAngle;
@@ -25,7 +23,6 @@ import us.ihmc.euclid.shape.primitives.interfaces.Torus3DReadOnly;
 import us.ihmc.euclid.transform.AffineTransform;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
-import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -48,9 +45,9 @@ import us.ihmc.scs2.definition.geometry.ModelFileGeometryDefinition.SubMeshDefin
 import us.ihmc.scs2.definition.geometry.Polygon2DDefinition;
 import us.ihmc.scs2.definition.geometry.Polygon3DDefinition;
 import us.ihmc.scs2.definition.geometry.PyramidBox3DDefinition;
+import us.ihmc.scs2.definition.geometry.Ramp3DDefinition;
 import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
 import us.ihmc.scs2.definition.geometry.TruncatedCone3DDefinition;
-import us.ihmc.scs2.definition.geometry.Ramp3DDefinition;
 
 // TODO Needs major cleanup
 public class VisualDefinitionFactory
@@ -209,8 +206,12 @@ public class VisualDefinitionFactory
       return addGeometryDefinition(modelFileGeometryDefinition, materialDefinition);
    }
 
-   public VisualDefinition addModelFile(String fileName, String submesh, boolean centerSubmesh, List<String> resourceDirectories,
-                                        ClassLoader resourceClassLoader, MaterialDefinition materialDefinition)
+   public VisualDefinition addModelFile(String fileName,
+                                        String submesh,
+                                        boolean centerSubmesh,
+                                        List<String> resourceDirectories,
+                                        ClassLoader resourceClassLoader,
+                                        MaterialDefinition materialDefinition)
    {
       ModelFileGeometryDefinition modelFileGeometryDefinition = new ModelFileGeometryDefinition(fileName);
       modelFileGeometryDefinition.setResourceDirectories(resourceDirectories);
@@ -219,7 +220,9 @@ public class VisualDefinitionFactory
       return addGeometryDefinition(modelFileGeometryDefinition, materialDefinition);
    }
 
-   public VisualDefinition addModelFile(String fileName, List<String> resourceDirectories, ClassLoader resourceClassLoader,
+   public VisualDefinition addModelFile(String fileName,
+                                        List<String> resourceDirectories,
+                                        ClassLoader resourceClassLoader,
                                         MaterialDefinition materialDefinition)
    {
       return addModelFile(fileName, null, false, resourceDirectories, resourceClassLoader, materialDefinition);
@@ -239,7 +242,10 @@ public class VisualDefinitionFactory
                           materialDefinition);
    }
 
-   public void addCoordinateSystem(double length, MaterialDefinition xAxisMaterial, MaterialDefinition yAxisMaterial, MaterialDefinition zAxisMaterial,
+   public void addCoordinateSystem(double length,
+                                   MaterialDefinition xAxisMaterial,
+                                   MaterialDefinition yAxisMaterial,
+                                   MaterialDefinition zAxisMaterial,
                                    MaterialDefinition arrowMaterial)
    {
       appendRotation(Math.PI / 2.0, Axis3D.Y);
@@ -450,7 +456,7 @@ public class VisualDefinitionFactory
 
    public VisualDefinition addPolygon(List<? extends Point3DReadOnly> polygonPoints, MaterialDefinition materialDefinition)
    {
-      return addGeometryDefinition(new Polygon3DDefinition(polygonPoints.stream().map(Point3D::new).collect(Collectors.toList()), true), materialDefinition);
+      return addGeometryDefinition(new Polygon3DDefinition(Polygon3DDefinition.toPoint3DDefinitionList(polygonPoints), true), materialDefinition);
    }
 
    public VisualDefinition addPolygon(ConvexPolygon2DReadOnly convexPolygon2d, MaterialDefinition materialDefinition)
@@ -484,7 +490,7 @@ public class VisualDefinitionFactory
       for (int i = 0; i < convexPolygon2D.size(); i++)
       {
          ConvexPolygon2DReadOnly convexPolygon = convexPolygon2D.get(i);
-         addGeometryDefinition(new Polygon2DDefinition(convexPolygon.getPolygonVerticesView().stream().map(Point2D::new).collect(Collectors.toList()),
+         addGeometryDefinition(new Polygon2DDefinition(Polygon2DDefinition.toPoint2DDefinitionList(convexPolygon.getPolygonVerticesView()),
                                                        !convexPolygon.isClockwiseOrdered()),
                                materialDefinition);
       }
@@ -501,7 +507,7 @@ public class VisualDefinitionFactory
 
    public VisualDefinition addPolygon(Point3DReadOnly[] polygonPoints, MaterialDefinition materialDefinition)
    {
-      return addGeometryDefinition(new Polygon3DDefinition(Stream.of(polygonPoints).map(Point3D::new).collect(Collectors.toList()), true), materialDefinition);
+      return addGeometryDefinition(new Polygon3DDefinition(Polygon3DDefinition.toPoint3DDefinitionList(polygonPoints), true), materialDefinition);
    }
 
    public VisualDefinition addPolygon(MaterialDefinition materialDefinition, Point3DReadOnly... polygonPoints)
@@ -516,8 +522,10 @@ public class VisualDefinitionFactory
 
    public VisualDefinition addExtrudedPolygon(ConvexPolygon2DReadOnly convexPolygon2d, double height, MaterialDefinition materialDefinition)
    {
-      List<Point2D> vertices = convexPolygon2d.getPolygonVerticesView().stream().map(Point2D::new).collect(Collectors.toList());
-      return addGeometryDefinition(new ExtrudedPolygon2DDefinition(vertices, true, height), materialDefinition);
+      return addGeometryDefinition(new ExtrudedPolygon2DDefinition(ExtrudedPolygon2DDefinition.toPoint2DDefinitionList(convexPolygon2d.getPolygonVerticesView()),
+                                                                   true,
+                                                                   height),
+                                   materialDefinition);
    }
 
    public VisualDefinition addExtrudedPolygon(List<? extends Point2DReadOnly> polygonPoints, double height)
@@ -527,8 +535,8 @@ public class VisualDefinitionFactory
 
    public VisualDefinition addExtrudedPolygon(List<? extends Point2DReadOnly> polygonPoints, double height, MaterialDefinition materialDefinition)
    {
-      List<Point2D> vertices = polygonPoints.stream().map(Point2D::new).collect(Collectors.toList());
-      return addGeometryDefinition(new ExtrudedPolygon2DDefinition(vertices, true, height), materialDefinition);
+      return addGeometryDefinition(new ExtrudedPolygon2DDefinition(ExtrudedPolygon2DDefinition.toPoint2DDefinitionList(polygonPoints), true, height),
+                                   materialDefinition);
    }
 
    public VisualDefinition addExtrusion(BufferedImage bufferedImageToExtrude, double thickness, MaterialDefinition materialDefinition)
