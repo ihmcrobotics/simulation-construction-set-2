@@ -243,9 +243,9 @@ public class MultiSessionManager
       //      });
 
       if (configuration.hasBufferSize())
-         messager.submitMessage(topics.getYoBufferCurrentSizeRequest(), configuration.getBufferSize());
+         messager.submitMessage(topics.getYoBufferInitializeSize(), configuration.getBufferSize());
       if (configuration.hasRecordTickPeriod())
-         messager.submitMessage(topics.getBufferRecordTickPeriod(), configuration.getRecordTickPeriod());
+         messager.submitMessage(topics.getInitializeBufferRecordTickPeriod(), configuration.getRecordTickPeriod());
       if (configuration.hasNumberPrecision())
          messager.submitMessage(topics.getControlsNumberPrecision(), configuration.getNumberPrecision());
       messager.submitMessage(topics.getShowOverheadPlotter(), configuration.getShowOverheadPlotter());

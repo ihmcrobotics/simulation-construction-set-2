@@ -73,6 +73,7 @@ public class SessionVisualizerTopics
    private Topic<Long> sessionDTNanoseconds;
    private Topic<Double> playbackRealTimeRate;
    private Topic<Integer> bufferRecordTickPeriod;
+   private Topic<Integer> initializeBufferRecordTickPeriod;
    private Topic<SessionDataExportRequest> sessionDataExportRequest;
    private Topic<Session> startNewSessionRequest;
    private Topic<Boolean> remoteSessionControlsRequest;
@@ -84,6 +85,7 @@ public class SessionVisualizerTopics
    private Topic<CropBufferRequest> yoBufferCropRequest;
    private Topic<FillBufferRequest> yoBufferFillRequest;
    private Topic<Integer> yoBufferCurrentSizeRequest;
+   private Topic<Integer> yoBufferInitializeSize;
    private Topic<YoBufferPropertiesReadOnly> yoBufferCurrentProperties;
    private Topic<SensorMessage<CameraSensorDefinition>> cameraSensorDefinitionData;
    private Topic<SensorMessage<BufferedImage>> cameraSensorFrame;
@@ -141,6 +143,7 @@ public class SessionVisualizerTopics
       sessionDTNanoseconds = SessionMessagerAPI.SessionDTNanoseconds;
       playbackRealTimeRate = SessionMessagerAPI.PlaybackRealTimeRate;
       bufferRecordTickPeriod = SessionMessagerAPI.BufferRecordTickPeriod;
+      initializeBufferRecordTickPeriod = SessionMessagerAPI.InitializeBufferRecordTickPeriod;
       sessionDataExportRequest = SessionMessagerAPI.SessionDataExportRequest;
       startNewSessionRequest = SessionVisualizerMessagerAPI.SessionAPI.StartNewSessionRequest;
       remoteSessionControlsRequest = SessionVisualizerMessagerAPI.SessionAPI.RemoteSessionControlsRequest;
@@ -154,6 +157,7 @@ public class SessionVisualizerTopics
       yoBufferCropRequest = YoSharedBufferMessagerAPI.CropRequest;
       yoBufferFillRequest = YoSharedBufferMessagerAPI.FillRequest;
       yoBufferCurrentSizeRequest = YoSharedBufferMessagerAPI.CurrentBufferSizeRequest;
+      yoBufferInitializeSize = YoSharedBufferMessagerAPI.InitializeBufferSize;
       yoBufferCurrentProperties = YoSharedBufferMessagerAPI.CurrentBufferProperties;
 
       cameraSensorDefinitionData = SessionMessagerAPI.Sensors.CameraSensorDefinitionData;
@@ -375,6 +379,11 @@ public class SessionVisualizerTopics
       return bufferRecordTickPeriod;
    }
 
+   public Topic<Integer> getInitializeBufferRecordTickPeriod()
+   {
+      return initializeBufferRecordTickPeriod;
+   }
+
    public Topic<SessionDataExportRequest> getSessionDataExportRequest()
    {
       return sessionDataExportRequest;
@@ -433,6 +442,11 @@ public class SessionVisualizerTopics
    public Topic<Integer> getYoBufferCurrentSizeRequest()
    {
       return yoBufferCurrentSizeRequest;
+   }
+
+   public Topic<Integer> getYoBufferInitializeSize()
+   {
+      return yoBufferInitializeSize;
    }
 
    public Topic<YoBufferPropertiesReadOnly> getYoBufferCurrentProperties()

@@ -1,6 +1,7 @@
 package us.ihmc.scs2.session;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
@@ -111,6 +112,9 @@ public abstract class Session
    protected PeriodicTaskWrapper activePeriodicTask;
 
    private final EnumMap<SessionMode, Runnable> sessionModeToTaskMap = new EnumMap<>(SessionMode.class);
+
+   protected boolean hasBufferSizeBeenInitialized = false;
+   protected boolean hasBufferRecordPeriodBeenInitialized = false;
 
    public Session()
    {
@@ -239,6 +243,22 @@ public abstract class Session
       scheduleSessionTask(getActiveMode());
    }
 
+   public boolean initializeBufferSize(int bufferSize)
+   {
+      if (hasBufferSizeBeenInitialized)
+         return false;
+      submitBufferSizeRequest(bufferSize);
+      return true;
+   }
+
+   public boolean initializeBufferRecordTickPeriod(int bufferRecordTickPeriod)
+   {
+      if (hasBufferRecordPeriodBeenInitialized)
+         return false;
+      submitBufferRecordTickPeriod(bufferRecordTickPeriod);
+      return true;
+   }
+
    public void submitRunAtRealTimeRate(boolean runAtRealTimeRate)
    {
       if (this.runAtRealTimeRate.get() == runAtRealTimeRate)
@@ -259,6 +279,7 @@ public abstract class Session
 
    public void submitBufferRecordTickPeriod(int bufferRecordTickPeriod)
    {
+      hasBufferRecordPeriodBeenInitialized = true;
       if (bufferRecordTickPeriod == this.bufferRecordTickPeriod.get())
          return;
       this.bufferRecordTickPeriod.set(Math.max(1, bufferRecordTickPeriod));
@@ -282,6 +303,7 @@ public abstract class Session
    public void submitBufferSizeRequest(Integer bufferSizeRequest)
    {
       pendingBufferSizeRequest.set(bufferSizeRequest);
+      hasBufferSizeBeenInitialized = true;
    }
 
    public void submitBufferIndexRequest(Integer bufferIndexRequest)
@@ -804,7 +826,7 @@ public abstract class Session
             {
                SessionIOTools.exportSessionData(this, dataExportRequest);
             }
-            catch (JAXBException | IOException e)
+            catch (JAXBException | IOException | URISyntaxException e)
             {
                e.printStackTrace();
             }
@@ -913,6 +935,7 @@ public abstract class Session
       private final TopicListener<Integer> incrementCurrentIndexListener = Session.this::submitIncrementBufferIndexRequest;
       private final TopicListener<Integer> decrementCurrentIndexListener = Session.this::submitDecrementBufferIndexRequest;
       private final TopicListener<Integer> currentBufferSizeListener = Session.this::submitBufferSizeRequest;
+      private final TopicListener<Integer> initializeBufferSizeListener = Session.this::initializeBufferSize;
 
       private final TopicListener<SessionState> sessionCurrentStateListener = Session.this::setSessionState;
       private final TopicListener<SessionMode> sessionCurrentModeListener = Session.this::setSessionMode;
@@ -920,6 +943,7 @@ public abstract class Session
       private final TopicListener<Boolean> runAtRealTimeRateListener = Session.this::submitRunAtRealTimeRate;
       private final TopicListener<Double> playbackRealTimeRateListener = Session.this::submitPlaybackRealTimeRate;
       private final TopicListener<Integer> bufferRecordTickPeriodListener = Session.this::submitBufferRecordTickPeriod;
+      private final TopicListener<Integer> initializeBufferRecordTickPeriodListener = Session.this::initializeBufferRecordTickPeriod;
       private final TopicListener<SessionDataExportRequest> sessionDataExportRequestListener = Session.this::submitSessionDataExportRequest;
 
       private final Consumer<YoBufferPropertiesReadOnly> bufferPropertiesListener = createBufferPropertiesListener();
@@ -939,6 +963,7 @@ public abstract class Session
          messager.registerTopicListener(YoSharedBufferMessagerAPI.IncrementCurrentIndexRequest, incrementCurrentIndexListener);
          messager.registerTopicListener(YoSharedBufferMessagerAPI.DecrementCurrentIndexRequest, decrementCurrentIndexListener);
          messager.registerTopicListener(YoSharedBufferMessagerAPI.CurrentBufferSizeRequest, currentBufferSizeListener);
+         messager.registerTopicListener(YoSharedBufferMessagerAPI.InitializeBufferSize, initializeBufferSizeListener);
 
          addSessionPropertiesListener(sessionPropertiesListener);
 
@@ -948,6 +973,7 @@ public abstract class Session
          messager.registerTopicListener(SessionMessagerAPI.RunAtRealTimeRate, runAtRealTimeRateListener);
          messager.registerTopicListener(SessionMessagerAPI.PlaybackRealTimeRate, playbackRealTimeRateListener);
          messager.registerTopicListener(SessionMessagerAPI.BufferRecordTickPeriod, bufferRecordTickPeriodListener);
+         messager.registerTopicListener(SessionMessagerAPI.InitializeBufferRecordTickPeriod, initializeBufferRecordTickPeriodListener);
          messager.registerTopicListener(SessionMessagerAPI.SessionDataExportRequest, sessionDataExportRequestListener);
       }
 
@@ -964,6 +990,7 @@ public abstract class Session
          messager.removeTopicListener(YoSharedBufferMessagerAPI.IncrementCurrentIndexRequest, incrementCurrentIndexListener);
          messager.removeTopicListener(YoSharedBufferMessagerAPI.DecrementCurrentIndexRequest, decrementCurrentIndexListener);
          messager.removeTopicListener(YoSharedBufferMessagerAPI.CurrentBufferSizeRequest, currentBufferSizeListener);
+         messager.removeTopicListener(YoSharedBufferMessagerAPI.InitializeBufferSize, initializeBufferSizeListener);
 
          messager.removeTopicListener(SessionMessagerAPI.SessionCurrentState, sessionCurrentStateListener);
          messager.removeTopicListener(SessionMessagerAPI.SessionCurrentMode, sessionCurrentModeListener);
@@ -971,6 +998,7 @@ public abstract class Session
          messager.removeTopicListener(SessionMessagerAPI.RunAtRealTimeRate, runAtRealTimeRateListener);
          messager.removeTopicListener(SessionMessagerAPI.PlaybackRealTimeRate, playbackRealTimeRateListener);
          messager.removeTopicListener(SessionMessagerAPI.BufferRecordTickPeriod, bufferRecordTickPeriodListener);
+         messager.removeTopicListener(SessionMessagerAPI.InitializeBufferRecordTickPeriod, initializeBufferRecordTickPeriodListener);
          messager.removeTopicListener(SessionMessagerAPI.SessionDataExportRequest, sessionDataExportRequestListener);
       }
 

@@ -23,6 +23,7 @@ public class SessionMessagerAPI
    private static final CategoryTheme Session = apiFactory.createCategoryTheme("Session");
    private static final CategoryTheme Record = apiFactory.createCategoryTheme("Record");
    private static final CategoryTheme Export = apiFactory.createCategoryTheme("Export");
+   private static final CategoryTheme Initialize = apiFactory.createCategoryTheme("Initialize");
 
    private static final CategoryTheme Run = apiFactory.createCategoryTheme("Run");
    private static final CategoryTheme Playback = apiFactory.createCategoryTheme("Playback");
@@ -38,6 +39,7 @@ public class SessionMessagerAPI
    public static final Topic<SessionState> SessionCurrentState = root.child(Session).topic(State);
    public static final Topic<SessionMode> SessionCurrentMode = root.child(Session).topic(Mode);
    public static final Topic<Integer> BufferRecordTickPeriod = root.child(Session).child(Record).topic(TickPeriod);
+   public static final Topic<Integer> InitializeBufferRecordTickPeriod = root.child(Session).child(Initialize).child(Record).topic(TickPeriod);
 
    public static final Topic<Boolean> RunAtRealTimeRate = root.child(Session).child(Run).topic(RealTimeRate);
    public static final Topic<Double> PlaybackRealTimeRate = root.child(Session).child(Playback).topic(RealTimeRate);
