@@ -14,7 +14,6 @@ import com.jfoenix.controls.JFXToggleButton;
 import javafx.beans.binding.StringBinding;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
@@ -37,11 +36,12 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.LogProperties;
 import us.ihmc.robotDataLogger.logger.LogPropertiesReader;
-import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.BackgroundExecutorManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.SessionControlsController;
@@ -91,6 +91,9 @@ public class LogSessionManagerController implements SessionControlsController
    {
       stage = new Stage();
 
+      SessionVisualizerTopics topics = toolkit.getTopics();
+      JavaFXMessager messager = toolkit.getMessager();
+
       backgroundExecutorManager = toolkit.getBackgroundExecutorManager();
 
       logPositionSlider.setValueFactory(param -> new TimeStringBinding(param.valueProperty(), position ->
@@ -123,6 +126,7 @@ public class LogSessionManagerController implements SessionControlsController
          }
          else
          {
+            messager.submitMessage(topics.getStartNewSessionRequest(), newValue);
             File logDirectory = newValue.getLogDirectory();
             LogDataReader logDataReader = newValue.getLogDataReader();
             LogPropertiesReader logProperties = newValue.getLogProperties();
@@ -316,12 +320,6 @@ public class LogSessionManagerController implements SessionControlsController
    public Stage getStage()
    {
       return stage;
-   }
-
-   @Override
-   public ReadOnlyObjectProperty<? extends Session> activeSessionProperty()
-   {
-      return activeSessionProperty;
    }
 
    @Override

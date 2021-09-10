@@ -11,6 +11,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
+import us.ihmc.scs2.definition.SessionInformationDefinition;
 import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
 import us.ihmc.scs2.definition.geometry.ArcTorus3DDefinition;
 import us.ihmc.scs2.definition.geometry.Box3DDefinition;
@@ -201,6 +202,8 @@ public class DefinitionIOTools
          classesToBeBound.add(YoQuaternionDefinition.class);
          classesToBeBound.add(YoYawPitchRollDefinition.class);
 
+         classesToBeBound.add(SessionInformationDefinition.class);
+
          definitionContext = JAXBContext.newInstance(classesToBeBound.toArray(new Class[classesToBeBound.size()]));
       }
       catch (JAXBException e)
@@ -284,6 +287,33 @@ public class DefinitionIOTools
    }
 
    public static void saveTerrainObjectDefinition(OutputStream outputStream, TerrainObjectDefinition definition) throws JAXBException, IOException
+   {
+      try
+      {
+         Marshaller marshaller = definitionContext.createMarshaller();
+         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+         marshaller.marshal(definition, outputStream);
+      }
+      finally
+      {
+         outputStream.close();
+      }
+   }
+
+   public static SessionInformationDefinition loadSessionInformationDefinition(InputStream inputStream) throws JAXBException, IOException
+   {
+      try
+      {
+         Unmarshaller unmarshaller = definitionContext.createUnmarshaller();
+         return (SessionInformationDefinition) unmarshaller.unmarshal(inputStream);
+      }
+      finally
+      {
+         inputStream.close();
+      }
+   }
+
+   public static void saveSessionInformationDefinition(OutputStream outputStream, SessionInformationDefinition definition) throws JAXBException, IOException
    {
       try
       {

@@ -524,8 +524,12 @@ public class SharedMemoryIOTools
 
    public static YoSharedBuffer importDataASCII(InputStream inputStream, YoRegistry root) throws IOException
    {
-      YoSharedBuffer buffer = new YoSharedBuffer(root, 1);
+      return importDataASCII(inputStream, new YoSharedBuffer(root, 1));
+   }
 
+   public static YoSharedBuffer importDataASCII(InputStream inputStream, YoSharedBuffer buffer) throws IOException
+   {
+      YoRegistry root = buffer.getRootRegistry();
       BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
       bufferedReader.lines().forEach(line ->
@@ -579,8 +583,12 @@ public class SharedMemoryIOTools
 
    public static YoSharedBuffer importDataCSV(InputStream inputStream, YoRegistry root) throws IOException
    {
-      YoSharedBuffer buffer = new YoSharedBuffer(root, 2048);
+      return importDataCSV(inputStream, new YoSharedBuffer(root, 1));
+   }
 
+   public static YoSharedBuffer importDataCSV(InputStream inputStream, YoSharedBuffer buffer) throws IOException
+   {
+      YoRegistry root = buffer.getRootRegistry();
       BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
       String currentLine = bufferedReader.readLine();
@@ -656,6 +664,12 @@ public class SharedMemoryIOTools
 
    public static YoSharedBuffer importDataMatlab(File inputFile, YoRegistry root) throws IOException
    {
+      return importDataMatlab(inputFile, new YoSharedBuffer(root, 1));
+   }
+
+   public static YoSharedBuffer importDataMatlab(File inputFile, YoSharedBuffer buffer) throws IOException
+   {
+      YoRegistry root = buffer.getRootRegistry();
       Mat5File mat5File = Mat5.readFromFile(inputFile);
 
       List<Entry> entries = new ArrayList<>();
@@ -673,7 +687,6 @@ public class SharedMemoryIOTools
          throw new IllegalArgumentException("Registry name mismatch");
       Struct rootStruct = (Struct) entry.getValue();
 
-      YoSharedBuffer buffer = new YoSharedBuffer(root, 1);
       importMatlabStruct(rootStruct, root, buffer);
 
       return buffer;

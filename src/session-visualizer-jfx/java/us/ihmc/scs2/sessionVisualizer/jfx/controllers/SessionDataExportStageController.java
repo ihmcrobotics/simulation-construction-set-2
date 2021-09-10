@@ -276,13 +276,13 @@ public class SessionDataExportStageController
    void exportData(ActionEvent event)
    {
       DirectoryChooser directoryChooser = new DirectoryChooser();
-      directoryChooser.setInitialDirectory(SessionVisualizerIOTools.getDefaultFilePath("data"));
+      directoryChooser.setInitialDirectory(SessionVisualizerIOTools.getDefaultFilePath("export-data"));
       File result = directoryChooser.showDialog(owner);
 
       if (result == null)
          return;
 
-      SessionVisualizerIOTools.setDefaultFilePath("data", result);
+      SessionVisualizerIOTools.setDefaultFilePath("export-data", result);
       SessionDataExportRequest request = new SessionDataExportRequest();
       request.setFile(result);
       request.setOverwrite(true);

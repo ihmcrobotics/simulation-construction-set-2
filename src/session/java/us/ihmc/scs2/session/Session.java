@@ -865,6 +865,11 @@ public abstract class Session
       return bufferRecordTickPeriod.get();
    }
 
+   public double getSessionDTSeconds()
+   {
+      return sessionDTNanoseconds.get() * 1.0e-9;
+   }
+
    public long getSessionDTNanoseconds()
    {
       return sessionDTNanoseconds.get();

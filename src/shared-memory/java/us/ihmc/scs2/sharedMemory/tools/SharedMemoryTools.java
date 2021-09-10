@@ -1,5 +1,6 @@
 package us.ihmc.scs2.sharedMemory.tools;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,30 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class SharedMemoryTools
 {
+   @SuppressWarnings("unchecked")
+   public static <T> T[] concatenate(T[]... arrays)
+   {
+      if (arrays == null || arrays.length == 0)
+         return null;
+
+      int length = 0;
+      for (T[] array : arrays)
+      {
+         length += array.length;
+      }
+
+      T[] result = (T[]) Array.newInstance(arrays[0].getClass().getComponentType(), length);
+      int index = 0;
+      for (T[] array : arrays)
+      {
+         for (T element : array)
+         {
+            result[index++] = element;
+         }
+      }
+      return result;
+   }
+
    public static int increment(int index, int stepSize, int size)
    {
       index += stepSize;

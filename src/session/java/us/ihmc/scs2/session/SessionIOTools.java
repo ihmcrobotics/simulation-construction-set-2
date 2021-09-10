@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.ZipEntry;
@@ -18,10 +19,12 @@ import org.apache.commons.io.FileUtils;
 
 import us.ihmc.commons.nio.FileTools;
 import us.ihmc.log.LogTools;
+import us.ihmc.scs2.definition.SessionInformationDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicListDefinition;
 import us.ihmc.scs2.sharedMemory.tools.SharedMemoryIOTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 
 public class SessionIOTools
 {
@@ -40,6 +43,18 @@ public class SessionIOTools
       {
          return fileExtension;
       }
+
+      public static DataFormat fromFilename(String filename)
+      {
+         if (filename == null)
+            return null;
+         for (DataFormat dataFormat : values())
+         {
+            if (filename.endsWith(dataFormat.getFileExtension()))
+               return dataFormat;
+         }
+         return null;
+      }
    }
 
    public static final Path SCS2_HOME = Paths.get(System.getProperty("user.home"), ".ihmc", "scs2");
@@ -57,8 +72,9 @@ public class SessionIOTools
       }
    }
 
-   public static final String scsRobotDefinitionFileExtension = ".scs2.robot";
-   public static final String scsTerrainDefinitionFileExtension = ".scs2.terrain";
+   public static final String infoFileExtension = ".scs2.info";
+   public static final String robotDefinitionFileExtension = ".scs2.robot";
+   public static final String terrainObjectDefinitionFileExtension = ".scs2.terrain";
    public static final String yoGraphicConfigurationFileExtension = ".scs2.yoGraphic";
    public static final String yoRegistryDefinitionFileExtension = ".scs2.registry";
 
@@ -126,37 +142,51 @@ public class SessionIOTools
          {
             if (file.list().length > 0)
             {
-               if (!request.getOverwrite())
+               // Clean up folder
+               String[] allExtensions = {infoFileExtension, robotDefinitionFileExtension, terrainObjectDefinitionFileExtension,
+                     yoGraphicConfigurationFileExtension, yoRegistryDefinitionFileExtension};
+               allExtensions = SharedMemoryTools.concatenate(allExtensions,
+                                                             Arrays.stream(DataFormat.values()).map(DataFormat::getFileExtension).toArray(String[]::new));
+
+               for (File childFile : file.listFiles())
                {
-                  LogTools.error("Could not create directory: {}", file);
-                  return;
+                  for (String extension : allExtensions)
+                  {
+                     if (childFile.getName().endsWith(extension))
+                     {
+                        if (!request.getOverwrite())
+                        {
+                           LogTools.error("Cannot delete file ({}) because overwrite is set to false.", childFile);
+                           return;
+                        }
+                        else if (!childFile.delete())
+                        {
+                           LogTools.error("Could not delete file: {}", file);
+                           return;
+                        }
+                        else
+                        {
+                           break;
+                        }
+                     }
+                  }
                }
             }
          }
       }
 
+      SessionInformationDefinition sessionInfo = new SessionInformationDefinition();
+      sessionInfo.setSessionName(session.getSessionName());
+      sessionInfo.setSessionDTSeconds(session.getSessionDTSeconds());
+
       if (request.getExportRobotDefinitions())
       {
          for (RobotDefinition robotDefinition : session.getRobotDefinitions())
          {
-            File robotFile = new File(file, robotDefinition.getName() + scsRobotDefinitionFileExtension);
-            if (robotFile.exists())
-            {
-               if (!request.getOverwrite())
-               {
-                  LogTools.error("Could not export robot definition to file: {}", robotFile);
-                  continue;
-               }
-
-               if (!robotFile.delete())
-               {
-                  LogTools.error("Could not overwrite file: {}", robotFile);
-                  continue;
-               }
-            }
-
+            File robotFile = new File(file, robotDefinition.getName() + robotDefinitionFileExtension);
             LogTools.info("Exporting RobotDefinition for: . File: {}", robotDefinition.getName(), robotFile);
             DefinitionIOTools.saveRobotDefinition(new FileOutputStream(robotFile), robotDefinition);
+            sessionInfo.getRobotFileNames().add(robotFile.getName());
          }
       }
 
@@ -184,129 +214,60 @@ public class SessionIOTools
 
             terrainNames.add(name);
 
-            File terrainFile = new File(file, name + scsTerrainDefinitionFileExtension);
-            if (terrainFile.exists())
-            {
-               if (!request.getOverwrite())
-               {
-                  LogTools.error("Could not export terrain definition to file: {}", terrainFile);
-                  continue;
-               }
-
-               if (!terrainFile.delete())
-               {
-                  LogTools.error("Could not overwrite file: {}", terrainFile);
-                  continue;
-               }
-            }
-
+            File terrainFile = new File(file, name + terrainObjectDefinitionFileExtension);
             LogTools.info("Exporting TerrainObjectDefinition for: {}. File: {}", name, terrainFile);
             DefinitionIOTools.saveTerrainObjectDefinition(new FileOutputStream(terrainFile), terrainObjectDefinition);
+            sessionInfo.getTerrainFileNames().add(terrainFile.getName());
          }
       }
 
       if (request.getExportSessionYoGraphicDefinitions())
       {
          File graphicFile = new File(file, "sessionGraphics" + yoGraphicConfigurationFileExtension);
-         boolean export = true;
-
-         if (graphicFile.exists())
-         {
-            if (!request.getOverwrite())
-            {
-               LogTools.error("Could not export session graphic definition to file: {}", graphicFile);
-               export = false;
-            }
-
-            if (!graphicFile.delete())
-            {
-               LogTools.error("Could not overwrite file: {}", graphicFile);
-               export = false;
-            }
-         }
-
-         if (export)
-         {
-
-            LogTools.info("Exporting session yoGraphics. File: {}", graphicFile);
-            DefinitionIOTools.saveYoGraphicListDefinition(new FileOutputStream(graphicFile), new YoGraphicListDefinition(session.getYoGraphicDefinitions()));
-         }
+         LogTools.info("Exporting session yoGraphics. File: {}", graphicFile);
+         DefinitionIOTools.saveYoGraphicListDefinition(new FileOutputStream(graphicFile), new YoGraphicListDefinition(session.getYoGraphicDefinitions()));
+         sessionInfo.setGraphicFileName(graphicFile.getName());
       }
 
       if (request.getExportSessionBufferRegistryDefinition())
       {
          File registryFile = new File(file, "variables" + yoRegistryDefinitionFileExtension);
-         boolean export = true;
-
-         if (registryFile.exists())
-         {
-            if (!request.getOverwrite())
-            {
-               LogTools.error("Could not export registry definition to file: {}", registryFile);
-               export = false;
-            }
-
-            if (!registryFile.delete())
-            {
-               LogTools.error("Could not overwrite file: {}", registryFile);
-               export = false;
-            }
-         }
-
-         if (export)
-         {
-            LogTools.info("Exporting session variable structure. File: {}", registryFile);
-            SharedMemoryIOTools.exportRegistry(session.getRootRegistry(),
-                                               new FileOutputStream(registryFile),
-                                               request.getVariableFilter(),
-                                               request.getRegistryFilter());
-         }
+         LogTools.info("Exporting session variable structure. File: {}", registryFile);
+         SharedMemoryIOTools.exportRegistry(session.getRootRegistry(),
+                                            new FileOutputStream(registryFile),
+                                            request.getVariableFilter(),
+                                            request.getRegistryFilter());
+         sessionInfo.setRegistryFileName(registryFile.getName());
       }
 
       if (request.getExportSessionBufferDataFormat() != null)
       {
-         boolean export = true;
-
-         for (DataFormat dataFormat : DataFormat.values())
+         File dataFile = new File(file, "data" + request.getExportSessionBufferDataFormat().getFileExtension());
+         LogTools.info("Exporting session data. File: {}", dataFile);
+         switch (request.getExportSessionBufferDataFormat())
          {
-            File dataFile = new File(file, "data" + dataFormat.getFileExtension());
-
-            if (dataFile.exists() && (!request.getOverwrite() || !dataFile.delete()))
-            {
-               LogTools.error("Could not delete data file: {}", dataFile);
-               export = false;
+            case ASCII:
+               SharedMemoryIOTools.exportDataASCII(session.getBuffer(),
+                                                   new FileOutputStream(dataFile),
+                                                   request.getVariableFilter(),
+                                                   request.getRegistryFilter());
                break;
-            }
+            case CSV:
+               SharedMemoryIOTools.exportDataCSV(session.getBuffer(), new FileOutputStream(dataFile), request.getVariableFilter(), request.getRegistryFilter());
+               break;
+            case MATLAB:
+               SharedMemoryIOTools.exportDataMatlab(session.getBuffer(), dataFile, request.getVariableFilter(), request.getRegistryFilter());
+               break;
+            default:
+               LogTools.error("Unhandled data format: {}", request.getExportSessionBufferDataFormat());
+               break;
          }
-
-         if (export)
-         {
-            File dataFile = new File(file, "data" + request.getExportSessionBufferDataFormat().getFileExtension());
-            LogTools.info("Exporting session data. File: {}", dataFile);
-            switch (request.getExportSessionBufferDataFormat())
-            {
-               case ASCII:
-                  SharedMemoryIOTools.exportDataASCII(session.getBuffer(),
-                                                      new FileOutputStream(dataFile),
-                                                      request.getVariableFilter(),
-                                                      request.getRegistryFilter());
-                  break;
-               case CSV:
-                  SharedMemoryIOTools.exportDataCSV(session.getBuffer(),
-                                                    new FileOutputStream(dataFile),
-                                                    request.getVariableFilter(),
-                                                    request.getRegistryFilter());
-                  break;
-               case MATLAB:
-                  SharedMemoryIOTools.exportDataMatlab(session.getBuffer(), dataFile, request.getVariableFilter(), request.getRegistryFilter());
-                  break;
-               default:
-                  LogTools.error("Unhandled data format: {}", request.getExportSessionBufferDataFormat());
-                  break;
-            }
-            LogTools.info("Done exporting session data.");
-         }
+         sessionInfo.setDataFileName(dataFile.getName());
+         LogTools.info("Done exporting session data.");
       }
+
+      File sessionInfoFile = new File(file, "session" + infoFileExtension);
+      DefinitionIOTools.saveSessionInformationDefinition(new FileOutputStream(sessionInfoFile), sessionInfo);
    }
 
    public static void emptyDirectory(File directoryToEmpty)

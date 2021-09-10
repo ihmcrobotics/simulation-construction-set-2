@@ -7,6 +7,7 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
@@ -79,6 +80,7 @@ public class RobotDefinition
       controllerDefinitions.add(controllerDefinition);
    }
 
+   @XmlTransient
    public void setResourceClassLoader(ClassLoader resourceClassLoader)
    {
       this.resourceClassLoader = resourceClassLoader;

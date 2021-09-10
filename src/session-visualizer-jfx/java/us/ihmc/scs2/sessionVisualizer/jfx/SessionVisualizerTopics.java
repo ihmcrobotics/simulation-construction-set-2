@@ -8,6 +8,7 @@ import javafx.stage.Window;
 import javafx.util.Pair;
 import us.ihmc.messager.MessagerAPIFactory.Topic;
 import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
+import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.session.SessionDataExportRequest;
 import us.ihmc.scs2.session.SessionMessagerAPI;
 import us.ihmc.scs2.session.SessionMessagerAPI.Sensors.SensorMessage;
@@ -73,6 +74,7 @@ public class SessionVisualizerTopics
    private Topic<Double> playbackRealTimeRate;
    private Topic<Integer> bufferRecordTickPeriod;
    private Topic<SessionDataExportRequest> sessionDataExportRequest;
+   private Topic<Session> startNewSessionRequest;
    private Topic<Boolean> remoteSessionControlsRequest;
    private Topic<Boolean> logSessionControlsRequest;
 
@@ -140,8 +142,9 @@ public class SessionVisualizerTopics
       playbackRealTimeRate = SessionMessagerAPI.PlaybackRealTimeRate;
       bufferRecordTickPeriod = SessionMessagerAPI.BufferRecordTickPeriod;
       sessionDataExportRequest = SessionMessagerAPI.SessionDataExportRequest;
-      remoteSessionControlsRequest = SessionVisualizerMessagerAPI.Session.RemoteSessionControlsRequest;
-      logSessionControlsRequest = SessionVisualizerMessagerAPI.Session.LogSessionControlsRequest;
+      startNewSessionRequest = SessionVisualizerMessagerAPI.SessionAPI.StartNewSessionRequest;
+      remoteSessionControlsRequest = SessionVisualizerMessagerAPI.SessionAPI.RemoteSessionControlsRequest;
+      logSessionControlsRequest = SessionVisualizerMessagerAPI.SessionAPI.LogSessionControlsRequest;
 
       yoBufferCurrentIndexRequest = YoSharedBufferMessagerAPI.CurrentIndexRequest;
       yoBufferIncrementCurrentIndexRequest = YoSharedBufferMessagerAPI.IncrementCurrentIndexRequest;
@@ -375,6 +378,11 @@ public class SessionVisualizerTopics
    public Topic<SessionDataExportRequest> getSessionDataExportRequest()
    {
       return sessionDataExportRequest;
+   }
+
+   public Topic<Session> getStartNewSessionRequest()
+   {
+      return startNewSessionRequest;
    }
 
    public Topic<Boolean> getRemoteSessionControlsRequest()

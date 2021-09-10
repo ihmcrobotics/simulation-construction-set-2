@@ -40,7 +40,7 @@ public class VisualizationSession extends Session
       this.sessionName = sessionName;
       setSessionModeTask(SessionMode.RUNNING, () ->
       {
-         // Do Nothing, the use is responsible for invoking runTick();
+         // Do Nothing, the user is responsible for invoking runTick();
       });
       setSessionMode(SessionMode.RUNNING);
       setSessionState(SessionState.ACTIVE);

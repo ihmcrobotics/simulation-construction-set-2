@@ -12,6 +12,7 @@ import us.ihmc.messager.MessagerAPIFactory.MessagerAPI;
 import us.ihmc.messager.MessagerAPIFactory.Topic;
 import us.ihmc.messager.MessagerAPIFactory.TopicTheme;
 import us.ihmc.messager.MessagerAPIFactory.TypedTopicTheme;
+import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.search.SearchEngines;
 
 public class SessionVisualizerMessagerAPI
@@ -71,7 +72,7 @@ public class SessionVisualizerMessagerAPI
       new YoGraphic();
       new YoChart();
       new YoSliderboard();
-      new Session();
+      new SessionAPI();
    }
 
    public static class KeyFrame
@@ -140,12 +141,14 @@ public class SessionVisualizerMessagerAPI
       public static final Topic<File> YoSliderboardLoadConfiguration = APIRoot.child(YoSliderboard).child(Configuration).topic(Load);
    }
 
-   public static class Session
+   public static class SessionAPI
    {
       private static final CategoryTheme Session = apiFactory.createCategoryTheme("Session");
+      private static final CategoryTheme Start = apiFactory.createCategoryTheme("Start");
       private static final CategoryTheme Remote = apiFactory.createCategoryTheme("Remote");
       private static final CategoryTheme Log = apiFactory.createCategoryTheme("Log");
 
+      public static final Topic<Session> StartNewSessionRequest = APIRoot.child(Session).child(Start).topic(Request);
       public static final Topic<Boolean> RemoteSessionControlsRequest = APIRoot.child(Session).child(Remote).child(Controls).topic(Request);
       public static final Topic<Boolean> LogSessionControlsRequest = APIRoot.child(Session).child(Log).child(Controls).topic(Request);
    }

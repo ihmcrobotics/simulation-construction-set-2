@@ -58,15 +58,24 @@ public class MultiSessionManager
                SessionVisualizerIOTools.addSCSIconToDialog(alert);
                Optional<ButtonType> result = alert.showAndWait();
                stopSession(result.isPresent() && result.get() == ButtonType.OK);
+               if (oldValue != null)
+                  oldValue.shutdownSession();
             }
          });
 
          if (newValue != null)
-            startSession(newValue, () -> activeController.get().notifySessionLoaded());
+         {
+            startSession(newValue, () ->
+            {
+               if (activeController.get() != null)
+                  activeController.get().notifySessionLoaded();
+            });
+         }
       });
 
       SessionVisualizerTopics topics = toolkit.getTopics();
       JavaFXMessager messager = toolkit.getMessager();
+      messager.registerTopicListener(topics.getStartNewSessionRequest(), m -> activeSession.set(m));
       messager.registerJavaFXSyncedTopicListener(topics.getRemoteSessionControlsRequest(), m -> openRemoteSessionControls());
       messager.registerJavaFXSyncedTopicListener(topics.getLogSessionControlsRequest(), m -> openLogSessionControls());
       messager.registerJavaFXSyncedTopicListener(topics.getSessionVisualizerConfigurationLoadRequest(), m -> loadSessionConfiguration(m));
@@ -146,7 +155,6 @@ public class MultiSessionManager
             loader.load();
             controller = loader.getController();
             controller.initialize(toolkit);
-            controller.activeSessionProperty().addListener((o, oldValue, newValue) -> activeSession.set(newValue));
          }
          catch (IOException e)
          {
