@@ -82,7 +82,7 @@ public class EnvironmentManager implements Manager
       {
          for (TerrainObjectDefinition definition : terrainObjectDefinitions)
          {
-            Node nodes = JavaFXVisualTools.collectNodes(definition.getVisualDefinitions());
+            Node nodes = JavaFXVisualTools.collectNodes(definition.getVisualDefinitions(), definition.getResourceClassLoader());
             if (nodes != null)
                terrainObjectGraphics.getChildren().add(nodes);
          }

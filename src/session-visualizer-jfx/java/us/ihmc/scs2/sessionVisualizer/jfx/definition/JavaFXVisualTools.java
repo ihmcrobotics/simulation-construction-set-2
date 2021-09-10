@@ -172,67 +172,67 @@ public class JavaFXVisualTools
       else if (geometryDefinition instanceof ArcTorus3DDefinition)
       {
          MeshView arcTorus = toArcTorus((ArcTorus3DDefinition) geometryDefinition);
-         arcTorus.setMaterial(toMaterial(materialDefinition));
+         arcTorus.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return arcTorus;
       }
       else if (geometryDefinition instanceof Box3DDefinition)
       {
          Box box = toBox((Box3DDefinition) geometryDefinition);
-         box.setMaterial(toMaterial(materialDefinition));
+         box.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return box;
       }
       else if (geometryDefinition instanceof Capsule3DDefinition)
       {
          MeshView capsule = toCapsule((Capsule3DDefinition) geometryDefinition);
-         capsule.setMaterial(toMaterial(materialDefinition));
+         capsule.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return capsule;
       }
       else if (geometryDefinition instanceof Cone3DDefinition)
       {
          MeshView cone = toCone((Cone3DDefinition) geometryDefinition);
-         cone.setMaterial(toMaterial(materialDefinition));
+         cone.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return cone;
       }
       else if (geometryDefinition instanceof Cylinder3DDefinition)
       {
          Shape3D cylinder = toCylinder((Cylinder3DDefinition) geometryDefinition);
-         cylinder.setMaterial(toMaterial(materialDefinition));
+         cylinder.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return cylinder;
       }
       else if (geometryDefinition instanceof Ellipsoid3DDefinition)
       {
          MeshView ellipsoid = toEllipsoid((Ellipsoid3DDefinition) geometryDefinition);
-         ellipsoid.setMaterial(toMaterial(materialDefinition));
+         ellipsoid.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return ellipsoid;
       }
       else if (geometryDefinition instanceof TruncatedCone3DDefinition)
       {
          MeshView genTruncatedCone = toGenTruncatedCone((TruncatedCone3DDefinition) geometryDefinition);
-         genTruncatedCone.setMaterial(toMaterial(materialDefinition));
+         genTruncatedCone.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return genTruncatedCone;
       }
       else if (geometryDefinition instanceof HemiEllipsoid3DDefinition)
       {
          MeshView hemiEllipsoid = toHemiEllipsoid((HemiEllipsoid3DDefinition) geometryDefinition);
-         hemiEllipsoid.setMaterial(toMaterial(materialDefinition));
+         hemiEllipsoid.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return hemiEllipsoid;
       }
       else if (geometryDefinition instanceof Sphere3DDefinition)
       {
          Sphere sphere = toSphere((Sphere3DDefinition) geometryDefinition);
-         sphere.setMaterial(toMaterial(materialDefinition));
+         sphere.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return sphere;
       }
       else if (geometryDefinition instanceof Torus3DDefinition)
       {
          MeshView torus = toTorus((Torus3DDefinition) geometryDefinition);
-         torus.setMaterial(toMaterial(materialDefinition));
+         torus.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return torus;
       }
       else if (geometryDefinition instanceof Ramp3DDefinition)
       {
          MeshView ramp = toRamp((Ramp3DDefinition) geometryDefinition);
-         ramp.setMaterial(toMaterial(materialDefinition));
+         ramp.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return ramp;
       }
       else if (geometryDefinition instanceof ModelFileGeometryDefinition)
@@ -648,7 +648,7 @@ public class JavaFXVisualTools
       return filteredNodes;
    }
 
-   public static Material toMaterial(MaterialDefinition materialDefinition)
+   public static Material toMaterial(MaterialDefinition materialDefinition, ClassLoader resourceClassLoader)
    {
       if (materialDefinition == null)
          return DEFAULT_MATERIAL;
@@ -682,22 +682,22 @@ public class JavaFXVisualTools
 
       if (diffuseMap != null)
       {
-         phongMaterial.setDiffuseMap(toImage(diffuseMap));
+         phongMaterial.setDiffuseMap(toImage(diffuseMap, resourceClassLoader));
          atLeastOneFieldSet = true;
       }
       if (emissiveMap != null)
       {
-         phongMaterial.setSelfIlluminationMap(toImage(emissiveMap));
+         phongMaterial.setSelfIlluminationMap(toImage(emissiveMap, resourceClassLoader));
          atLeastOneFieldSet = true;
       }
       if (normalMap != null)
       {
-         phongMaterial.setBumpMap(toImage(normalMap));
+         phongMaterial.setBumpMap(toImage(normalMap, resourceClassLoader));
          atLeastOneFieldSet = true;
       }
       if (specularMap != null)
       {
-         phongMaterial.setSpecularMap(toImage(specularMap));
+         phongMaterial.setSpecularMap(toImage(specularMap, resourceClassLoader));
          phongMaterial.setSpecularPower(materialDefinition.getShininess());
          atLeastOneFieldSet = true;
       }
@@ -705,7 +705,7 @@ public class JavaFXVisualTools
       return atLeastOneFieldSet ? phongMaterial : DEFAULT_MATERIAL;
    }
 
-   public static Image toImage(TextureDefinition textureDefinition)
+   public static Image toImage(TextureDefinition textureDefinition, ClassLoader resourceClassLoader)
    {
       try
       {
@@ -714,9 +714,14 @@ public class JavaFXVisualTools
          if (textureDefinition.getImage() != null)
             return SwingFXUtils.toFXImage(textureDefinition.getImage(), null);
          if (textureDefinition.getFileURL() != null)
-            return new Image(textureDefinition.getFileURL().toExternalForm());
+            return new Image(textureDefinition.getFileURL().openStream());
          if (textureDefinition.getFilename() != null)
-            return new Image(textureDefinition.getFilename());
+         {
+            if (resourceClassLoader != null)
+               return new Image(resourceClassLoader.getResourceAsStream(textureDefinition.getFilename()));
+            else
+               return new Image(textureDefinition.getFilename());
+         }
          return null;
       }
       catch (Exception e)
