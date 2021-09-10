@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
@@ -15,6 +16,8 @@ public class TerrainObjectDefinition
    private String name;
    private List<VisualDefinition> visualDefinitions = new ArrayList<>();
    private List<CollisionShapeDefinition> collisionShapeDefinitions = new ArrayList<>();
+
+   private ClassLoader resourceClassLoader;
 
    public TerrainObjectDefinition()
    {
@@ -76,6 +79,17 @@ public class TerrainObjectDefinition
    public List<CollisionShapeDefinition> getCollisionShapeDefinitions()
    {
       return collisionShapeDefinitions;
+   }
+
+   @XmlTransient
+   public void setResourceClassLoader(ClassLoader resourceClassLoader)
+   {
+      this.resourceClassLoader = resourceClassLoader;
+   }
+
+   public ClassLoader getResourceClassLoader()
+   {
+      return resourceClassLoader;
    }
 
    public TerrainObjectDefinition copy()

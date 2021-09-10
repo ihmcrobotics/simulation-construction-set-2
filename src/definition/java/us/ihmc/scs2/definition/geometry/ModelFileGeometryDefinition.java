@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import us.ihmc.euclid.tuple3D.Vector3D;
 
@@ -78,6 +79,7 @@ public class ModelFileGeometryDefinition extends GeometryDefinition
     * @param resourceDirectories the list of the directories containing resources needed for the
     *                            loading the model file.
     */
+   @XmlElement
    public void setResourceDirectories(List<String> resourceDirectories)
    {
       this.resourceDirectories = resourceDirectories;
@@ -88,6 +90,7 @@ public class ModelFileGeometryDefinition extends GeometryDefinition
     * 
     * @param resourceClassLoader the class loader to use with this model file.
     */
+   @XmlTransient
    public void setResourceClassLoader(ClassLoader resourceClassLoader)
    {
       this.resourceClassLoader = resourceClassLoader;
@@ -98,6 +101,7 @@ public class ModelFileGeometryDefinition extends GeometryDefinition
     * 
     * @param scale scale to apply to the loaded mesh.
     */
+   @XmlElement
    public void setScale(Vector3D scale)
    {
       this.scale = scale;
