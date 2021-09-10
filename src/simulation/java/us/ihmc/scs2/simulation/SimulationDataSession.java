@@ -4,6 +4,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -16,6 +20,7 @@ import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
 import us.ihmc.scs2.session.DefinitionIOTools;
 import us.ihmc.scs2.session.Session;
+import us.ihmc.scs2.session.SessionIOTools;
 import us.ihmc.scs2.session.SessionIOTools.DataFormat;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.session.SessionState;
@@ -40,13 +45,21 @@ public class SimulationDataSession extends Session
       for (String robotFileName : sessionInfo.getRobotFileNames())
       {
          File robotFile = new File(dataDirectory, robotFileName);
-         robotDefinitions.add(DefinitionIOTools.loadRobotDefinition(new FileInputStream(robotFile)));
+         RobotDefinition robotDefinition = DefinitionIOTools.loadRobotDefinition(new FileInputStream(robotFile));
+         Path resourceDirectory = Paths.get(dataDirectory.getAbsolutePath(), "resources", robotDefinition.getName());
+         robotDefinition.setResourceClassLoader(new URLClassLoader(new URL[] {resourceDirectory.toUri().toURL()}));
+         robotDefinitions.add(robotDefinition);
       }
 
       for (String terrainFileName : sessionInfo.getTerrainFileNames())
       {
          File robotFile = new File(dataDirectory, terrainFileName);
-         terrainObjectDefinitions.add(DefinitionIOTools.loadTerrainObjectDefinition(new FileInputStream(robotFile)));
+         TerrainObjectDefinition terrainObjectDefinition = DefinitionIOTools.loadTerrainObjectDefinition(new FileInputStream(robotFile));
+         Path resourceDirectory = Paths.get(dataDirectory.getAbsolutePath(),
+                                            "resources",
+                                            terrainFileName.replace(SessionIOTools.terrainObjectDefinitionFileExtension, ""));
+         terrainObjectDefinition.setResourceClassLoader(new URLClassLoader(new URL[] {resourceDirectory.toUri().toURL()}));
+         terrainObjectDefinitions.add(terrainObjectDefinition);
       }
 
       if (sessionInfo.getGraphicFileName() != null)
@@ -81,6 +94,9 @@ public class SimulationDataSession extends Session
                throw new IllegalStateException("Unhandled data format: " + dataFile.getName());
          }
       }
+
+      hasBufferSizeBeenInitialized = true;
+      hasBufferRecordPeriodBeenInitialized = true;
 
       setSessionModeTask(SessionMode.RUNNING, () ->
       {

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -78,7 +79,7 @@ public class SessionIOTools
    public static final String yoGraphicConfigurationFileExtension = ".scs2.yoGraphic";
    public static final String yoRegistryDefinitionFileExtension = ".scs2.registry";
 
-   public static void exportSessionData(Session session, SessionDataExportRequest request) throws JAXBException, IOException
+   public static void exportSessionData(Session session, SessionDataExportRequest request) throws JAXBException, IOException, URISyntaxException
    {
       if (request.getOnExportStartCallback() != null)
       {
@@ -112,7 +113,7 @@ public class SessionIOTools
       }
    }
 
-   private static void exportSessionDataImpl(Session session, SessionDataExportRequest request) throws JAXBException, IOException
+   private static void exportSessionDataImpl(Session session, SessionDataExportRequest request) throws JAXBException, IOException, URISyntaxException
    {
       File file = request.getFile();
 
@@ -150,6 +151,24 @@ public class SessionIOTools
 
                for (File childFile : file.listFiles())
                {
+                  if (childFile.isDirectory() && childFile.getName().equals("resources"))
+                  {
+                     if (!request.getOverwrite())
+                     {
+                        LogTools.error("Cannot delete file ({}) because overwrite is set to false.", childFile);
+                        return;
+                     }
+                     else if (!emptyDirectory(childFile))
+                     {
+                        LogTools.error("Could not empty directory: {}", childFile);
+                        return;
+                     }
+                     else
+                     {
+                        continue;
+                     }
+                  }
+
                   for (String extension : allExtensions)
                   {
                      if (childFile.getName().endsWith(extension))
@@ -161,7 +180,7 @@ public class SessionIOTools
                         }
                         else if (!childFile.delete())
                         {
-                           LogTools.error("Could not delete file: {}", file);
+                           LogTools.error("Could not delete file: {}", childFile);
                            return;
                         }
                         else
@@ -179,14 +198,23 @@ public class SessionIOTools
       sessionInfo.setSessionName(session.getSessionName());
       sessionInfo.setSessionDTSeconds(session.getSessionDTSeconds());
 
+      File resourcesDirectory = new File(file, "resources");
+      resourcesDirectory.mkdir();
+
       if (request.getExportRobotDefinitions())
       {
          for (RobotDefinition robotDefinition : session.getRobotDefinitions())
          {
-            File robotFile = new File(file, robotDefinition.getName() + robotDefinitionFileExtension);
-            LogTools.info("Exporting RobotDefinition for: . File: {}", robotDefinition.getName(), robotFile);
+            String name = robotDefinition.getName();
+            File robotFile = new File(file, name + robotDefinitionFileExtension);
+            LogTools.info("Exporting RobotDefinition for: {} File: {}", name, robotFile);
             DefinitionIOTools.saveRobotDefinition(new FileOutputStream(robotFile), robotDefinition);
             sessionInfo.getRobotFileNames().add(robotFile.getName());
+            ClassLoader resourceClassLoader = robotDefinition.getResourceClassLoader();
+            if (resourceClassLoader == null)
+               resourceClassLoader = SessionIOTools.class.getClassLoader();
+            File robotResourceDirectory = new File(resourcesDirectory, name);
+            DefinitionIOTools.saveResources(robotDefinition, robotResourceDirectory, resourceClassLoader);
          }
       }
 
@@ -218,6 +246,12 @@ public class SessionIOTools
             LogTools.info("Exporting TerrainObjectDefinition for: {}. File: {}", name, terrainFile);
             DefinitionIOTools.saveTerrainObjectDefinition(new FileOutputStream(terrainFile), terrainObjectDefinition);
             sessionInfo.getTerrainFileNames().add(terrainFile.getName());
+
+            ClassLoader resourceClassLoader = terrainObjectDefinition.getResourceClassLoader();
+            if (resourceClassLoader == null)
+               resourceClassLoader = SessionIOTools.class.getClassLoader();
+            File terrainResourceDirectory = new File(resourcesDirectory, name);
+            DefinitionIOTools.saveResources(terrainObjectDefinition, terrainResourceDirectory, resourceClassLoader);
          }
       }
 
@@ -270,19 +304,21 @@ public class SessionIOTools
       DefinitionIOTools.saveSessionInformationDefinition(new FileOutputStream(sessionInfoFile), sessionInfo);
    }
 
-   public static void emptyDirectory(File directoryToEmpty)
+   public static boolean emptyDirectory(File directoryToEmpty)
    {
       if (!directoryToEmpty.isDirectory())
-         return;
+         return false;
 
       try
       {
          FileUtils.deleteDirectory(directoryToEmpty);
          directoryToEmpty.mkdir();
+         return true;
       }
       catch (IOException e)
       {
          e.printStackTrace();
+         return false;
       }
    }
 

@@ -1,15 +1,29 @@
 package us.ihmc.scs2.session;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+
+import org.apache.commons.lang3.mutable.MutableObject;
 
 import us.ihmc.scs2.definition.SessionInformationDefinition;
 import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
@@ -324,6 +338,220 @@ public class DefinitionIOTools
       finally
       {
          outputStream.close();
+      }
+   }
+
+   public static void saveResources(RobotDefinition robotDefinition, File resourceDirectory, ClassLoader defaultClassLoader)
+         throws IOException, URISyntaxException
+   {
+      processResources(robotDefinition.getRootBodyDefinition(), resourceDirectory, defaultClassLoader);
+   }
+
+   private static void processResources(RigidBodyDefinition rigidBody, File resourceDirectory, ClassLoader defaultClassLoader)
+         throws IOException, URISyntaxException
+   {
+      for (VisualDefinition visualDefinition : rigidBody.getVisualDefinitions())
+      {
+         processResources(visualDefinition.getGeometryDefinition(), resourceDirectory, defaultClassLoader);
+         processResources(visualDefinition.getMaterialDefinition(), resourceDirectory, defaultClassLoader);
+      }
+
+      for (CollisionShapeDefinition collisionShapeDefinition : rigidBody.getCollisionShapeDefinitions())
+      {
+         processResources(collisionShapeDefinition.getGeometryDefinition(), resourceDirectory, defaultClassLoader);
+      }
+
+      for (JointDefinition jointDefinition : rigidBody.getChildrenJoints())
+      {
+         processResources(jointDefinition.getSuccessor(), resourceDirectory, defaultClassLoader);
+      }
+   }
+
+   public static void saveResources(TerrainObjectDefinition terrainObjectDefinition, File resourceDirectory, ClassLoader defaultClassLoader)
+         throws IOException, URISyntaxException
+   {
+      for (VisualDefinition visualDefinition : terrainObjectDefinition.getVisualDefinitions())
+      {
+         processResources(visualDefinition.getGeometryDefinition(), resourceDirectory, defaultClassLoader);
+         processResources(visualDefinition.getMaterialDefinition(), resourceDirectory, defaultClassLoader);
+      }
+
+      for (CollisionShapeDefinition collisionShapeDefinition : terrainObjectDefinition.getCollisionShapeDefinitions())
+      {
+         processResources(collisionShapeDefinition.getGeometryDefinition(), resourceDirectory, defaultClassLoader);
+      }
+   }
+
+   private static void processResources(GeometryDefinition geometryDefinition, File resourceDirectory, ClassLoader defaultClassLoader)
+         throws IOException, URISyntaxException
+   {
+      if (geometryDefinition == null)
+         return;
+
+      if (geometryDefinition instanceof ModelFileGeometryDefinition)
+      {
+         ModelFileGeometryDefinition modelFileGeometryDefinition = (ModelFileGeometryDefinition) geometryDefinition;
+         if (modelFileGeometryDefinition.getFileName() == null)
+            return;
+
+         String filename = modelFileGeometryDefinition.getFileName();
+         Path targetPath = resourceDirectory.toPath().resolve(filename);
+
+         if (Files.exists(targetPath))
+            return;
+
+         Files.createDirectories(targetPath.getParent());
+
+         ClassLoader resourceClassLoader = modelFileGeometryDefinition.getResourceClassLoader();
+         if (resourceClassLoader == null)
+            resourceClassLoader = defaultClassLoader;
+         URL sourceURL = filenameToURL(filename, resourceClassLoader);
+
+         copyFileAndSiblings(sourceURL, targetPath, defaultClassLoader);
+      }
+   }
+
+   private static void processResources(MaterialDefinition materialDefinition, File resourceDirectory, ClassLoader defaultClassLoader)
+         throws IOException, URISyntaxException
+   {
+      if (materialDefinition == null)
+         return;
+      processResources(materialDefinition.getDiffuseMap(), resourceDirectory, defaultClassLoader);
+      processResources(materialDefinition.getEmissiveMap(), resourceDirectory, defaultClassLoader);
+      processResources(materialDefinition.getNormalMap(), resourceDirectory, defaultClassLoader);
+      processResources(materialDefinition.getSpecularMap(), resourceDirectory, defaultClassLoader);
+   }
+
+   private static void processResources(TextureDefinition textureDefinition, File resourceDirectory, ClassLoader defaultClassLoader)
+         throws IOException, URISyntaxException
+   {
+      if (textureDefinition == null)
+         return;
+
+      if (textureDefinition.getImage() != null)
+         throw new UnsupportedOperationException("Implement me");
+
+      URL sourceURL;
+
+      if (textureDefinition.getFilename() != null)
+      {
+         sourceURL = filenameToURL(textureDefinition.getFilename(), defaultClassLoader);
+      }
+      else if (textureDefinition.getFileURL() != null)
+      {
+         sourceURL = textureDefinition.getFileURL();
+      }
+      else
+      {
+         return;
+      }
+
+      Path targetPath = resourceDirectory.toPath().resolve(textureDefinition.getFilename());
+
+      if (Files.exists(targetPath))
+         return;
+
+      Files.createDirectories(targetPath.getParent());
+      copyFileAndSiblings(sourceURL, targetPath, defaultClassLoader);
+   }
+
+   public static URL filenameToURL(String filename, ClassLoader resourceClassLoader)
+   {
+      URL fileURL = resourceClassLoader.getResource(filename);
+
+      if (fileURL == null)
+      {
+         File file = new File(filename);
+         try
+         {
+            fileURL = file.toURI().toURL();
+         }
+         catch (MalformedURLException e)
+         {
+            throw new RuntimeException(e);
+         }
+      }
+      return fileURL;
+   }
+
+   private static void copyFileAndSiblings(URL sourceURL, Path targetPath, ClassLoader resourceClassLoader) throws IOException, URISyntaxException
+   {
+      if (sourceURL.getProtocol().equals("jar"))
+      {
+         copyJarFileAndSiblings(sourceURL, targetPath, resourceClassLoader);
+      }
+      else
+      {
+         copyFileTree(Paths.get(sourceURL.toURI()).getParent(), targetPath.getParent());
+      }
+   }
+
+   private static void copyJarFileAndSiblings(URL sourceURL, Path targetPath, ClassLoader resourceClassLoader)
+         throws UnsupportedEncodingException, IOException, URISyntaxException
+   {
+      Path targetParentPath = targetPath.getParent();
+
+      String internalParentPath = sourceURL.getPath().substring(sourceURL.getPath().indexOf("!") + 2, sourceURL.getPath().length());
+
+      if (internalParentPath.contains("/"))
+      {
+         internalParentPath = internalParentPath.substring(0, internalParentPath.lastIndexOf("/") + 1);
+         String correctedTarget = targetParentPath.toString().replace("\\", "/");
+         int endIndex = correctedTarget.lastIndexOf(internalParentPath.substring(0, internalParentPath.length() - 1)); // removing the last '/'
+         correctedTarget = correctedTarget.substring(0, endIndex);
+         targetParentPath = Paths.get(correctedTarget);
+      }
+      else
+      {
+         internalParentPath = null;
+      }
+
+      String jarPath = sourceURL.getPath().substring(5, sourceURL.getPath().indexOf("!"));
+      JarFile jar = new JarFile(URLDecoder.decode(jarPath, "UTF-8"));
+
+      Enumeration<JarEntry> entries = jar.entries(); //gives ALL entries in jar
+
+      while (entries.hasMoreElements())
+      {
+         JarEntry nextElement = entries.nextElement();
+         String nextElementName = nextElement.getName();
+
+         if (internalParentPath != null && !nextElementName.startsWith(internalParentPath))
+            continue;
+
+         if (nextElementName.equals(internalParentPath))
+            continue;
+
+         if (Files.exists(targetParentPath.resolve(nextElementName)))
+            continue;
+
+         Files.copy(filenameToURL(nextElementName, resourceClassLoader).openStream(), targetParentPath.resolve(nextElementName));
+      }
+   }
+
+   private static void copyFileTree(Path sourcePath, Path targetPath) throws IOException
+   {
+      if (!Files.exists(targetPath))
+         Files.copy(sourcePath, targetPath);
+
+      if (Files.isDirectory(sourcePath))
+      {
+         MutableObject<IOException> thrownException = new MutableObject<>(null);
+
+         Files.list(sourcePath).forEach(sourceChildPath ->
+         {
+            try
+            {
+               copyFileTree(sourceChildPath, targetPath.resolve(sourceChildPath.getFileName()));
+            }
+            catch (IOException e)
+            {
+               thrownException.setValue(e);
+            }
+         });
+
+         if (thrownException.getValue() != null)
+            throw thrownException.getValue();
       }
    }
 
