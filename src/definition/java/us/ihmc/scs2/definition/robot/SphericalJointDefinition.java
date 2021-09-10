@@ -21,9 +21,20 @@ public class SphericalJointDefinition extends JointDefinition
       super(name, offsetFromParent);
    }
 
+   public SphericalJointDefinition(SphericalJointDefinition other)
+   {
+      super(other);
+   }
+
    @Override
    public SphericalJointBasics toJoint(RigidBodyBasics predecessor)
    {
       return new SphericalJoint(getName(), predecessor, getTransformToParent());
+   }
+
+   @Override
+   public SphericalJointDefinition copy()
+   {
+      return new SphericalJointDefinition(this);
    }
 }

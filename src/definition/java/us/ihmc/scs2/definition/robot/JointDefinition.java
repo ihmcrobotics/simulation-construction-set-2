@@ -48,6 +48,22 @@ public abstract class JointDefinition implements Transformable
       transformToParent.getTranslation().set(offsetFromParent);
    }
 
+   public JointDefinition(JointDefinition other)
+   {
+      name = other.name;
+      transformToParent.set(other.transformToParent);
+      if (other.initialJointState != null)
+         initialJointState = other.initialJointState.copy();
+      for (SensorDefinition sensorDefinition : other.sensorDefinitions)
+         sensorDefinitions.add(sensorDefinition.copy());
+      for (KinematicPointDefinition kinematicPointDefinition : other.kinematicPointDefinitions)
+         kinematicPointDefinitions.add(kinematicPointDefinition.copy());
+      for (ExternalWrenchPointDefinition externalWrenchPointDefinition : other.externalWrenchPointDefinitions)
+         externalWrenchPointDefinitions.add(externalWrenchPointDefinition.copy());
+      for (GroundContactPointDefinition groundContactPointDefinition : other.groundContactPointDefinitions)
+         groundContactPointDefinitions.add(groundContactPointDefinition.copy());
+   }
+
    @XmlAttribute
    public void setName(String name)
    {
@@ -211,6 +227,15 @@ public abstract class JointDefinition implements Transformable
       externalWrenchPointDefinitions.forEach(efp -> efp.applyInverseTransform(transform));
       groundContactPointDefinitions.forEach(gcp -> gcp.applyInverseTransform(transform));
       sensorDefinitions.forEach(sensor -> sensor.applyInverseTransform(transform));
+   }
+
+   public abstract JointDefinition copy();
+
+   public JointDefinition copyRecursive()
+   {
+      JointDefinition copy = copy();
+      copy.setSuccessor(successor.copyRecursive());
+      return copy;
    }
 
    @Override

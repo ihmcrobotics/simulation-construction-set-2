@@ -42,6 +42,16 @@ public class VisualDefinition
       this.materialDefinition = materialDefinition;
    }
 
+   public VisualDefinition(VisualDefinition other)
+   {
+      name = other.name;
+      originPose.set(other.originPose);
+      if (other.geometryDefinition != null)
+         geometryDefinition = other.geometryDefinition.copy();
+      if (other.materialDefinition != null)
+         materialDefinition = other.materialDefinition.copy();
+   }
+
    @XmlElement
    public void setName(String name)
    {
@@ -94,6 +104,11 @@ public class VisualDefinition
    public MaterialDefinition getMaterialDefinition()
    {
       return materialDefinition;
+   }
+
+   public VisualDefinition copy()
+   {
+      return new VisualDefinition(this);
    }
 
    @Override

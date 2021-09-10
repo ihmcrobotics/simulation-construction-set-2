@@ -34,6 +34,23 @@ public abstract class OneDoFJointDefinition extends JointDefinition
       setAxis(axis);
    }
 
+   public OneDoFJointDefinition(OneDoFJointDefinition other)
+   {
+      super(other);
+
+      axis.set(other.axis);
+      positionLowerLimit = other.positionLowerLimit;
+      positionUpperLimit = other.positionUpperLimit;
+      velocityLowerLimit = other.velocityLowerLimit;
+      velocityUpperLimit = other.velocityUpperLimit;
+      effortLowerLimit = other.effortLowerLimit;
+      effortUpperLimit = other.effortUpperLimit;
+      damping = other.damping;
+      stiction = other.stiction;
+      kpSoftLimitStop = other.kpSoftLimitStop;
+      kdSoftLimitStop = other.kdSoftLimitStop;
+   }
+
    @XmlElement
    public void setAxis(Vector3D axis)
    {

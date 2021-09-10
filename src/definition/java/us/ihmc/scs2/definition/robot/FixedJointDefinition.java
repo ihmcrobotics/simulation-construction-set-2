@@ -21,9 +21,20 @@ public class FixedJointDefinition extends JointDefinition
       super(name, offsetFromParent);
    }
 
+   public FixedJointDefinition(FixedJointDefinition other)
+   {
+      super(other);
+   }
+
    @Override
    public FixedJointBasics toJoint(RigidBodyBasics predecessor)
    {
       return new FixedJoint(getName(), predecessor, getTransformToParent());
+   }
+
+   @Override
+   public FixedJointDefinition copy()
+   {
+      return new FixedJointDefinition(this);
    }
 }

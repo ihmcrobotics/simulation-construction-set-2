@@ -26,6 +26,15 @@ public class TerrainObjectDefinition
       collisionShapeDefinitions.add(collisionShapeDefinition);
    }
 
+   public TerrainObjectDefinition(TerrainObjectDefinition other)
+   {
+      name = other.name;
+      for (VisualDefinition visualDefinition : other.visualDefinitions)
+         visualDefinitions.add(visualDefinition.copy());
+      for (CollisionShapeDefinition collisionShapeDefinition : other.collisionShapeDefinitions)
+         collisionShapeDefinitions.add(collisionShapeDefinition.copy());
+   }
+
    @XmlElement
    public void setName(String name)
    {
@@ -67,5 +76,10 @@ public class TerrainObjectDefinition
    public List<CollisionShapeDefinition> getCollisionShapeDefinitions()
    {
       return collisionShapeDefinitions;
+   }
+
+   public TerrainObjectDefinition copy()
+   {
+      return new TerrainObjectDefinition(this);
    }
 }

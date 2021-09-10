@@ -22,6 +22,11 @@ public class RevoluteJointDefinition extends OneDoFJointDefinition
       super(name, offsetFromParent, axis);
    }
 
+   public RevoluteJointDefinition(RevoluteJointDefinition other)
+   {
+      super(other);
+   }
+
    @Override
    public RevoluteJointBasics toJoint(RigidBodyBasics predecessor)
    {
@@ -30,5 +35,11 @@ public class RevoluteJointDefinition extends OneDoFJointDefinition
       joint.setVelocityLimits(getVelocityLowerLimit(), getVelocityUpperLimit());
       joint.setEffortLimits(getEffortLowerLimit(), getEffortUpperLimit());
       return joint;
+   }
+
+   @Override
+   public RevoluteJointDefinition copy()
+   {
+      return new RevoluteJointDefinition(this);
    }
 }

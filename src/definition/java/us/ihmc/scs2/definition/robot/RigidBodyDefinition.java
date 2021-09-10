@@ -47,6 +47,18 @@ public class RigidBodyDefinition implements Transformable
       setName(name);
    }
 
+   public RigidBodyDefinition(RigidBodyDefinition other)
+   {
+      name = other.name;
+      mass = other.mass;
+      momentOfInertia.set(other.momentOfInertia);
+      inertiaPose.set(other.inertiaPose);
+      for (VisualDefinition visualDefinition : other.visualDefinitions)
+         visualDefinitions.add(visualDefinition.copy());
+      for (CollisionShapeDefinition collisionShapeDefinition : other.collisionShapeDefinitions)
+         collisionShapeDefinitions.add(collisionShapeDefinition.copy());
+   }
+
    @XmlAttribute
    public void setName(String name)
    {
@@ -228,6 +240,22 @@ public class RigidBodyDefinition implements Transformable
       transform.inverseTransform(inertiaPose);
       transform.inverseTransform(momentOfInertia);
       visualDefinitions.forEach(visual -> transform.inverseTransform(visual.getOriginPose()));
+   }
+
+   public RigidBodyDefinition copy()
+   {
+      return new RigidBodyDefinition(this);
+   }
+
+   public RigidBodyDefinition copyRecursive()
+   {
+      RigidBodyDefinition copy = copy();
+      for (JointDefinition childJoint : childrenJoints)
+      {
+         JointDefinition childJointCopy = childJoint.copyRecursive();
+         copy.addChildJoint(childJointCopy);
+      }
+      return copy;
    }
 
    @Override

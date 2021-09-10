@@ -33,6 +33,17 @@ public class JointState extends JointStateBase implements JointStateBasics
       effort = new DMatrixRMaj(degreesOfFreedom, 1);
    }
 
+   public JointState(JointState other)
+   {
+      configurationSize = other.configurationSize;
+      degreesOfFreedom = other.degreesOfFreedom;
+      configuration = new DMatrixRMaj(other.configuration);
+      velocity = new DMatrixRMaj(other.velocity);
+      acceleration = new DMatrixRMaj(other.acceleration);
+      effort = new DMatrixRMaj(other.effort);
+      availableStates.addAll(other.availableStates);
+   }
+
    @Override
    public void clear()
    {
@@ -162,5 +173,11 @@ public class JointState extends JointStateBase implements JointStateBasics
    public DMatrixRMaj getEffort()
    {
       return effort;
+   }
+
+   @Override
+   public JointState copy()
+   {
+      return new JointState(this);
    }
 }

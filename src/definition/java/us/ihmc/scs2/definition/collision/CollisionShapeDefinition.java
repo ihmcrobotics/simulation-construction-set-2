@@ -45,6 +45,14 @@ public class CollisionShapeDefinition
       this.geometryDefinition = geometryDefinition;
    }
 
+   public CollisionShapeDefinition(CollisionShapeDefinition other)
+   {
+      name = other.name;
+      originPose.set(other.originPose);
+      if (other.geometryDefinition != null)
+         geometryDefinition = other.geometryDefinition.copy();
+   }
+
    @XmlElement
    public void setName(String name)
    {
@@ -103,6 +111,11 @@ public class CollisionShapeDefinition
    public long getCollisionGroup()
    {
       return collisionGroup;
+   }
+
+   public CollisionShapeDefinition copy()
+   {
+      return new CollisionShapeDefinition(this);
    }
 
    @Override

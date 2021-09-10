@@ -36,6 +36,15 @@ public class OneDoFJointState extends JointStateBase implements OneDoFJointState
       setEffort(tau);
    }
 
+   public OneDoFJointState(OneDoFJointState other)
+   {
+      configuration = other.configuration;
+      velocity = other.velocity;
+      acceleration = other.acceleration;
+      effort = other.effort;
+      availableStates.addAll(other.availableStates);
+   }
+
    @Override
    public void clear()
    {
@@ -98,5 +107,11 @@ public class OneDoFJointState extends JointStateBase implements OneDoFJointState
    public double getEffort()
    {
       return effort;
+   }
+
+   @Override
+   public OneDoFJointState copy()
+   {
+      return new OneDoFJointState(this);
    }
 }

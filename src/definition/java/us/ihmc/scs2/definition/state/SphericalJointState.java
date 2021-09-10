@@ -26,6 +26,15 @@ public class SphericalJointState extends JointStateBase implements JointStateBas
    {
    }
 
+   public SphericalJointState(SphericalJointState other)
+   {
+      configuration.set(other.configuration);
+      angularVelocity.set(other.angularVelocity);
+      angularAcceleration.set(other.angularAcceleration);
+      torque.set(other.torque);
+      availableStates.addAll(other.availableStates);
+   }
+
    @Override
    public void clear()
    {
@@ -152,5 +161,11 @@ public class SphericalJointState extends JointStateBase implements JointStateBas
    {
       torque.get(startRow, effortToPack);
       return startRow + getDegreesOfFreedom();
+   }
+
+   @Override
+   public SphericalJointState copy()
+   {
+      return new SphericalJointState(this);
    }
 }

@@ -32,6 +32,18 @@ public class SixDoFJointState extends JointStateBase implements SixDoFJointState
       setConfiguration(orientation, position);
    }
 
+   public SixDoFJointState(SixDoFJointState other)
+   {
+      configuration.set(other.configuration);
+      angularVelocity.set(other.angularVelocity);
+      linearVelocity.set(other.linearVelocity);
+      angularAcceleration.set(other.angularAcceleration);
+      linearAcceleration.set(other.linearAcceleration);
+      torque.set(other.torque);
+      force.set(other.force);
+      availableStates.addAll(other.availableStates);
+   }
+
    @Override
    public void clear()
    {
@@ -130,5 +142,11 @@ public class SixDoFJointState extends JointStateBase implements SixDoFJointState
    public Vector3DReadOnly getForce()
    {
       return force;
+   }
+
+   @Override
+   public SixDoFJointState copy()
+   {
+      return new SixDoFJointState(this);
    }
 }

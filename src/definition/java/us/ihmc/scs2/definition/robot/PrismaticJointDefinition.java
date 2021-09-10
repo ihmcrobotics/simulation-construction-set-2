@@ -22,6 +22,11 @@ public class PrismaticJointDefinition extends OneDoFJointDefinition
       super(name, offsetFromParent, axis);
    }
 
+   public PrismaticJointDefinition(PrismaticJointDefinition other)
+   {
+      super(other);
+   }
+
    @Override
    public PrismaticJointBasics toJoint(RigidBodyBasics predecessor)
    {
@@ -30,5 +35,11 @@ public class PrismaticJointDefinition extends OneDoFJointDefinition
       joint.setVelocityLimits(getVelocityLowerLimit(), getVelocityUpperLimit());
       joint.setEffortLimits(getEffortLowerLimit(), getEffortUpperLimit());
       return joint;
+   }
+
+   @Override
+   public PrismaticJointDefinition copy()
+   {
+      return new PrismaticJointDefinition(this);
    }
 }
