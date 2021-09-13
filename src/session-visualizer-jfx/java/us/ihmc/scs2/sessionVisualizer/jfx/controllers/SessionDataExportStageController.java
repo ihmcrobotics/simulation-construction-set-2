@@ -1,7 +1,9 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -17,8 +19,10 @@ import com.jfoenix.controls.JFXToggleButton;
 
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.SelectionMode;
@@ -32,6 +36,8 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
+import us.ihmc.javaFXToolkit.messager.MessageBidirectionalBinding;
+import us.ihmc.messager.TopicListener;
 import us.ihmc.scs2.session.SessionDataExportRequest;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
@@ -41,6 +47,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.IntegerConverter;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.scs2.sharedMemory.tools.SharedMemoryIOTools.DataFormat;
+import us.ihmc.yoVariables.listener.YoRegistryChangedListener;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -72,7 +79,9 @@ public class SessionDataExportStageController
    private Property<Integer> inPointIndex, outPointIndex;
 
    private final Property<SessionMode> currentSessionMode = new SimpleObjectProperty<>(this, "currentSessionMode", null);
-   private Property<YoBufferPropertiesReadOnly> bufferProperties;
+   private final Property<YoBufferPropertiesReadOnly> bufferProperties = new SimpleObjectProperty<>(this, "bufferProperties", null);
+
+   private final List<Runnable> cleanupActions = new ArrayList<>();
 
    private CheckBoxTreeItem<Object> rootItem;
 
@@ -88,7 +97,14 @@ public class SessionDataExportStageController
       messager = toolkit.getMessager();
       yoManager = toolkit.getYoManager();
 
-      messager.bindBidirectional(topics.getSessionCurrentMode(), currentSessionMode, false);
+      MessageBidirectionalBinding<SessionMode, SessionMode> currentSessionModeBinding = messager.bindBidirectional(topics.getSessionCurrentMode(),
+                                                                                                                   currentSessionMode,
+                                                                                                                   false);
+      cleanupActions.add(() ->
+      {
+         messager.removeJavaFXSyncedTopicListener(topics.getSessionCurrentMode(), currentSessionModeBinding);
+         currentSessionMode.removeListener(currentSessionModeBinding);
+      });
 
       TextFormatter<Integer> inPointFormatter = new TextFormatter<>(new IntegerConverter(), -1, createBufferIndexFilter());
       TextFormatter<Integer> outPointFormatter = new TextFormatter<>(new IntegerConverter(), -1, createBufferIndexFilter());
@@ -100,9 +116,10 @@ public class SessionDataExportStageController
 
       messager.submitMessage(topics.getSessionCurrentMode(), SessionMode.PAUSE);
       MutableBoolean updatingBufferIndex = new MutableBoolean(false);
-      bufferProperties = messager.createPropertyInput(topics.getYoBufferCurrentProperties());
+      TopicListener<YoBufferPropertiesReadOnly> bufferPropertiesBinding = messager.bindPropertyToTopic(topics.getYoBufferCurrentProperties(), bufferProperties);
+      cleanupActions.add(() -> messager.removeJavaFXSyncedTopicListener(topics.getYoBufferCurrentProperties(), bufferPropertiesBinding));
 
-      currentSessionMode.addListener((o, oldValue, newValue) ->
+      ChangeListener<? super SessionMode> currentSessionModeChangeListener = (o, oldValue, newValue) ->
       {
          if (newValue != SessionMode.PAUSE)
          {
@@ -120,9 +137,11 @@ public class SessionDataExportStageController
             currentBufferIndexSlider.setValue(bufferProperties.getValue().getCurrentIndex());
             updatingBufferIndex.setFalse();
          }
-      });
+      };
+      currentSessionMode.addListener(currentSessionModeChangeListener);
+      cleanupActions.add(() -> currentSessionMode.removeListener(currentSessionModeChangeListener));
 
-      messager.registerJavaFXSyncedTopicListener(topics.getYoBufferCurrentProperties(), m ->
+      TopicListener<YoBufferPropertiesReadOnly> bufferPropertiesTopicListener = m ->
       {
          if (currentSessionMode.getValue() != SessionMode.PAUSE)
             return;
@@ -139,9 +158,11 @@ public class SessionDataExportStageController
             currentBufferIndexSlider.setValue(m.getCurrentIndex());
             updatingBufferIndex.setFalse();
          }
-      });
+      };
+      messager.registerJavaFXSyncedTopicListener(topics.getYoBufferCurrentProperties(), bufferPropertiesTopicListener);
+      cleanupActions.add(() -> messager.removeJavaFXSyncedTopicListener(topics.getYoBufferCurrentProperties(), bufferPropertiesTopicListener));
 
-      currentBufferIndexSlider.valueProperty().addListener((o, oldValue, newValue) ->
+      ChangeListener<? super Number> bufferIndexSliderListener = (o, oldValue, newValue) ->
       {
          if (currentSessionMode.getValue() != SessionMode.PAUSE)
             return;
@@ -152,7 +173,9 @@ public class SessionDataExportStageController
             messager.submitMessage(topics.getYoBufferCurrentIndexRequest(), newValue.intValue());
             updatingBufferIndex.setFalse();
          }
-      });
+      };
+      currentBufferIndexSlider.valueProperty().addListener(bufferIndexSliderListener);
+      cleanupActions.add(() -> currentBufferIndexSlider.valueProperty().removeListener(bufferIndexSliderListener));
 
       dataFormatComboBox.setItems(FXCollections.observableArrayList(DataFormat.values()));
       dataFormatComboBox.getSelectionModel().select(DataFormat.ASCII);
@@ -188,10 +211,16 @@ public class SessionDataExportStageController
       });
       selectedVariablesCheckTreeView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
       selectedVariablesCheckTreeView.setShowRoot(true);
-      yoManager.getRootRegistry().addListener(change -> refreshTreeView());
+      YoRegistryChangedListener rootRegistryListener = change -> refreshTreeView();
+      yoManager.getRootRegistry().addListener(rootRegistryListener);
+      cleanupActions.add(() -> yoManager.getRootRegistry().removeListener(rootRegistryListener));
       refreshTreeView();
 
-      owner.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, e -> close());
+      EventHandler<? super WindowEvent> closeWindowEventHandler = e -> close();
+      owner.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, closeWindowEventHandler);
+      cleanupActions.add(() -> owner.removeEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, closeWindowEventHandler));
+
+      stage.setOnCloseRequest(e -> close());
    }
 
    private UnaryOperator<Change> createBufferIndexFilter()
@@ -257,6 +286,8 @@ public class SessionDataExportStageController
    public void close()
    {
       stage.close();
+      cleanupActions.forEach(Runnable::run);
+      cleanupActions.clear();
    }
 
    @FXML
