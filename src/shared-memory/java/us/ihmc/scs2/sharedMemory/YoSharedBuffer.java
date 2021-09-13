@@ -513,11 +513,19 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
       if (isDisposed)
          return;
 
-      isDisposed = true;
-      registryBuffer.dispose();
-      linkedBuffers.dispose();
-      linkedBufferProperties.forEach(l -> l.dispose());
-      linkedBufferProperties.clear();
+      try
+      {
+         linkedBuffersLock.lock();
+         isDisposed = true;
+         registryBuffer.dispose();
+         linkedBuffers.dispose();
+         linkedBufferProperties.forEach(l -> l.dispose());
+         linkedBufferProperties.clear();
+      }
+      finally
+      {
+         linkedBuffersLock.unlock();
+      }
    }
 
    @Override
