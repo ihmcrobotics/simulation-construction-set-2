@@ -33,7 +33,6 @@ import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.session.SessionDataExportRequest;
-import us.ihmc.scs2.session.SessionIOTools.DataFormat;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
@@ -41,6 +40,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolki
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.IntegerConverter;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryIOTools.DataFormat;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 

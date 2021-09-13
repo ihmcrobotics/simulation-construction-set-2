@@ -56,6 +56,35 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class SharedMemoryIOTools
 {
+   public enum DataFormat
+   {
+      ASCII(".scs2.ascii"), CSV(".scs2.csv"), MATLAB(".scs2.mat");
+
+      private final String fileExtension;
+
+      DataFormat(String fileExtension)
+      {
+         this.fileExtension = fileExtension;
+      }
+
+      public String getFileExtension()
+      {
+         return fileExtension;
+      }
+
+      public static DataFormat fromFilename(String filename)
+      {
+         if (filename == null)
+            return null;
+         for (DataFormat dataFormat : values())
+         {
+            if (filename.endsWith(dataFormat.getFileExtension()))
+               return dataFormat;
+         }
+         return null;
+      }
+   }
+
    private static JAXBContext yoRegistryContext = null;
 
    public static JAXBContext getYoRegistryContext()

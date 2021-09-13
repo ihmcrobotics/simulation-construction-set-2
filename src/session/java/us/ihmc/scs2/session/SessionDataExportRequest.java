@@ -3,6 +3,7 @@ package us.ihmc.scs2.session;
 import java.io.File;
 import java.util.function.Predicate;
 
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryIOTools.DataFormat;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -20,7 +21,7 @@ public class SessionDataExportRequest
    private boolean exportTerrainObjectDefinitions = true;
    private boolean exportSessionYoGraphicDefinitions = true;
    private boolean exportSessionBufferRegistryDefinition = true;
-   private SessionIOTools.DataFormat exportSessionBufferDataFormat = SessionIOTools.DataFormat.CSV;
+   private DataFormat exportSessionBufferDataFormat = DataFormat.CSV;
 
    private Runnable onExportStartCallback = null;
    private Runnable onExportEndCallback = null;
@@ -99,7 +100,7 @@ public class SessionDataExportRequest
       this.exportSessionBufferRegistryDefinition = exportSessionBufferRegistryDefinition;
    }
 
-   public void setExportSessionBufferDataFormat(SessionIOTools.DataFormat exportSessionBufferDataFormat)
+   public void setExportSessionBufferDataFormat(DataFormat exportSessionBufferDataFormat)
    {
       this.exportSessionBufferDataFormat = exportSessionBufferDataFormat;
    }
@@ -169,7 +170,7 @@ public class SessionDataExportRequest
       return exportSessionBufferRegistryDefinition;
    }
 
-   public SessionIOTools.DataFormat getExportSessionBufferDataFormat()
+   public DataFormat getExportSessionBufferDataFormat()
    {
       return exportSessionBufferDataFormat;
    }

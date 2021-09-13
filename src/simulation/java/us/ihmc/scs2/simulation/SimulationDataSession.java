@@ -21,10 +21,10 @@ import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
 import us.ihmc.scs2.session.DefinitionIOTools;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.session.SessionIOTools;
-import us.ihmc.scs2.session.SessionIOTools.DataFormat;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.session.SessionState;
 import us.ihmc.scs2.sharedMemory.tools.SharedMemoryIOTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryIOTools.DataFormat;
 import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 
 public class SimulationDataSession extends Session

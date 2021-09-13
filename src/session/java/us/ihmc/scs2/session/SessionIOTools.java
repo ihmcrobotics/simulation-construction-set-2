@@ -25,39 +25,11 @@ import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicListDefinition;
 import us.ihmc.scs2.sharedMemory.tools.SharedMemoryIOTools;
+import us.ihmc.scs2.sharedMemory.tools.SharedMemoryIOTools.DataFormat;
 import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 
 public class SessionIOTools
 {
-   public enum DataFormat
-   {
-      ASCII(".scs2.ascii"), CSV(".scs2.csv"), MATLAB(".scs2.mat");
-
-      private final String fileExtension;
-
-      DataFormat(String fileExtension)
-      {
-         this.fileExtension = fileExtension;
-      }
-
-      public String getFileExtension()
-      {
-         return fileExtension;
-      }
-
-      public static DataFormat fromFilename(String filename)
-      {
-         if (filename == null)
-            return null;
-         for (DataFormat dataFormat : values())
-         {
-            if (filename.endsWith(dataFormat.getFileExtension()))
-               return dataFormat;
-         }
-         return null;
-      }
-   }
-
    public static final Path SCS2_HOME = Paths.get(System.getProperty("user.home"), ".ihmc", "scs2");
    public static final Path SCS2_TEMP_FOLDER_PATH = SCS2_HOME.resolve(".temp");
 
