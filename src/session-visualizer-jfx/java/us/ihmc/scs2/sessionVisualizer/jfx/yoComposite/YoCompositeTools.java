@@ -212,15 +212,25 @@ public class YoCompositeTools
 
       for (Class<? extends YoVariable> yoPrimitive : yoPrimitives)
       {
-         List<YoVariable> searchPool = yoVariables.stream().filter(yoPrimitive::isInstance).collect(Collectors.toList());
+         List<YoVariable> searchPool = new ArrayList<>();
+         for (int i = 0; i < yoVariables.size(); i++)
+         {
+            YoVariable yoVariable = yoVariables.get(i);
+
+            if (yoPrimitive.isInstance(yoVariable))
+               searchPool.add(yoVariable);
+         }
 
          Pair<List<YoComposite>, List<YoVariable>> primitiveResult = searchYoComposites(pattern, searchPool, registry.getNamespace(), false);
          result.getKey().addAll(primitiveResult.getKey());
          result.getValue().addAll(primitiveResult.getValue());
       }
 
-      for (YoRegistry childRegistry : registry.getChildren())
+      List<YoRegistry> children = registry.getChildren();
+
+      for (int i = 0; i < children.size(); i++)
       {
+         YoRegistry childRegistry = children.get(i);
          Pair<List<YoComposite>, List<YoVariable>> childResult = searchYoCompositesRecursive(pattern, childRegistry);
          result.getKey().addAll(childResult.getKey());
          result.getValue().addAll(childResult.getValue());

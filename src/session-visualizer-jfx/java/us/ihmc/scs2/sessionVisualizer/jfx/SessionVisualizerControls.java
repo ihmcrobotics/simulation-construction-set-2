@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Collection;
 
 import us.ihmc.scs2.definition.visual.VisualDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
 
 public interface SessionVisualizerControls
 {
@@ -26,6 +27,10 @@ public interface SessionVisualizerControls
    }
 
    void addStaticVisual(VisualDefinition visualDefinition);
+   
+   void addYoGraphic(String namespace, YoGraphicDefinition yoGraphicDefinition);
+   
+   void addYoGraphic(YoGraphicDefinition yoGraphicDefinition);
 
    default void exportVideo(File file)
    {

@@ -6,18 +6,19 @@ import us.ihmc.log.LogTools;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.YoVariableDatabase;
-import us.ihmc.scs2.sessionVisualizer.jfx.tools.YoVariableTools;
 import us.ihmc.scs2.sharedMemory.LinkedBufferProperties;
 import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 import us.ihmc.scs2.sharedMemory.LinkedYoVariable;
 import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
 import us.ihmc.scs2.simulation.SimulationSession;
+import us.ihmc.yoVariables.listener.YoRegistryChangedListener;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoManager extends ObservedAnimationTimer implements Manager
 {
-   private final LongProperty rootRegistryHashCodeProperty = new SimpleLongProperty(this, "rootRegistryHashCode", 0);
+   private final LongProperty rootRegistryChangeCounter = new SimpleLongProperty(this, "rootRegistryChangeCounter", 0);
+   private final YoRegistryChangedListener counterUpdater = changer -> rootRegistryChangeCounter.set(rootRegistryChangeCounter.get() + 1);
 
    private YoRegistry rootRegistry;
    private LinkedYoRegistry linkedRootRegistry;
@@ -49,7 +50,8 @@ public class YoManager extends ObservedAnimationTimer implements Manager
       linkedBufferProperties = linkedYoVariableFactory.newLinkedBufferProperties();
 
       updatingYoVariables = true;
-      rootRegistryHashCodeProperty.set(YoVariableTools.hashCode(rootRegistry));
+      rootRegistry.addListener(counterUpdater);
+      rootRegistryChangeCounter.set(rootRegistryChangeCounter.get() + 1);
       rootRegistryDatabase = new YoVariableDatabase(rootRegistry, linkedRootRegistry);
       updatingYoVariables = false;
       LogTools.info("UI linked YoVariables created");
@@ -64,9 +66,10 @@ public class YoManager extends ObservedAnimationTimer implements Manager
       linkedYoVariableFactory = null;
       linkedRootRegistry = null;
       linkedBufferProperties = null;
+      rootRegistry.removeListener(counterUpdater);
       rootRegistry.clear();
       rootRegistry = null;
-      rootRegistryHashCodeProperty.set(-1L);
+      rootRegistryChangeCounter.set(rootRegistryChangeCounter.get() + 1);
    }
 
    @Override
@@ -113,9 +116,9 @@ public class YoManager extends ObservedAnimationTimer implements Manager
          return linkedYoVariableFactory.newLinkedBufferProperties();
    }
 
-   public LongProperty rootRegistryHashCodeProperty()
+   public LongProperty rootRegistryChangeCounter()
    {
-      return rootRegistryHashCodeProperty;
+      return rootRegistryChangeCounter;
    }
 
    public int getBufferSize()

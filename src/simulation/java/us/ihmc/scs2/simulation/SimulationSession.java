@@ -419,6 +419,8 @@ public class SimulationSession extends Session
          removeSessionModeChangeListener(modeListener);
          removeShutdownListener(shutdownListener);
 
+         activePeriodicTask.waitUntilFirstTickDone();
+
          return success.isTrue();
       }
 

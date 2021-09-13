@@ -23,6 +23,8 @@ import us.ihmc.javaFXToolkit.cameraControllers.FocusBasedCameraMouseEventHandler
 import us.ihmc.javaFXToolkit.scenes.View3DFactory;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
 import us.ihmc.scs2.session.DefinitionIOTools;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools;
@@ -34,6 +36,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.tools.BufferedJavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.CameraTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXApplicationCreator;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
 import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 
 public class SessionVisualizer
@@ -308,6 +311,28 @@ public class SessionVisualizer
       {
          checkVisualizerRunning();
          toolkit.getEnvironmentManager().addStaticVisual(visualDefinition);
+      }
+
+      @Override
+      public void addYoGraphic(String namespace, YoGraphicDefinition yoGraphicDefinition)
+      {
+         String[] subNames = namespace.split(YoGraphicTools.SEPARATOR);
+         if (subNames == null || subNames.length == 0)
+            addYoGraphic(yoGraphicDefinition);
+
+         for (int i = subNames.length - 1; i >= 0; i--)
+         {
+            yoGraphicDefinition = new YoGraphicGroupDefinition(subNames[i], yoGraphicDefinition);
+         }
+
+         addYoGraphic(yoGraphicDefinition);
+      }
+
+      @Override
+      public void addYoGraphic(YoGraphicDefinition yoGraphicDefinition)
+      {
+         checkVisualizerRunning();
+         messager.submitMessage(topics.getAddYoGraphicRequest(), yoGraphicDefinition);
       }
 
       @Override

@@ -12,6 +12,7 @@ import us.ihmc.messager.MessagerAPIFactory.MessagerAPI;
 import us.ihmc.messager.MessagerAPIFactory.Topic;
 import us.ihmc.messager.MessagerAPIFactory.TopicTheme;
 import us.ihmc.messager.MessagerAPIFactory.TypedTopicTheme;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.search.SearchEngines;
 
@@ -110,8 +111,12 @@ public class SessionVisualizerMessagerAPI
    {
       private static final CategoryTheme YoGraphic = apiFactory.createCategoryTheme("YoGraphic");
 
+      private static final TopicTheme Add = apiFactory.createTopicTheme("add");
+
       public static final Topic<File> YoGraphicSaveRequest = APIRoot.child(YoGraphic).topic(Save);
       public static final Topic<File> YoGraphicLoadRequest = APIRoot.child(YoGraphic).topic(Load);
+
+      public static final Topic<YoGraphicDefinition> AddYoGraphicRequest = APIRoot.child(YoGraphic).topic(Add);
    }
 
    public static class YoChart

@@ -1,5 +1,8 @@
 package us.ihmc.scs2.definition.yoGraphic;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -11,6 +14,28 @@ import us.ihmc.euclid.tools.EuclidCoreIOTools;
 public class YoGraphicGroupDefinition extends YoGraphicDefinition
 {
    private List<YoGraphicDefinition> children;
+
+   public YoGraphicGroupDefinition()
+   {
+   }
+
+   public YoGraphicGroupDefinition(String name)
+   {
+      super(name);
+   }
+
+   public YoGraphicGroupDefinition(String name, YoGraphicDefinition... children)
+   {
+      this(name, Arrays.asList(children));
+   }
+
+   public YoGraphicGroupDefinition(String name, Collection<? extends YoGraphicDefinition> children)
+   {
+      super(name);
+
+      if (children != null)
+         this.children = new ArrayList<>(children);
+   }
 
    @XmlElement
    public void setChildren(List<YoGraphicDefinition> children)

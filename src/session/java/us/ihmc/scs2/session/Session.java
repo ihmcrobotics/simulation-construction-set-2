@@ -1071,6 +1071,7 @@ public abstract class Session
       private final long periodInNanos;
       private final AtomicBoolean running = new AtomicBoolean(true);
       private final AtomicBoolean isDone = new AtomicBoolean(false);
+      private final CountDownLatch startedLatch = new CountDownLatch(1);
       private final CountDownLatch doneLatch = new CountDownLatch(1);
 
       private Thread owner;
@@ -1108,6 +1109,21 @@ public abstract class Session
          }
       }
 
+      public void waitUntilFirstTickDone()
+      {
+         if (Thread.currentThread() == owner)
+            return;
+
+         try
+         {
+            startedLatch.await();
+         }
+         catch (InterruptedException e)
+         {
+            e.printStackTrace();
+         }
+      }
+
       @Override
       public void run()
       {
@@ -1121,6 +1137,8 @@ public abstract class Session
                long timeElapsed = System.nanoTime();
                task.run();
                timeElapsed = System.nanoTime() - timeElapsed;
+
+               startedLatch.countDown();
 
                if (timeElapsed < periodInNanos)
                {

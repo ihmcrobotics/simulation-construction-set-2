@@ -8,6 +8,7 @@ import javafx.stage.Window;
 import javafx.util.Pair;
 import us.ihmc.messager.MessagerAPIFactory.Topic;
 import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.session.SessionDataExportRequest;
 import us.ihmc.scs2.session.SessionMessagerAPI;
@@ -47,6 +48,7 @@ public class SessionVisualizerTopics
 
    private Topic<File> yoGraphicLoadRequest;
    private Topic<File> yoGraphicSaveRequest;
+   private Topic<YoGraphicDefinition> addYoGraphicRequest;
 
    private Topic<Pair<Window, Double>> yoChartZoomFactor;
    private Topic<Pair<Window, Boolean>> yoChartRequestZoomIn, yoChartRequestZoomOut;
@@ -118,6 +120,7 @@ public class SessionVisualizerTopics
 
       yoGraphicLoadRequest = SessionVisualizerMessagerAPI.YoGraphic.YoGraphicLoadRequest;
       yoGraphicSaveRequest = SessionVisualizerMessagerAPI.YoGraphic.YoGraphicSaveRequest;
+      addYoGraphicRequest = SessionVisualizerMessagerAPI.YoGraphic.AddYoGraphicRequest;
 
       yoChartZoomFactor = SessionVisualizerMessagerAPI.YoChart.YoChartZoomFactor;
       yoChartRequestZoomIn = SessionVisualizerMessagerAPI.YoChart.YoChartRequestZoomIn;
@@ -277,6 +280,11 @@ public class SessionVisualizerTopics
    public Topic<File> getYoGraphicSaveRequest()
    {
       return yoGraphicSaveRequest;
+   }
+
+   public Topic<YoGraphicDefinition> getAddYoGraphicRequest()
+   {
+      return addYoGraphicRequest;
    }
 
    public Topic<Pair<Window, Double>> getYoChartZoomFactor()
