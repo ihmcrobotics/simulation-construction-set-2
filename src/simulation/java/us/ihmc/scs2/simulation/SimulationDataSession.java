@@ -79,6 +79,8 @@ public class SimulationDataSession extends Session
          Objects.requireNonNull(sessionInfo.getRegistryFileName());
          File dataFile = new File(dataDirectory, sessionInfo.getDataFileName());
 
+         sharedBuffer.resizeBuffer(1); // Let the data importer configure the buffer size.
+
          switch (DataFormat.fromFilename(dataFile.getName()))
          {
             case ASCII:

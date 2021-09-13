@@ -571,7 +571,7 @@ public class SharedMemoryIOTools
 
          data = data.substring(data.indexOf("[") + 1, data.lastIndexOf("]"));
          String[] values = data.split(", ");
-         growBufferIfNeeded(buffer, values.length);
+         setActiveBuffer(buffer, values.length);
 
          if (yoVariable instanceof YoBoolean)
          {
@@ -745,7 +745,7 @@ public class SharedMemoryIOTools
    private static void importMatlabMatrix(YoVariable variable, Matrix matlabMatrix, YoSharedBuffer buffer)
    {
       int size = matlabMatrix.getNumRows();
-      growBufferIfNeeded(buffer, size);
+      setActiveBuffer(buffer, size);
 
       if (variable instanceof YoBoolean)
       {
@@ -788,13 +788,14 @@ public class SharedMemoryIOTools
       }
    }
 
-   private static void growBufferIfNeeded(YoSharedBuffer buffer, int newSize)
+   private static void setActiveBuffer(YoSharedBuffer buffer, int newSize)
    {
       if (newSize > buffer.getProperties().getSize())
       {
          buffer.resizeBuffer(newSize);
-         buffer.setInPoint(0);
-         buffer.setOutPoint(newSize - 1);
       }
+
+      buffer.setInPoint(0);
+      buffer.setOutPoint(newSize - 1);
    }
 }
