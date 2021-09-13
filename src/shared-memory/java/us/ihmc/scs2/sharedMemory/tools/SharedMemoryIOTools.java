@@ -294,15 +294,14 @@ public class SharedMemoryIOTools
       }
 
       PrintStream printStream = new PrintStream(outputStream);
+      YoBufferPropertiesReadOnly properties = buffer.getProperties();
+      int inPoint = properties.getInPoint();
+      int activeBufferLength = properties.getActiveBufferLength();
 
       yoVariableBufferStream.forEach(yoVariableBuffer ->
       {
          String variableName = yoVariableBuffer.getYoVariable().getFullNameString();
-         YoBufferPropertiesReadOnly properties = yoVariableBuffer.getProperties();
-         int inPoint = properties.getInPoint();
-         int activeBufferLength = properties.getActiveBufferLength();
-
-         printStream.print(variableName + ": ");
+         printStream.append(variableName).append(": ");
          printStream.println(arrayToString(yoVariableBuffer.copy(inPoint, activeBufferLength, properties).getSample()));
       });
 
