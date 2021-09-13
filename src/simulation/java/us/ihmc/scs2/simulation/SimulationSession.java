@@ -53,6 +53,9 @@ public class SimulationSession extends Session
    private final Map<String, Map<String, SimCameraSensor>> robotNameToSensorNameToCameraMap = new HashMap<>();
    private final ExecutorService cameraBroadcastExecutor = Executors.newSingleThreadExecutor(new DaemonThreadFactory("SCS2-Camera-Server"));
 
+   private final List<TimeConsumer> beforePhysicsCallbacks = new ArrayList<>();
+   private final List<TimeConsumer> afterPhysicsCallbacks = new ArrayList<>();
+
    private final List<Runnable> cleanupActions = new ArrayList<>();
 
    private SimulationSessionControlsImpl controls = null;
@@ -135,8 +138,13 @@ public class SimulationSession extends Session
    protected double doSpecificRunTick()
    {
       double dt = Conversions.nanosecondsToSeconds(getSessionDTNanoseconds());
+      for (int i = 0; i < beforePhysicsCallbacks.size(); i++)
+         beforePhysicsCallbacks.get(i).accept(time.getValue());
       physicsEngine.simulate(time.getValue(), dt, gravity);
-      return time.getValue() + dt;
+      double newTime = time.getValue() + dt;
+      for (int i = 0; i < afterPhysicsCallbacks.size(); i++)
+         afterPhysicsCallbacks.get(i).accept(newTime);
+      return newTime;
    }
 
    @Override
@@ -287,6 +295,26 @@ public class SimulationSession extends Session
    {
       if (hasSessionStarted)
          throw new IllegalOperationException("Illegal operation after session has started.");
+   }
+
+   public void addBeforePhysicsCallback(TimeConsumer beforePhysicsCallback)
+   {
+      beforePhysicsCallbacks.add(beforePhysicsCallback);
+   }
+
+   public boolean removeBeforePhysicsCallback(TimeConsumer beforePhysicsCallback)
+   {
+      return beforePhysicsCallbacks.remove(beforePhysicsCallback);
+   }
+
+   public void addAfterPhysicsCallback(TimeConsumer afterPhysicsCallback)
+   {
+      afterPhysicsCallbacks.add(afterPhysicsCallback);
+   }
+
+   public boolean removeAfterPhysicsCallback(TimeConsumer afterPhysicsCallback)
+   {
+      return afterPhysicsCallbacks.remove(afterPhysicsCallback);
    }
 
    private class SimulationSessionControlsImpl implements SimulationSessionControls
