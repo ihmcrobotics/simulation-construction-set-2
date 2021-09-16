@@ -11,6 +11,7 @@ import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Shape3D;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.definition.JavaFXVisualTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple3DProperty;
@@ -30,6 +31,12 @@ public class YoPointFX3D extends YoGraphicFX3D
    {
       pointNode.getTransforms().addAll(translate, scale);
       setGraphicResource(YoGraphicFXResourceManager.DEFAULT_POINT3D_GRAPHIC_RESOURCE);
+   }
+
+   public YoPointFX3D(ReferenceFrame worldFrame)
+   {
+      this();
+      position.setReferenceFrame(worldFrame);
    }
 
    public void setGraphicResource(YoGraphicFXResource graphicResource)

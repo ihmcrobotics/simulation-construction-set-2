@@ -56,10 +56,10 @@ public class SecondaryWindowController
 
       chartGroupController.initialize(toolkit);
       chartGroupController.start();
-      chartGroupController.maximumRowProperty().set(6);
-      chartGroupController.maximumColProperty().set(4);
+      chartGroupController.maximumRowProperty().set(9);
+      chartGroupController.maximumColProperty().set(6);
 
-      stage.getIcons().add(SessionVisualizerIOTools.SCS_ICON_IMAGE);
+      SessionVisualizerIOTools.addSCSIconToWindow(stage);
 
       mainNode.getChildren().set(1, chartGroupPane);
       VBox.setVgrow(chartGroupPane, Priority.ALWAYS);
@@ -69,7 +69,7 @@ public class SecondaryWindowController
       stage.setTitle(windowTitlePrefix);
       chartGroupController.chartGroupNameProperty().addListener((o, oldValue, newValue) ->
       {
-         if (newValue == null || newValue.isBlank())
+         if (newValue == null || newValue.isEmpty())
             stage.setTitle(windowTitlePrefix);
          else
             stage.setTitle(windowTitlePrefix + ": " + newValue);

@@ -17,7 +17,7 @@ public class RobotControllerManager
    private final YoRegistry registry;
    private final SimControllerInput controllerInput;
    private final ControllerOutput controllerOutput;
-   private List<Controller> controllers = new ArrayList<>();
+   private final List<Controller> controllers = new ArrayList<>();
    private final SimMultiBodySystemBasics input;
 
    public RobotControllerManager(SimMultiBodySystemBasics input, YoRegistry registry)
@@ -71,6 +71,14 @@ public class RobotControllerManager
       }
    }
 
+   public void pauseControllers()
+   {
+      for (Controller controller : controllers)
+      {
+         controller.pause();
+      }
+   }
+
    public void writeControllerOutput(JointStateType... statesToWrite)
    {
       for (JointStateType stateToWrite : statesToWrite)
@@ -86,6 +94,28 @@ public class RobotControllerManager
          JointStateBasics jointOutput = controllerOutput.getJointOutput(joint);
          if (jointOutput.hasOutputFor(stateToWrite))
          {
+            if (stateToWrite == JointStateType.CONFIGURATION)
+               jointOutput.getConfiguration(joint);
+            else if (stateToWrite == JointStateType.VELOCITY)
+               jointOutput.getVelocity(joint);
+            else if (stateToWrite == JointStateType.ACCELERATION)
+               jointOutput.getAcceleration(joint);
+            else if (stateToWrite == JointStateType.EFFORT)
+               jointOutput.getEffort(joint);
+         }
+      }
+   }
+
+   public void writeControllerOutputForJointsToIgnore(JointStateType... statesToWrite)
+   {
+      for (JointBasics joint : input.getJointsToIgnore())
+      {
+         JointStateBasics jointOutput = controllerOutput.getJointOutput(joint);
+
+         for (JointStateType stateToWrite : statesToWrite)
+         {
+            if (!jointOutput.hasOutputFor(stateToWrite))
+               continue;
             if (stateToWrite == JointStateType.CONFIGURATION)
                jointOutput.getConfiguration(joint);
             else if (stateToWrite == JointStateType.VELOCITY)

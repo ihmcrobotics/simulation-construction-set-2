@@ -4,6 +4,7 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import javafx.beans.property.Property;
 import javafx.fxml.FXML;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
@@ -22,6 +23,8 @@ import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 
 public class DataBufferMenuController
 {
+   @FXML
+   private Menu menu;
    @FXML
    private TextField bufferSizeTextField;
    @FXML
@@ -47,6 +50,7 @@ public class DataBufferMenuController
          if (m == SessionState.INACTIVE)
             initializeBufferSizeTextField = true;
       });
+      messager.registerJavaFXSyncedTopicListener(topics.getDisableUserControls(), disable -> menu.setDisable(disable));
 
       TextFormatter<Integer> bufferSizeFormatter = new TextFormatter<>(new IntegerStringConverter(), 0, new PositiveIntegerValueFilter());
       bufferSizeTextField.setTextFormatter(bufferSizeFormatter);

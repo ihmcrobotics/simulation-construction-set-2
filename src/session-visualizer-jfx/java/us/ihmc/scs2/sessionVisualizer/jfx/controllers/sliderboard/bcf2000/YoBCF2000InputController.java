@@ -72,7 +72,7 @@ public abstract class YoBCF2000InputController
       this.filter = filter;
       this.yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
 
-      if (yoVariableDropLabel.getText() != null && !yoVariableDropLabel.getText().isBlank())
+      if (yoVariableDropLabel.getText() != null && !yoVariableDropLabel.getText().isEmpty())
          defaultText = yoVariableDropLabel.getText();
 
       ChangeListener<Object> styleChangeListener = (o, oldValue, newValue) ->

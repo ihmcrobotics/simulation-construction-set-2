@@ -3,12 +3,17 @@ package us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 
+import org.apache.commons.lang3.mutable.MutableBoolean;
+
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
@@ -72,6 +77,7 @@ public class YoGroupFX implements YoGraphicFXItem
          setupYoGraphicFXsListener(yoGraphicFX2DSet, group2D);
          setupYoGraphicFXsListener(yoGraphicFX3DSet, group3D);
 
+         setupVisibilityBindings();
          group2D.visibleProperty().bind(visibleProperty);
          group3D.visibleProperty().bind(visibleProperty);
       }
@@ -80,6 +86,62 @@ public class YoGroupFX implements YoGraphicFXItem
    public YoGroupFX(String name)
    {
       this(name, false);
+   }
+
+   private void setupVisibilityBindings()
+   {
+      MutableBoolean updating = new MutableBoolean(false);
+
+      visibleProperty.addListener((o, oldValue, newValue) ->
+      {
+         if (updating.isTrue())
+            return;
+
+         updating.setTrue();
+         itemChildren.forEach(child -> child.setVisible(newValue));
+         updating.setFalse();
+      });
+
+      itemChildren.addListener(new SetChangeListener<YoGraphicFXItem>()
+      {
+         ObservableBooleanValue observable = null;
+         ChangeListener<? super Boolean> changeListener = (o, oldValue, newValue) -> updateVisibility();
+
+         @Override
+         public void onChanged(Change<? extends YoGraphicFXItem> change)
+         {
+            if (observable != null)
+               observable.removeListener(changeListener);
+
+            if (change.getSet().isEmpty())
+            {
+               observable = null;
+               updateVisibility();
+               return;
+            }
+
+            for (YoGraphicFXItem itemChild : change.getSet())
+            {
+               if (observable == null)
+                  observable = itemChild.visibleProperty();
+               else
+                  observable = Bindings.or(observable, itemChild.visibleProperty());
+            }
+
+            observable.addListener(changeListener);
+            updateVisibility();
+         }
+
+         private void updateVisibility()
+         {
+            if (updating.isTrue())
+               return;
+
+            updating.setTrue();
+            visibleProperty.set(observable == null ? false : observable.get());
+            updating.setFalse();
+         }
+      });
    }
 
    private void setupChildrenListener()
@@ -107,8 +169,6 @@ public class YoGroupFX implements YoGraphicFXItem
             group2D.getChildren().remove(elementRemoved.getNode2D());
             itemChildren.remove(elementRemoved);
          }
-
-         updateVisibleProperty();
       });
    }
 
@@ -141,8 +201,6 @@ public class YoGroupFX implements YoGraphicFXItem
             groupToRegisterGraphicFX.getChildren().remove(elementRemoved.getNode());
             itemChildren.remove(elementRemoved);
          }
-
-         updateVisibleProperty();
       });
    }
 
@@ -162,21 +220,7 @@ public class YoGroupFX implements YoGraphicFXItem
       children.forEach(YoGroupFX::computeBackground);
    }
 
-   public void updateVisibleProperty()
-   {
-      children.forEach(YoGroupFX::updateVisibleProperty);
-      boolean atLeastOneGraphic2DVisible = yoGraphicFX2DSet.stream().anyMatch(YoGraphicFXItem::isVisible);
-      boolean atLeastOneGraphic3DVisible = yoGraphicFX3DSet.stream().anyMatch(YoGraphicFXItem::isVisible);
-      boolean atLeastOneChildVisible = children.stream().anyMatch(YoGraphicFXItem::isVisible);
-      visibleProperty.set(atLeastOneGraphic2DVisible || atLeastOneGraphic3DVisible || atLeastOneChildVisible);
-   }
-
-   public void updateVisiblePropertyRecursively()
-   {
-      children.forEach(YoGroupFX::updateVisibleProperty);
-      updateVisibleProperty();
-   }
-
+   @Override
    public void clear()
    {
       children.forEach(child -> child.clear());
@@ -346,12 +390,13 @@ public class YoGroupFX implements YoGraphicFXItem
       return parentGroupProperty == null;
    }
 
-   public YoGroupFX getRoot()
+   @Override
+   public YoGroupFX getRootGroup()
    {
       if (isRoot() || parentGroupProperty.get() == null)
          return this;
       else
-         return parentGroupProperty.get().getRoot();
+         return parentGroupProperty.get().getRootGroup();
    }
 
    public Node getNode2D()

@@ -29,4 +29,9 @@ public class LinkedBufferProperties
       currentBufferProperties = null;
       return properties;
    }
+
+   public void dispose()
+   {
+      currentBufferProperties = null;
+   }
 }

@@ -15,6 +15,7 @@ import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import us.ihmc.euclid.Axis3D;
 import us.ihmc.euclid.axisAngle.AxisAngle;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.javaFXToolkit.JavaFXTools;
 import us.ihmc.javaFXToolkit.shapes.JavaFXMeshBuilder;
@@ -46,6 +47,13 @@ public class YoCoordinateSystemFX3D extends YoGraphicFX3D
    public YoCoordinateSystemFX3D()
    {
       coordinateSystemNode.getTransforms().add(affine);
+   }
+
+   public YoCoordinateSystemFX3D(ReferenceFrame worldFrame)
+   {
+      this();
+      position.setReferenceFrame(worldFrame);
+      orientation.setReferenceFrame(worldFrame);
    }
 
    @Override

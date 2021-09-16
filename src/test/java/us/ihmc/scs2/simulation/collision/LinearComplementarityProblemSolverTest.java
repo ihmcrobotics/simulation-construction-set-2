@@ -11,7 +11,7 @@ import org.ejml.dense.row.RandomMatrices_DDRM;
 import org.junit.jupiter.api.Test;
 
 import us.ihmc.euclid.tools.EuclidCoreRandomTools;
-import us.ihmc.scs2.simulation.physicsEngine.LinearComplementarityProblemSolver;
+import us.ihmc.scs2.simulation.physicsEngine.impulseBased.LinearComplementarityProblemSolver;
 
 public class LinearComplementarityProblemSolverTest
 {

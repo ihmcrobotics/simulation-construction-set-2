@@ -46,7 +46,7 @@ import us.ihmc.mecano.tools.MecanoTestTools;
 import us.ihmc.mecano.tools.MomentOfInertiaFactory;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.scs2.simulation.parameters.ContactParameters;
-import us.ihmc.scs2.simulation.physicsEngine.SingleContactImpulseCalculator;
+import us.ihmc.scs2.simulation.physicsEngine.impulseBased.SingleContactImpulseCalculator;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRigidBody;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimSixDoFJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimOneDoFJointBasics;

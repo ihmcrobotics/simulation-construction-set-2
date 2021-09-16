@@ -3,7 +3,6 @@ package us.ihmc.scs2.simulation.physicsEngine;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collector;
 
 import org.ejml.data.DMatrixRMaj;
 import org.ejml.dense.row.CommonOps_DDRM;
@@ -103,27 +102,5 @@ public class CombinedJointStateProviders implements JointStateProvider
       }
 
       return combinedJointState;
-   }
-
-   public static Collector<JointStateProvider, CombinedJointStateProviders, CombinedJointStateProviders> collect(JointStateType state)
-   {
-      return Collector.of(() -> new CombinedJointStateProviders(state), CombinedJointStateProviders::add, (left, right) ->
-      {
-         left.addAll(right);
-         return left;
-      }, Collector.Characteristics.IDENTITY_FINISH);
-   }
-
-   public static Collector<ImpulseBasedConstraintCalculator, CombinedJointStateProviders, CombinedJointStateProviders> collectFromCalculator(JointStateType state)
-   {
-      return Collector.of(() -> new CombinedJointStateProviders(state), (providers, calculator) ->
-      {
-         for (int i = 0; i < calculator.getNumberOfRobotsInvolved(); i++)
-            providers.add(calculator.getJointTwistChangeProvider(i));
-      }, (left, right) ->
-      {
-         left.addAll(right);
-         return left;
-      }, Collector.Characteristics.IDENTITY_FINISH);
    }
 }

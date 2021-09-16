@@ -13,6 +13,7 @@ import us.ihmc.scs2.definition.visual.ColorDefinitions;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizer;
 import us.ihmc.scs2.simulation.SimulationSession;
 import us.ihmc.scs2.simulation.parameters.ContactParameters;
+import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngineFactory;
 
 public class FlyingCollidingSpheresExperimentalSimulation
 {
@@ -50,10 +51,9 @@ public class FlyingCollidingSpheresExperimentalSimulation
       sphere2InitialState.setVelocity(null, new Vector3D(0.0, 0, 0));
       sphereRobot2.getRootJointDefinitions().get(0).setInitialJointState(sphere2InitialState);
 
-      SimulationSession simulationSession = new SimulationSession();
+      SimulationSession simulationSession = new SimulationSession(PhysicsEngineFactory.newImpulseBasedPhysicsEngineFactory(contactParameters));
       simulationSession.addRobot(sphereRobot1);
       simulationSession.addRobot(sphereRobot2);
-      simulationSession.getPhysicsEngine().setGlobalContactParameters(contactParameters);
       SessionVisualizer.startSessionVisualizer(simulationSession);
    }
 

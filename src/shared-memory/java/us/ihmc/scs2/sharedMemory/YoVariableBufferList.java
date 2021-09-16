@@ -72,6 +72,19 @@ public class YoVariableBufferList extends AbstractList<YoVariableBuffer<?>>
       }
    }
 
+   public void dispose()
+   {
+      for (int i = 0; i < yoVariableBuffers.length; i++)
+      {
+         if (yoVariableBuffers[i] != null)
+         {
+            yoVariableBuffers[i].dispose();
+            yoVariableBuffers[i] = null;
+         }
+      }
+      yoVariableBuffers = null;
+   }
+
    @Override
    public boolean remove(Object o)
    {

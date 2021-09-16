@@ -1,8 +1,6 @@
 package us.ihmc.scs2.sessionVisualizer.jfx;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -11,33 +9,32 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.prefs.Preferences;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
-
-import org.apache.commons.io.FileUtils;
 
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Dialog;
 import javafx.scene.image.Image;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Stage;
 import javafx.stage.Window;
 import us.ihmc.commons.nio.FileTools;
+import us.ihmc.scs2.session.SessionIOTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX2D;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX3D;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXItem;
 
 public class SessionVisualizerIOTools
 {
    private static final ClassLoader classLoader = SessionVisualizerIOTools.class.getClassLoader();
 
-   public static final Path SCS2_HOME = Paths.get(System.getProperty("user.home"), ".ihmc", "scs2");
+   public static final Path SCS2_HOME = SessionIOTools.SCS2_HOME;
    public static final Path SCS2_CONFIGURATION_DEFAULT_PATH = SCS2_HOME.resolve("Configurations");
-   public static final Path SCS2_TEMP_FOLDER_PATH = SCS2_HOME.resolve(".temp");
    public static final String SCS2_CONFIGURATION_FOLDER_KEY = "scsConfigFolderPath";
 
    static
    {
       try
       {
-         FileTools.ensureDirectoryExists(SCS2_HOME);
          FileTools.ensureDirectoryExists(SCS2_CONFIGURATION_DEFAULT_PATH);
       }
       catch (IOException e)
@@ -49,10 +46,11 @@ public class SessionVisualizerIOTools
    public static final String scsConfigurationFileExtension = ".scs2";
    public static final String scsMainConfigurationFileExtension = ".scs2.main";
    public static final String yoChartGroupConfigurationFileExtension = ".scs2.chart";
-   public static final String yoGraphicConfigurationFileExtension = ".scs2.yoGraphic";
+   public static final String yoGraphicConfigurationFileExtension = SessionIOTools.yoGraphicConfigurationFileExtension;
    public static final String yoCompositeConfigurationFileExtension = ".scs2.yoComposite";
    public static final String yoEntryConfigurationFileExtension = ".scs2.yoEntry";
    public static final String yoSliderboardConfigurationFileExtension = ".scs2.yoSliderboard";
+   public static final ExtensionFilter scs2InfoFilter = new ExtensionFilter("SCS2 Info File", "*" + SessionIOTools.infoFileExtension);
    public static final ExtensionFilter scs2ConfigurationFilter = new ExtensionFilter("SCS2 Config File", "*" + scsConfigurationFileExtension);
    public static final ExtensionFilter yoChartGroupConfigurationFilter = new ExtensionFilter("SCS2 YoChartGroup File",
                                                                                              "*" + yoChartGroupConfigurationFileExtension);
@@ -89,6 +87,10 @@ public class SessionVisualizerIOTools
    private static final String YO_COMPOSITE_SEARCH = YO_COMPOSITE + "search/";
    private static final String YO_COMPOSITE_ENTRY = YO_COMPOSITE + "entry/";
    private static final String YO_GRAPHIC = "yoGraphic/";
+   private static final String YO_GRAPHIC_2D = YO_GRAPHIC + "graphic2D/";
+   private static final String YO_GRAPHIC_3D = YO_GRAPHIC + "graphic3D/";
+   private static final String YO_GRAPHIC_GROUP = YO_GRAPHIC + "group/";
+   private static final String YO_GRAPHIC_SUB_EDITOR = YO_GRAPHIC + "editor/";
    private static final String YO_SLIDERBOARD = "yoSliderboard/";
    private static final String YO_SLIDERBOARD_BCF2000 = YO_SLIDERBOARD + "bcf2000/";
 
@@ -124,6 +126,8 @@ public class SessionVisualizerIOTools
    public static final URL SECONDARY_WINDOW_URL = getFXMLResource("SecondaryWindow");
 
    public static final URL SIDE_PANE_URL = getFXMLResource("SidePane");
+   public static final URL VIDEO_PREVIEW_PANE_URL = getFXMLResource("VideoRecordingPreviewPane");
+   public static final URL SESSION_DATA_EXPORT_STAGE_URL = getFXMLResource("SessionDataExportStage");
 
    public static final URL CHART_PANEL_FXML_URL = getFXMLResource(CHART, "YoChartPanel");
    public static final URL CHART_GROUP_PANEL_URL = getFXMLResource(CHART, "YoChartGroupPanel");
@@ -135,13 +139,38 @@ public class SessionVisualizerIOTools
 
    public static final URL YO_GRAPHIC_ITEM_CREATOR_URL = getFXMLResource(YO_GRAPHIC, "YoGraphicItemCreatorDialog");
    public static final URL YO_GRAPHIC_PROPERTY_URL = getFXMLResource(YO_GRAPHIC, "YoGraphicPropertyWindow");
-   public static final URL YO_COMPOSITE_EDITOR_URL = getFXMLResource(YO_GRAPHIC, "YoCompositeEditorPane");
+   public static final URL YO_COMPOSITE_EDITOR_URL = getFXMLResource(YO_GRAPHIC_SUB_EDITOR, "YoCompositeEditorPane");
+   public static final URL YO_GRAPHIC_ROBOT_COLLISIONS_BUTTON_URL = getFXMLResource(YO_GRAPHIC, "YoGraphicRobotCollisionsToggleButton");
+   public static final URL YO_GRAPHIC_TERRAIN_COLLISIONS_BUTTON_URL = getFXMLResource(YO_GRAPHIC, "YoGraphicTerrainCollisionsToggleButton");
+   public static final URL YO_GRAPHIC_ROBOT_MASS_PROPERTIES_BUTTON_URL = getFXMLResource(YO_GRAPHIC, "YoGraphicRobotMassPropertiesToggleButton");
 
    // Session resources:
    public static final URL REMOTE_SESSION_MANAGER_PANE_FXML_URL = getFXMLResource(SESSION_FOLDER, "RemoteSessionManagerPane");
    public static final URL REMOTE_SESSION_INFO_PANE_FXML_URL = getFXMLResource(SESSION_FOLDER, "YoClientInformationPane");
    public static final URL LOG_SESSION_MANAGER_PANE_FXML_URL = getFXMLResource(SESSION_FOLDER, "LogSessionManagerPane");
    public static final URL LOG_CROP_PROGRESS_PANE_FXML_URL = getFXMLResource(SESSION_FOLDER, "LogCropProgressPane");
+
+   // Skybox
+   public static final String SKYBOX_CLOUDY_FOLDER = "cloudy/";
+   public static final Image SKYBOX_TOP_IMAGE = createImage(getSkyboxResource(SKYBOX_CLOUDY_FOLDER + "Up.png"));
+   public static final Image SKYBOX_BOTTOM_IMAGE = createImage(getSkyboxResource(SKYBOX_CLOUDY_FOLDER + "Down.png"));
+   public static final Image SKYBOX_LEFT_IMAGE = createImage(getSkyboxResource(SKYBOX_CLOUDY_FOLDER + "Left.png"));
+   public static final Image SKYBOX_RIGHT_IMAGE = createImage(getSkyboxResource(SKYBOX_CLOUDY_FOLDER + "Right.png"));
+   public static final Image SKYBOX_FRONT_IMAGE = createImage(getSkyboxResource(SKYBOX_CLOUDY_FOLDER + "Front.png"));
+   public static final Image SKYBOX_BACK_IMAGE = createImage(getSkyboxResource(SKYBOX_CLOUDY_FOLDER + "Back.png"));
+
+   public static void addSCSIconToDialog(Dialog<?> dialog)
+   {
+      addSCSIconToWindow(dialog.getDialogPane().getScene().getWindow());
+   }
+
+   public static void addSCSIconToWindow(Window window)
+   {
+      if (window instanceof Stage)
+      {
+         ((Stage) window).getIcons().add(SCS_ICON_IMAGE);
+      }
+   }
 
    public static URL getCSSResource(String filename)
    {
@@ -158,10 +187,33 @@ public class SessionVisualizerIOTools
       return classLoader.getResource(FXML_FOLDER + location + filename + ".fxml");
    }
 
-   public static FXMLLoader getYoGraphicFXEditorFXMLLoader(Class<?> yoGraphicFXType)
+   public static FXMLLoader getYoGraphicFXEditorFXMLLoader(Class<? extends YoGraphicFXItem> yoGraphicFXType)
    {
-      URL fxmlResource = getFXMLResource(YO_GRAPHIC, yoGraphicFXType.getSimpleName() + "EditorPane");
+      String location = null;
+      if (YoGraphicFX2D.class.isAssignableFrom(yoGraphicFXType))
+         location = YO_GRAPHIC_2D;
+      else if (YoGraphicFX3D.class.isAssignableFrom(yoGraphicFXType))
+         location = YO_GRAPHIC_3D;
+      else
+         throw new IllegalArgumentException("Unhandled graphic type: " + yoGraphicFXType.getSimpleName());
+
+      URL fxmlResource = getFXMLResource(location, yoGraphicFXType.getSimpleName() + "EditorPane");
       Objects.requireNonNull(fxmlResource, "Could not find FXML resource for " + yoGraphicFXType.getSimpleName());
+      return new FXMLLoader(fxmlResource);
+   }
+
+   public static FXMLLoader getYoGraphicFXGroupEditorFXMLLoader(Class<? extends YoGraphicFXItem> yoGraphicFXType)
+   {
+      String location = null;
+      if (YoGraphicFX2D.class.isAssignableFrom(yoGraphicFXType))
+         location = YO_GRAPHIC_GROUP + "graphic2D/";
+      else if (YoGraphicFX3D.class.isAssignableFrom(yoGraphicFXType))
+         location = YO_GRAPHIC_GROUP + "graphic3D/";
+      else
+         throw new IllegalArgumentException("Unhandled graphic type: " + yoGraphicFXType.getSimpleName());
+
+      URL fxmlResource = getFXMLResource(location, yoGraphicFXType.getSimpleName() + "GroupEditorPane");
+      Objects.requireNonNull(fxmlResource, "Could not find FXML resource for grouped " + yoGraphicFXType.getSimpleName());
       return new FXMLLoader(fxmlResource);
    }
 
@@ -197,12 +249,26 @@ public class SessionVisualizerIOTools
 
    public static Image loadIcon(String iconNameWithExtension)
    {
-      return new Image(getIconResource(iconNameWithExtension));
+      return createImage(getIconResource(iconNameWithExtension));
    }
 
    public static Image loadImage(String imageNameWithExtension)
    {
-      return new Image(getImageResource(imageNameWithExtension));
+      return createImage(getImageResource(imageNameWithExtension));
+   }
+
+   public static Image createImage(InputStream is)
+   {
+      Image image = new Image(is);
+      try
+      {
+         is.close();
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+      }
+      return image;
    }
 
    public static File scs2ConfigurationOpenFileDialog(Window owner)
@@ -343,153 +409,6 @@ public class SessionVisualizerIOTools
             file = file.getParentFile();
 
          prefs.put(key, file.getAbsolutePath());
-      }
-   }
-
-   public static void unzipFile(File input, File destination) throws IOException
-   {
-      ZipInputStream zis = null;
-      int length;
-      byte[] buffer = new byte[1024];
-
-      try
-      {
-         zis = new ZipInputStream(new FileInputStream(input));
-         ZipEntry ze = zis.getNextEntry();
-
-         while (ze != null)
-         {
-            File newFile = newFile(destination, ze);
-
-            if (ze.isDirectory())
-            {
-               if (!newFile.isDirectory() && !newFile.mkdirs())
-                  throw new IOException("Failed to create directory " + newFile);
-            }
-            else
-            {
-               File parent = newFile.getParentFile();
-
-               if (!parent.isDirectory() && !parent.mkdirs())
-                  throw new IOException("Failed to create directory " + parent);
-
-               FileOutputStream fos = new FileOutputStream(newFile);
-               while ((length = zis.read(buffer)) > 0)
-                  fos.write(buffer, 0, length);
-               fos.close();
-            }
-
-            ze = zis.getNextEntry();
-         }
-      }
-      finally
-      {
-         if (zis != null)
-         {
-            zis.closeEntry();
-            zis.close();
-         }
-      }
-   }
-
-   public static void zipFile(File input, File destination) throws IOException
-   {
-      try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(destination)))
-      {
-         if (input.isDirectory())
-         {
-            for (File subFile : input.listFiles())
-               zipFile(subFile.getName(), subFile, zipOut);
-         }
-         else
-         {
-            zipFile(input.getName(), input, zipOut);
-         }
-      }
-   }
-
-   private static void zipFile(String fileName, File fileToZip, ZipOutputStream zipOut) throws IOException
-   {
-      if (fileToZip.isHidden())
-      {
-         return;
-      }
-
-      if (fileToZip.isDirectory())
-      {
-         if (fileName.endsWith("/"))
-            zipOut.putNextEntry(new ZipEntry(fileName));
-         else
-            zipOut.putNextEntry(new ZipEntry(fileName + "/"));
-
-         zipOut.closeEntry();
-
-         File[] children = fileToZip.listFiles();
-
-         for (File childFile : children)
-         {
-            zipFile(fileName + "/" + childFile.getName(), childFile, zipOut);
-         }
-      }
-      else
-      {
-         try (FileInputStream fis = new FileInputStream(fileToZip))
-         {
-            ZipEntry zipEntry = new ZipEntry(fileName);
-            zipOut.putNextEntry(zipEntry);
-            byte[] bytes = new byte[1024];
-            int length;
-
-            while ((length = fis.read(bytes)) >= 0)
-               zipOut.write(bytes, 0, length);
-         }
-      }
-   }
-
-   public static File newFile(File destinationParent, ZipEntry zipEntry) throws IOException
-   {
-      File destinationFile = new File(destinationParent, zipEntry.getName());
-
-      if (destinationFile.getCanonicalPath().startsWith(destinationParent.getCanonicalPath() + File.separator))
-         return destinationFile;
-      else
-         throw new IOException("Attempted to unzip outside destination: " + zipEntry.getName());
-   }
-
-   public static File getTemporaryDirectory(String directoryName)
-   {
-      File tempDir = SessionVisualizerIOTools.SCS2_TEMP_FOLDER_PATH.resolve(directoryName).toFile();
-
-      if (tempDir.exists())
-      {
-         try
-         {
-            FileUtils.forceDelete(tempDir);
-         }
-         catch (IOException e)
-         {
-            e.printStackTrace();
-            return null;
-         }
-      }
-      tempDir.mkdirs();
-
-      return tempDir;
-   }
-
-   public static void emptyDirectory(File directoryToEmpty)
-   {
-      if (!directoryToEmpty.isDirectory())
-         return;
-
-      try
-      {
-         FileUtils.deleteDirectory(directoryToEmpty);
-         directoryToEmpty.mkdir();
-      }
-      catch (IOException e)
-      {
-         e.printStackTrace();
       }
    }
 }

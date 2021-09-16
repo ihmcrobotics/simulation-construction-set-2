@@ -1,5 +1,7 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +26,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableBooleanValue;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.CompositePropertyTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple2DProperty;
@@ -45,9 +48,8 @@ public class YoGraphicFXControllerTools
    {
       Thread loader = new Thread(() ->
       {
-         Reflections reflections = new Reflections(new ConfigurationBuilder()
-                                                   .setUrls(ClasspathHelper.forPackage(YoGraphicFXItem.class.getPackageName()))
-                                                   .setScanners(new SubTypesScanner()));
+         Reflections reflections = new Reflections(new ConfigurationBuilder().setUrls(ClasspathHelper.forPackage(YoGraphicFXItem.class.getPackage().getName()))
+                                                                             .setScanners(new SubTypesScanner()));
          Set<Class<? extends YoGraphicFXItem>> yoGraphicFXSubTypes = reflections.getSubTypesOf(YoGraphicFXItem.class);
          yoGraphicFXTypes = yoGraphicFXSubTypes.stream().filter(type -> !Modifier.isAbstract(type.getModifiers()) && !type.isInterface())
                                                .sorted((c1, c2) -> c1.getSimpleName().compareTo(c2.getSimpleName())).collect(Collectors.toList());
@@ -71,8 +73,7 @@ public class YoGraphicFXControllerTools
 
    public static YoGraphicFXItem duplicateYoGraphicFXItemAndRegister(YoGraphicFXItem itemToDuplicate)
    {
-      YoGroupFX parentGroup = itemToDuplicate.getParentGroup();
-      String cloneName = createAvailableYoGraphicFXItemName(parentGroup.getRoot(),
+      String cloneName = createAvailableYoGraphicFXItemName(itemToDuplicate.getRootGroup(),
                                                             itemToDuplicate.getNamespace(),
                                                             itemToDuplicate.getName(),
                                                             itemToDuplicate.getClass());
@@ -82,7 +83,9 @@ public class YoGraphicFXControllerTools
       return clone;
    }
 
-   public static YoGraphicFXItem createYoGraphicFXItemAndRegister(YoGroupFX parentGroup, String itemName,
+   public static YoGraphicFXItem createYoGraphicFXItemAndRegister(ReferenceFrame worldFrame,
+                                                                  YoGroupFX parentGroup,
+                                                                  String itemName,
                                                                   Class<? extends YoGraphicFXItem> itemTypeToInstantiate)
    {
       if (itemTypeToInstantiate == YoGroupFX.class)
@@ -94,7 +97,7 @@ public class YoGraphicFXControllerTools
       else if (YoGraphicFX.class.isAssignableFrom(itemTypeToInstantiate))
       {
          @SuppressWarnings("unchecked")
-         YoGraphicFX item = newInstance((Class<? extends YoGraphicFX>) itemTypeToInstantiate);
+         YoGraphicFX item = newInstance(worldFrame, (Class<? extends YoGraphicFX>) itemTypeToInstantiate);
 
          item.setName(itemName);
          boolean success = parentGroup.addYoGraphicFXItem(item);
@@ -106,15 +109,17 @@ public class YoGraphicFXControllerTools
       }
    }
 
-   private static YoGraphicFX newInstance(Class<? extends YoGraphicFX> itemTypeToInstantiate)
+   private static YoGraphicFX newInstance(ReferenceFrame worldFrame, Class<? extends YoGraphicFX> itemTypeToInstantiate)
    {
       try
       {
-         return itemTypeToInstantiate.newInstance();
+         Constructor<? extends YoGraphicFX> constructor = itemTypeToInstantiate.getConstructor(ReferenceFrame.class);
+         return constructor.newInstance(worldFrame);
       }
-      catch (InstantiationException | IllegalAccessException e)
+      catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException
+            | InvocationTargetException e)
       {
-         throw new RuntimeException("Something went wrong when instantiating a YoGraphicFX attempting to invoke its empty constructor: ", e);
+         throw new RuntimeException("Something went wrong when instantiating a YoGraphicFX attempting to invoke its constructor with ReferenceFrame argument: ", e);
       }
    }
 
@@ -145,7 +150,9 @@ public class YoGraphicFXControllerTools
       return createAvailableYoGraphicFXItemName(root, namespace, initialName, YoGroupFX::containsChild);
    }
 
-   private static String createAvailableYoGraphicFXItemName(YoGroupFX root, String namespace, String initialName,
+   private static String createAvailableYoGraphicFXItemName(YoGroupFX root,
+                                                            String namespace,
+                                                            String initialName,
                                                             BiPredicate<YoGroupFX, String> doesNameExistFunction)
    {
       YoGroupFX group = YoGraphicTools.findYoGraphicFXGroup(root, namespace);
@@ -263,8 +270,11 @@ public class YoGraphicFXControllerTools
       return listener;
    }
 
-   public static InvalidationListener fullnameValidityBinding(StringProperty nameProperty, StringProperty namespaceProperty, BooleanProperty validityProperty,
-                                                              YoGroupFX rootGroup, YoGraphicFXItem yoGraphicFXItem)
+   public static InvalidationListener fullnameValidityBinding(StringProperty nameProperty,
+                                                              StringProperty namespaceProperty,
+                                                              BooleanProperty validityProperty,
+                                                              YoGroupFX rootGroup,
+                                                              YoGraphicFXItem yoGraphicFXItem)
    {
       Supplier<YoGraphicFXItem> searchBasedYoGraphicSupplier = () -> YoGraphicTools.findYoGraphicFXItem(rootGroup,
                                                                                                         namespaceProperty.get(),
@@ -273,8 +283,11 @@ public class YoGraphicFXControllerTools
       return fullnameValidityBinding(nameProperty, namespaceProperty, validityProperty, yoGraphicFXItem, searchBasedYoGraphicSupplier);
    }
 
-   private static <T> InvalidationListener fullnameValidityBinding(StringProperty nameProperty, StringProperty namespaceProperty,
-                                                                   BooleanProperty validityProperty, T yoGraphicFX, Supplier<T> searchBasedYoGraphicSupplier)
+   private static <T> InvalidationListener fullnameValidityBinding(StringProperty nameProperty,
+                                                                   StringProperty namespaceProperty,
+                                                                   BooleanProperty validityProperty,
+                                                                   T yoGraphicFX,
+                                                                   Supplier<T> searchBasedYoGraphicSupplier)
    {
       InvalidationListener listener = observable ->
       {
@@ -299,7 +312,9 @@ public class YoGraphicFXControllerTools
       return bindBooleanToImageView(observableBoolean, imageView, SessionVisualizerIOTools.VALID_ICON_IMAGE, SessionVisualizerIOTools.INVALID_ICON_IMAGE);
    }
 
-   public static ChangeListener<Boolean> bindBooleanToImageView(ObservableBooleanValue observableBoolean, ImageView imageView, Image imageWhenTrue,
+   public static ChangeListener<Boolean> bindBooleanToImageView(ObservableBooleanValue observableBoolean,
+                                                                ImageView imageView,
+                                                                Image imageWhenTrue,
                                                                 Image imageWhenFalse)
    {
       updateImageView(observableBoolean.get(), imageView, imageWhenTrue, imageWhenFalse);
@@ -344,7 +359,8 @@ public class YoGraphicFXControllerTools
    public static ReadOnlyObjectProperty<List<Tuple2DProperty>> toTuple2DDoubleSupplierListProperty(ReadOnlyObjectProperty<List<DoubleProperty[]>> inputProperty)
    {
       ObjectProperty<List<Tuple2DProperty>> output = new SimpleObjectProperty<>(null, "tuple2DSupplierList", null);
-      inputProperty.addListener((o, oldValue,
+      inputProperty.addListener((o,
+                                 oldValue,
                                  newValue) -> output.set(newValue.stream().map(array -> new Tuple2DProperty(null, array)).collect(Collectors.toList())));
       return output;
    }
@@ -352,7 +368,8 @@ public class YoGraphicFXControllerTools
    public static ReadOnlyObjectProperty<List<Tuple3DProperty>> toTuple3DDoubleSupplierListProperty(ReadOnlyObjectProperty<List<DoubleProperty[]>> inputProperty)
    {
       ObjectProperty<List<Tuple3DProperty>> output = new SimpleObjectProperty<>(null, "tuple3DSupplierList", null);
-      inputProperty.addListener((o, oldValue,
+      inputProperty.addListener((o,
+                                 oldValue,
                                  newValue) -> output.set(newValue.stream().map(array -> new Tuple3DProperty(null, array)).collect(Collectors.toList())));
       return output;
    }

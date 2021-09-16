@@ -1,14 +1,18 @@
 package us.ihmc.scs2.simulation.robot;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.log.LogTools;
+import us.ihmc.mecano.frames.MovingReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointMatrixIndexProvider;
 import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
+import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
 import us.ihmc.scs2.definition.robot.FixedJointDefinition;
 import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
 import us.ihmc.scs2.definition.robot.JointDefinition;
@@ -21,8 +25,6 @@ import us.ihmc.scs2.definition.robot.SensorDefinition;
 import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
 import us.ihmc.scs2.definition.robot.WrenchSensorDefinition;
 import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
-import us.ihmc.scs2.simulation.collision.Collidable;
-import us.ihmc.scs2.simulation.collision.CollidableHolder;
 import us.ihmc.scs2.simulation.robot.controller.RobotControllerManager;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimFixedJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimPlanarJoint;
@@ -31,10 +33,10 @@ import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRevoluteJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimRigidBody;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimSixDoFJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
-import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimMultiBodySystemBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
-public class Robot implements SimMultiBodySystemBasics, CollidableHolder
+public class Robot implements RobotInterface
 {
    public static final JointBuilderFromDefinition DEFAULT_JOINT_BUILDER = new JointBuilderFromDefinition()
    {
@@ -43,46 +45,41 @@ public class Robot implements SimMultiBodySystemBasics, CollidableHolder
    {
    };
 
-   private final YoRegistry registry;
+   protected final YoRegistry registry;
 
-   private final RobotDefinition robotDefinition;
-   private final String name;
-   private final SimRigidBody rootBody;
-   private final ReferenceFrame inertialFrame;
+   protected final RobotDefinition robotDefinition;
+   protected final String name;
+   protected final SimRigidBody rootBody;
+   protected final ReferenceFrame inertialFrame;
+   protected final ReferenceFrame robotRootFrame;
 
-   private final Map<String, SimJointBasics> nameToJointMap;
-   private final Map<String, SimRigidBody> nameToBodyMap;
-   private final List<SimJointBasics> allJoints;
-   private List<SimJointBasics> jointsToIgnore;
-   private List<SimJointBasics> jointsToConsider;
-   private JointMatrixIndexProvider jointMatrixIndexProvider;
-   private List<JointStateReadOnly> allJointInitialStates;
+   protected final List<SimJointBasics> allJoints;
+   protected final List<SimRigidBodyBasics> allRigidBodies;
+   protected final List<SimJointBasics> jointsToIgnore;
+   protected final List<SimJointBasics> jointsToConsider;
+   protected final Map<String, SimJointBasics> nameToJointMap;
+   protected final Map<String, SimRigidBodyBasics> nameToBodyMap;
+   protected final JointMatrixIndexProvider jointMatrixIndexProvider;
+   protected final List<JointStateReadOnly> allJointInitialStates;
 
-   private RobotControllerManager controllerManager;
-
-   private RobotPhysics robotPhysics;
+   protected final RobotControllerManager controllerManager;
 
    public Robot(RobotDefinition robotDefinition, ReferenceFrame inertialFrame)
    {
       this.robotDefinition = robotDefinition;
       this.inertialFrame = inertialFrame;
+      robotRootFrame = createRobotRootFrame(robotDefinition, inertialFrame);
 
       name = robotDefinition.getName();
 
       registry = new YoRegistry(name);
 
-      rootBody = createRobot(robotDefinition.getRootBodyDefinition(), inertialFrame, DEFAULT_JOINT_BUILDER, DEFAULT_BODY_BUILDER, registry);
-      nameToJointMap = SubtreeStreams.fromChildren(SimJointBasics.class, rootBody).collect(Collectors.toMap(SimJointBasics::getName, Function.identity()));
-      nameToBodyMap = rootBody.subtreeStream().collect(Collectors.toMap(SimRigidBody::getName, Function.identity()));
+      rootBody = createRobot(robotDefinition.getRootBodyDefinition(), robotRootFrame, DEFAULT_JOINT_BUILDER, DEFAULT_BODY_BUILDER, registry);
       allJoints = SubtreeStreams.fromChildren(SimJointBasics.class, rootBody).collect(Collectors.toList());
-   }
-
-   public void setupPhysicsAndControllers()
-   {
-      if (robotPhysics != null)
-         return;
-
-      jointsToIgnore = robotDefinition.getNameOfJointsToIgnore().stream().map(jointName -> nameToJointMap.get(jointName)).collect(Collectors.toList());
+      allRigidBodies = new ArrayList<>(rootBody.subtreeList());
+      nameToJointMap = allJoints.stream().collect(Collectors.toMap(SimJointBasics::getName, Function.identity()));
+      nameToBodyMap = allRigidBodies.stream().collect(Collectors.toMap(SimRigidBodyBasics::getName, Function.identity()));
+      jointsToIgnore = robotDefinition.getNameOfJointsToIgnore().stream().map(nameToJointMap::get).collect(Collectors.toList());
       jointsToConsider = allJoints.stream().filter(joint -> !jointsToIgnore.contains(joint)).collect(Collectors.toList());
       jointMatrixIndexProvider = JointMatrixIndexProvider.toIndexProvider(getJointsToConsider());
       allJointInitialStates = allJoints.stream().map(joint -> robotDefinition.getJointDefinition(joint.getName()).getInitialJointState())
@@ -90,20 +87,29 @@ public class Robot implements SimMultiBodySystemBasics, CollidableHolder
 
       controllerManager = new RobotControllerManager(this, registry);
       robotDefinition.getControllerDefinitions().forEach(controllerManager::addController);
-
-      robotPhysics = new RobotPhysics(this);
    }
 
-   public static SimRigidBody createRobot(RigidBodyDefinition rootBodyDefinition, ReferenceFrame inertialFrame, JointBuilderFromDefinition jointBuilder,
-                                          RigidBodyBuilderFromDefinition bodyBuilder, YoRegistry registry)
+   public static ReferenceFrame createRobotRootFrame(RobotDefinition robotDefinition, ReferenceFrame inertialFrame)
+   {
+      return MovingReferenceFrame.constructFrameFixedInParent(robotDefinition.getName() + "RootFrame", inertialFrame, new RigidBodyTransform());
+   }
+
+   public static SimRigidBody createRobot(RigidBodyDefinition rootBodyDefinition,
+                                          ReferenceFrame inertialFrame,
+                                          JointBuilderFromDefinition jointBuilder,
+                                          RigidBodyBuilderFromDefinition bodyBuilder,
+                                          YoRegistry registry)
    {
       SimRigidBody rootBody = bodyBuilder.rootFromDefinition(rootBodyDefinition, inertialFrame, registry);
       createJointsRecursive(rootBody, rootBodyDefinition, jointBuilder, bodyBuilder, registry);
       return rootBody;
    }
 
-   public static void createJointsRecursive(SimRigidBody rigidBody, RigidBodyDefinition rigidBodyDefinition, JointBuilderFromDefinition jointBuilder,
-                                            RigidBodyBuilderFromDefinition bodyBuilder, YoRegistry registry)
+   public static void createJointsRecursive(SimRigidBody rigidBody,
+                                            RigidBodyDefinition rigidBodyDefinition,
+                                            JointBuilderFromDefinition jointBuilder,
+                                            RigidBodyBuilderFromDefinition bodyBuilder,
+                                            YoRegistry registry)
    {
       for (JointDefinition childJointDefinition : rigidBodyDefinition.getChildrenJoints())
       {
@@ -119,6 +125,8 @@ public class Robot implements SimMultiBodySystemBasics, CollidableHolder
                childJoint.getAuxialiryData().addIMUSensor((IMUSensorDefinition) sensorDefinition);
             else if (sensorDefinition instanceof WrenchSensorDefinition)
                childJoint.getAuxialiryData().addWrenchSensor((WrenchSensorDefinition) sensorDefinition);
+            else if (sensorDefinition instanceof CameraSensorDefinition)
+               childJoint.getAuxialiryData().addCameraSensor((CameraSensorDefinition) sensorDefinition);
             else
                LogTools.warn("Unsupported sensor: " + sensorDefinition);
          }
@@ -127,21 +135,25 @@ public class Robot implements SimMultiBodySystemBasics, CollidableHolder
       }
    }
 
+   @Override
    public String getName()
    {
       return name;
    }
 
+   @Override
    public RobotDefinition getRobotDefinition()
    {
       return robotDefinition;
    }
 
+   @Override
    public RobotControllerManager getControllerManager()
    {
       return controllerManager;
    }
 
+   @Override
    public void initializeState()
    {
       for (int i = 0; i < allJoints.size(); i++)
@@ -153,41 +165,19 @@ public class Robot implements SimMultiBodySystemBasics, CollidableHolder
       rootBody.updateFramesRecursively();
    }
 
-   public RobotPhysics getRobotPhysics()
-   {
-      return robotPhysics;
-   }
-
-   public void updateFrames()
-   {
-      rootBody.updateFramesRecursively();
-   }
-
-   public void updateSensors()
-   {
-      for (SimJointBasics joint : rootBody.childrenSubtreeIterable())
-      {
-         joint.getAuxialiryData().update(robotPhysics.getPhysicsOutput());
-      }
-   }
-
    @Override
-   public List<Collidable> getCollidables()
-   {
-      return robotPhysics.getCollidables();
-   }
-
-   @Override
-   public SimRigidBody getRootBody()
+   public SimRigidBodyBasics getRootBody()
    {
       return rootBody;
    }
 
-   public SimRigidBody getRigidBody(String name)
+   @Override
+   public SimRigidBodyBasics getRigidBody(String name)
    {
       return nameToBodyMap.get(name);
    }
 
+   @Override
    public SimJointBasics getJoint(String name)
    {
       return nameToJointMap.get(name);

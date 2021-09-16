@@ -33,6 +33,7 @@ import com.interactivemesh.jfx.importer.obj.ObjImportOption;
 import com.interactivemesh.jfx.importer.obj.ObjModelImporter;
 import com.interactivemesh.jfx.importer.stl.StlMeshImporter;
 
+import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
@@ -50,10 +51,12 @@ import javafx.scene.transform.Affine;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Transform;
+import javafx.scene.transform.Translate;
 import us.ihmc.euclid.tools.EuclidCoreTools;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.javaFXToolkit.JavaFXTools;
 import us.ihmc.log.LogTools;
+import us.ihmc.scs2.definition.AffineTransformDefinition;
 import us.ihmc.scs2.definition.geometry.ArcTorus3DDefinition;
 import us.ihmc.scs2.definition.geometry.Box3DDefinition;
 import us.ihmc.scs2.definition.geometry.Capsule3DDefinition;
@@ -69,6 +72,7 @@ import us.ihmc.scs2.definition.geometry.Torus3DDefinition;
 import us.ihmc.scs2.definition.geometry.TruncatedCone3DDefinition;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
 import us.ihmc.scs2.definition.visual.MaterialDefinition;
+import us.ihmc.scs2.definition.visual.TextureDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
 import us.ihmc.scs2.sessionVisualizer.TriangleMesh3DFactories;
 
@@ -147,10 +151,12 @@ public class JavaFXVisualTools
    {
       Node node = toShape3D(visualDefinition.getGeometryDefinition(), visualDefinition.getMaterialDefinition(), resourceClassLoader);
 
-      if (node != null && visualDefinition.getOriginPose() != null)
+      AffineTransformDefinition originPose = visualDefinition.getOriginPose();
+
+      if (node != null && originPose != null && (originPose.hasTranslation() || originPose.hasLinearTransform()))
       {
          Affine nodeAffine = new Affine();
-         JavaFXTools.convertEuclidAffineToJavaFXAffine(visualDefinition.getOriginPose(), nodeAffine);
+         JavaFXTools.convertEuclidAffineToJavaFXAffine(originPose, nodeAffine);
          node.getTransforms().add(0, nodeAffine);
       }
 
@@ -166,67 +172,67 @@ public class JavaFXVisualTools
       else if (geometryDefinition instanceof ArcTorus3DDefinition)
       {
          MeshView arcTorus = toArcTorus((ArcTorus3DDefinition) geometryDefinition);
-         arcTorus.setMaterial(toMaterial(materialDefinition));
+         arcTorus.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return arcTorus;
       }
       else if (geometryDefinition instanceof Box3DDefinition)
       {
          Box box = toBox((Box3DDefinition) geometryDefinition);
-         box.setMaterial(toMaterial(materialDefinition));
+         box.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return box;
       }
       else if (geometryDefinition instanceof Capsule3DDefinition)
       {
          MeshView capsule = toCapsule((Capsule3DDefinition) geometryDefinition);
-         capsule.setMaterial(toMaterial(materialDefinition));
+         capsule.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return capsule;
       }
       else if (geometryDefinition instanceof Cone3DDefinition)
       {
          MeshView cone = toCone((Cone3DDefinition) geometryDefinition);
-         cone.setMaterial(toMaterial(materialDefinition));
+         cone.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return cone;
       }
       else if (geometryDefinition instanceof Cylinder3DDefinition)
       {
          Shape3D cylinder = toCylinder((Cylinder3DDefinition) geometryDefinition);
-         cylinder.setMaterial(toMaterial(materialDefinition));
+         cylinder.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return cylinder;
       }
       else if (geometryDefinition instanceof Ellipsoid3DDefinition)
       {
          MeshView ellipsoid = toEllipsoid((Ellipsoid3DDefinition) geometryDefinition);
-         ellipsoid.setMaterial(toMaterial(materialDefinition));
+         ellipsoid.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return ellipsoid;
       }
       else if (geometryDefinition instanceof TruncatedCone3DDefinition)
       {
          MeshView genTruncatedCone = toGenTruncatedCone((TruncatedCone3DDefinition) geometryDefinition);
-         genTruncatedCone.setMaterial(toMaterial(materialDefinition));
+         genTruncatedCone.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return genTruncatedCone;
       }
       else if (geometryDefinition instanceof HemiEllipsoid3DDefinition)
       {
          MeshView hemiEllipsoid = toHemiEllipsoid((HemiEllipsoid3DDefinition) geometryDefinition);
-         hemiEllipsoid.setMaterial(toMaterial(materialDefinition));
+         hemiEllipsoid.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return hemiEllipsoid;
       }
       else if (geometryDefinition instanceof Sphere3DDefinition)
       {
          Sphere sphere = toSphere((Sphere3DDefinition) geometryDefinition);
-         sphere.setMaterial(toMaterial(materialDefinition));
+         sphere.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return sphere;
       }
       else if (geometryDefinition instanceof Torus3DDefinition)
       {
          MeshView torus = toTorus((Torus3DDefinition) geometryDefinition);
-         torus.setMaterial(toMaterial(materialDefinition));
+         torus.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return torus;
       }
       else if (geometryDefinition instanceof Ramp3DDefinition)
       {
          MeshView ramp = toRamp((Ramp3DDefinition) geometryDefinition);
-         ramp.setMaterial(toMaterial(materialDefinition));
+         ramp.setMaterial(toMaterial(materialDefinition, resourceClassLoader));
          return ramp;
       }
       else if (geometryDefinition instanceof ModelFileGeometryDefinition)
@@ -264,7 +270,12 @@ public class JavaFXVisualTools
       if (geometryDefinition == null)
          return DEFAULT_BOX;
 
-      return new Box(geometryDefinition.getSizeX(), geometryDefinition.getSizeY(), geometryDefinition.getSizeZ());
+      Box box = new Box(geometryDefinition.getSizeX(), geometryDefinition.getSizeY(), geometryDefinition.getSizeZ());
+      if (!geometryDefinition.isCentered())
+      {
+         box.getTransforms().add(new Translate(0.0, 0.0, 0.5 * geometryDefinition.getSizeZ()));
+      }
+      return box;
    }
 
    public static MeshView toCapsule(Capsule3DDefinition geometryDefinition)
@@ -637,13 +648,87 @@ public class JavaFXVisualTools
       return filteredNodes;
    }
 
-   public static Material toMaterial(MaterialDefinition materialDefinition)
+   public static Material toMaterial(MaterialDefinition materialDefinition, ClassLoader resourceClassLoader)
    {
       if (materialDefinition == null)
          return DEFAULT_MATERIAL;
 
-      Color color = toColor(materialDefinition.getDiffuseColor());
-      return new PhongMaterial(color);
+      PhongMaterial phongMaterial = new PhongMaterial();
+
+      ColorDefinition diffuseColor = materialDefinition.getDiffuseColor();
+      // TODO Not sure what to do with these 2
+      //      ColorDefinition ambientColor = materialDefinition.getAmbientColor();
+      //      ColorDefinition emissiveColor = materialDefinition.getEmissiveColor();
+      ColorDefinition specularColor = materialDefinition.getSpecularColor();
+
+      TextureDefinition diffuseMap = materialDefinition.getDiffuseMap();
+      TextureDefinition emissiveMap = materialDefinition.getEmissiveMap();
+      TextureDefinition normalMap = materialDefinition.getNormalMap();
+      TextureDefinition specularMap = materialDefinition.getSpecularMap();
+
+      boolean atLeastOneFieldSet = false;
+
+      if (diffuseColor != null)
+      {
+         phongMaterial.setDiffuseColor(toColor(diffuseColor));
+         atLeastOneFieldSet = true;
+      }
+      if (specularColor != null)
+      {
+         phongMaterial.setSpecularColor(toColor(specularColor));
+         phongMaterial.setSpecularPower(materialDefinition.getShininess());
+         atLeastOneFieldSet = true;
+      }
+
+      if (diffuseMap != null)
+      {
+         phongMaterial.setDiffuseMap(toImage(diffuseMap, resourceClassLoader));
+         atLeastOneFieldSet = true;
+      }
+      if (emissiveMap != null)
+      {
+         phongMaterial.setSelfIlluminationMap(toImage(emissiveMap, resourceClassLoader));
+         atLeastOneFieldSet = true;
+      }
+      if (normalMap != null)
+      {
+         phongMaterial.setBumpMap(toImage(normalMap, resourceClassLoader));
+         atLeastOneFieldSet = true;
+      }
+      if (specularMap != null)
+      {
+         phongMaterial.setSpecularMap(toImage(specularMap, resourceClassLoader));
+         phongMaterial.setSpecularPower(materialDefinition.getShininess());
+         atLeastOneFieldSet = true;
+      }
+
+      return atLeastOneFieldSet ? phongMaterial : DEFAULT_MATERIAL;
+   }
+
+   public static Image toImage(TextureDefinition textureDefinition, ClassLoader resourceClassLoader)
+   {
+      try
+      {
+         if (textureDefinition == null)
+            return null;
+         if (textureDefinition.getImage() != null)
+            return SwingFXUtils.toFXImage(textureDefinition.getImage(), null);
+         if (textureDefinition.getFileURL() != null)
+            return new Image(textureDefinition.getFileURL().openStream());
+         if (textureDefinition.getFilename() != null)
+         {
+            if (resourceClassLoader != null)
+               return new Image(resourceClassLoader.getResourceAsStream(textureDefinition.getFilename()));
+            else
+               return new Image(textureDefinition.getFilename());
+         }
+         return null;
+      }
+      catch (Exception e)
+      {
+         e.printStackTrace();
+         return null;
+      }
    }
 
    public static Color toColor(ColorDefinition colorDefinition)

@@ -14,6 +14,8 @@ import javafx.util.Duration;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.log.LogTools;
+import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyReadOnly;
+import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
@@ -24,6 +26,7 @@ import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 import us.ihmc.scs2.sharedMemory.LinkedYoVariable;
 import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
 import us.ihmc.scs2.simulation.SimulationSession;
+import us.ihmc.scs2.simulation.robot.Robot;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoVariable;
 
@@ -54,10 +57,10 @@ public class YoRobotFX
    public void loadRobot(Executor graphicLoader)
    {
       LogTools.info("Loading robot: " + robotDefinition.getName());
-      ReferenceFrame worldFrame = referenceFrameManager.getWorldFrame();
+      ReferenceFrame robotRootFrame = Robot.createRobotRootFrame(robotDefinition, referenceFrameManager.getWorldFrame());
 
       rootBody = toYoJavaFXMultiBodySystem(robotDefinition.newIntance(ReferenceFrameTools.constructARootFrame("dummy")),
-                                           worldFrame,
+                                           robotRootFrame,
                                            robotDefinition,
                                            robotRegistry,
                                            graphicLoader);
@@ -127,6 +130,16 @@ public class YoRobotFX
             initialize = false;
          }
       }
+   }
+
+   public RigidBodyReadOnly getRootBody()
+   {
+      return rootBody;
+   }
+
+   public JavaFXRigidBody findRigidBody(String rigidBodyName)
+   {
+      return (JavaFXRigidBody) MultiBodySystemTools.findRigidBody(rootBody, rigidBodyName);
    }
 
    public RobotDefinition getRobotDefinition()

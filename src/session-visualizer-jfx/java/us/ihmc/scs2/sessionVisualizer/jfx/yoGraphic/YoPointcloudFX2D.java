@@ -20,6 +20,7 @@ import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
 import net.javainthebox.caraibe.svg.SVGContent;
 import net.javainthebox.caraibe.svg.SVGLoader;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple2DProperty;
 
@@ -44,6 +45,11 @@ public class YoPointcloudFX2D extends YoGraphicFX2D
    public YoPointcloudFX2D()
    {
       numberOfPointsProperty.addListener((observable, oldValue, newValue) -> refreshGraphicsProperty.set(true));
+   }
+
+   public YoPointcloudFX2D(ReferenceFrame worldFrame)
+   {
+      this();
    }
 
    @Override

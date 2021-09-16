@@ -1,17 +1,22 @@
 package us.ihmc.scs2.sessionVisualizer.jfx;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.List;
 
 import javafx.stage.Window;
 import javafx.util.Pair;
 import us.ihmc.messager.MessagerAPIFactory.Topic;
+import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
+import us.ihmc.scs2.session.Session;
+import us.ihmc.scs2.session.SessionDataExportRequest;
 import us.ihmc.scs2.session.SessionMessagerAPI;
+import us.ihmc.scs2.session.SessionMessagerAPI.Sensors.SensorMessage;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.session.SessionState;
 import us.ihmc.scs2.session.YoSharedBufferMessagerAPI;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.search.SearchEngines;
-import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
 import us.ihmc.scs2.sharedMemory.CropBufferRequest;
 import us.ihmc.scs2.sharedMemory.FillBufferRequest;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
@@ -19,6 +24,9 @@ import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 public class SessionVisualizerTopics
 {
    // GUI internal topics:
+   private Topic<Boolean> disableUserControls;
+   private Topic<SceneVideoRecordingRequest> sceneVideoRecordingRequest;
+   private Topic<CameraObjectTrackingRequest> cameraTrackObject;
    private Topic<Object> takeSnapshot;
    private Topic<Object> registerRecordable;
    private Topic<Object> forgetRecordable;
@@ -38,10 +46,9 @@ public class SessionVisualizerTopics
    private Topic<List<String>> yoCompositeSelected;
    private Topic<Boolean> yoCompositeRefreshAll;
 
-   private Topic<Boolean> yoGraphicRootGroupRequest;
-   private Topic<YoGroupFX> yoGraphicRootGroupData;
    private Topic<File> yoGraphicLoadRequest;
    private Topic<File> yoGraphicSaveRequest;
+   private Topic<YoGraphicDefinition> addYoGraphicRequest;
 
    private Topic<Pair<Window, Double>> yoChartZoomFactor;
    private Topic<Pair<Window, Boolean>> yoChartRequestZoomIn, yoChartRequestZoomOut;
@@ -58,14 +65,19 @@ public class SessionVisualizerTopics
 
    private Topic<File> sessionVisualizerConfigurationLoadRequest;
    private Topic<File> sessionVisualizerConfigurationSaveRequest;
+   private Topic<Boolean> sessionVisualizerDefaultConfigurationLoadRequest;
+   private Topic<Boolean> sessionVisualizerDefaultConfigurationSaveRequest;
 
    // Session topics
    private Topic<SessionState> sessionCurrentState;
    private Topic<SessionMode> sessionCurrentMode;
    private Topic<Boolean> runAtRealTimeRate;
-   private Topic<Long> sessionTickToTimeIncrement;
+   private Topic<Long> sessionDTNanoseconds;
    private Topic<Double> playbackRealTimeRate;
    private Topic<Integer> bufferRecordTickPeriod;
+   private Topic<Integer> initializeBufferRecordTickPeriod;
+   private Topic<SessionDataExportRequest> sessionDataExportRequest;
+   private Topic<Session> startNewSessionRequest;
    private Topic<Boolean> remoteSessionControlsRequest;
    private Topic<Boolean> logSessionControlsRequest;
 
@@ -75,10 +87,16 @@ public class SessionVisualizerTopics
    private Topic<CropBufferRequest> yoBufferCropRequest;
    private Topic<FillBufferRequest> yoBufferFillRequest;
    private Topic<Integer> yoBufferCurrentSizeRequest;
+   private Topic<Integer> yoBufferInitializeSize;
    private Topic<YoBufferPropertiesReadOnly> yoBufferCurrentProperties;
+   private Topic<SensorMessage<CameraSensorDefinition>> cameraSensorDefinitionData;
+   private Topic<SensorMessage<BufferedImage>> cameraSensorFrame;
 
    public void setupTopics()
    {
+      disableUserControls = SessionVisualizerMessagerAPI.DisableUserControls;
+      sceneVideoRecordingRequest = SessionVisualizerMessagerAPI.SceneVideoRecordingRequest;
+      cameraTrackObject = SessionVisualizerMessagerAPI.CameraTrackObject;
       takeSnapshot = SessionVisualizerMessagerAPI.TakeSnapshot;
       registerRecordable = SessionVisualizerMessagerAPI.RegisterRecordable;
       forgetRecordable = SessionVisualizerMessagerAPI.ForgetRecordable;
@@ -100,10 +118,9 @@ public class SessionVisualizerTopics
       yoCompositeSelected = SessionVisualizerMessagerAPI.YoSearch.YoCompositePatternSelected;
       yoCompositeRefreshAll = SessionVisualizerMessagerAPI.YoSearch.YoCompositeRefreshAll;
 
-      yoGraphicRootGroupRequest = SessionVisualizerMessagerAPI.YoGraphic.YoGraphicRootGroupRequest;
-      yoGraphicRootGroupData = SessionVisualizerMessagerAPI.YoGraphic.YoGraphicRootGroupData;
       yoGraphicLoadRequest = SessionVisualizerMessagerAPI.YoGraphic.YoGraphicLoadRequest;
       yoGraphicSaveRequest = SessionVisualizerMessagerAPI.YoGraphic.YoGraphicSaveRequest;
+      addYoGraphicRequest = SessionVisualizerMessagerAPI.YoGraphic.AddYoGraphicRequest;
 
       yoChartZoomFactor = SessionVisualizerMessagerAPI.YoChart.YoChartZoomFactor;
       yoChartRequestZoomIn = SessionVisualizerMessagerAPI.YoChart.YoChartRequestZoomIn;
@@ -120,15 +137,20 @@ public class SessionVisualizerTopics
 
       sessionVisualizerConfigurationLoadRequest = SessionVisualizerMessagerAPI.SessionVisualizerConfigurationLoadRequest;
       sessionVisualizerConfigurationSaveRequest = SessionVisualizerMessagerAPI.SessionVisualizerConfigurationSaveRequest;
+      sessionVisualizerDefaultConfigurationLoadRequest = SessionVisualizerMessagerAPI.SessionVisualizerDefaultConfigurationLoadRequest;
+      sessionVisualizerDefaultConfigurationSaveRequest = SessionVisualizerMessagerAPI.SessionVisualizerDefaultConfigurationSaveRequest;
 
       sessionCurrentState = SessionMessagerAPI.SessionCurrentState;
       sessionCurrentMode = SessionMessagerAPI.SessionCurrentMode;
       runAtRealTimeRate = SessionMessagerAPI.RunAtRealTimeRate;
-      sessionTickToTimeIncrement = SessionMessagerAPI.SessionTickToTimeIncrement;
+      sessionDTNanoseconds = SessionMessagerAPI.SessionDTNanoseconds;
       playbackRealTimeRate = SessionMessagerAPI.PlaybackRealTimeRate;
       bufferRecordTickPeriod = SessionMessagerAPI.BufferRecordTickPeriod;
-      remoteSessionControlsRequest = SessionVisualizerMessagerAPI.Session.RemoteSessionControlsRequest;
-      logSessionControlsRequest = SessionVisualizerMessagerAPI.Session.LogSessionControlsRequest;
+      initializeBufferRecordTickPeriod = SessionMessagerAPI.InitializeBufferRecordTickPeriod;
+      sessionDataExportRequest = SessionMessagerAPI.SessionDataExportRequest;
+      startNewSessionRequest = SessionVisualizerMessagerAPI.SessionAPI.StartNewSessionRequest;
+      remoteSessionControlsRequest = SessionVisualizerMessagerAPI.SessionAPI.RemoteSessionControlsRequest;
+      logSessionControlsRequest = SessionVisualizerMessagerAPI.SessionAPI.LogSessionControlsRequest;
 
       yoBufferCurrentIndexRequest = YoSharedBufferMessagerAPI.CurrentIndexRequest;
       yoBufferIncrementCurrentIndexRequest = YoSharedBufferMessagerAPI.IncrementCurrentIndexRequest;
@@ -138,7 +160,26 @@ public class SessionVisualizerTopics
       yoBufferCropRequest = YoSharedBufferMessagerAPI.CropRequest;
       yoBufferFillRequest = YoSharedBufferMessagerAPI.FillRequest;
       yoBufferCurrentSizeRequest = YoSharedBufferMessagerAPI.CurrentBufferSizeRequest;
+      yoBufferInitializeSize = YoSharedBufferMessagerAPI.InitializeBufferSize;
       yoBufferCurrentProperties = YoSharedBufferMessagerAPI.CurrentBufferProperties;
+
+      cameraSensorDefinitionData = SessionMessagerAPI.Sensors.CameraSensorDefinitionData;
+      cameraSensorFrame = SessionMessagerAPI.Sensors.CameraSensorFrame;
+   }
+
+   public Topic<Boolean> getDisableUserControls()
+   {
+      return disableUserControls;
+   }
+
+   public Topic<SceneVideoRecordingRequest> getSceneVideoRecordingRequest()
+   {
+      return sceneVideoRecordingRequest;
+   }
+
+   public Topic<CameraObjectTrackingRequest> getCameraTrackObject()
+   {
+      return cameraTrackObject;
    }
 
    public Topic<Object> getTakeSnapshot()
@@ -231,16 +272,6 @@ public class SessionVisualizerTopics
       return yoCompositeRefreshAll;
    }
 
-   public Topic<Boolean> getYoGraphicRootGroupRequest()
-   {
-      return yoGraphicRootGroupRequest;
-   }
-
-   public Topic<YoGroupFX> getYoGraphicRootGroupData()
-   {
-      return yoGraphicRootGroupData;
-   }
-
    public Topic<File> getYoGraphicLoadRequest()
    {
       return yoGraphicLoadRequest;
@@ -249,6 +280,11 @@ public class SessionVisualizerTopics
    public Topic<File> getYoGraphicSaveRequest()
    {
       return yoGraphicSaveRequest;
+   }
+
+   public Topic<YoGraphicDefinition> getAddYoGraphicRequest()
+   {
+      return addYoGraphicRequest;
    }
 
    public Topic<Pair<Window, Double>> getYoChartZoomFactor()
@@ -311,6 +347,16 @@ public class SessionVisualizerTopics
       return sessionVisualizerConfigurationSaveRequest;
    }
 
+   public Topic<Boolean> getSessionVisualizerDefaultConfigurationLoadRequest()
+   {
+      return sessionVisualizerDefaultConfigurationLoadRequest;
+   }
+
+   public Topic<Boolean> getSessionVisualizerDefaultConfigurationSaveRequest()
+   {
+      return sessionVisualizerDefaultConfigurationSaveRequest;
+   }
+
    public Topic<SessionState> getSessionCurrentState()
    {
       return sessionCurrentState;
@@ -326,9 +372,9 @@ public class SessionVisualizerTopics
       return runAtRealTimeRate;
    }
 
-   public Topic<Long> getSessionTickToTimeIncrement()
+   public Topic<Long> getSessionDTNanoseconds()
    {
-      return sessionTickToTimeIncrement;
+      return sessionDTNanoseconds;
    }
 
    public Topic<Double> getPlaybackRealTimeRate()
@@ -339,6 +385,21 @@ public class SessionVisualizerTopics
    public Topic<Integer> getBufferRecordTickPeriod()
    {
       return bufferRecordTickPeriod;
+   }
+
+   public Topic<Integer> getInitializeBufferRecordTickPeriod()
+   {
+      return initializeBufferRecordTickPeriod;
+   }
+
+   public Topic<SessionDataExportRequest> getSessionDataExportRequest()
+   {
+      return sessionDataExportRequest;
+   }
+
+   public Topic<Session> getStartNewSessionRequest()
+   {
+      return startNewSessionRequest;
    }
 
    public Topic<Boolean> getRemoteSessionControlsRequest()
@@ -391,8 +452,23 @@ public class SessionVisualizerTopics
       return yoBufferCurrentSizeRequest;
    }
 
+   public Topic<Integer> getYoBufferInitializeSize()
+   {
+      return yoBufferInitializeSize;
+   }
+
    public Topic<YoBufferPropertiesReadOnly> getYoBufferCurrentProperties()
    {
       return yoBufferCurrentProperties;
+   }
+
+   public Topic<SensorMessage<CameraSensorDefinition>> getCameraSensorDefinitionData()
+   {
+      return cameraSensorDefinitionData;
+   }
+
+   public Topic<SensorMessage<BufferedImage>> getCameraSensorFrame()
+   {
+      return cameraSensorFrame;
    }
 }

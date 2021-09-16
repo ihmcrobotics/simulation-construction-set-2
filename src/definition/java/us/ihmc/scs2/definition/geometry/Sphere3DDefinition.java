@@ -1,5 +1,7 @@
 package us.ihmc.scs2.definition.geometry;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
 
@@ -56,6 +58,7 @@ public class Sphere3DDefinition extends GeometryDefinition
     * 
     * @param radius the radius of the sphere.
     */
+   @XmlElement
    public void setRadius(double radius)
    {
       this.radius = radius;
@@ -66,6 +69,7 @@ public class Sphere3DDefinition extends GeometryDefinition
     * 
     * @param resolution the sphere's resolution.
     */
+   @XmlElement
    public void setResolution(int resolution)
    {
       this.resolution = resolution;

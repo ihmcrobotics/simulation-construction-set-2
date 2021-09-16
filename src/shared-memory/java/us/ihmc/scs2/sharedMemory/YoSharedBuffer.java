@@ -79,6 +79,8 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
 
    private final YoBufferProperties properties = new YoBufferProperties();
 
+   private boolean isDisposed = false;
+
    public YoSharedBuffer(YoRegistry rootRegistry, int initialBufferSize)
    {
       properties.setSize(initialBufferSize);
@@ -102,6 +104,9 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
     */
    public void cropBuffer(CropBufferRequest request)
    {
+      if (isDisposed)
+         return;
+
       int newSize = request.getCroppedSize(properties.getSize());
       registryBuffer.resizeBuffer(request.getFrom(), newSize);
       properties.setSize(newSize);
@@ -112,6 +117,9 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
 
    public void fillBuffer(FillBufferRequest request)
    {
+      if (isDisposed)
+         return;
+
       registryBuffer.fillBuffer(request.getZeroFill(), request.getFrom(), request.getFilledSize(properties.getSize()));
    }
 
@@ -135,6 +143,9 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
     */
    public boolean resizeBuffer(int newSize)
    {
+      if (isDisposed)
+         return false;
+
       if (newSize == properties.getSize() || newSize <= 0)
          return false;
 
@@ -260,6 +271,9 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
     */
    public boolean processLinkedPushRequests(boolean writeBuffer)
    {
+      if (isDisposed)
+         return false;
+
       linkedBuffersLock.lock();
       try
       {
@@ -279,6 +293,9 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
     */
    public void flushLinkedPushRequests()
    {
+      if (isDisposed)
+         return;
+
       linkedBuffersLock.lock();
       try
       {
@@ -299,6 +316,9 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
     */
    public void readBuffer()
    {
+      if (isDisposed)
+         return;
+
       registryBuffer.readBuffer();
    }
 
@@ -311,6 +331,9 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
     */
    public void writeBuffer()
    {
+      if (isDisposed)
+         return;
+
       registryBuffer.writeBuffer();
    }
 
@@ -322,7 +345,9 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
     */
    public void prepareLinkedBuffersForPull()
    {
-      // FIXME hack to get the publish method faster.
+      if (isDisposed)
+         return;
+
       linkedBuffersLock.lock();
       try
       {
@@ -350,6 +375,9 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
     */
    public boolean hasRequestPending()
    {
+      if (isDisposed)
+         return false;
+
       linkedBuffersLock.lock();
       try
       {
@@ -480,9 +508,32 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
       return registryBuffer;
    }
 
+   public void dispose()
+   {
+      if (isDisposed)
+         return;
+
+      try
+      {
+         linkedBuffersLock.lock();
+         isDisposed = true;
+         registryBuffer.dispose();
+         linkedBuffers.dispose();
+         linkedBufferProperties.forEach(l -> l.dispose());
+         linkedBufferProperties.clear();
+      }
+      finally
+      {
+         linkedBuffersLock.unlock();
+      }
+   }
+
    @Override
    public LinkedYoRegistry newLinkedYoRegistry(YoRegistry registryToLink)
    {
+      if (isDisposed)
+         return null;
+
       LinkedYoRegistry linkedYoRegistry = registryBuffer.newLinkedYoRegistry(registryToLink);
       linkedBuffersLock.lock();
       try
@@ -499,6 +550,9 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
    @Override
    public LinkedYoRegistry newLinkedYoRegistry()
    {
+      if (isDisposed)
+         return null;
+
       LinkedYoRegistry linkedYoRegistry = registryBuffer.newLinkedYoRegistry();
       linkedBuffersLock.lock();
       try
@@ -515,6 +569,9 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
    @Override
    public LinkedBufferProperties newLinkedBufferProperties()
    {
+      if (isDisposed)
+         return null;
+
       LinkedBufferProperties linkedBufferProperties = new LinkedBufferProperties(properties);
       this.linkedBufferProperties.add(linkedBufferProperties);
       return linkedBufferProperties;
@@ -523,6 +580,9 @@ public class YoSharedBuffer implements LinkedYoVariableFactory
    @Override
    public LinkedYoVariable<?> newLinkedYoVariable(YoVariable variableToLink)
    {
+      if (isDisposed)
+         return null;
+
       LinkedYoVariable<?> linkedYoVariable = LinkedYoVariable.newLinkedYoVariable(variableToLink, registryBuffer.findYoVariableBuffer(variableToLink));
       linkedBuffersLock.lock();
       try

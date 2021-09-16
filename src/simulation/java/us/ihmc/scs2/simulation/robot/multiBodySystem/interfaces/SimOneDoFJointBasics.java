@@ -9,7 +9,6 @@ import us.ihmc.mecano.tools.MecanoTools;
 
 public interface SimOneDoFJointBasics extends SimJointBasics, OneDoFJointBasics, SimOneDoFJointReadOnly
 {
-
    void setDeltaQd(double deltaQd);
 
    @Override

@@ -63,4 +63,10 @@ public class YoEnumBuffer<E extends Enum<E>> extends YoVariableBuffer<YoEnum<E>>
    {
       return buffer;
    }
+
+   @Override
+   public void dispose()
+   {
+      buffer = null;
+   }
 }

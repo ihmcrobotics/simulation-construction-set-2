@@ -27,6 +27,9 @@ public class SimRevoluteJoint extends YoRevoluteJoint implements SimOneDoFJointB
    public SimRevoluteJoint(RevoluteJointDefinition definition, SimRigidBodyBasics predecessor)
    {
       this(definition.getName(), predecessor, definition.getTransformToParent(), definition.getAxis());
+      setJointLimits(definition.getPositionLowerLimit(), definition.getPositionUpperLimit());
+      setVelocityLimits(definition.getVelocityLowerLimit(), definition.getVelocityUpperLimit());
+      setEffortLimits(definition.getEffortLowerLimit(), definition.getEffortUpperLimit());
    }
 
    public SimRevoluteJoint(String name, SimRigidBodyBasics predecessor, Vector3DReadOnly jointAxis)

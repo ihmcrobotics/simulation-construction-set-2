@@ -12,7 +12,6 @@ public class XMLToolsTest
    @Test
    public void test() throws JAXBException, IOException
    {
-      XMLTools.loadResourcesNow();
       XMLTools.loadYoGraphicListDefinition(getClass().getClassLoader().getResourceAsStream("yoGraphic/AtlasDefaultWalking.scs2.yoGraphic"));
    }
 }

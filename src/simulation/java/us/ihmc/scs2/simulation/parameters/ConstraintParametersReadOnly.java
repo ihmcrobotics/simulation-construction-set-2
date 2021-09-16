@@ -2,7 +2,7 @@ package us.ihmc.scs2.simulation.parameters;
 
 /**
  * Read-only interface for accessing a set of parameters used for resolving general constraints in
- * {@link ExperimentalPhysicsEngine}.
+ * {@link ImpulseBasedPhysicsEngine}.
  * <p>
  * Constraints can either be: robot joint limits or contact between two collidables.
  * </p>

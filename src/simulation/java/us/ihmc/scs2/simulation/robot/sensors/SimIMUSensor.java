@@ -6,6 +6,7 @@ import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.mecano.algorithms.interfaces.RigidBodyAccelerationProvider;
 import us.ihmc.mecano.algorithms.interfaces.RigidBodyTwistProvider;
+import us.ihmc.mecano.frames.MovingReferenceFrame;
 import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
 import us.ihmc.scs2.simulation.robot.RobotPhysicsOutput;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
@@ -49,10 +50,13 @@ public class SimIMUSensor extends SimSensor
       RigidBodyTwistProvider deltaTwistProvider = robotPhysicsOutput.getDeltaTwistProvider();
       RigidBodyAccelerationProvider accelerationProvider = robotPhysicsOutput.getAccelerationProvider();
       SimRigidBodyBasics body = getParentJoint().getSuccessor();
+      MovingReferenceFrame bodyFrame = body.getBodyFixedFrame();
+
       bodyFixedPoint.setIncludingFrame(getOffset().getPosition());
-      bodyFixedPoint.changeFrame(body.getBodyFixedFrame());
-      accelerationProvider.getAccelerationOfBody(body).getLinearAccelerationAt(body.getBodyFixedFrame().getTwistOfFrame(), bodyFixedPoint, intermediateAcceleration);
-      intermediateAcceleration.scaleAdd(1.0 / dt, deltaTwistProvider.getLinearVelocityOfBodyFixedPoint(body, bodyFixedPoint), intermediateAcceleration);
+      bodyFixedPoint.changeFrame(bodyFrame);
+      accelerationProvider.getAccelerationOfBody(body).getLinearAccelerationAt(bodyFrame.getTwistOfFrame(), bodyFixedPoint, intermediateAcceleration);
+      if (dt != 0.0 && deltaTwistProvider != null) // This can happen at initialization
+         intermediateAcceleration.scaleAdd(1.0 / dt, deltaTwistProvider.getLinearVelocityOfBodyFixedPoint(body, bodyFixedPoint), intermediateAcceleration);
       linearAcceleration.setMatchingFrame(intermediateAcceleration);
    }
 

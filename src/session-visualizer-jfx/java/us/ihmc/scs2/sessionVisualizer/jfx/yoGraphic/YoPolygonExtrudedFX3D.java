@@ -8,11 +8,13 @@ import java.util.stream.Collectors;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Node;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Mesh;
 import javafx.scene.shape.MeshView;
 import javafx.scene.transform.Affine;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.Vector2D;
 import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
@@ -46,6 +48,13 @@ public class YoPolygonExtrudedFX3D extends YoGraphicFX3D
       polygonNode.setMaterial(material);
       polygonNode.getTransforms().add(affine);
       polygonNode.idProperty().bind(nameProperty());
+   }
+
+   public YoPolygonExtrudedFX3D(ReferenceFrame worldFrame)
+   {
+      this();
+      position.setReferenceFrame(worldFrame);
+      orientation.setReferenceFrame(worldFrame);
    }
 
    @Override
@@ -86,7 +95,7 @@ public class YoPolygonExtrudedFX3D extends YoGraphicFX3D
       return data;
    }
 
-   static class PolygonData
+   private static class PolygonData
    {
       private List<Point2DReadOnly> vertices;
       private double thickness;
@@ -184,9 +193,19 @@ public class YoPolygonExtrudedFX3D extends YoGraphicFX3D
       this.numberOfVertices = numberOfVertices;
    }
 
+   public void setNumberOfVertices(int numberOfVertices)
+   {
+      setNumberOfVertices(new SimpleIntegerProperty(numberOfVertices));
+   }
+
    public void setThickness(DoubleProperty thickness)
    {
       this.thickness = thickness;
+   }
+
+   public void setThickness(double thickness)
+   {
+      setThickness(new SimpleDoubleProperty(thickness));
    }
 
    @Override

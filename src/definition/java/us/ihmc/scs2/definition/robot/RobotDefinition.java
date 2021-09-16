@@ -4,11 +4,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.scs2.definition.controller.interfaces.ControllerDefinition;
 
+@XmlRootElement(name = "Robot")
 public class RobotDefinition
 {
    private String name;
@@ -28,14 +34,30 @@ public class RobotDefinition
       setName(name);
    }
 
+   @XmlAttribute
    public void setName(String name)
    {
       this.name = name;
    }
 
+   @XmlElement(name = "rootBody")
    public void setRootBodyDefinition(RigidBodyDefinition rootBodyDefinition)
    {
       this.rootBodyDefinition = rootBodyDefinition;
+   }
+
+   public void ignoreAllJoints()
+   {
+      for (JointDefinition jointDefinition : collectSubtreeJointDefinitions(rootBodyDefinition))
+      {
+         addJointToIgnore(jointDefinition.getName());
+      }
+   }
+
+   @XmlElement(name = "jointToIgnore")
+   public void setNameOfJointsToIgnore(List<String> nameOfJointsToIgnore)
+   {
+      this.nameOfJointsToIgnore = nameOfJointsToIgnore;
    }
 
    public void addJointToIgnore(String nameOfJointToIgnore)
@@ -43,11 +65,22 @@ public class RobotDefinition
       nameOfJointsToIgnore.add(nameOfJointToIgnore);
    }
 
+   public void addSubtreeJointsToIgnore(String nameOfLastJointToConsider)
+   {
+      List<JointDefinition> definitionOfJointsToIgnore = collectSubtreeJointDefinitions(getJointDefinition(nameOfLastJointToConsider).getSuccessor());
+
+      for (JointDefinition jointDefinition : definitionOfJointsToIgnore)
+      {
+         nameOfJointsToIgnore.add(jointDefinition.getName());
+      }
+   }
+
    public void addControllerDefinition(ControllerDefinition controllerDefinition)
    {
       controllerDefinitions.add(controllerDefinition);
    }
 
+   @XmlTransient
    public void setResourceClassLoader(ClassLoader resourceClassLoader)
    {
       this.resourceClassLoader = resourceClassLoader;
@@ -95,6 +128,11 @@ public class RobotDefinition
       return collectSubtreeJointDefinitions(rootBodyDefinition);
    }
 
+   public List<RigidBodyDefinition> getAllRigidBodies()
+   {
+      return collectSubtreeRigidBodyDefinitions(rootBodyDefinition);
+   }
+
    public List<ControllerDefinition> getControllerDefinitions()
    {
       return controllerDefinitions;
@@ -102,18 +140,41 @@ public class RobotDefinition
 
    private static List<JointDefinition> collectSubtreeJointDefinitions(RigidBodyDefinition start)
    {
-      if (start == null)
-         return Collections.emptyList();
+      return collectSubtreeJointDefinitions(start, new ArrayList<>());
+   }
 
-      List<JointDefinition> joints = new ArrayList<>();
+   private static List<JointDefinition> collectSubtreeJointDefinitions(RigidBodyDefinition start, List<JointDefinition> jointsToPack)
+   {
+      if (start == null || start.getChildrenJoints() == null)
+         return Collections.emptyList();
 
       for (JointDefinition childJoint : start.getChildrenJoints())
       {
-         joints.add(childJoint);
-         joints.addAll(collectSubtreeJointDefinitions(childJoint.getSuccessor()));
+         jointsToPack.add(childJoint);
+         collectSubtreeJointDefinitions(childJoint.getSuccessor(), jointsToPack);
       }
 
-      return joints;
+      return jointsToPack;
+   }
+
+   private static List<RigidBodyDefinition> collectSubtreeRigidBodyDefinitions(RigidBodyDefinition start)
+   {
+      return collectSubtreeRigidBodyDefinitions(start, new ArrayList<>());
+   }
+
+   private static List<RigidBodyDefinition> collectSubtreeRigidBodyDefinitions(RigidBodyDefinition start, List<RigidBodyDefinition> rigidBodiesToPack)
+   {
+      if (start == null || start.getChildrenJoints() == null)
+         return Collections.emptyList();
+
+      rigidBodiesToPack.add(start);
+
+      for (JointDefinition childJoint : start.getChildrenJoints())
+      {
+         collectSubtreeRigidBodyDefinitions(childJoint.getSuccessor(), rigidBodiesToPack);
+      }
+
+      return rigidBodiesToPack;
    }
 
    public RigidBodyBasics newIntance(ReferenceFrame rootFrame)

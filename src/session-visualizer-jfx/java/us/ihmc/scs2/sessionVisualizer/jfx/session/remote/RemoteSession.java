@@ -57,11 +57,11 @@ public class RemoteSession extends Session
                                                                    handshake.getResourceDirectories(),
                                                                    handshake.getModel(),
                                                                    handshake.getResourceZip());
-      robotStateUpdater = RobotModelLoader.setupRobotUpdater(robotDefinition, handshakeParser, rootRegistry);
+      robotStateUpdater = RobotModelLoader.setupRobotUpdater(robotDefinition, handshakeParser, rootRegistry, getInertialFrame());
       if (robotDefinition != null)
          robotDefinitions.add(robotDefinition);
 
-      setSessionTickToTimeIncrement(Conversions.secondsToNanoseconds(handshakeParser.getDt()));
+      setSessionDTSeconds(handshakeParser.getDt());
       setSessionModeTask(SessionMode.RUNNING, () ->
       {
          if (!this.yoVariableClientInterface.isConnected())
@@ -108,7 +108,7 @@ public class RemoteSession extends Session
    @Override
    public SessionProperties getSessionProperties()
    {
-      return new SessionProperties(getActiveMode(), getRunAtRealTimeRate(), getPlaybackRealTimeRate(), getSessionTickToTimeIncrement(), bufferRecordTickPeriod);
+      return new SessionProperties(getActiveMode(), getRunAtRealTimeRate(), getPlaybackRealTimeRate(), getSessionDTNanoseconds(), bufferRecordTickPeriod);
    }
 
    public void receivedTimestampOnly(long timestamp)
@@ -160,18 +160,35 @@ public class RemoteSession extends Session
    }
 
    @Override
-   protected void doSpecificRunTick()
+   protected double doSpecificRunTick()
    {
       if (robotStateUpdater != null)
          robotStateUpdater.run();
+      return Conversions.nanosecondsToSeconds(latestDataTimestamp.get());
    }
 
    @Override
-   protected void finalizeRunTick()
+   protected void initializeRunTick()
    {
-      if (Conversions.nanosecondsToMilliseconds(getDelay()) < MAX_DELAY_MILLI * bufferRecordTickPeriod)
+      if (firstRunTick)
       {
-         super.finalizeRunTick();
+         sharedBuffer.incrementBufferIndex(true);
+         sharedBuffer.setInPoint(sharedBuffer.getProperties().getCurrentIndex());
+         sharedBuffer.processLinkedPushRequests(false);
+         firstRunTick = false;
+      }
+      else
+      {
+         super.initializeRunTick();
+      }
+   }
+
+   @Override
+   protected void finalizeRunTick(boolean forceWriteBuffer)
+   {
+      if (forceWriteBuffer || Conversions.nanosecondsToMilliseconds(getDelay()) < MAX_DELAY_MILLI * bufferRecordTickPeriod)
+      {
+         super.finalizeRunTick(forceWriteBuffer);
       }
       else
       {
@@ -197,7 +214,7 @@ public class RemoteSession extends Session
 
    private void updateServerUpdateRate()
    {
-      int updateRateInMilliseconds = (int) TimeUnit.NANOSECONDS.toMillis(bufferRecordTickPeriod * getSessionTickToTimeIncrement());
+      int updateRateInMilliseconds = (int) TimeUnit.NANOSECONDS.toMillis(bufferRecordTickPeriod * getSessionDTNanoseconds());
       yoVariableClientInterface.setVariableUpdateRate(updateRateInMilliseconds);
    }
 

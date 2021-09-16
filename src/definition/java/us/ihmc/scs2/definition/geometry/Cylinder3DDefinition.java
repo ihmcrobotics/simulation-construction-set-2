@@ -1,5 +1,7 @@
 package us.ihmc.scs2.definition.geometry;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
 
 /**
@@ -107,6 +109,7 @@ public class Cylinder3DDefinition extends GeometryDefinition
     * 
     * @param length the cylinder's length or height.
     */
+   @XmlElement
    public void setLength(double length)
    {
       this.length = length;
@@ -117,6 +120,7 @@ public class Cylinder3DDefinition extends GeometryDefinition
     * 
     * @param radius the cylinder's radius.
     */
+   @XmlElement
    public void setRadius(double radius)
    {
       this.radius = radius;
@@ -128,6 +132,7 @@ public class Cylinder3DDefinition extends GeometryDefinition
     * @param centered {@code true} for the cylinder to be centered at the origin, {@code false} for the
     *                 bottom face to be centered at the origin.
     */
+   @XmlElement
    public void setCentered(boolean centered)
    {
       this.centered = centered;
@@ -138,6 +143,7 @@ public class Cylinder3DDefinition extends GeometryDefinition
     * 
     * @param resolution the cylinder's resolution.
     */
+   @XmlElement
    public void setResolution(int resolution)
    {
       this.resolution = resolution;

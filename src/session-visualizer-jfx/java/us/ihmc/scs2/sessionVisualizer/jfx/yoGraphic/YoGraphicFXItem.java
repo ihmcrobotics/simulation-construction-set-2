@@ -38,6 +38,16 @@ public interface YoGraphicFXItem
 
    ObservableSet<YoGraphicFXItem> getItemChildren();
 
+   default YoGroupFX getRootGroup()
+   {
+      if (this instanceof YoGroupFX)
+         return ((YoGroupFX) this).getRootGroup();
+      else if (getParentGroup() == null)
+         return null;
+      else
+         return getParentGroup().getRootGroup();
+   }
+
    default YoGroupFX getParentGroup()
    {
       return parentGroupProperty() == null ? null : parentGroupProperty().get();

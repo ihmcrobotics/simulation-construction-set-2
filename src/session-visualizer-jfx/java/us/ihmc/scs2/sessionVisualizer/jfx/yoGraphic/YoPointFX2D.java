@@ -6,6 +6,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Bounds;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
@@ -15,6 +16,7 @@ import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
 import net.javainthebox.caraibe.svg.SVGContent;
 import net.javainthebox.caraibe.svg.SVGLoader;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple2DProperty;
 
@@ -29,11 +31,18 @@ public class YoPointFX2D extends YoGraphicFX2D
    private final ObjectProperty<Paint> fillProperty = new SimpleObjectProperty<>(this, "fillProperty", null);
    private final ObjectProperty<Paint> strokeProperty = new SimpleObjectProperty<>(this, "strokeProperty", Color.BLACK);
    private final DoubleProperty strokeWidthProperty = new SimpleDoubleProperty(this, "strokeWidthProperty", 0.0);
-   private YoGraphicFXResource graphicResource = YoGraphicFXResourceManager.DEFAULT_POINT2D_GRAPHIC_RESOURCE;
+   private YoGraphicFXResource graphicResource;
 
    public YoPointFX2D()
    {
       pointNode.getTransforms().addAll(translate, scale);
+      setGraphicResource(YoGraphicFXResourceManager.DEFAULT_POINT2D_GRAPHIC_RESOURCE);
+   }
+
+   public YoPointFX2D(ReferenceFrame worldFrame)
+   {
+      this();
+      position.setReferenceFrame(worldFrame);
    }
 
    public void setGraphicResource(YoGraphicFXResource graphicResource)
@@ -48,8 +57,9 @@ public class YoPointFX2D extends YoGraphicFX2D
 
       List<Shape> shapes = YoGraphicTools.extractShapes(graphic);
       Translate graphicCentering = new Translate();
-      graphicCentering.setX(-graphic.getLayoutBounds().getCenterX());
-      graphicCentering.setY(-graphic.getLayoutBounds().getCenterY());
+      Bounds layoutBounds = graphic.getLayoutBounds();
+      graphicCentering.setX(-0.5 * (layoutBounds.getMinX() + layoutBounds.getMaxX()));
+      graphicCentering.setY(-0.5 * (layoutBounds.getMinY() + layoutBounds.getMaxY()));
 
       for (Shape shape : shapes)
       {

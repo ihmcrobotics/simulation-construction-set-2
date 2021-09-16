@@ -76,4 +76,10 @@ public class TextureDefinition
    {
       return new TextureDefinition(this);
    }
+
+   @Override
+   public String toString()
+   {
+      return "[fileURL=" + fileURL + ", filename=" + filename + ", image=" + image + "]";
+   }
 }

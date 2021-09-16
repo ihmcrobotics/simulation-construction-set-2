@@ -29,6 +29,7 @@ public class SessionSimpleControlsController
       this.messager = toolkit.getMessager();
       topics = toolkit.getTopics();
       messager.registerTopicListener(topics.getShowAdvancedControls(), showAdvancedControls -> show(!showAdvancedControls));
+      messager.registerJavaFXSyncedTopicListener(topics.getDisableUserControls(), disable -> controlsHBox.setDisable(disable));
 
       setupMainControlsActiveMode(this, messager, topics, runningIconView, playbackIconView, pauseIconView);
    }

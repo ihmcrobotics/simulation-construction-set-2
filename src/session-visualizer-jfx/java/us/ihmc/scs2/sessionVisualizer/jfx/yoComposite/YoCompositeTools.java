@@ -212,15 +212,25 @@ public class YoCompositeTools
 
       for (Class<? extends YoVariable> yoPrimitive : yoPrimitives)
       {
-         List<YoVariable> searchPool = yoVariables.stream().filter(yoPrimitive::isInstance).collect(Collectors.toList());
+         List<YoVariable> searchPool = new ArrayList<>();
+         for (int i = 0; i < yoVariables.size(); i++)
+         {
+            YoVariable yoVariable = yoVariables.get(i);
+
+            if (yoPrimitive.isInstance(yoVariable))
+               searchPool.add(yoVariable);
+         }
 
          Pair<List<YoComposite>, List<YoVariable>> primitiveResult = searchYoComposites(pattern, searchPool, registry.getNamespace(), false);
          result.getKey().addAll(primitiveResult.getKey());
          result.getValue().addAll(primitiveResult.getValue());
       }
 
-      for (YoRegistry childRegistry : registry.getChildren())
+      List<YoRegistry> children = registry.getChildren();
+
+      for (int i = 0; i < children.size(); i++)
       {
+         YoRegistry childRegistry = children.get(i);
          Pair<List<YoComposite>, List<YoVariable>> childResult = searchYoCompositesRecursive(pattern, childRegistry);
          result.getKey().addAll(childResult.getKey());
          result.getValue().addAll(childResult.getValue());
@@ -240,7 +250,9 @@ public class YoCompositeTools
       return result;
    }
 
-   private static Pair<List<YoComposite>, List<YoVariable>> searchYoComposites(YoCompositePattern pattern, List<YoVariable> variables, YoNamespace namespace,
+   private static Pair<List<YoComposite>, List<YoVariable>> searchYoComposites(YoCompositePattern pattern,
+                                                                               List<YoVariable> variables,
+                                                                               YoNamespace namespace,
                                                                                boolean useUniqueNames)
    {
       variables = variables.stream().filter(variable -> containsAnyIgnoreCase(variable.getName(), pattern.getComponentIdentifiers()))
@@ -451,7 +463,8 @@ public class YoCompositeTools
       return componentNames;
    }
 
-   public static <T> Map<T, String> computeUniqueNames(Collection<T> nameObjectCollection, Function<T, List<String>> namespaceFunction,
+   public static <T> Map<T, String> computeUniqueNames(Collection<T> nameObjectCollection,
+                                                       Function<T, List<String>> namespaceFunction,
                                                        Function<T, String> nameFunction)
    {
       List<NamedObjectHolder<T>> nameObjectHolderList = new ArrayList<>();
@@ -487,6 +500,12 @@ public class YoCompositeTools
 
             List<String> namespace1 = h1.namespace;
             List<String> namespace2 = h2.namespace;
+
+            if (namespace1 == null ? namespace2 == null : namespace1.equals(namespace2))
+            {
+               throw new IllegalArgumentException("Unsupported data structure, two elements have the same fullname: " + h1.originalObject + " and "
+                     + h2.originalObject);
+            }
 
             int namespaceIndex1 = namespace1.size() - 1;
             int namespaceIndex2 = namespace2.size() - 1;

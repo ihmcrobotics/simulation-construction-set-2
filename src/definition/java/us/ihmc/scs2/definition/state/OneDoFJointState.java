@@ -6,7 +6,7 @@ import java.util.Set;
 import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.scs2.definition.state.interfaces.OneDoFJointStateBasics;
 
-public class OneDoFJointState implements OneDoFJointStateBasics
+public class OneDoFJointState extends JointStateBase implements OneDoFJointStateBasics
 {
    private final Set<JointStateType> availableStates = EnumSet.noneOf(JointStateType.class);
    private double configuration = 0.0;
@@ -34,6 +34,15 @@ public class OneDoFJointState implements OneDoFJointStateBasics
       setConfiguration(q);
       setVelocity(qd);
       setEffort(tau);
+   }
+
+   public OneDoFJointState(OneDoFJointState other)
+   {
+      configuration = other.configuration;
+      velocity = other.velocity;
+      acceleration = other.acceleration;
+      effort = other.effort;
+      availableStates.addAll(other.availableStates);
    }
 
    @Override
@@ -98,5 +107,11 @@ public class OneDoFJointState implements OneDoFJointStateBasics
    public double getEffort()
    {
       return effort;
+   }
+
+   @Override
+   public OneDoFJointState copy()
+   {
+      return new OneDoFJointState(this);
    }
 }

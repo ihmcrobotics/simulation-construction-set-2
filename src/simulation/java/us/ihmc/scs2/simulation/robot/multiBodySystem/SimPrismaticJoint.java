@@ -27,6 +27,9 @@ public class SimPrismaticJoint extends YoPrismaticJoint implements SimOneDoFJoin
    public SimPrismaticJoint(PrismaticJointDefinition definition, SimRigidBodyBasics predecessor)
    {
       this(definition.getName(), predecessor, definition.getTransformToParent(), definition.getAxis());
+      setJointLimits(definition.getPositionLowerLimit(), definition.getPositionUpperLimit());
+      setVelocityLimits(definition.getVelocityLowerLimit(), definition.getVelocityUpperLimit());
+      setEffortLimits(definition.getEffortLowerLimit(), definition.getEffortUpperLimit());
    }
 
    public SimPrismaticJoint(String name, SimRigidBodyBasics predecessor, Tuple3DReadOnly jointOffset, Vector3DReadOnly jointAxis)

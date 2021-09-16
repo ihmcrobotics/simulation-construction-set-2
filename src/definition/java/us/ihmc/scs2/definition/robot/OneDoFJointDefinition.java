@@ -1,16 +1,23 @@
 package us.ihmc.scs2.definition.robot;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 
 public abstract class OneDoFJointDefinition extends JointDefinition
 {
-   private final Vector3D axis = new Vector3D();
+   private Vector3D axis = new Vector3D();
 
    private double positionLowerLimit = Double.NEGATIVE_INFINITY, positionUpperLimit = Double.POSITIVE_INFINITY;
    private double velocityLowerLimit = Double.NEGATIVE_INFINITY, velocityUpperLimit = Double.POSITIVE_INFINITY;
    private double effortLowerLimit = Double.NEGATIVE_INFINITY, effortUpperLimit = Double.POSITIVE_INFINITY;
-   private double stiction, damping;
+   private double damping = -1.0;
+   private double stiction = -1.0;
+
+   private double kpSoftLimitStop = -1.0;
+   private double kdSoftLimitStop = -1.0;
 
    public OneDoFJointDefinition()
    {
@@ -18,7 +25,36 @@ public abstract class OneDoFJointDefinition extends JointDefinition
 
    public OneDoFJointDefinition(String name)
    {
-      setName(name);
+      super(name);
+   }
+
+   public OneDoFJointDefinition(String name, Tuple3DReadOnly offsetFromParent, Vector3DReadOnly axis)
+   {
+      super(name, offsetFromParent);
+      setAxis(axis);
+   }
+
+   public OneDoFJointDefinition(OneDoFJointDefinition other)
+   {
+      super(other);
+
+      axis.set(other.axis);
+      positionLowerLimit = other.positionLowerLimit;
+      positionUpperLimit = other.positionUpperLimit;
+      velocityLowerLimit = other.velocityLowerLimit;
+      velocityUpperLimit = other.velocityUpperLimit;
+      effortLowerLimit = other.effortLowerLimit;
+      effortUpperLimit = other.effortUpperLimit;
+      damping = other.damping;
+      stiction = other.stiction;
+      kpSoftLimitStop = other.kpSoftLimitStop;
+      kdSoftLimitStop = other.kdSoftLimitStop;
+   }
+
+   @XmlElement
+   public void setAxis(Vector3D axis)
+   {
+      this.axis = axis;
    }
 
    public void setAxis(Vector3DReadOnly axis)
@@ -31,11 +67,13 @@ public abstract class OneDoFJointDefinition extends JointDefinition
       return axis;
    }
 
+   @XmlElement
    public void setPositionLowerLimit(double positionLowerLimit)
    {
       this.positionLowerLimit = positionLowerLimit;
    }
 
+   @XmlElement
    public void setPositionUpperLimit(double positionUpperLimit)
    {
       this.positionUpperLimit = positionUpperLimit;
@@ -57,11 +95,13 @@ public abstract class OneDoFJointDefinition extends JointDefinition
       return positionUpperLimit;
    }
 
+   @XmlElement
    public void setVelocityLowerLimit(double velocityLowerLimit)
    {
       this.velocityLowerLimit = velocityLowerLimit;
    }
 
+   @XmlElement
    public void setVelocityUpperLimit(double velocityUpperLimit)
    {
       this.velocityUpperLimit = velocityUpperLimit;
@@ -89,11 +129,13 @@ public abstract class OneDoFJointDefinition extends JointDefinition
       return velocityUpperLimit;
    }
 
+   @XmlElement
    public void setEffortLowerLimit(double effortLowerLimit)
    {
       this.effortLowerLimit = effortLowerLimit;
    }
 
+   @XmlElement
    public void setEffortUpperLimit(double effortUpperLimit)
    {
       this.effortUpperLimit = effortUpperLimit;
@@ -121,6 +163,7 @@ public abstract class OneDoFJointDefinition extends JointDefinition
       return effortUpperLimit;
    }
 
+   @XmlElement
    public void setStiction(double stiction)
    {
       this.stiction = stiction;
@@ -131,6 +174,7 @@ public abstract class OneDoFJointDefinition extends JointDefinition
       return stiction;
    }
 
+   @XmlElement
    public void setDamping(double damping)
    {
       this.damping = damping;
@@ -139,5 +183,33 @@ public abstract class OneDoFJointDefinition extends JointDefinition
    public double getDamping()
    {
       return damping;
+   }
+
+   @XmlElement
+   public void setKpSoftLimitStop(double kpSoftLimitStop)
+   {
+      this.kpSoftLimitStop = kpSoftLimitStop;
+   }
+
+   @XmlElement
+   public void setKdSoftLimitStop(double kdSoftLimitStop)
+   {
+      this.kdSoftLimitStop = kdSoftLimitStop;
+   }
+
+   public void setGainsSoftLimitStop(double kpSoftLimitStop, double kdSoftLimitStop)
+   {
+      this.kpSoftLimitStop = kpSoftLimitStop;
+      this.kdSoftLimitStop = kdSoftLimitStop;
+   }
+
+   public double getKpSoftLimitStop()
+   {
+      return kpSoftLimitStop;
+   }
+
+   public double getKdSoftLimitStop()
+   {
+      return kdSoftLimitStop;
    }
 }

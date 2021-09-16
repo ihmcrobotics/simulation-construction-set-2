@@ -23,6 +23,7 @@ public class YoSharedBufferMessagerAPI
    private static final CategoryTheme Index = apiFactory.createCategoryTheme("Index");
    private static final CategoryTheme Increment = apiFactory.createCategoryTheme("Increment");
    private static final CategoryTheme Decrement = apiFactory.createCategoryTheme("Decrement");
+   private static final CategoryTheme Initialize = apiFactory.createCategoryTheme("Initialize");
 
    private static final TypedTopicTheme<Integer> Current = apiFactory.createTypedTopicTheme("Current");
    private static final TypedTopicTheme<Integer> InPoint = apiFactory.createTypedTopicTheme("InPoint");
@@ -40,6 +41,7 @@ public class YoSharedBufferMessagerAPI
    public static final Topic<Integer> OutPointIndexRequest = root.child(Index).topic(OutPoint);
    public static final Topic<CropBufferRequest> CropRequest = root.topic(Crop);
    public static final Topic<FillBufferRequest> FillRequest = root.topic(Fill);
+   public static final Topic<Integer> InitializeBufferSize = root.child(Initialize).topic(Size);
    public static final Topic<Integer> CurrentBufferSizeRequest = root.topic(Size);
    public static final Topic<YoBufferPropertiesReadOnly> CurrentBufferProperties = root.topic(Properties);
 

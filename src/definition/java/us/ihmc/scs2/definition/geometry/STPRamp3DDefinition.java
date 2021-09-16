@@ -1,5 +1,7 @@
 package us.ihmc.scs2.definition.geometry;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
@@ -35,11 +37,13 @@ public class STPRamp3DDefinition extends Ramp3DDefinition
       setMaximumMargin(maximumMargin);
    }
 
+   @XmlElement
    public void setMinimumMargin(double minimumMargin)
    {
       this.minimumMargin = minimumMargin;
    }
 
+   @XmlElement
    public void setMaximumMargin(double maximumMargin)
    {
       this.maximumMargin = maximumMargin;

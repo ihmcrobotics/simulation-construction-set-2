@@ -1,12 +1,11 @@
 package us.ihmc.scs2.simulation.robot.trackers;
 
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.mecano.frames.MovingReferenceFrame;
-import us.ihmc.mecano.spatial.Twist;
 import us.ihmc.mecano.yoVariables.spatial.YoFixedFrameTwist;
 import us.ihmc.scs2.definition.robot.KinematicPointDefinition;
+import us.ihmc.scs2.session.YoFixedMovingReferenceFrameUsingYawPitchRoll;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePoseUsingYawPitchRoll;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
@@ -16,9 +15,8 @@ public class KinematicPoint
 {
    private final String name;
    private final SimJointBasics parentJoint;
-   private final MovingReferenceFrame frame;
+   private final YoFixedMovingReferenceFrameUsingYawPitchRoll frame;
 
-   private final YoFramePoseUsingYawPitchRoll offset;
    private final YoFramePoseUsingYawPitchRoll pose;
    private final YoFixedFrameTwist twist;
 
@@ -34,23 +32,9 @@ public class KinematicPoint
 
       ReferenceFrame rootFrame = parentJoint.getFrameBeforeJoint().getRootFrame();
       YoRegistry registry = parentJoint.getRegistry();
-      offset = new YoFramePoseUsingYawPitchRoll(name + "Offset", parentJoint.getFrameAfterJoint(), registry);
-      offset.set(transformToParent);
 
-      frame = new MovingReferenceFrame(name + "Frame", parentJoint.getFrameAfterJoint())
-      {
-         @Override
-         protected void updateTransformToParent(RigidBodyTransform transformToParent)
-         {
-            offset.get(transformToParent);
-         }
-
-         @Override
-         protected void updateTwistRelativeToParent(Twist twistRelativeToParentToPack)
-         {
-         }
-      };
-
+      frame = new YoFixedMovingReferenceFrameUsingYawPitchRoll(name + "Frame", name + "Offset", parentJoint.getFrameAfterJoint(), registry);
+      frame.getOffset().set(transformToParent);
       pose = new YoFramePoseUsingYawPitchRoll(name, rootFrame, registry);
       twist = new YoFixedFrameTwist(parentJoint.getSuccessor().getBodyFixedFrame(),
                                     rootFrame,
@@ -83,7 +67,7 @@ public class KinematicPoint
 
    public YoFramePoseUsingYawPitchRoll getOffset()
    {
-      return offset;
+      return frame.getOffset();
    }
 
    public YoFramePoseUsingYawPitchRoll getPose()

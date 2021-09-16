@@ -22,12 +22,13 @@ import javax.xml.bind.Unmarshaller;
 import us.ihmc.euclid.Axis3D;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
-import us.ihmc.euclid.transform.AffineTransform;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.yawPitchRoll.YawPitchRoll;
 import us.ihmc.log.LogTools;
+import us.ihmc.scs2.definition.AffineTransformDefinition;
+import us.ihmc.scs2.definition.YawPitchRollTransformDefinition;
 import us.ihmc.scs2.definition.geometry.Box3DDefinition;
 import us.ihmc.scs2.definition.geometry.Cylinder3DDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
@@ -70,6 +71,7 @@ import us.ihmc.scs2.definition.robot.sdf.items.SDFURIHolder;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFVisual;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFVisual.SDFMaterial;
 import us.ihmc.scs2.definition.visual.ColorDefinition;
+import us.ihmc.scs2.definition.visual.ColorDefinitions;
 import us.ihmc.scs2.definition.visual.MaterialDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
 
@@ -230,8 +232,10 @@ public class SDFTools
       return robotDefinition;
    }
 
-   public static RigidBodyDefinition connectKinematics(List<RigidBodyDefinition> rigidBodyDefinitions, List<JointDefinition> jointDefinitions,
-                                                       List<SDFJoint> sdfJoints, List<SDFLink> sdfLinks)
+   public static RigidBodyDefinition connectKinematics(List<RigidBodyDefinition> rigidBodyDefinitions,
+                                                       List<JointDefinition> jointDefinitions,
+                                                       List<SDFJoint> sdfJoints,
+                                                       List<SDFLink> sdfLinks)
    {
       if (sdfJoints == null)
          return rigidBodyDefinitions.get(0);
@@ -302,14 +306,15 @@ public class SDFTools
          RigidBodyTransform childLinkPose = parsePose(childSDFLink.getPose());
 
          // Correct joint transform
-         RigidBodyTransform transformToParentJoint = jointDefinition.getTransformToParent();
+         YawPitchRollTransformDefinition transformToParentJoint = jointDefinition.getTransformToParent();
+
          transformToParentJoint.setAndInvert(parentLinkPose);
          transformToParentJoint.multiply(childLinkPose);
          transformToParentJoint.getRotation().setToZero();
          parentLinkPose.transform(transformToParentJoint.getTranslation());
 
          // Correct link inertia pose
-         RigidBodyTransform inertiaPose = childDefinition.getInertiaPose();
+         YawPitchRollTransformDefinition inertiaPose = childDefinition.getInertiaPose();
          inertiaPose.prependOrientation(childLinkPose.getRotation());
          inertiaPose.transform(childDefinition.getMomentOfInertia());
          inertiaPose.getRotation().setToZero();
@@ -317,7 +322,7 @@ public class SDFTools
          // Correct visual transform
          for (VisualDefinition visualDescription : childDefinition.getVisualDefinitions())
          {
-            AffineTransform visualPose = visualDescription.getOriginPose();
+            AffineTransformDefinition visualPose = visualDescription.getOriginPose();
             visualPose.prependOrientation(childLinkPose.getRotation());
          }
 
@@ -629,7 +634,13 @@ public class SDFTools
       if (sdfColor == null)
          return null;
 
-      return new ColorDefinition(parseArray(sdfColor, null));
+      double[] colorArray = parseArray(sdfColor, null);
+      if (colorArray == null)
+         return null;
+      else if (colorArray.length < 4)
+         return ColorDefinitions.rgb(colorArray);
+      else
+         return ColorDefinitions.rgba(colorArray);
    }
 
    public static RigidBodyTransform parsePose(String pose)

@@ -1,11 +1,16 @@
 package us.ihmc.scs2.definition.geometry;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
-import us.ihmc.euclid.tuple2D.Point2D;
+import us.ihmc.euclid.tuple2D.interfaces.Tuple2DReadOnly;
 
 /**
  * Definition for creating an extruded 2D polygon.
@@ -16,7 +21,7 @@ import us.ihmc.euclid.tuple2D.Point2D;
  */
 public class ExtrudedPolygon2DDefinition extends GeometryDefinition
 {
-   private List<Point2D> polygonVertices;
+   private List<Point2DDefinition> polygonVertices = new ArrayList<>();
    private boolean counterClockwiseOrdered;
    private double topZ, bottomZ;
 
@@ -37,7 +42,7 @@ public class ExtrudedPolygon2DDefinition extends GeometryDefinition
     *                                is counter clockwise, {@code false} if clockwise.
     * @param extrusionHeight         the thickness of the extrusion along the z-axis.
     */
-   public ExtrudedPolygon2DDefinition(List<Point2D> polygonVertices, boolean counterClockwiseOrdered, double extrusionHeight)
+   public ExtrudedPolygon2DDefinition(List<Point2DDefinition> polygonVertices, boolean counterClockwiseOrdered, double extrusionHeight)
    {
       this();
       this.polygonVertices = polygonVertices;
@@ -55,7 +60,7 @@ public class ExtrudedPolygon2DDefinition extends GeometryDefinition
     * @param topZ                    the z-coordinate of the top face of the extrusion.
     * @param bottomZ                 the z-coordinate of the bottom face of the extrusion.
     */
-   public ExtrudedPolygon2DDefinition(List<Point2D> polygonVertices, boolean counterClockwiseOrdered, double topZ, double bottomZ)
+   public ExtrudedPolygon2DDefinition(List<Point2DDefinition> polygonVertices, boolean counterClockwiseOrdered, double topZ, double bottomZ)
    {
       this();
       this.polygonVertices = polygonVertices;
@@ -68,10 +73,20 @@ public class ExtrudedPolygon2DDefinition extends GeometryDefinition
    {
       setName(other.getName());
       if (other.polygonVertices != null)
-         polygonVertices = other.polygonVertices.stream().map(Point2D::new).collect(Collectors.toList());
+         polygonVertices = other.polygonVertices.stream().map(Point2DDefinition::new).collect(Collectors.toList());
       counterClockwiseOrdered = other.counterClockwiseOrdered;
       topZ = other.topZ;
       bottomZ = other.bottomZ;
+   }
+
+   public static List<Point2DDefinition> toPoint2DDefinitionList(Collection<? extends Tuple2DReadOnly> tuple2DCollection)
+   {
+      return tuple2DCollection.stream().map(Point2DDefinition::new).collect(Collectors.toList());
+   }
+
+   public static List<Point2DDefinition> toPoint3DDefinitionList(Tuple2DReadOnly... tuple2Ds)
+   {
+      return toPoint2DDefinitionList(Arrays.asList(tuple2Ds));
    }
 
    /**
@@ -79,7 +94,8 @@ public class ExtrudedPolygon2DDefinition extends GeometryDefinition
     * 
     * @param polygonVertices the polygon's vertices.
     */
-   public void setPolygonVertices(List<Point2D> polygonVertices)
+   @XmlElement
+   public void setPolygonVertices(List<Point2DDefinition> polygonVertices)
    {
       this.polygonVertices = polygonVertices;
    }
@@ -90,6 +106,7 @@ public class ExtrudedPolygon2DDefinition extends GeometryDefinition
     * @param counterClockwiseOrdered indicate the winding of the polygon: {@code true} if the polygon
     *                                is counter clockwise, {@code false} if clockwise.
     */
+   @XmlElement
    public void setCounterClockwiseOrdered(boolean counterClockwiseOrdered)
    {
       this.counterClockwiseOrdered = counterClockwiseOrdered;
@@ -100,6 +117,7 @@ public class ExtrudedPolygon2DDefinition extends GeometryDefinition
     * 
     * @param topZ the z-coordinate of the top face of the extrusion.
     */
+   @XmlElement
    public void setTopZ(double topZ)
    {
       this.topZ = topZ;
@@ -110,6 +128,7 @@ public class ExtrudedPolygon2DDefinition extends GeometryDefinition
     * 
     * @param bottomZ the z-coordinate of the bottom face of the extrusion.
     */
+   @XmlElement
    public void setBottomZ(double bottomZ)
    {
       this.bottomZ = bottomZ;
@@ -132,7 +151,7 @@ public class ExtrudedPolygon2DDefinition extends GeometryDefinition
     * 
     * @return the polygon's vertices.
     */
-   public List<Point2D> getPolygonVertices()
+   public List<Point2DDefinition> getPolygonVertices()
    {
       return polygonVertices;
    }

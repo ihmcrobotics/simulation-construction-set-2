@@ -171,7 +171,7 @@ public class JavaFXMissingTools
             Scene scene = new Scene(new Pane(imageView));
             scene.setFill(Color.TRANSPARENT);
             primaryStage.setScene(scene);
-            primaryStage.getIcons().add(SessionVisualizerIOTools.SCS_ICON_IMAGE);
+            SessionVisualizerIOTools.addSCSIconToWindow(primaryStage);
             primaryStage.show();
 
             Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1.0), new KeyValue(imageView.opacityProperty(), 1.0)));

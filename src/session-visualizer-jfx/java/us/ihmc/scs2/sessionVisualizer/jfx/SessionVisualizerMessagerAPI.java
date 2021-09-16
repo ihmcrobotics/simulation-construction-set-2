@@ -12,8 +12,9 @@ import us.ihmc.messager.MessagerAPIFactory.MessagerAPI;
 import us.ihmc.messager.MessagerAPIFactory.Topic;
 import us.ihmc.messager.MessagerAPIFactory.TopicTheme;
 import us.ihmc.messager.MessagerAPIFactory.TypedTopicTheme;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
+import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.search.SearchEngines;
-import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
 
 public class SessionVisualizerMessagerAPI
 {
@@ -27,13 +28,17 @@ public class SessionVisualizerMessagerAPI
    private static final CategoryTheme OverheadPlotter = apiFactory.createCategoryTheme("OverheadPlotter");
    private static final CategoryTheme Group = apiFactory.createCategoryTheme("Group");
    private static final CategoryTheme Configuration = apiFactory.createCategoryTheme("Configuration");
+   private static final CategoryTheme Default = apiFactory.createCategoryTheme("Default");
+   private static final CategoryTheme Camera = apiFactory.createCategoryTheme("Camera");
+   private static final CategoryTheme Track = apiFactory.createCategoryTheme("Track");
+   private static final CategoryTheme Video = apiFactory.createCategoryTheme("Video");
+   private static final CategoryTheme User = apiFactory.createCategoryTheme("User");
 
    private static final TopicTheme Toggle = apiFactory.createTopicTheme("Toggle");
    private static final TopicTheme Next = apiFactory.createTopicTheme("Next");
    private static final TopicTheme Previous = apiFactory.createTopicTheme("Previous");
    private static final TopicTheme Snapshot = apiFactory.createTopicTheme("Snapshot");
    private static final TopicTheme Recordable = apiFactory.createTypedTopicTheme("Recordable");
-   private static final TopicTheme Data = apiFactory.createTypedTopicTheme("Data");
    private static final TopicTheme Request = apiFactory.createTopicTheme("Request");
    private static final TypedTopicTheme<Integer> Size = apiFactory.createTypedTopicTheme("Size");
    private static final TypedTopicTheme<Boolean> Show = apiFactory.createTypedTopicTheme("Show");
@@ -43,7 +48,11 @@ public class SessionVisualizerMessagerAPI
    private static final TopicTheme Open = apiFactory.createTopicTheme("open");
    private static final TopicTheme Name = apiFactory.createTopicTheme("name");
    private static final TopicTheme Precision = apiFactory.createTopicTheme("Precision");
+   private static final TopicTheme Disable = apiFactory.createTopicTheme("Disable");
 
+   public static final Topic<Boolean> DisableUserControls = APIRoot.child(User).child(Controls).topic(Disable);
+   public static final Topic<SceneVideoRecordingRequest> SceneVideoRecordingRequest = APIRoot.child(Video).topic(Request);
+   public static final Topic<CameraObjectTrackingRequest> CameraTrackObject = APIRoot.child(Camera).child(Track).topic(Request);
    public static final Topic<Object> TakeSnapshot = APIRoot.topic(Snapshot);
    public static final Topic<Object> RegisterRecordable = APIRoot.child(Register).topic(Recordable);
    public static final Topic<Object> ForgetRecordable = APIRoot.child(Forget).topic(Recordable);
@@ -53,7 +62,9 @@ public class SessionVisualizerMessagerAPI
    public static final Topic<Boolean> SessionVisualizerCloseRequest = APIRoot.topic(Close);
    public static final Topic<Integer> ControlsNumberPrecision = APIRoot.child(Controls).topic(Precision); // TODO Not the greatest topic name, nor the best place.
    public static final Topic<File> SessionVisualizerConfigurationLoadRequest = APIRoot.child(Configuration).topic(Load);
+   public static final Topic<Boolean> SessionVisualizerDefaultConfigurationLoadRequest = APIRoot.child(Configuration).child(Default).topic(Load);
    public static final Topic<File> SessionVisualizerConfigurationSaveRequest = APIRoot.child(Configuration).topic(Save);
+   public static final Topic<Boolean> SessionVisualizerDefaultConfigurationSaveRequest = APIRoot.child(Configuration).child(Default).topic(Save);
 
    static
    { // Ensure that the KeyFrame is loaded before closing the API.
@@ -62,7 +73,7 @@ public class SessionVisualizerMessagerAPI
       new YoGraphic();
       new YoChart();
       new YoSliderboard();
-      new Session();
+      new SessionAPI();
    }
 
    public static class KeyFrame
@@ -99,12 +110,13 @@ public class SessionVisualizerMessagerAPI
    public static class YoGraphic
    {
       private static final CategoryTheme YoGraphic = apiFactory.createCategoryTheme("YoGraphic");
-      private static final CategoryTheme Root = apiFactory.createCategoryTheme("Root");
 
-      public static final Topic<Boolean> YoGraphicRootGroupRequest = APIRoot.child(YoGraphic).child(Root).child(Group).topic(Request);
-      public static final Topic<YoGroupFX> YoGraphicRootGroupData = APIRoot.child(YoGraphic).child(Root).child(Group).topic(Data);
+      private static final TopicTheme Add = apiFactory.createTopicTheme("add");
+
       public static final Topic<File> YoGraphicSaveRequest = APIRoot.child(YoGraphic).topic(Save);
       public static final Topic<File> YoGraphicLoadRequest = APIRoot.child(YoGraphic).topic(Load);
+
+      public static final Topic<YoGraphicDefinition> AddYoGraphicRequest = APIRoot.child(YoGraphic).topic(Add);
    }
 
    public static class YoChart
@@ -134,12 +146,14 @@ public class SessionVisualizerMessagerAPI
       public static final Topic<File> YoSliderboardLoadConfiguration = APIRoot.child(YoSliderboard).child(Configuration).topic(Load);
    }
 
-   public static class Session
+   public static class SessionAPI
    {
       private static final CategoryTheme Session = apiFactory.createCategoryTheme("Session");
+      private static final CategoryTheme Start = apiFactory.createCategoryTheme("Start");
       private static final CategoryTheme Remote = apiFactory.createCategoryTheme("Remote");
       private static final CategoryTheme Log = apiFactory.createCategoryTheme("Log");
 
+      public static final Topic<Session> StartNewSessionRequest = APIRoot.child(Session).child(Start).topic(Request);
       public static final Topic<Boolean> RemoteSessionControlsRequest = APIRoot.child(Session).child(Remote).child(Controls).topic(Request);
       public static final Topic<Boolean> LogSessionControlsRequest = APIRoot.child(Session).child(Log).child(Controls).topic(Request);
    }

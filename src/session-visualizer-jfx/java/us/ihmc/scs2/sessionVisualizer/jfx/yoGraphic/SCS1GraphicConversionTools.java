@@ -236,7 +236,7 @@ public class SCS1GraphicConversionTools
 
       if (constants.length == 3)
       {
-         definition.setColor(new ColorDefinition((int) constants[1]));
+         definition.setColor(ColorDefinition.rgb((int) constants[1]));
          definition.getColor().setAlpha(1.0 - constants[2]);
       }
       definition.setVisible(yoGraphicCoordinateSystem.isGraphicObjectShowing());

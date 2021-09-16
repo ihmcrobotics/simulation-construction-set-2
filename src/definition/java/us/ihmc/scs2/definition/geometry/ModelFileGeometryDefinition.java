@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
+
 import us.ihmc.euclid.tuple3D.Vector3D;
 
 /**
@@ -53,6 +56,7 @@ public class ModelFileGeometryDefinition extends GeometryDefinition
     * 
     * @param fileName the path to the model file.
     */
+   @XmlElement
    public void setFileName(String fileName)
    {
       this.fileName = fileName;
@@ -63,6 +67,7 @@ public class ModelFileGeometryDefinition extends GeometryDefinition
     * 
     * @param submeshes the list of the sub-meshes.
     */
+   @XmlElement(name = "submesh")
    public void setSubmeshes(List<SubMeshDefinition> submeshes)
    {
       this.submeshes = submeshes;
@@ -74,6 +79,7 @@ public class ModelFileGeometryDefinition extends GeometryDefinition
     * @param resourceDirectories the list of the directories containing resources needed for the
     *                            loading the model file.
     */
+   @XmlElement
    public void setResourceDirectories(List<String> resourceDirectories)
    {
       this.resourceDirectories = resourceDirectories;
@@ -84,6 +90,7 @@ public class ModelFileGeometryDefinition extends GeometryDefinition
     * 
     * @param resourceClassLoader the class loader to use with this model file.
     */
+   @XmlTransient
    public void setResourceClassLoader(ClassLoader resourceClassLoader)
    {
       this.resourceClassLoader = resourceClassLoader;
@@ -94,6 +101,7 @@ public class ModelFileGeometryDefinition extends GeometryDefinition
     * 
     * @param scale scale to apply to the loaded mesh.
     */
+   @XmlElement
    public void setScale(Vector3D scale)
    {
       this.scale = scale;
@@ -194,6 +202,7 @@ public class ModelFileGeometryDefinition extends GeometryDefinition
        * 
        * @param name the name of the sub-mesh.
        */
+      @XmlElement
       public void setName(String name)
       {
          this.name = name;
@@ -205,6 +214,7 @@ public class ModelFileGeometryDefinition extends GeometryDefinition
        * 
        * @param center whether to center this sub-mesh vertices at the origin or load the sub-mesh as is.
        */
+      @XmlElement
       public void setCenter(boolean center)
       {
          this.center = center;

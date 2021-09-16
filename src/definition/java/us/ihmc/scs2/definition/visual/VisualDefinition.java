@@ -1,13 +1,17 @@
 package us.ihmc.scs2.definition.visual;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.transform.AffineTransform;
+import us.ihmc.euclid.transform.interfaces.AffineTransformReadOnly;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
+import us.ihmc.scs2.definition.AffineTransformDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 
 public class VisualDefinition
 {
    private String name;
-   private AffineTransform originPose;
+   private AffineTransformDefinition originPose = new AffineTransformDefinition();
    private GeometryDefinition geometryDefinition;
    private MaterialDefinition materialDefinition;
 
@@ -26,13 +30,29 @@ public class VisualDefinition
       this(new AffineTransform(originPose), geometryDefinition, materialDefinition);
    }
 
-   public VisualDefinition(AffineTransform originPose, GeometryDefinition geometryDefinition, MaterialDefinition materialDefinition)
+   public VisualDefinition(AffineTransformReadOnly originPose, GeometryDefinition geometryDefinition, MaterialDefinition materialDefinition)
+   {
+      this(new AffineTransformDefinition(originPose), geometryDefinition, materialDefinition);
+   }
+
+   public VisualDefinition(AffineTransformDefinition originPose, GeometryDefinition geometryDefinition, MaterialDefinition materialDefinition)
    {
       this.originPose = originPose;
       this.geometryDefinition = geometryDefinition;
       this.materialDefinition = materialDefinition;
    }
 
+   public VisualDefinition(VisualDefinition other)
+   {
+      name = other.name;
+      originPose.set(other.originPose);
+      if (other.geometryDefinition != null)
+         geometryDefinition = other.geometryDefinition.copy();
+      if (other.materialDefinition != null)
+         materialDefinition = other.materialDefinition.copy();
+   }
+
+   @XmlElement
    public void setName(String name)
    {
       this.name = name;
@@ -40,19 +60,27 @@ public class VisualDefinition
 
    public void setOriginPose(RigidBodyTransformReadOnly originPose)
    {
-      this.originPose = new AffineTransform(originPose);
+      this.originPose = new AffineTransformDefinition(originPose);
    }
 
-   public void setOriginPose(AffineTransform originPose)
+   public void setOriginPose(AffineTransformReadOnly originPose)
+   {
+      this.originPose = new AffineTransformDefinition(originPose);
+   }
+
+   @XmlElement
+   public void setOriginPose(AffineTransformDefinition originPose)
    {
       this.originPose = originPose;
    }
 
+   @XmlElement
    public void setGeometryDefinition(GeometryDefinition geometryDefinition)
    {
       this.geometryDefinition = geometryDefinition;
    }
 
+   @XmlElement
    public void setMaterialDefinition(MaterialDefinition materialDefinition)
    {
       this.materialDefinition = materialDefinition;
@@ -63,7 +91,7 @@ public class VisualDefinition
       return name;
    }
 
-   public AffineTransform getOriginPose()
+   public AffineTransformDefinition getOriginPose()
    {
       return originPose;
    }
@@ -76,5 +104,17 @@ public class VisualDefinition
    public MaterialDefinition getMaterialDefinition()
    {
       return materialDefinition;
+   }
+
+   public VisualDefinition copy()
+   {
+      return new VisualDefinition(this);
+   }
+
+   @Override
+   public String toString()
+   {
+      return "VisualDefinition [name=" + name + ", originPose=" + originPose + ", geometryDefinition=" + geometryDefinition + ", materialDefinition="
+            + materialDefinition + "]";
    }
 }

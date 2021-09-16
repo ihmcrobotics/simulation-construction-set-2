@@ -7,6 +7,14 @@ public abstract class YoGraphicDefinition
    protected String name;
    protected boolean visible;
 
+   public YoGraphicDefinition()
+   {
+   }
+
+   public YoGraphicDefinition(String name)
+   {
+   }
+
    @XmlAttribute
    public final void setName(String name)
    {

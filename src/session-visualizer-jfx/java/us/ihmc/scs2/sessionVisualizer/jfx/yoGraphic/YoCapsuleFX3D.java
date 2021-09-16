@@ -10,6 +10,7 @@ import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import us.ihmc.euclid.axisAngle.AxisAngle;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tools.EuclidCoreTools;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.javaFXToolkit.JavaFXTools;
@@ -39,6 +40,13 @@ public class YoCapsuleFX3D extends YoGraphicFX3D
       capsuleNode.setMaterial(material);
       capsuleNode.getTransforms().addAll(translate, rotate);
       capsuleNode.idProperty().bind(nameProperty());
+   }
+
+   public YoCapsuleFX3D(ReferenceFrame worldFrame)
+   {
+      this();
+      center.setReferenceFrame(worldFrame);
+      axis.setReferenceFrame(worldFrame);
    }
 
    @Override

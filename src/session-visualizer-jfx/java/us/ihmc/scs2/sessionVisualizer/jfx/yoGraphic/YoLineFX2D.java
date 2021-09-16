@@ -2,6 +2,7 @@ package us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic;
 
 import javafx.scene.Node;
 import javafx.scene.shape.Line;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.Vector2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple2DProperty;
@@ -17,6 +18,13 @@ public class YoLineFX2D extends YoGraphicFX2D
    public YoLineFX2D()
    {
       lineNode.idProperty().bind(nameProperty());
+   }
+
+   public YoLineFX2D(ReferenceFrame worldFrame)
+   {
+      this();
+      origin.setReferenceFrame(worldFrame);
+      direction.setReferenceFrame(worldFrame);
    }
 
    @Override

@@ -21,6 +21,7 @@ import us.ihmc.scs2.definition.visual.VisualDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizer;
 import us.ihmc.scs2.simulation.SimulationSession;
 import us.ihmc.scs2.simulation.parameters.ContactParameters;
+import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngineFactory;
 
 public class StackOfBlocksExperimentalSimulation
 {
@@ -46,7 +47,7 @@ public class StackOfBlocksExperimentalSimulation
 
       for (int i = 0; i < numberOfBlocks; i++)
       {
-         ColorDefinition appearance = new ColorDefinition(random.nextInt());
+         ColorDefinition appearance = ColorDefinition.rgb(random.nextInt());
          RobotDefinition boxRobot = ExampleExperimentalSimulationTools.newBoxRobot("Block" + i, boxSizeX, boxSizeY, boxSizeZ, mass, 0.5, appearance);
          robotDefinitions.add(boxRobot);
 
@@ -72,10 +73,9 @@ public class StackOfBlocksExperimentalSimulation
                                                                                          new MaterialDefinition(ColorDefinitions.DarkGrey())),
                                                                     new CollisionShapeDefinition(terrainPose, terrainGeometry));
 
-      SimulationSession simulationSession = new SimulationSession();
+      SimulationSession simulationSession = new SimulationSession(PhysicsEngineFactory.newImpulseBasedPhysicsEngineFactory(contactParameters));
       robotDefinitions.forEach(simulationSession::addRobot);
       simulationSession.addTerrainObject(terrain);
-      simulationSession.getPhysicsEngine().setGlobalContactParameters(contactParameters);
       SessionVisualizer.startSessionVisualizer(simulationSession);
    }
 

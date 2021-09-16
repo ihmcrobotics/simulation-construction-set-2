@@ -1,20 +1,28 @@
 package us.ihmc.scs2.session;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
+import javax.xml.bind.JAXBException;
+
 import us.ihmc.commons.Conversions;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.messager.Messager;
 import us.ihmc.messager.TopicListener;
@@ -27,13 +35,16 @@ import us.ihmc.scs2.sharedMemory.YoSharedBuffer;
 import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.yoVariables.registry.YoRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 
 public abstract class Session
 {
    public static final String ROOT_REGISTRY_NAME = "root";
+   public static final ReferenceFrame DEFAULT_INERTIAL_FRAME = ReferenceFrameTools.constructARootFrame("worldFrame");
 
    protected final YoRegistry rootRegistry = new YoRegistry(ROOT_REGISTRY_NAME);
    protected final YoRegistry sessionRegistry = new YoRegistry(getClass().getSimpleName());
+   protected final YoDouble time = new YoDouble("time", rootRegistry);
    private final JVMStatisticsGenerator jvmStatisticsGenerator = new JVMStatisticsGenerator(sessionRegistry);
 
    protected final YoRegistry runRegistry = new YoRegistry("runStatistics");
@@ -64,13 +75,21 @@ public abstract class Session
     * When simulating, this corresponds to the simulation DT for instance.
     * </p>
     */
-   // TODO Should be renamed to something like sessionDT
-   private final AtomicLong sessionTickToTimeIncrement = new AtomicLong(Conversions.secondsToNanoseconds(1.0e-4));
+   private final AtomicLong sessionDTNanoseconds = new AtomicLong(Conversions.secondsToNanoseconds(1.0e-4));
    private final AtomicLong desiredBufferPublishPeriod = new AtomicLong(-1L);
 
    // State listener to publish internal to outside world
+   private final long sessionPropertiesPublishPeriod = 500L;
+   private long lastSessionPropertiesPublishTimestamp = -1L;
+   private final List<SessionModeChangeListener> sessionModeChangeListeners = new ArrayList<>();
+   private final List<Consumer<SessionState>> sessionStateChangedListeners = new ArrayList<>();
    private final List<Consumer<SessionProperties>> sessionPropertiesListeners = new ArrayList<>();
    private final List<Consumer<YoBufferPropertiesReadOnly>> currentBufferPropertiesListeners = new ArrayList<>();
+   private final List<Runnable> shutdownListeners = new ArrayList<>();
+
+   // For exception handling
+   private final List<Consumer<Throwable>> runThrowableListeners = new ArrayList<>();
+   private final List<Consumer<Throwable>> playbackThrowableListeners = new ArrayList<>();
 
    // Fields for external requests on buffer.
    private final AtomicReference<CropBufferRequest> pendingCropBufferRequest = new AtomicReference<>(null);
@@ -81,6 +100,7 @@ public abstract class Session
    private final AtomicReference<Integer> pendingIncrementBufferIndexRequest = new AtomicReference<>(null);
    private final AtomicReference<Integer> pendingDecrementBufferIndexRequest = new AtomicReference<>(null);
    private final AtomicReference<Integer> pendingBufferSizeRequest = new AtomicReference<>(null);
+   private final AtomicReference<SessionDataExportRequest> pendingDataExportRequest = new AtomicReference<>(null);
 
    // Strictly internal fields
    private final List<SessionTopicListenerManager> sessionTopicListenerManagers = new ArrayList<>();
@@ -91,9 +111,13 @@ public abstract class Session
    protected boolean firstRunTick = true;
    protected boolean firstPauseTick = true;
 
-   private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(new DaemonThreadFactory("SCS2-Session-Thread"));
-   private ScheduledFuture<?> activeScheduledFuture;
+   protected final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(2, new DaemonThreadFactory("SCS2-Session-Thread"));
+   protected PeriodicTaskWrapper activePeriodicTask;
+
    private final EnumMap<SessionMode, Runnable> sessionModeToTaskMap = new EnumMap<>(SessionMode.class);
+
+   protected boolean hasBufferSizeBeenInitialized = false;
+   protected boolean hasBufferRecordPeriodBeenInitialized = false;
 
    public Session()
    {
@@ -127,14 +151,45 @@ public abstract class Session
 
    public void setSessionMode(SessionMode sessionMode)
    {
+      setSessionMode(sessionMode, null);
+   }
+
+   protected void setSessionMode(SessionMode sessionMode, SessionModeTransition transition)
+   {
       SessionMode currentMode = activeMode.get();
+
       if (sessionMode != currentMode)
-      {
-         activeMode.set(sessionMode);
-         firstRunTick = true;
-         firstPauseTick = true;
-         restartSessionTask();
-      }
+         scheduleSessionTask(sessionMode, transition);
+   }
+
+   public void addSessionModeChangeListener(SessionModeChangeListener listener)
+   {
+      sessionModeChangeListeners.add(listener);
+   }
+
+   public void removeSessionModeChangeListener(SessionModeChangeListener listener)
+   {
+      sessionModeChangeListeners.remove(listener);
+   }
+
+   public void addSessionStateChangedListener(Consumer<SessionState> listener)
+   {
+      sessionStateChangedListeners.add(listener);
+   }
+
+   public void removeSessionStateChangedListener(Consumer<SessionState> listener)
+   {
+      sessionStateChangedListeners.remove(listener);
+   }
+
+   public void addShutdownListener(Runnable listener)
+   {
+      shutdownListeners.add(listener);
+   }
+
+   public void removeShutdownListener(Runnable listener)
+   {
+      shutdownListeners.remove(listener);
    }
 
    public void addSessionPropertiesListener(Consumer<SessionProperties> listener)
@@ -157,13 +212,54 @@ public abstract class Session
       currentBufferPropertiesListeners.remove(listener);
    }
 
-   public void setSessionTickToTimeIncrement(long sessionTickToTimeIncrement)
+   public void addRunThrowableListener(Consumer<Throwable> listener)
    {
-      if (this.sessionTickToTimeIncrement.get() == sessionTickToTimeIncrement)
+      runThrowableListeners.add(listener);
+   }
+
+   public void removeRunThrowableListener(Consumer<Throwable> listener)
+   {
+      runThrowableListeners.remove(listener);
+   }
+
+   public void addPlaybackThrowableListener(Consumer<Throwable> listener)
+   {
+      playbackThrowableListeners.add(listener);
+   }
+
+   public void removePlaybackThrowableListener(Consumer<Throwable> listener)
+   {
+      playbackThrowableListeners.remove(listener);
+   }
+
+   public void setSessionDTSeconds(double sessionDTSeconds)
+   {
+      setSessionDTNanoseconds(Conversions.secondsToNanoseconds(sessionDTSeconds));
+   }
+
+   public void setSessionDTNanoseconds(long sessionDTNanoseconds)
+   {
+      if (this.sessionDTNanoseconds.get() == sessionDTNanoseconds)
          return;
 
-      this.sessionTickToTimeIncrement.set(sessionTickToTimeIncrement);
-      restartSessionTask();
+      this.sessionDTNanoseconds.set(sessionDTNanoseconds);
+      scheduleSessionTask(getActiveMode());
+   }
+
+   public boolean initializeBufferSize(int bufferSize)
+   {
+      if (hasBufferSizeBeenInitialized)
+         return false;
+      submitBufferSizeRequest(bufferSize);
+      return true;
+   }
+
+   public boolean initializeBufferRecordTickPeriod(int bufferRecordTickPeriod)
+   {
+      if (hasBufferRecordPeriodBeenInitialized)
+         return false;
+      submitBufferRecordTickPeriod(bufferRecordTickPeriod);
+      return true;
    }
 
    public void submitRunAtRealTimeRate(boolean runAtRealTimeRate)
@@ -172,7 +268,7 @@ public abstract class Session
          return;
 
       this.runAtRealTimeRate.set(runAtRealTimeRate);
-      restartSessionTask();
+      scheduleSessionTask(getActiveMode());
    }
 
    public void submitPlaybackRealTimeRate(double realTimeRate)
@@ -181,11 +277,12 @@ public abstract class Session
          return;
 
       playbackRealTimeRate.set(Double.valueOf(realTimeRate));
-      restartSessionTask();
+      scheduleSessionTask(getActiveMode());
    }
 
    public void submitBufferRecordTickPeriod(int bufferRecordTickPeriod)
    {
+      hasBufferRecordPeriodBeenInitialized = true;
       if (bufferRecordTickPeriod == this.bufferRecordTickPeriod.get())
          return;
       this.bufferRecordTickPeriod.set(Math.max(1, bufferRecordTickPeriod));
@@ -209,6 +306,7 @@ public abstract class Session
    public void submitBufferSizeRequest(Integer bufferSizeRequest)
    {
       pendingBufferSizeRequest.set(bufferSizeRequest);
+      hasBufferSizeBeenInitialized = true;
    }
 
    public void submitBufferIndexRequest(Integer bufferIndexRequest)
@@ -236,6 +334,11 @@ public abstract class Session
       pendingBufferOutPointIndexRequest.set(bufferOutPointIndexRequest);
    }
 
+   public void submitSessionDataExportRequest(SessionDataExportRequest sessionDataExportRequest)
+   {
+      pendingDataExportRequest.set(sessionDataExportRequest);
+   }
+
    public void setSessionState(SessionState state)
    {
       if (state == SessionState.ACTIVE)
@@ -244,12 +347,16 @@ public abstract class Session
          {
             LogTools.info("Starting session");
             startSessionThread();
+            sessionStateChangedListeners.forEach(listener -> listener.accept(state));
          }
       }
       else
       {
          if (!isSessionShutdown)
-            scheduleShutdown();
+         {
+            shutdownSession();
+            sessionStateChangedListeners.forEach(listener -> listener.accept(state));
+         }
       }
    }
 
@@ -257,13 +364,7 @@ public abstract class Session
    {
       LogTools.info("Started session's thread");
       sessionStarted = true;
-      restartSessionTask();
-      executorService.scheduleAtFixedRate(this::reportActiveMode, 500, 200, TimeUnit.MILLISECONDS);
-   }
-
-   private void scheduleShutdown()
-   {
-      executorService.execute(() -> shutdownSession());
+      scheduleSessionTask(getActiveMode());
    }
 
    public void shutdownSession()
@@ -273,32 +374,107 @@ public abstract class Session
 
       isSessionShutdown = true;
 
+      shutdownListeners.forEach(Runnable::run);
+
       LogTools.info("Stopped session's thread");
       sessionStarted = false;
 
+      if (activePeriodicTask != null)
+      {
+         activePeriodicTask.stopAndWait();
+         activePeriodicTask = null;
+      }
+
       sessionTopicListenerManagers.forEach(SessionTopicListenerManager::detachFromMessager);
       sessionTopicListenerManagers.clear();
+      sharedBuffer.dispose();
+      rootRegistry.clear();
 
       executorService.shutdown();
    }
 
-   private void restartSessionTask()
+   private void scheduleSessionTask(SessionMode sessionMode)
+   {
+      scheduleSessionTask(sessionMode, null);
+   }
+
+   private void scheduleSessionTask(SessionMode newMode, SessionModeTransition transition)
    {
       if (!sessionStarted)
          return;
 
-      if (activeScheduledFuture != null)
-         activeScheduledFuture.cancel(false);
+      SessionMode previousMode = activeMode.get();
+
+      if (activePeriodicTask != null)
+      {
+         activePeriodicTask.stopAndWait();
+         activePeriodicTask = null;
+      }
+
+      if (isSessionShutdown)
+         return;
+
+      if (newMode != previousMode)
+      {
+         firstRunTick = true;
+         firstPauseTick = true;
+      }
 
       runActualDT.reset();
       playbackActualDT.reset();
       pauseActualDT.reset();
 
-      activeScheduledFuture = executorService.scheduleAtFixedRate(sessionModeToTaskMap.get(activeMode.get()),
-                                                                  0,
-                                                                  computeThreadPeriod(activeMode.get()),
-                                                                  TimeUnit.NANOSECONDS);
+      Runnable command;
+      Runnable sessionModeTask = sessionModeToTaskMap.get(newMode);
+
+      if (transition == null)
+      {
+         command = sessionModeTask;
+      }
+      else
+      {
+         Objects.requireNonNull(transition.getNextMode(), "nextMode argument is required when providing a terminalCondition");
+
+         command = new Runnable()
+         {
+            private boolean terminated = false;
+
+            @Override
+            public void run()
+            {
+               sessionModeTask.run();
+
+               if (terminated)
+                  return;
+
+               terminated = transition.isDone();
+
+               if (terminated)
+               {
+                  executorService.execute(() ->
+                  {
+                     setSessionMode(transition.getNextMode());
+                     transition.notifyTransitionComplete();
+                  });
+               }
+            }
+         };
+      }
+
+      if (isSessionShutdown)
+         return;
+
+      activePeriodicTask = new PeriodicTaskWrapper(command, computeThreadPeriod(newMode), TimeUnit.NANOSECONDS);
+      activeMode.set(newMode);
+      schedulingSessionMode(previousMode, newMode);
+      executorService.execute(activePeriodicTask);
+      sessionModeChangeListeners.forEach(listener -> listener.onChange(previousMode, newMode));
       reportActiveMode();
+   }
+
+   protected void schedulingSessionMode(SessionMode previousMode, SessionMode newMode)
+   {
+
    }
 
    private long computeThreadPeriod(SessionMode mode)
@@ -332,7 +508,7 @@ public abstract class Session
       return new SessionProperties(activeMode.get(),
                                    runAtRealTimeRate.get(),
                                    playbackRealTimeRate.get().doubleValue(),
-                                   sessionTickToTimeIncrement.get(),
+                                   sessionDTNanoseconds.get(),
                                    bufferRecordTickPeriod.get());
    }
 
@@ -345,7 +521,31 @@ public abstract class Session
 
    protected long computeRunTaskPeriod()
    {
-      return runAtRealTimeRate.get() ? sessionTickToTimeIncrement.get() : 1L;
+      return runAtRealTimeRate.get() ? sessionDTNanoseconds.get() : 1L;
+   }
+
+   /**
+    * Stuff that needs to be done no matter the active session mode.
+    */
+   protected void doGeneric(SessionMode currentMode)
+   {
+      if (!sessionInitialized)
+      {
+         initializeSession();
+         // Not sure why we wouldn't want that when starting in RUNNING.
+         // When running simulation, the session starts in PAUSE, writing in the buffer allows to write the robot initial state.
+         if (currentMode == SessionMode.PAUSE || currentMode == SessionMode.PLAYBACK)
+            sharedBuffer.writeBuffer();
+         sessionInitialized = true;
+      }
+
+      long currentTimestamp = System.nanoTime();
+
+      if (currentTimestamp - lastSessionPropertiesPublishTimestamp > sessionPropertiesPublishPeriod)
+      {
+         lastSessionPropertiesPublishTimestamp = currentTimestamp;
+         reportActiveMode();
+      }
    }
 
    private int nextBufferRecordTickCounter = 0;
@@ -355,11 +555,7 @@ public abstract class Session
       runTimer.start();
       runActualDT.update();
 
-      if (!sessionInitialized)
-      {
-         initializeSession();
-         sessionInitialized = true;
-      }
+      doGeneric(SessionMode.RUNNING);
 
       runInitializeTimer.start();
       initializeRunTick();
@@ -369,20 +565,21 @@ public abstract class Session
       try
       {
          runSpecificTimer.start();
-         doSpecificRunTick();
+         time.set(doSpecificRunTick());
          runSpecificTimer.stop();
          caughtException = false;
       }
-      catch (Exception e)
+      catch (Throwable e)
       {
          e.printStackTrace();
+         runThrowableListeners.forEach(listener -> listener.accept(e));
          caughtException = true;
       }
 
       jvmStatisticsGenerator.update();
 
       runFinalizeTimer.start();
-      finalizeRunTick();
+      finalizeRunTick(false);
       runFinalizeTimer.stop();
 
       runTimer.stop();
@@ -396,8 +593,8 @@ public abstract class Session
       if (firstRunTick)
       {
          sharedBuffer.incrementBufferIndex(true);
-         sharedBuffer.setInPoint(sharedBuffer.getProperties().getCurrentIndex());
          sharedBuffer.processLinkedPushRequests(false);
+         nextBufferRecordTickCounter = 0;
          firstRunTick = false;
       }
       else if (nextBufferRecordTickCounter <= 0)
@@ -407,35 +604,37 @@ public abstract class Session
       }
    }
 
-   protected abstract void doSpecificRunTick();
+   /**
+    * Performs action specific to the implementation of this session.
+    *
+    * @return the current time in seconds.
+    */
+   protected abstract double doSpecificRunTick();
 
-   // TODO Remove when optimized
-   private final YoTimer bufferWrite = new YoTimer("bufferWriteTimer", TimeUnit.MILLISECONDS, runRegistry);
-   private final YoTimer bufferPull = new YoTimer("bufferPullTimer", TimeUnit.MILLISECONDS, runRegistry);
-   private final YoTimer bufferRequests = new YoTimer("bufferRequestsTimer", TimeUnit.MILLISECONDS, runRegistry);
-
-   protected void finalizeRunTick()
+   protected void finalizeRunTick(boolean forceWriteBuffer)
    {
-      if (nextBufferRecordTickCounter <= 0)
+      boolean writeBuffer = nextBufferRecordTickCounter <= 0;
+
+      if (!writeBuffer && forceWriteBuffer)
       {
-         bufferWrite.start();
+         sharedBuffer.incrementBufferIndex(true);
+         writeBuffer = true;
+      }
+
+      if (writeBuffer)
+      {
          sharedBuffer.writeBuffer();
-         bufferWrite.stop();
 
          long currentTimestamp = System.nanoTime();
 
-         bufferPull.start();
          if (currentTimestamp - lastPublishedBufferTimestamp > desiredBufferPublishPeriod.get())
          {
             sharedBuffer.prepareLinkedBuffersForPull();
             lastPublishedBufferTimestamp = currentTimestamp;
          }
-         bufferPull.stop();
 
-         bufferRequests.start();
          processBufferRequests(false);
          publishBufferProperties(sharedBuffer.getProperties());
-         bufferRequests.stop();
 
          nextBufferRecordTickCounter = Math.max(1, bufferRecordTickPeriod.get());
       }
@@ -445,7 +644,7 @@ public abstract class Session
 
    protected long computePlaybackTaskPeriod()
    {
-      long timeIncrement = sessionTickToTimeIncrement.get() * bufferRecordTickPeriod.get();
+      long timeIncrement = sessionDTNanoseconds.get() * bufferRecordTickPeriod.get();
 
       if (playbackRealTimeRate.get().doubleValue() <= 0.5)
       {
@@ -464,12 +663,7 @@ public abstract class Session
       playbackTimer.start();
       playbackActualDT.update();
 
-      if (!sessionInitialized)
-      {
-         initializeSession();
-         sharedBuffer.writeBuffer();
-         sessionInitialized = true;
-      }
+      doGeneric(SessionMode.PLAYBACK);
 
       initializePlaybackTick();
 
@@ -482,6 +676,7 @@ public abstract class Session
       catch (Exception e)
       {
          e.printStackTrace();
+         playbackThrowableListeners.forEach(listener -> listener.accept(e));
          caughtException = true;
       }
 
@@ -529,12 +724,7 @@ public abstract class Session
       pauseTimer.start();
       pauseActualDT.update();
 
-      if (!sessionInitialized)
-      {
-         initializeSession();
-         sharedBuffer.writeBuffer();
-         sessionInitialized = true;
-      }
+      doGeneric(SessionMode.PAUSE);
 
       boolean shouldReadBuffer = initializePauseTick();
       shouldReadBuffer |= doSpecificPauseTick();
@@ -632,6 +822,19 @@ public abstract class Session
             hasBufferBeenUpdated = true;
          }
 
+         SessionDataExportRequest dataExportRequest = pendingDataExportRequest.getAndSet(null);
+         if (dataExportRequest != null)
+         {
+            try
+            {
+               SessionIOTools.exportSessionData(this, dataExportRequest);
+            }
+            catch (JAXBException | IOException | URISyntaxException e)
+            {
+               e.printStackTrace();
+            }
+         }
+
          return hasBufferBeenUpdated;
       }
       else
@@ -650,6 +853,16 @@ public abstract class Session
          pendingCropBufferRequest.set(null);
          return hasBufferBeenUpdated;
       }
+   }
+
+   public YoDouble getTime()
+   {
+      return time;
+   }
+
+   public YoRegistry getRootRegistry()
+   {
+      return rootRegistry;
    }
 
    public boolean hasSessionStarted()
@@ -677,9 +890,14 @@ public abstract class Session
       return bufferRecordTickPeriod.get();
    }
 
-   public long getSessionTickToTimeIncrement()
+   public double getSessionDTSeconds()
    {
-      return sessionTickToTimeIncrement.get();
+      return sessionDTNanoseconds.get() * 1.0e-9;
+   }
+
+   public long getSessionDTNanoseconds()
+   {
+      return sessionDTNanoseconds.get();
    }
 
    public long getDesiredBufferPublishPeriod()
@@ -689,6 +907,11 @@ public abstract class Session
 
    public abstract String getSessionName();
 
+   public ReferenceFrame getInertialFrame()
+   {
+      return DEFAULT_INERTIAL_FRAME;
+   }
+
    public abstract List<RobotDefinition> getRobotDefinitions();
 
    public abstract List<TerrainObjectDefinition> getTerrainObjectDefinitions();
@@ -696,6 +919,11 @@ public abstract class Session
    public List<YoGraphicDefinition> getYoGraphicDefinitions()
    {
       return Collections.emptyList();
+   }
+
+   YoSharedBuffer getBuffer()
+   {
+      return sharedBuffer;
    }
 
    public LinkedYoVariableFactory getLinkedYoVariableFactory()
@@ -715,13 +943,16 @@ public abstract class Session
       private final TopicListener<Integer> incrementCurrentIndexListener = Session.this::submitIncrementBufferIndexRequest;
       private final TopicListener<Integer> decrementCurrentIndexListener = Session.this::submitDecrementBufferIndexRequest;
       private final TopicListener<Integer> currentBufferSizeListener = Session.this::submitBufferSizeRequest;
+      private final TopicListener<Integer> initializeBufferSizeListener = Session.this::initializeBufferSize;
 
       private final TopicListener<SessionState> sessionCurrentStateListener = Session.this::setSessionState;
       private final TopicListener<SessionMode> sessionCurrentModeListener = Session.this::setSessionMode;
-      private final TopicListener<Long> sessionTicktoTimeIncrementListener = Session.this::setSessionTickToTimeIncrement;
+      private final TopicListener<Long> sessionDTNanosecondsListener = Session.this::setSessionDTNanoseconds;
       private final TopicListener<Boolean> runAtRealTimeRateListener = Session.this::submitRunAtRealTimeRate;
       private final TopicListener<Double> playbackRealTimeRateListener = Session.this::submitPlaybackRealTimeRate;
       private final TopicListener<Integer> bufferRecordTickPeriodListener = Session.this::submitBufferRecordTickPeriod;
+      private final TopicListener<Integer> initializeBufferRecordTickPeriodListener = Session.this::initializeBufferRecordTickPeriod;
+      private final TopicListener<SessionDataExportRequest> sessionDataExportRequestListener = Session.this::submitSessionDataExportRequest;
 
       private final Consumer<YoBufferPropertiesReadOnly> bufferPropertiesListener = createBufferPropertiesListener();
       private final Consumer<SessionProperties> sessionPropertiesListener = createSessionPropertiesListener();
@@ -740,15 +971,18 @@ public abstract class Session
          messager.registerTopicListener(YoSharedBufferMessagerAPI.IncrementCurrentIndexRequest, incrementCurrentIndexListener);
          messager.registerTopicListener(YoSharedBufferMessagerAPI.DecrementCurrentIndexRequest, decrementCurrentIndexListener);
          messager.registerTopicListener(YoSharedBufferMessagerAPI.CurrentBufferSizeRequest, currentBufferSizeListener);
+         messager.registerTopicListener(YoSharedBufferMessagerAPI.InitializeBufferSize, initializeBufferSizeListener);
 
          addSessionPropertiesListener(sessionPropertiesListener);
 
          messager.registerTopicListener(SessionMessagerAPI.SessionCurrentState, sessionCurrentStateListener);
          messager.registerTopicListener(SessionMessagerAPI.SessionCurrentMode, sessionCurrentModeListener);
-         messager.registerTopicListener(SessionMessagerAPI.SessionTickToTimeIncrement, sessionTicktoTimeIncrementListener);
+         messager.registerTopicListener(SessionMessagerAPI.SessionDTNanoseconds, sessionDTNanosecondsListener);
          messager.registerTopicListener(SessionMessagerAPI.RunAtRealTimeRate, runAtRealTimeRateListener);
          messager.registerTopicListener(SessionMessagerAPI.PlaybackRealTimeRate, playbackRealTimeRateListener);
          messager.registerTopicListener(SessionMessagerAPI.BufferRecordTickPeriod, bufferRecordTickPeriodListener);
+         messager.registerTopicListener(SessionMessagerAPI.InitializeBufferRecordTickPeriod, initializeBufferRecordTickPeriodListener);
+         messager.registerTopicListener(SessionMessagerAPI.SessionDataExportRequest, sessionDataExportRequestListener);
       }
 
       private void detachFromMessager()
@@ -764,13 +998,16 @@ public abstract class Session
          messager.removeTopicListener(YoSharedBufferMessagerAPI.IncrementCurrentIndexRequest, incrementCurrentIndexListener);
          messager.removeTopicListener(YoSharedBufferMessagerAPI.DecrementCurrentIndexRequest, decrementCurrentIndexListener);
          messager.removeTopicListener(YoSharedBufferMessagerAPI.CurrentBufferSizeRequest, currentBufferSizeListener);
+         messager.removeTopicListener(YoSharedBufferMessagerAPI.InitializeBufferSize, initializeBufferSizeListener);
 
          messager.removeTopicListener(SessionMessagerAPI.SessionCurrentState, sessionCurrentStateListener);
          messager.removeTopicListener(SessionMessagerAPI.SessionCurrentMode, sessionCurrentModeListener);
-         messager.removeTopicListener(SessionMessagerAPI.SessionTickToTimeIncrement, sessionTicktoTimeIncrementListener);
+         messager.removeTopicListener(SessionMessagerAPI.SessionDTNanoseconds, sessionDTNanosecondsListener);
          messager.removeTopicListener(SessionMessagerAPI.RunAtRealTimeRate, runAtRealTimeRateListener);
          messager.removeTopicListener(SessionMessagerAPI.PlaybackRealTimeRate, playbackRealTimeRateListener);
          messager.removeTopicListener(SessionMessagerAPI.BufferRecordTickPeriod, bufferRecordTickPeriodListener);
+         messager.removeTopicListener(SessionMessagerAPI.InitializeBufferRecordTickPeriod, initializeBufferRecordTickPeriodListener);
+         messager.removeTopicListener(SessionMessagerAPI.SessionDataExportRequest, sessionDataExportRequestListener);
       }
 
       private Consumer<YoBufferPropertiesReadOnly> createBufferPropertiesListener()
@@ -792,11 +1029,150 @@ public abstract class Session
                return;
 
             messager.submitMessage(SessionMessagerAPI.SessionCurrentMode, sessionProperties.getActiveMode());
-            messager.submitMessage(SessionMessagerAPI.SessionTickToTimeIncrement, sessionProperties.getSessionTickToTimeIncrement());
+            messager.submitMessage(SessionMessagerAPI.SessionDTNanoseconds, sessionProperties.getSessionDTNanoseconds());
             messager.submitMessage(SessionMessagerAPI.PlaybackRealTimeRate, sessionProperties.getPlaybackRealTimeRate());
             messager.submitMessage(SessionMessagerAPI.RunAtRealTimeRate, sessionProperties.isRunAtRealTimeRate());
             messager.submitMessage(SessionMessagerAPI.BufferRecordTickPeriod, sessionProperties.getBufferRecordTickPeriod());
          };
+      }
+   }
+
+   public interface SessionModeTransition
+   {
+      SessionMode getNextMode();
+
+      boolean isDone();
+
+      default void notifyTransitionComplete()
+      {
+      }
+
+      static SessionModeTransition newTransition(BooleanSupplier doneCondition, SessionMode nextMode)
+      {
+         return new SessionModeTransition()
+         {
+            @Override
+            public boolean isDone()
+            {
+               return doneCondition.getAsBoolean();
+            }
+
+            @Override
+            public SessionMode getNextMode()
+            {
+               return nextMode;
+            }
+         };
+      }
+   }
+
+   public interface SessionModeChangeListener
+   {
+      void onChange(SessionMode previousMode, SessionMode newMode);
+   }
+
+   public static class PeriodicTaskWrapper implements Runnable
+   {
+      private static final int ONE_MILLION = 1000000;
+
+      private final Runnable task;
+      private final long periodInNanos;
+      private final AtomicBoolean running = new AtomicBoolean(true);
+      private final AtomicBoolean isDone = new AtomicBoolean(false);
+      private final CountDownLatch startedLatch = new CountDownLatch(1);
+      private final CountDownLatch doneLatch = new CountDownLatch(1);
+
+      private Thread owner;
+
+      public PeriodicTaskWrapper(Runnable task, long period, TimeUnit timeUnit)
+      {
+         this.task = task;
+         periodInNanos = timeUnit.toNanos(period);
+      }
+
+      public void stop()
+      {
+         running.set(false);
+      }
+
+      public boolean isDone()
+      {
+         return isDone.get();
+      }
+
+      public void stopAndWait()
+      {
+         stop();
+
+         if (Thread.currentThread() == owner)
+            return;
+
+         try
+         {
+            doneLatch.await();
+         }
+         catch (InterruptedException e)
+         {
+            e.printStackTrace();
+         }
+      }
+
+      public void waitUntilFirstTickDone()
+      {
+         if (Thread.currentThread() == owner)
+            return;
+
+         try
+         {
+            startedLatch.await();
+         }
+         catch (InterruptedException e)
+         {
+            e.printStackTrace();
+         }
+      }
+
+      @Override
+      public void run()
+      {
+         if (owner == null)
+            owner = Thread.currentThread();
+
+         try
+         {
+            while (running.get())
+            {
+               long timeElapsed = System.nanoTime();
+               task.run();
+               timeElapsed = System.nanoTime() - timeElapsed;
+
+               startedLatch.countDown();
+
+               if (timeElapsed < periodInNanos)
+               {
+                  long nanos = periodInNanos - timeElapsed;
+                  long millis = nanos / ONE_MILLION;
+                  nanos -= millis * ONE_MILLION;
+
+                  try
+                  {
+                     Thread.sleep(millis, (int) nanos);
+                  }
+                  catch (InterruptedException e)
+                  {
+                     e.printStackTrace();
+                     running.set(false);
+                  }
+               }
+            }
+         }
+         catch (Throwable e)
+         {
+            e.printStackTrace();
+         }
+
+         isDone.set(true);
+         doneLatch.countDown();
       }
    }
 }

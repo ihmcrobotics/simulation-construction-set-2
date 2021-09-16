@@ -25,6 +25,7 @@ import us.ihmc.euclid.shape.primitives.Sphere3D;
 import us.ihmc.euclid.shape.primitives.Torus3D;
 import us.ihmc.euclid.shape.primitives.interfaces.Shape3DReadOnly;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
+import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
 import us.ihmc.scs2.definition.geometry.Box3DDefinition;
 import us.ihmc.scs2.definition.geometry.Capsule3DDefinition;
 import us.ihmc.scs2.definition.geometry.Cone3DDefinition;
@@ -32,13 +33,13 @@ import us.ihmc.scs2.definition.geometry.Cylinder3DDefinition;
 import us.ihmc.scs2.definition.geometry.Ellipsoid3DDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 import us.ihmc.scs2.definition.geometry.Point3DDefinition;
+import us.ihmc.scs2.definition.geometry.Ramp3DDefinition;
 import us.ihmc.scs2.definition.geometry.STPBox3DDefinition;
 import us.ihmc.scs2.definition.geometry.STPCapsule3DDefinition;
 import us.ihmc.scs2.definition.geometry.STPCylinder3DDefinition;
 import us.ihmc.scs2.definition.geometry.STPRamp3DDefinition;
 import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
 import us.ihmc.scs2.definition.geometry.Torus3DDefinition;
-import us.ihmc.scs2.definition.geometry.Ramp3DDefinition;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
@@ -65,26 +66,36 @@ public class CollisionTools
 
    public static List<Collidable> toCollidableRigidBody(RigidBodyDefinition definition, SimRigidBodyBasics rigidBodyInstance)
    {
-      return definition.getCollisionShapeDefinitions().stream()
-                       .map(collisionShapeDefinition -> toFrameShape3D(collisionShapeDefinition.getOriginPose(),
-                                                                       rigidBodyInstance.isRootBody() ? rigidBodyInstance.getBodyFixedFrame()
-                                                                             : rigidBodyInstance.getParentJoint().getFrameAfterJoint(),
-                                                                       collisionShapeDefinition.getGeometryDefinition()))
-                       .map(shape -> toCollidable(rigidBodyInstance, shape)).collect(Collectors.toList());
+      return definition.getCollisionShapeDefinitions().stream().map(collisionShapeDefinition -> toCollidable(collisionShapeDefinition, rigidBodyInstance))
+                       .collect(Collectors.toList());
    }
 
-   private static Collidable toCollidable(SimRigidBodyBasics rigidBody, FrameShape3DReadOnly shape)
+   private static Collidable toCollidable(CollisionShapeDefinition definition, SimRigidBodyBasics rigidBody)
    {
-      return new Collidable(rigidBody, -1, -1, shape);
+      ReferenceFrame shapeFrame = rigidBody.isRootBody() ? rigidBody.getBodyFixedFrame() : rigidBody.getParentJoint().getFrameAfterJoint();
+
+      FrameShape3DReadOnly shape = toFrameShape3D(definition.getOriginPose(), shapeFrame, definition.getGeometryDefinition());
+
+      long collisionMask = definition.getCollisionMask();
+      long collisionGroup = definition.getCollisionGroup();
+
+      return new Collidable(rigidBody, collisionMask, collisionGroup, shape);
    }
 
    public static List<Collidable> toCollisionShape(TerrainObjectDefinition definition, ReferenceFrame worldFrame)
    {
-      return definition.getCollisionShapeDefinitions().stream()
-                       .map(collisionShapeDefinition -> toFrameShape3D(collisionShapeDefinition.getOriginPose(),
-                                                                       worldFrame,
-                                                                       collisionShapeDefinition.getGeometryDefinition()))
-                       .map(shape -> new Collidable(null, -1, -1, shape)).collect(Collectors.toList());
+      return definition.getCollisionShapeDefinitions().stream().map(collisionShapeDefinition -> toStaticCollidable(collisionShapeDefinition, worldFrame))
+                       .collect(Collectors.toList());
+   }
+
+   private static Collidable toStaticCollidable(CollisionShapeDefinition definition, ReferenceFrame worldFrame)
+   {
+      FrameShape3DReadOnly shape = toFrameShape3D(definition.getOriginPose(), worldFrame, definition.getGeometryDefinition());
+
+      long collisionMask = definition.getCollisionMask();
+      long collisionGroup = definition.getCollisionGroup();
+
+      return new Collidable(null, collisionMask, collisionGroup, shape);
    }
 
    public static Shape3DReadOnly toShape3D(RigidBodyTransformReadOnly originPose, GeometryDefinition definition)

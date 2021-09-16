@@ -65,11 +65,16 @@ public class MainWindowController extends ObservedAnimationTimer
 
    private SessionVisualizerToolkit globalToolkit;
    private SessionVisualizerWindowToolkit windowToolkit;
+   private SessionVisualizerTopics topics;
+   private JavaFXMessager messager;
 
    public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
       windowToolkit = toolkit;
       this.globalToolkit = toolkit.getGlobalToolkit();
+      topics = toolkit.getTopics();
+      messager = toolkit.getMessager();
+
       mainWindowMenuBarController.initialize(windowToolkit);
       sessionSimpleControlsController.initialize(windowToolkit);
       sessionAdvancedControlsController.initialize(windowToolkit);
@@ -78,7 +83,8 @@ public class MainWindowController extends ObservedAnimationTimer
       try
       {
          FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.SIDE_PANE_URL);
-         setupDrawer((Pane) loader.load());
+         Pane sidePane = setupDrawer(loader.load());
+         messager.registerJavaFXSyncedTopicListener(topics.getDisableUserControls(), disable -> sidePane.setDisable(disable));
          sidePaneController = loader.getController();
          sidePaneController.initialize(toolkit.getGlobalToolkit());
       }
@@ -86,6 +92,7 @@ public class MainWindowController extends ObservedAnimationTimer
       {
          e.printStackTrace();
       }
+
    }
 
    public void setupViewport3D(Pane viewportPane)
@@ -108,8 +115,7 @@ public class MainWindowController extends ObservedAnimationTimer
       plotter2DScene.widthProperty().bind(pane.widthProperty());
       plotter2D.getRoot().getChildren().add(globalToolkit.getYoGraphicFXManager().getRootNode2D());
 
-      JavaFXMessager messager = globalToolkit.getMessager();
-      showOverheadPlotterProperty = messager.createPropertyInput(globalToolkit.getTopics().getShowOverheadPlotter(), false);
+      showOverheadPlotterProperty = messager.createPropertyInput(topics.getShowOverheadPlotter(), false);
       showOverheadPlotterProperty.addListener((o, oldValue, newValue) ->
       {
          if (newValue)
@@ -128,7 +134,7 @@ public class MainWindowController extends ObservedAnimationTimer
       return showOverheadPlotterProperty;
    }
 
-   public void setupDrawer(Pane sidePane)
+   public Pane setupDrawer(Pane sidePane)
    {
       // Workaround for the drawer resizing:
       // Here we make an edge similar to a SplitPane separator on which the cursor will change
@@ -203,6 +209,8 @@ public class MainWindowController extends ObservedAnimationTimer
          transition.setRate(0.5);
          transition.play();
       });
+
+      return hBox;
    }
 
    private long timeLast = -1;

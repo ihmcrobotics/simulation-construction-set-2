@@ -7,11 +7,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-import org.fxyz3d.shapes.primitives.Text3DMesh;
-import org.fxyz3d.shapes.primitives.TexturedMesh;
-
-import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
@@ -19,21 +14,16 @@ import javafx.scene.shape.MeshView;
 import javafx.scene.shape.Shape3D;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
-import us.ihmc.euclid.axisAngle.AxisAngle;
 import us.ihmc.euclid.geometry.ConvexPolygon2D;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryRandomTools;
-import us.ihmc.euclid.orientation.interfaces.Orientation3DReadOnly;
 import us.ihmc.euclid.shape.convexPolytope.tools.EuclidPolytopeFactories;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
 import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
-import us.ihmc.javaFXToolkit.JavaFXTools;
 import us.ihmc.javaFXToolkit.cameraControllers.FocusBasedCameraMouseEventHandler;
 import us.ihmc.javaFXToolkit.scenes.View3DFactory;
 import us.ihmc.javaFXToolkit.shapes.JavaFXCoordinateSystem;
 import us.ihmc.javaFXToolkit.starter.ApplicationRunner;
-import us.ihmc.javaFXToolkit.text.Text3D;
 import us.ihmc.scs2.definition.geometry.TriangleMesh3DDefinition;
 import us.ihmc.scs2.sessionVisualizer.TriangleMesh3DFactories;
 
@@ -52,7 +42,7 @@ public class TriangleMesh3DFactoriesVisualizer
       FocusBasedCameraMouseEventHandler cameraController = view3dFactory.addCameraController(true);
       cameraController.changeCameraPosition(-1.0, -1.0, 1.0);
       view3dFactory.addWorldCoordinateSystem(0.25);
-      view3dFactory.addNodeToView(createAxisLabels());
+      view3dFactory.addNodeToView(Simple3DViewer.createAxisLabels());
 
       if (USE_TEXTURE)
       {
@@ -127,36 +117,6 @@ public class TriangleMesh3DFactoriesVisualizer
       List<Point2D> vertices = polygon.getPolygonVerticesView().stream().map(Point2D::new).collect(Collectors.toList());
       Collections.reverse(vertices);
       return vertices;
-   }
-
-   private static Node createAxisLabels()
-   {
-      AxisAngle xAxisAngle = new AxisAngle();
-      xAxisAngle.appendYawRotation(-0.25 * Math.PI);
-      xAxisAngle.appendRollRotation(-0.5 * Math.PI);
-      Node xLabel = createLabel("x", Color.RED, 0.10, 0.001, new Point3D(300, 0, 25), xAxisAngle);
-
-      AxisAngle yAxisAngle = new AxisAngle();
-      yAxisAngle.appendYawRotation(-0.25 * Math.PI);
-      yAxisAngle.appendRollRotation(-0.5 * Math.PI);
-      Node yLabel = createLabel("y", Color.GREEN, 0.10, 0.001, new Point3D(0, 300, 25), yAxisAngle);
-
-      AxisAngle zAxisAngle = new AxisAngle();
-      zAxisAngle.appendYawRotation(-0.25 * Math.PI);
-      zAxisAngle.appendRollRotation(-0.5 * Math.PI);
-      Node zLabel = createLabel("z", Color.BLUE, 0.10, 0.001, new Point3D(0, 0, 325), zAxisAngle);
-      return new Group(xLabel, yLabel, zLabel);
-   }
-
-   private static Node createLabel(String text, Color color, double height, double thickness, Point3DReadOnly position, Orientation3DReadOnly orientation)
-   {
-      Text3D label = new Text3D(text);
-      label.setFontHeight(height);
-      label.setFontThickness(thickness);
-      ((Text3DMesh) label.getNode()).getChildren().forEach(child -> ((TexturedMesh) child).setMaterial(new PhongMaterial(color)));
-      label.getNode().getTransforms().add(JavaFXTools.createAffineFromOrientation3DAndTuple(orientation, position));
-
-      return label.getNode();
    }
 
    private void addTriangleMesh3DDefinitionToScene(TriangleMesh3DDefinition definition)

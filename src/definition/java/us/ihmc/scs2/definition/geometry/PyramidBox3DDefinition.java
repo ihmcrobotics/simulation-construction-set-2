@@ -1,5 +1,7 @@
 package us.ihmc.scs2.definition.geometry;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
 
@@ -54,6 +56,7 @@ public class PyramidBox3DDefinition extends GeometryDefinition
     *
     * @param boxSizeX the box's size along the x-axis.
     */
+   @XmlElement
    public void setBoxSizeX(double boxSizeX)
    {
       this.boxSizeX = boxSizeX;
@@ -64,6 +67,7 @@ public class PyramidBox3DDefinition extends GeometryDefinition
     *
     * @param boxSizeY the box's size along the y-axis.
     */
+   @XmlElement
    public void setBoxSizeY(double boxSizeY)
    {
       this.boxSizeY = boxSizeY;
@@ -74,6 +78,7 @@ public class PyramidBox3DDefinition extends GeometryDefinition
     *
     * @param boxSizeZ the box's size along the z-axis.
     */
+   @XmlElement
    public void setBoxSizeZ(double boxSizeZ)
    {
       this.boxSizeZ = boxSizeZ;
@@ -98,6 +103,7 @@ public class PyramidBox3DDefinition extends GeometryDefinition
     *
     * @param pyramidHeight the height for each pyramid.
     */
+   @XmlElement
    public void setPyramidHeight(double pyramidHeight)
    {
       this.pyramidHeight = pyramidHeight;

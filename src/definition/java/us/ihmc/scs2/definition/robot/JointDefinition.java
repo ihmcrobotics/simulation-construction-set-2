@@ -4,28 +4,34 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
+
 import us.ihmc.euclid.interfaces.Transformable;
-import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.transform.interfaces.Transform;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.scs2.definition.YawPitchRollTransformDefinition;
+import us.ihmc.scs2.definition.state.JointStateBase;
 import us.ihmc.scs2.definition.state.interfaces.JointStateBasics;
 
 // TODO Add option for loop closure
 public abstract class JointDefinition implements Transformable
 {
    private String name;
-   private final RigidBodyTransform transformToParent = new RigidBodyTransform();
+   private YawPitchRollTransformDefinition transformToParent = new YawPitchRollTransformDefinition();
 
    private RigidBodyDefinition predecessor;
    private RigidBodyDefinition successor;
-   private JointStateBasics initialJointState = null;
+   private JointStateBase initialJointState;
 
-   private final List<SensorDefinition> sensorDefinitions = new ArrayList<>();
-   private final List<KinematicPointDefinition> kinematicPointDefinitions = new ArrayList<>();
-   private final List<ExternalWrenchPointDefinition> externalWrenchPointDefinitions = new ArrayList<>();
-   private final List<GroundContactPointDefinition> groundContactPointDefinitions = new ArrayList<>();
+   private List<SensorDefinition> sensorDefinitions = new ArrayList<>();
+   private List<KinematicPointDefinition> kinematicPointDefinitions = new ArrayList<>();
+   private List<ExternalWrenchPointDefinition> externalWrenchPointDefinitions = new ArrayList<>();
+   private List<GroundContactPointDefinition> groundContactPointDefinitions = new ArrayList<>();
 
    public JointDefinition()
    {
@@ -36,14 +42,32 @@ public abstract class JointDefinition implements Transformable
       setName(name);
    }
 
+   public JointDefinition(String name, Tuple3DReadOnly offsetFromParent)
+   {
+      this(name);
+      transformToParent.getTranslation().set(offsetFromParent);
+   }
+
+   public JointDefinition(JointDefinition other)
+   {
+      name = other.name;
+      transformToParent.set(other.transformToParent);
+      if (other.initialJointState != null)
+         initialJointState = other.initialJointState.copy();
+      for (SensorDefinition sensorDefinition : other.sensorDefinitions)
+         sensorDefinitions.add(sensorDefinition.copy());
+      for (KinematicPointDefinition kinematicPointDefinition : other.kinematicPointDefinitions)
+         kinematicPointDefinitions.add(kinematicPointDefinition.copy());
+      for (ExternalWrenchPointDefinition externalWrenchPointDefinition : other.externalWrenchPointDefinitions)
+         externalWrenchPointDefinitions.add(externalWrenchPointDefinition.copy());
+      for (GroundContactPointDefinition groundContactPointDefinition : other.groundContactPointDefinitions)
+         groundContactPointDefinitions.add(groundContactPointDefinition.copy());
+   }
+
+   @XmlAttribute
    public void setName(String name)
    {
       this.name = name;
-   }
-
-   public void setTransformToParent(RigidBodyTransformReadOnly transformToParent)
-   {
-      this.transformToParent.set(transformToParent);
    }
 
    public String getName()
@@ -51,11 +75,23 @@ public abstract class JointDefinition implements Transformable
       return name;
    }
 
-   public RigidBodyTransform getTransformToParent()
+   @XmlElement
+   public void setTransformToParent(YawPitchRollTransformDefinition transformToParent)
+   {
+      this.transformToParent = transformToParent;
+   }
+
+   public void setTransformToParent(RigidBodyTransformReadOnly transformToParent)
+   {
+      this.transformToParent.set(transformToParent);
+   }
+
+   public YawPitchRollTransformDefinition getTransformToParent()
    {
       return transformToParent;
    }
 
+   @XmlTransient
    public void setPredecessor(RigidBodyDefinition predecessor)
    {
       this.predecessor = predecessor;
@@ -66,6 +102,7 @@ public abstract class JointDefinition implements Transformable
       return predecessor;
    }
 
+   @XmlElement
    public void setSuccessor(RigidBodyDefinition successor)
    {
       if (this.successor != null)
@@ -90,7 +127,8 @@ public abstract class JointDefinition implements Transformable
          return predecessor.getParentJoint();
    }
 
-   public void setInitialJointState(JointStateBasics initialJointState)
+   @XmlElement(name = "initialJointState")
+   public void setInitialJointState(JointStateBase initialJointState)
    {
       this.initialJointState = initialJointState;
    }
@@ -98,6 +136,12 @@ public abstract class JointDefinition implements Transformable
    public JointStateBasics getInitialJointState()
    {
       return initialJointState;
+   }
+
+   @XmlElement(name = "sensor")
+   public void setSensorDefinitions(List<SensorDefinition> sensorDefinitions)
+   {
+      this.sensorDefinitions = sensorDefinitions;
    }
 
    public void addSensorDefinition(SensorDefinition sensorDefinition)
@@ -115,9 +159,10 @@ public abstract class JointDefinition implements Transformable
       return sensorDefinitions.stream().filter(sensorType::isInstance).map(sensorType::cast).collect(Collectors.toList());
    }
 
-   public List<KinematicPointDefinition> getKinematicPointDefinitions()
+   @XmlElement(name = "kinematicPoint")
+   public void setKinematicPointDefinitions(List<KinematicPointDefinition> kinematicPointDefinitions)
    {
-      return kinematicPointDefinitions;
+      this.kinematicPointDefinitions = kinematicPointDefinitions;
    }
 
    public void addKinematicPointDefinition(KinematicPointDefinition kinematicPointDefinition)
@@ -125,9 +170,15 @@ public abstract class JointDefinition implements Transformable
       kinematicPointDefinitions.add(kinematicPointDefinition);
    }
 
-   public List<ExternalWrenchPointDefinition> getExternalWrenchPointDefinitions()
+   public List<KinematicPointDefinition> getKinematicPointDefinitions()
    {
-      return externalWrenchPointDefinitions;
+      return kinematicPointDefinitions;
+   }
+
+   @XmlElement(name = "externalWrenchPoint")
+   public void setExternalWrenchPointDefinitions(List<ExternalWrenchPointDefinition> externalWrenchPointDefinitions)
+   {
+      this.externalWrenchPointDefinitions = externalWrenchPointDefinitions;
    }
 
    public void addExternalWrenchPointDefinition(ExternalWrenchPointDefinition externalWrenchPointDefinition)
@@ -135,14 +186,25 @@ public abstract class JointDefinition implements Transformable
       externalWrenchPointDefinitions.add(externalWrenchPointDefinition);
    }
 
-   public List<GroundContactPointDefinition> getGroundContactPointDefinitions()
+   public List<ExternalWrenchPointDefinition> getExternalWrenchPointDefinitions()
    {
-      return groundContactPointDefinitions;
+      return externalWrenchPointDefinitions;
+   }
+
+   @XmlElement(name = "groundContactPoint")
+   public void setGroundContactPointDefinitions(List<GroundContactPointDefinition> groundContactPointDefinitions)
+   {
+      this.groundContactPointDefinitions = groundContactPointDefinitions;
    }
 
    public void addGroundContactPointDefinition(GroundContactPointDefinition groundContactPointDefinition)
    {
       groundContactPointDefinitions.add(groundContactPointDefinition);
+   }
+
+   public List<GroundContactPointDefinition> getGroundContactPointDefinitions()
+   {
+      return groundContactPointDefinitions;
    }
 
    public abstract JointBasics toJoint(RigidBodyBasics predecessor);
@@ -167,10 +229,19 @@ public abstract class JointDefinition implements Transformable
       sensorDefinitions.forEach(sensor -> sensor.applyInverseTransform(transform));
    }
 
+   public abstract JointDefinition copy();
+
+   public JointDefinition copyRecursive()
+   {
+      JointDefinition copy = copy();
+      copy.setSuccessor(successor.copyRecursive());
+      return copy;
+   }
+
    @Override
    public String toString()
    {
-      return name + ": origin: (x,y,z) " + transformToParent.getTranslation() + "(y,p,r) " + transformToParent.getRotation().toStringAsYawPitchRoll()
-            + ", successor: " + successor.getName();
+      String successorString = successor == null ? "null" : successor.getName();
+      return name + ": origin: " + transformToParent + ", successor: " + successorString;
    }
 }

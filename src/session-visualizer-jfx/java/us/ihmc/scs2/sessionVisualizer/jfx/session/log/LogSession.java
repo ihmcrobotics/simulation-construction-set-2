@@ -59,7 +59,7 @@ public class LogSession extends Session
       if (robotDefinition != null)
       {
          robotDefinitions.add(robotDefinition);
-         robotStateUpdater = RobotModelLoader.setupRobotUpdater(robotDefinition, parser, rootRegistry);
+         robotStateUpdater = RobotModelLoader.setupRobotUpdater(robotDefinition, parser, rootRegistry, getInertialFrame());
       }
       else
       {
@@ -67,7 +67,7 @@ public class LogSession extends Session
       }
 
       submitDesiredBufferPublishPeriod(Conversions.secondsToNanoseconds(1.0 / 30.0));
-      setSessionTickToTimeIncrement(Conversions.secondsToNanoseconds(parser.getDt()));
+      setSessionDTSeconds(parser.getDt());
       setSessionMode(SessionMode.PAUSE);
    }
 
@@ -91,7 +91,7 @@ public class LogSession extends Session
    }
 
    @Override
-   protected void doSpecificRunTick()
+   protected double doSpecificRunTick()
    {
       boolean endOfLog = logDataReader.read();
       if (endOfLog)
@@ -99,6 +99,7 @@ public class LogSession extends Session
 
       if (robotStateUpdater != null)
          robotStateUpdater.run();
+      return logDataReader.getCurrentRobotTime();
    }
 
    @Override

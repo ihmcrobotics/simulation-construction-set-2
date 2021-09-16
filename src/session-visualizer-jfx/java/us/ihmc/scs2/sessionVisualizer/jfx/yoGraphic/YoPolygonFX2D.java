@@ -5,8 +5,10 @@ import java.util.List;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Node;
 import javafx.scene.shape.Polygon;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple2DProperty;
 
@@ -20,6 +22,11 @@ public class YoPolygonFX2D extends YoGraphicFX2D
    public YoPolygonFX2D()
    {
       polygonNode.idProperty().bind(nameProperty());
+   }
+
+   public YoPolygonFX2D(ReferenceFrame worldFrame)
+   {
+      this();
    }
 
    @Override
@@ -72,6 +79,11 @@ public class YoPolygonFX2D extends YoGraphicFX2D
    public void setNumberOfVertices(IntegerProperty numberOfVertices)
    {
       this.numberOfVertices = numberOfVertices;
+   }
+
+   public void setNumberOfVertices(int numberOfVertices)
+   {
+      setNumberOfVertices(new SimpleIntegerProperty(numberOfVertices));
    }
 
    @Override

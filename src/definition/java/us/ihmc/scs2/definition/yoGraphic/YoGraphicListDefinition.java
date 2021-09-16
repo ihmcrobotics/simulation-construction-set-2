@@ -12,7 +12,7 @@ import us.ihmc.euclid.tools.EuclidCoreIOTools;
 @XmlRootElement(name = "YoGraphicList")
 public class YoGraphicListDefinition
 {
-   private List<YoGraphicDefinition> yoGraphics;
+   private List<YoGraphicDefinition> yoGraphics = new ArrayList<>();
 
    public YoGraphicListDefinition()
    {

@@ -5,16 +5,19 @@ public class SessionProperties
    private final SessionMode activeMode;
    private final boolean runAtRealTimeRate;
    private final double playbackRealTimeRate;
-   private final long sessionTickToTimeIncrement;
+   private final long sessionDTNanoseconds;
    private final int bufferRecordTickPeriod;
 
-   public SessionProperties(SessionMode activeMode, boolean runAtRealTimeRate, double playbackRealTimeRate, long sessionTickToTimeIncrement,
+   public SessionProperties(SessionMode activeMode,
+                            boolean runAtRealTimeRate,
+                            double playbackRealTimeRate,
+                            long sessionDTNanoseconds,
                             int bufferRecordTickPeriod)
    {
       this.activeMode = activeMode;
       this.runAtRealTimeRate = runAtRealTimeRate;
       this.playbackRealTimeRate = playbackRealTimeRate;
-      this.sessionTickToTimeIncrement = sessionTickToTimeIncrement;
+      this.sessionDTNanoseconds = sessionDTNanoseconds;
       this.bufferRecordTickPeriod = bufferRecordTickPeriod;
    }
 
@@ -33,9 +36,9 @@ public class SessionProperties
       return playbackRealTimeRate;
    }
 
-   public long getSessionTickToTimeIncrement()
+   public long getSessionDTNanoseconds()
    {
-      return sessionTickToTimeIncrement;
+      return sessionDTNanoseconds;
    }
 
    public int getBufferRecordTickPeriod()

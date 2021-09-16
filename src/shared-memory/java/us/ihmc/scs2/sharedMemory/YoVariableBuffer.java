@@ -70,4 +70,6 @@ public abstract class YoVariableBuffer<T extends YoVariable>
    abstract LinkedYoVariable<T> newLinkedYoVariable(T variableToLink);
 
    public abstract Object getBuffer();
+
+   public abstract void dispose();
 }

@@ -232,21 +232,6 @@ public class YoChartPanelController extends ObservedAnimationTimer
       dynamicLineChart.setOnMouseDragged(this::handleMouseDrag);
       dynamicLineChart.setOnMouseReleased(this::handleMouseReleased);
       dynamicLineChart.setOnScroll(this::handleScroll);
-      dynamicLineChart.addEventHandler(MouseEvent.MOUSE_PRESSED, e ->
-      {
-         if (e.isMiddleButtonDown() && e.getPickResult().getIntersectedNode() instanceof Text)
-         { // TODO The legend's name needs to be unique within a single graph
-            String pickedName = ((Text) e.getPickResult().getIntersectedNode()).getText();
-            Optional<YoVariableChartPackage> chartData = charts.values().stream().filter(dataPackage -> dataPackage.series.getSeriesName().equals(pickedName))
-                                                               .findFirst();
-            if (chartData.isPresent())
-            {
-               removeYoVariableFromPlot(chartData.get().getYoVariable());
-               messager.submitMessage(topics.getYoCompositeSelected(),
-                                      Arrays.asList(YoCompositeTools.YO_VARIABLE, chartData.get().getYoVariable().getFullNameString()));
-            }
-         }
-      });
       contextMenuProperty.addListener((ChangeListener<ContextMenu>) (observable, oldValue, newValue) ->
       {
          if (oldValue != null)
@@ -519,6 +504,17 @@ public class YoChartPanelController extends ObservedAnimationTimer
             event.consume();
          }
       }
+      else if (event.isMiddleButtonDown() && event.getPickResult().getIntersectedNode() instanceof Text)
+      { // TODO The legend's name needs to be unique within a single graph
+         String pickedName = ((Text) event.getPickResult().getIntersectedNode()).getText();
+         Optional<YoVariableChartPackage> chartData = charts.values().stream().filter(dataPackage -> dataPackage.series.getSeriesName().equals(pickedName))
+                                                            .findFirst();
+         if (chartData.isPresent())
+         {
+            removeYoVariableFromPlot(chartData.get().getYoVariable());
+            messager.submitMessage(topics.getYoCompositeSelected(), Arrays.asList(YoCompositeTools.YO_VARIABLE, null));
+         }
+      }
    }
 
    private Point2D lastMouseScreenPosition = null;
@@ -590,11 +586,14 @@ public class YoChartPanelController extends ObservedAnimationTimer
             if (YoCompositeTools.YO_VARIABLE.equals(type))
             {
                String fullname = yoCompositeSelected.get().get(1);
-               YoComposite yoComposite = yoCompositeSearchManager.getYoComposite(type, fullname);
-               if (yoComposite != null)
+               if (fullname != null)
                {
-                  addYoCompositeToPlot(yoComposite);
-                  messager.submitMessage(yoCompositeSelectedTopic, null);
+                  YoComposite yoComposite = yoCompositeSearchManager.getYoComposite(type, fullname);
+                  if (yoComposite != null)
+                  {
+                     addYoCompositeToPlot(yoComposite);
+                     messager.submitMessage(yoCompositeSelectedTopic, null);
+                  }
                }
             }
          }
