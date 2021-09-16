@@ -106,21 +106,8 @@ public class ReferenceFrameManager implements Manager
    private void computeFullnameMap(Collection<ReferenceFrame> allReferenceFrames)
    {
       Map<String, ReferenceFrame> newFullnameToReferenceFrameMap = new LinkedHashMap<>();
-      allReferenceFrames.forEach(frame -> newFullnameToReferenceFrameMap.put(getFullname(frame), frame));
+      allReferenceFrames.forEach(frame -> newFullnameToReferenceFrameMap.put(frame.getNameId(), frame));
       JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> fullnameToReferenceFrameMapProperty.set(newFullnameToReferenceFrameMap));
-   }
-
-   public static String getFullname(ReferenceFrame referenceFrame)
-   {
-      StringBuilder fullname = new StringBuilder();
-
-      ReferenceFrame[] ancestors = referenceFrame.getFramesStartingWithRootEndingWithThis();
-
-      for (int i = 0; i < ancestors.length - 1; i++)
-         fullname.append(ancestors[i].getName()).append('.');
-      fullname.append(referenceFrame.getName());
-
-      return fullname.toString();
    }
 
    private static List<String> getFrameNamespace(ReferenceFrame referenceFrame)

@@ -214,7 +214,7 @@ public class CompositePropertyTools
       if (referenceFrameProperty == null || referenceFrameProperty.getValue() == null)
          return null;
       else if (referenceFrameProperty instanceof SimpleObjectProperty)
-         return ReferenceFrameManager.getFullname(referenceFrameProperty.getValue());
+         return referenceFrameProperty.getValue().getNameId();
       else
          throw new UnsupportedOperationException("Unhandled property: " + referenceFrameProperty.getClass().getSimpleName());
    }
