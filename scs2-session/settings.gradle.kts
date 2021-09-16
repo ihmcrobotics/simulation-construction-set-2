@@ -15,5 +15,6 @@ buildscript {
 }
 
 val ihmcSettingsConfigurator = us.ihmc.build.IHMCSettingsConfigurator(settings, logger, extra)
-ihmcSettingsConfigurator.configureAsGroupOfProjects()
+ihmcSettingsConfigurator.checkRequiredPropertiesAreSet()
+ihmcSettingsConfigurator.configureExtraSourceSets()
 ihmcSettingsConfigurator.findAndIncludeCompositeBuilds()
