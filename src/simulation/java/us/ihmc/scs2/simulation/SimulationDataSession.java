@@ -26,10 +26,12 @@ import us.ihmc.scs2.session.SessionState;
 import us.ihmc.scs2.sharedMemory.tools.SharedMemoryIOTools;
 import us.ihmc.scs2.sharedMemory.tools.SharedMemoryIOTools.DataFormat;
 import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
+import us.ihmc.scs2.simulation.robot.Robot;
 
 public class SimulationDataSession extends Session
 {
    private final String sessionName;
+   private final List<Robot> robots = new ArrayList<>();
    private final List<RobotDefinition> robotDefinitions = new ArrayList<>();
    private final List<TerrainObjectDefinition> terrainObjectDefinitions = new ArrayList<>();
    private final List<YoGraphicDefinition> yoGraphicDefinitions = new ArrayList<>();
@@ -118,6 +120,11 @@ public class SimulationDataSession extends Session
    public String getSessionName()
    {
       return sessionName;
+   }
+
+   public List<Robot> getRobots()
+   {
+      return robots;
    }
 
    @Override
