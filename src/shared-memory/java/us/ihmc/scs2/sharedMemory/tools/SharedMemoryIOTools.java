@@ -630,44 +630,40 @@ public class SharedMemoryIOTools
          YoVariable yoVariable = root.findVariable(variableName);
          YoVariableBuffer<?> yoVariableBuffer = buffer.getRegistryBuffer().findYoVariableBuffer(yoVariable);
 
-         Object internalBuffer = yoVariableBuffer.getBuffer();
-
          if (yoVariableBuffer instanceof YoBooleanBuffer)
          {
-            boolean[] booleanBuffer = (boolean[]) internalBuffer;
-            return (ObjIntConsumer<String>) (value, position) -> booleanBuffer[position] = Boolean.parseBoolean(value);
+            return (ObjIntConsumer<String>) (value, position) -> ((boolean[]) yoVariableBuffer.getBuffer())[position] = Boolean.parseBoolean(value);
          }
          if (yoVariableBuffer instanceof YoDoubleBuffer)
          {
-            double[] doubleBuffer = (double[]) internalBuffer;
-            return (ObjIntConsumer<String>) (value, position) -> doubleBuffer[position] = Double.parseDouble(value);
+            return (ObjIntConsumer<String>) (value, position) -> ((double[]) yoVariableBuffer.getBuffer())[position] = Double.parseDouble(value);
          }
          if (yoVariableBuffer instanceof YoIntegerBuffer)
          {
-            int[] intBuffer = (int[]) internalBuffer;
-            return (ObjIntConsumer<String>) (value, position) -> intBuffer[position] = Integer.parseInt(value);
+            return (ObjIntConsumer<String>) (value, position) -> ((int[]) yoVariableBuffer.getBuffer())[position] = Integer.parseInt(value);
          }
          if (yoVariableBuffer instanceof YoLongBuffer)
          {
-            long[] longBuffer = (long[]) internalBuffer;
-            return (ObjIntConsumer<String>) (value, position) -> longBuffer[position] = Long.parseLong(value);
+            return (ObjIntConsumer<String>) (value, position) -> ((long[]) yoVariableBuffer.getBuffer())[position] = Long.parseLong(value);
          }
          if (yoVariableBuffer instanceof YoEnumBuffer)
          {
-            byte[] byteBuffer = (byte[]) internalBuffer;
             List<String> enumConstants = Arrays.asList(((YoEnum<?>) yoVariable).getEnumValuesAsString());
             return (ObjIntConsumer<String>) (value, position) ->
             {
                if (Objects.equals(value, YoEnum.NULL_VALUE_STRING))
-                  byteBuffer[position] = YoEnum.NULL_VALUE;
+                  ((byte[]) yoVariableBuffer.getBuffer())[position] = YoEnum.NULL_VALUE;
                else
-                  byteBuffer[position] = (byte) enumConstants.indexOf(value);
+                  ((byte[]) yoVariableBuffer.getBuffer())[position] = (byte) enumConstants.indexOf(value);
             };
          }
 
          throw new IllegalArgumentException("Unhandled buffer type: " + yoVariableBuffer);
 
       }).toArray(ObjIntConsumer[]::new);
+
+      if (buffer.getProperties().getSize() < 64)
+         buffer.resizeBuffer(64);
 
       while ((currentLine = bufferedReader.readLine()) != null)
       {
