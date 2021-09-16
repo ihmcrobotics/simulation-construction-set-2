@@ -42,7 +42,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
 
    private final BackgroundExecutorManager backgroundExecutorManager = new BackgroundExecutorManager(4);
    private final EnvironmentManager environmentManager = new EnvironmentManager(backgroundExecutorManager);
-   private final ReferenceFrameManager referenceFrameManager = new ReferenceFrameManager(backgroundExecutorManager);
+   private final ReferenceFrameManager referenceFrameManager = new ReferenceFrameManager(yoManager, backgroundExecutorManager);
    private final YoRobotFXManager yoRobotFXManager;
    private final SecondaryWindowManager secondaryWindowManager;
 
@@ -111,9 +111,9 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
          try
          {
             yoManager.startSession(session);
-            referenceFrameManager.startSession(session);
             yoRobotFXManager.startSession(session);
             environmentManager.startSession(session);
+            referenceFrameManager.startSession(session);
             chartDataManager.startSession(session);
             chartRenderManager.startSession(session);
             yoGraphicFXManager.startSession(session);
@@ -135,7 +135,6 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
             }
 
             cameraSensorsManager.startSession(session);
-            referenceFrameManager.refreshReferenceFramesNow();
             messager.submitMessage(topics.getSessionCurrentState(), SessionState.ACTIVE);
          }
          finally
@@ -155,7 +154,6 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
 
       activeSessionProperty.set(null);
 
-      yoManager.stopSession();
       yoRobotFXManager.stopSession();
       chartDataManager.stopSession();
       chartRenderManager.stopSession();
@@ -167,6 +165,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       backgroundExecutorManager.stopSession();
       secondaryWindowManager.stopSession();
       cameraSensorsManager.stopSession();
+      yoManager.stopSession();
 
       mainWindow.setTitle(SessionVisualizer.NO_ACTIVE_SESSION_TITLE);
 
