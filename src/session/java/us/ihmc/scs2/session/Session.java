@@ -21,6 +21,8 @@ import java.util.function.Consumer;
 import javax.xml.bind.JAXBException;
 
 import us.ihmc.commons.Conversions;
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.messager.Messager;
 import us.ihmc.messager.TopicListener;
@@ -38,6 +40,7 @@ import us.ihmc.yoVariables.variable.YoDouble;
 public abstract class Session
 {
    public static final String ROOT_REGISTRY_NAME = "root";
+   public static final ReferenceFrame DEFAULT_INERTIAL_FRAME = ReferenceFrameTools.constructARootFrame("worldFrame");
 
    protected final YoRegistry rootRegistry = new YoRegistry(ROOT_REGISTRY_NAME);
    protected final YoRegistry sessionRegistry = new YoRegistry(getClass().getSimpleName());
@@ -903,6 +906,11 @@ public abstract class Session
    }
 
    public abstract String getSessionName();
+
+   public ReferenceFrame getInertialFrame()
+   {
+      return DEFAULT_INERTIAL_FRAME;
+   }
 
    public abstract List<RobotDefinition> getRobotDefinitions();
 

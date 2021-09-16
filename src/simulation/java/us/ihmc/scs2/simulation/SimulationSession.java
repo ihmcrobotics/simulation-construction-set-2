@@ -16,7 +16,6 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import us.ihmc.commons.Conversions;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.messager.Messager;
 import us.ihmc.messager.TopicListener;
 import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
@@ -41,8 +40,6 @@ import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 
 public class SimulationSession extends Session
 {
-   public static final ReferenceFrame DEFAULT_INERTIAL_FRAME = ReferenceFrameTools.constructARootFrame("worldFrame");
-
    private final ReferenceFrame inertialFrame;
    private final PhysicsEngine physicsEngine;
    private final YoFrameVector3D gravity = new YoFrameVector3D("gravity", ReferenceFrame.getWorldFrame(), rootRegistry);
@@ -74,7 +71,7 @@ public class SimulationSession extends Session
 
    public SimulationSession(String simulationName)
    {
-      this(DEFAULT_INERTIAL_FRAME, simulationName);
+      this(Session.DEFAULT_INERTIAL_FRAME, simulationName);
    }
 
    public SimulationSession(ReferenceFrame inertialFrame, String simulationName)
@@ -84,7 +81,7 @@ public class SimulationSession extends Session
 
    public SimulationSession(String simulationName, PhysicsEngineFactory physicsEngineFactory)
    {
-      this(DEFAULT_INERTIAL_FRAME, simulationName, physicsEngineFactory);
+      this(Session.DEFAULT_INERTIAL_FRAME, simulationName, physicsEngineFactory);
    }
 
    public SimulationSession(ReferenceFrame inertialFrame, String simulationName, PhysicsEngineFactory physicsEngineFactory)
@@ -251,6 +248,7 @@ public class SimulationSession extends Session
       }
    }
 
+   @Override
    public ReferenceFrame getInertialFrame()
    {
       return inertialFrame;

@@ -49,6 +49,7 @@ public class SimulationDataSession extends Session
          Path resourceDirectory = Paths.get(dataDirectory.getAbsolutePath(), "resources", robotDefinition.getName());
          robotDefinition.setResourceClassLoader(new URLClassLoader(new URL[] {resourceDirectory.toUri().toURL()}));
          robotDefinitions.add(robotDefinition);
+         robots.add(new Robot(robotDefinition, getInertialFrame()));
       }
 
       for (String terrainFileName : sessionInfo.getTerrainFileNames())

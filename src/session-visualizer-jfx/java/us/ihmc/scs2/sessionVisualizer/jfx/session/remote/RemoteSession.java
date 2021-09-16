@@ -57,7 +57,7 @@ public class RemoteSession extends Session
                                                                    handshake.getResourceDirectories(),
                                                                    handshake.getModel(),
                                                                    handshake.getResourceZip());
-      robotStateUpdater = RobotModelLoader.setupRobotUpdater(robotDefinition, handshakeParser, rootRegistry);
+      robotStateUpdater = RobotModelLoader.setupRobotUpdater(robotDefinition, handshakeParser, rootRegistry, getInertialFrame());
       if (robotDefinition != null)
          robotDefinitions.add(robotDefinition);
 

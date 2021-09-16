@@ -43,12 +43,12 @@ public class RobotModelLoader
 
    private static final TLongObjectHashMap<RobotDefinition> cachedImportedModels = new TLongObjectHashMap<>();
 
-   public static Runnable setupRobotUpdater(RobotDefinition robotDefinition, YoVariableHandshakeParser handshakeParser, YoRegistry rootRegistry)
+   public static Runnable setupRobotUpdater(RobotDefinition robotDefinition, YoVariableHandshakeParser handshakeParser, YoRegistry rootRegistry, ReferenceFrame inertialFrame)
    {
       if (robotDefinition == null)
          return null;
 
-      RobotInterface robot = new Robot(robotDefinition, ReferenceFrame.getWorldFrame());
+      RobotInterface robot = new Robot(robotDefinition, inertialFrame);
 
       Map<String, JointState> jointNameToState = handshakeParser.getJointStates().stream().collect(Collectors.toMap(JointState::getName, Function.identity()));
 
