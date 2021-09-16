@@ -21,9 +21,20 @@ public class PlanarJointDefinition extends JointDefinition
       super(name, offsetFromParent);
    }
 
+   public PlanarJointDefinition(PlanarJointDefinition other)
+   {
+      super(other);
+   }
+
    @Override
    public PlanarJointBasics toJoint(RigidBodyBasics predecessor)
    {
       return new PlanarJoint(getName(), predecessor, getTransformToParent());
+   }
+
+   @Override
+   public PlanarJointDefinition copy()
+   {
+      return new PlanarJointDefinition(this);
    }
 }

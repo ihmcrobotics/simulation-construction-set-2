@@ -15,7 +15,16 @@ public interface PhysicsEngine
 
    void simulate(double currentTime, double dt, Vector3DReadOnly gravity);
 
-   Robot addRobot(RobotDefinition robotDefinition);
+   void pause();
+
+   default Robot addRobot(RobotDefinition robotDefinition)
+   {
+      Robot robot = new Robot(robotDefinition, getInertialFrame());
+      addRobot(robot);
+      return robot;
+   }
+
+   void addRobot(Robot robot);
 
    void addTerrainObject(TerrainObjectDefinition terrainObjectDefinition);
 

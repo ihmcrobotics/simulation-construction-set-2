@@ -51,6 +51,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeCollection;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositePattern;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
+import us.ihmc.yoVariables.listener.YoRegistryChangedListener;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -60,11 +61,11 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoCompositeSearchManager implements Manager
 {
-   public static final YoCompositePattern yoVariablePattern = YoCompositePattern.singleton(YO_VARIABLE);
-   public static final YoCompositePattern yoBooleanPattern = YoCompositePattern.singleton(YO_BOOLEAN);
-   public static final YoCompositePattern yoDoublePattern = YoCompositePattern.singleton(YO_DOUBLE);
-   public static final YoCompositePattern yoIntegerPattern = YoCompositePattern.singleton(YO_INTEGER);
-   public static final YoCompositePattern yoLongPattern = YoCompositePattern.singleton(YO_LONG);
+   private final YoCompositePattern yoVariablePattern = YoCompositePattern.singleton(YO_VARIABLE);
+   private final YoCompositePattern yoBooleanPattern = YoCompositePattern.singleton(YO_BOOLEAN);
+   private final YoCompositePattern yoDoublePattern = YoCompositePattern.singleton(YO_DOUBLE);
+   private final YoCompositePattern yoIntegerPattern = YoCompositePattern.singleton(YO_INTEGER);
+   private final YoCompositePattern yoLongPattern = YoCompositePattern.singleton(YO_LONG);
 
    private final Set<YoCompositePattern> primitivePatterns = new LinkedHashSet<>(Arrays.asList(yoVariablePattern,
                                                                                                yoBooleanPattern,
@@ -86,6 +87,8 @@ public class YoCompositeSearchManager implements Manager
    private final ObservableMap<String, Property<YoCompositeCollection>> typeToCompositeCollection = FXCollections.observableMap(new LinkedHashMap<>());
 
    private final Map<YoCompositePattern, Map<String, List<YoComposite>>> listOfYoCompositeMaps = new HashMap<>();
+
+   private final YoRegistryChangedListener rootRegistryChangeListener = change -> refreshYoCompositesInBackground();
 
    private final YoManager yoManager;
    private final BackgroundExecutorManager backgroundExecutorManager;
@@ -157,12 +160,14 @@ public class YoCompositeSearchManager implements Manager
    {
       LogTools.info("Searching default YoComposite.");
       typeToCompositePattern.values().forEach(this::searchYoCompositeNow);
+      yoManager.getRootRegistry().addListener(rootRegistryChangeListener);
       LogTools.info("Initialized default YoComposite.");
    }
 
    @Override
    public void stopSession()
    {
+      yoManager.getRootRegistry().removeListener(rootRegistryChangeListener);
       typeToCompositePattern.entrySet().removeIf(entry -> !defaultCompositePatterns.contains(entry.getValue()));
       typeToCompositeCollection.entrySet().removeIf(entry -> !typeToCompositePattern.containsKey(entry.getKey()));
 
@@ -202,6 +207,9 @@ public class YoCompositeSearchManager implements Manager
    public void searchYoCompositeNow(YoCompositePattern pattern)
    {
       YoRegistry rootRegistry = yoManager.getRootRegistry();
+
+      if (rootRegistry == null)
+         return; // Stopping the session
 
       Class<? extends YoVariable> primitiveClass = primitivePatternToClass.get(pattern);
       String type = pattern.getType();

@@ -83,7 +83,7 @@ public class YoRegistrySearchPaneController extends ObservedAnimationTimer
          });
          return openStatisticsMenuItem;
       });
-      yoManager.rootRegistryHashCodeProperty().addListener((o, oldValue, newValue) -> refreshRootRegistry = true);
+      yoManager.rootRegistryChangeCounter().addListener((o, oldValue, newValue) -> refreshRootRegistry = true);
 
       searchTextField.textProperty().addListener((ChangeListener<String>) (observable, oldValue, newValue) -> search(newValue));
 

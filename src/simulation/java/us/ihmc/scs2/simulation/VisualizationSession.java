@@ -16,6 +16,7 @@ import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.session.SessionState;
 import us.ihmc.scs2.simulation.robot.Robot;
+import us.ihmc.scs2.simulation.robot.RobotInterface;
 import us.ihmc.scs2.simulation.robot.controller.RobotControllerManager;
 
 public class VisualizationSession extends Session
@@ -39,9 +40,7 @@ public class VisualizationSession extends Session
       this.sessionName = sessionName;
       setSessionModeTask(SessionMode.RUNNING, () ->
       {
-         if (stopCurrentSessionTask.get())
-            activeScheduledFuture.cancel(false);
-         // Do Nothing, the use is responsible for invoking runTick();
+         // Do Nothing, the user is responsible for invoking runTick();
       });
       setSessionMode(SessionMode.RUNNING);
       setSessionState(SessionState.ACTIVE);
@@ -52,7 +51,7 @@ public class VisualizationSession extends Session
    {
       double dt = Conversions.nanosecondsToSeconds(getSessionDTNanoseconds());
 
-      for (Robot robot : robots)
+      for (RobotInterface robot : robots)
       {
          RobotControllerManager controllerManager = robot.getControllerManager();
          controllerManager.updateControllers(time.getValue());
@@ -65,6 +64,26 @@ public class VisualizationSession extends Session
       }
 
       return time.getValue() + dt;
+   }
+
+   @Override
+   protected void schedulingSessionMode(SessionMode previousMode, SessionMode newMode)
+   {
+      if (previousMode == newMode)
+         return;
+
+      if (previousMode == SessionMode.RUNNING)
+      {
+         for (RobotInterface robot : robots)
+         {
+            robot.getControllerManager().pauseControllers();
+         }
+
+         for (Controller controller : controllers)
+         {
+            controller.pause();
+         }
+      }
    }
 
    public void addController(Controller controller)

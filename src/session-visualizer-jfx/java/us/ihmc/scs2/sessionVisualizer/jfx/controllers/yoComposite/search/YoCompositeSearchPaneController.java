@@ -259,11 +259,22 @@ public class YoCompositeSearchPaneController extends ObservedAnimationTimer
       searchResult = null;
       yoCompositeListView.getItems().clear();
       searchTextField.clear();
+      if (activeCompositeCollectionProperty != null)
+         activeCompositeCollectionProperty.removeListener(autoRefreshListener);
+      activeCompositeCollectionProperty = null;
    }
+
+   private Property<YoCompositeCollection> activeCompositeCollectionProperty = null;
+   private ChangeListener<Object> autoRefreshListener = (o, oldV, newV) -> refreshDefaultItemList(getSearchTarget());
 
    private void refreshDefaultItemList(String searchTarget)
    {
-      YoCompositeCollection yoVariableTypeReferenceCollection = yoCompositeSearchManager.getCollectionFromType(searchTarget);
+      if (activeCompositeCollectionProperty != null)
+         activeCompositeCollectionProperty.removeListener(autoRefreshListener);
+      activeCompositeCollectionProperty = yoCompositeSearchManager.typeToCompositeCollection().get(searchTarget);
+      activeCompositeCollectionProperty.addListener(autoRefreshListener);
+
+      YoCompositeCollection yoVariableTypeReferenceCollection = activeCompositeCollectionProperty.getValue();
       if (yoVariableTypeReferenceCollection == null)
          defaultItemList = FXCollections.emptyObservableList();
       else if (ownerRegistry == null)

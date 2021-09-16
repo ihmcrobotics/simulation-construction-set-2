@@ -15,7 +15,6 @@ import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -36,6 +35,7 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.javaFXToolkit.TextFormatterTools;
+import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.log.LogTools;
 import us.ihmc.robotDataLogger.StaticHostListLoader;
 import us.ihmc.robotDataLogger.YoVariableClient;
@@ -43,6 +43,7 @@ import us.ihmc.robotDataLogger.websocket.client.discovery.DataServerDiscoveryCli
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerConnection;
 import us.ihmc.robotDataLogger.websocket.client.discovery.HTTPDataServerDescription;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.BackgroundExecutorManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.SessionControlsController;
@@ -245,6 +246,9 @@ public class RemoteSessionManagerController implements SessionControlsController
          informationPaneController.initialize();
          informationPaneController.start();
          informationPaneController.activeSessionProperty().bind(sessionFactory.activeSessionProperty());
+         SessionVisualizerTopics topics = toolkit.getTopics();
+         JavaFXMessager messager = toolkit.getMessager();
+         sessionFactory.activeSessionProperty().addListener((o, oldValue, newValue) -> messager.submitMessage(topics.getStartNewSessionRequest(), newValue));
       }
       catch (IOException e)
       {
@@ -369,7 +373,7 @@ public class RemoteSessionManagerController implements SessionControlsController
       sessionInProgressProperty.set(false);
       try
       {
-         if (activeSessionProperty().get() != null)
+         if (sessionFactory.activeSessionProperty().get() != null)
          {
             stopSession();
             ThreadTools.sleep(500);
@@ -384,12 +388,6 @@ public class RemoteSessionManagerController implements SessionControlsController
       discoveryClient.close();
       informationPaneController.stop();
       stage.close();
-   }
-
-   @Override
-   public ReadOnlyObjectProperty<RemoteSession> activeSessionProperty()
-   {
-      return sessionFactory.activeSessionProperty();
    }
 
    @Override

@@ -59,7 +59,7 @@ public class LogSession extends Session
       if (robotDefinition != null)
       {
          robotDefinitions.add(robotDefinition);
-         robotStateUpdater = RobotModelLoader.setupRobotUpdater(robotDefinition, parser, rootRegistry);
+         robotStateUpdater = RobotModelLoader.setupRobotUpdater(robotDefinition, parser, rootRegistry, getInertialFrame());
       }
       else
       {

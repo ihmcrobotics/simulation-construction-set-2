@@ -14,6 +14,7 @@ import us.ihmc.scs2.simulation.collision.CollidableHolder;
 import us.ihmc.scs2.simulation.parameters.ContactPointBasedContactParameters;
 import us.ihmc.scs2.simulation.parameters.ContactPointBasedContactParametersReadOnly;
 import us.ihmc.scs2.simulation.parameters.YoContactPointBasedContactParameters;
+import us.ihmc.scs2.simulation.robot.RobotInterface;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
 import us.ihmc.scs2.simulation.robot.trackers.GroundContactPoint;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePose3D;
@@ -40,9 +41,9 @@ public class ContactPointBasedForceCalculator
       this.parameters.set(parameters);
    }
 
-   public void resolveContactForces(List<ContactPointBasedRobot> robots, CollidableHolder staticCollidableHolder)
+   public void resolveContactForces(List<? extends RobotInterface> robots, CollidableHolder staticCollidableHolder)
    {
-      for (ContactPointBasedRobot robot : robots)
+      for (RobotInterface robot : robots)
       {
          resolveContactForces(robot, staticCollidableHolder);
       }
@@ -52,7 +53,7 @@ public class ContactPointBasedForceCalculator
    private final Vector3D normalAtClosestPoint = new Vector3D();
    private final Vector3D deltaPositionFromTouchdown = new Vector3D();
 
-   public void resolveContactForces(ContactPointBasedRobot robot, CollidableHolder staticCollidableHolder)
+   public void resolveContactForces(RobotInterface robot, CollidableHolder staticCollidableHolder)
    {
       for (SimJointBasics joint : robot.getJointsToConsider())
       {

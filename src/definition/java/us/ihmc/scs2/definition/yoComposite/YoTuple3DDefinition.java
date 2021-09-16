@@ -12,6 +12,25 @@ public class YoTuple3DDefinition extends YoCompositeDefinition
    private String x, y, z;
    private String referenceFrame;
 
+   public YoTuple3DDefinition()
+   {
+   }
+
+   public YoTuple3DDefinition(String x, String y, String z)
+   {
+      this.x = x;
+      this.y = y;
+      this.z = z;
+   }
+
+   public YoTuple3DDefinition(String x, String y, String z, String referenceFrame)
+   {
+      this.x = x;
+      this.y = y;
+      this.z = z;
+      this.referenceFrame = referenceFrame;
+   }
+
    public void setX(double x)
    {
       this.x = Double.toString(x);

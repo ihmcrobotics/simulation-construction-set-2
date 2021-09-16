@@ -1,8 +1,14 @@
 package us.ihmc.scs2.simulation;
 
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
@@ -10,28 +16,44 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import us.ihmc.commons.Conversions;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
+import us.ihmc.messager.Messager;
+import us.ihmc.messager.TopicListener;
+import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
+import us.ihmc.scs2.session.DaemonThreadFactory;
 import us.ihmc.scs2.session.Session;
+import us.ihmc.scs2.session.SessionMessagerAPI;
+import us.ihmc.scs2.session.SessionMessagerAPI.Sensors.SensorMessage;
 import us.ihmc.scs2.session.SessionMode;
 import us.ihmc.scs2.sharedMemory.interfaces.LinkedYoVariableFactory;
 import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngine;
 import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngineFactory;
 import us.ihmc.scs2.simulation.robot.Robot;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
+import us.ihmc.scs2.simulation.robot.sensors.SimCameraSensor;
+import us.ihmc.scs2.simulation.robot.sensors.SimCameraSensor.CameraDefinitionConsumer;
+import us.ihmc.scs2.simulation.robot.sensors.SimCameraSensor.CameraFrameConsumer;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
 import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 
 public class SimulationSession extends Session
 {
-   public static final ReferenceFrame DEFAULT_INERTIAL_FRAME = ReferenceFrameTools.constructARootFrame("worldFrame");
-
    private final ReferenceFrame inertialFrame;
    private final PhysicsEngine physicsEngine;
    private final YoFrameVector3D gravity = new YoFrameVector3D("gravity", ReferenceFrame.getWorldFrame(), rootRegistry);
    private final String simulationName;
    private final List<YoGraphicDefinition> yoGraphicDefinitions = new ArrayList<>();
+   private final List<Consumer<SensorMessage<CameraSensorDefinition>>> cameraDefinitionListeners = new ArrayList<>();
+   private final List<CameraDefinitionConsumer> cameraDefinitionNotifiers = new ArrayList<>();
+   private final Map<String, Map<String, SimCameraSensor>> robotNameToSensorNameToCameraMap = new HashMap<>();
+   private final ExecutorService cameraBroadcastExecutor = Executors.newSingleThreadExecutor(new DaemonThreadFactory("SCS2-Camera-Server"));
+
+   private final List<TimeConsumer> beforePhysicsCallbacks = new ArrayList<>();
+   private final List<TimeConsumer> afterPhysicsCallbacks = new ArrayList<>();
+
+   private final List<Runnable> cleanupActions = new ArrayList<>();
 
    private SimulationSessionControlsImpl controls = null;
 
@@ -49,7 +71,7 @@ public class SimulationSession extends Session
 
    public SimulationSession(String simulationName)
    {
-      this(DEFAULT_INERTIAL_FRAME, simulationName);
+      this(Session.DEFAULT_INERTIAL_FRAME, simulationName);
    }
 
    public SimulationSession(ReferenceFrame inertialFrame, String simulationName)
@@ -59,7 +81,7 @@ public class SimulationSession extends Session
 
    public SimulationSession(String simulationName, PhysicsEngineFactory physicsEngineFactory)
    {
-      this(DEFAULT_INERTIAL_FRAME, simulationName, physicsEngineFactory);
+      this(Session.DEFAULT_INERTIAL_FRAME, simulationName, physicsEngineFactory);
    }
 
    public SimulationSession(ReferenceFrame inertialFrame, String simulationName, PhysicsEngineFactory physicsEngineFactory)
@@ -93,31 +115,120 @@ public class SimulationSession extends Session
    }
 
    @Override
+   public void shutdownSession()
+   {
+      super.shutdownSession();
+      cleanupActions.forEach(Runnable::run);
+      cleanupActions.clear();
+      cameraBroadcastExecutor.shutdown();
+   }
+
+   @Override
+   protected void doGeneric(SessionMode currentMode)
+   {
+      super.doGeneric(currentMode);
+
+      cameraDefinitionNotifiers.forEach(notifier -> notifier.nextDefinition(null));
+   }
+
+   @Override
    protected double doSpecificRunTick()
    {
       double dt = Conversions.nanosecondsToSeconds(getSessionDTNanoseconds());
+      for (int i = 0; i < beforePhysicsCallbacks.size(); i++)
+         beforePhysicsCallbacks.get(i).accept(time.getValue());
       physicsEngine.simulate(time.getValue(), dt, gravity);
-      return time.getValue() + dt;
+      double newTime = time.getValue() + dt;
+      for (int i = 0; i < afterPhysicsCallbacks.size(); i++)
+         afterPhysicsCallbacks.get(i).accept(newTime);
+      return newTime;
+   }
+
+   @Override
+   protected void schedulingSessionMode(SessionMode previousMode, SessionMode newMode)
+   {
+      if (previousMode == newMode)
+         return;
+
+      if (previousMode == SessionMode.RUNNING)
+      {
+         physicsEngine.pause();
+         finalizeRunTick(true);
+      }
+   }
+
+   public void addRobot(Robot robot)
+   {
+      checkSessionHasNotStarted();
+      physicsEngine.addRobot(robot);
    }
 
    public Robot addRobot(RobotDefinition robotDefinition)
    {
-      checkSessionHasNotStarted();
+      Robot robot = new Robot(robotDefinition, inertialFrame);
+      configureCameraSensors(robot);
+      addRobot(robot);
+      return robot;
+   }
 
-      return physicsEngine.addRobot(robotDefinition);
+   private void configureCameraSensors(Robot robot)
+   {
+      for (SimJointBasics joint : robot.getAllJoints())
+      {
+         for (SimCameraSensor cameraSensor : joint.getAuxialiryData().getCameraSensors())
+            configureCameraSensor(robot.getName(), cameraSensor);
+      }
+   }
+
+   private void configureCameraSensor(String robotName, SimCameraSensor cameraSensor)
+   {
+      robotNameToSensorNameToCameraMap.computeIfAbsent(robotName, s -> new HashMap<>()).put(cameraSensor.getName(), cameraSensor);
+
+      CameraDefinitionConsumer cameraDefinitionNotifier = newDefinition ->
+      {
+         String sensorName = cameraSensor.getName();
+         CameraSensorDefinition definitionData = newDefinition != null ? newDefinition : cameraSensor.toCameraSensorDefinition();
+         SensorMessage<CameraSensorDefinition> newMessage = new SensorMessage<>(robotName, sensorName, definitionData);
+         cameraDefinitionListeners.forEach(listener -> listener.accept(newMessage));
+      };
+      cameraDefinitionNotifiers.add(cameraDefinitionNotifier);
+      cameraSensor.addCameraDefinitionConsumer(cameraDefinitionNotifier);
+   }
+
+   @Override
+   public void setupWithMessager(Messager messager)
+   {
+      super.setupWithMessager(messager);
+
+      cameraDefinitionListeners.add(message -> messager.submitMessage(SessionMessagerAPI.Sensors.CameraSensorDefinitionData, message));
+      TopicListener<SensorMessage<BufferedImage>> listener = message ->
+      {
+         long timestamp = Conversions.secondsToNanoseconds(time.getValue());
+
+         SimCameraSensor cameraSensor = robotNameToSensorNameToCameraMap.getOrDefault(message.getRobotName(), Collections.emptyMap())
+                                                                        .get(message.getSensorName());
+
+         cameraBroadcastExecutor.execute(() ->
+         {
+            for (CameraFrameConsumer consumer : cameraSensor.getCameraFrameConsumers())
+            {
+               consumer.nextFrame(timestamp, message.getMessageContent());
+            }
+         });
+      };
+      messager.registerTopicListener(SessionMessagerAPI.Sensors.CameraSensorFrame, listener);
+      cleanupActions.add(() -> messager.removeTopicListener(SessionMessagerAPI.Sensors.CameraSensorFrame, listener));
    }
 
    public void addTerrainObject(TerrainObjectDefinition terrainObjectDefinition)
    {
       checkSessionHasNotStarted();
-
       physicsEngine.addTerrainObject(terrainObjectDefinition);
    }
 
    public void addYoGraphicDefinition(YoGraphicDefinition yoGraphicDefinition)
    {
       checkSessionHasNotStarted();
-
       yoGraphicDefinitions.add(yoGraphicDefinition);
    }
 
@@ -137,6 +248,7 @@ public class SimulationSession extends Session
       }
    }
 
+   @Override
    public ReferenceFrame getInertialFrame()
    {
       return inertialFrame;
@@ -183,6 +295,26 @@ public class SimulationSession extends Session
          throw new IllegalOperationException("Illegal operation after session has started.");
    }
 
+   public void addBeforePhysicsCallback(TimeConsumer beforePhysicsCallback)
+   {
+      beforePhysicsCallbacks.add(beforePhysicsCallback);
+   }
+
+   public boolean removeBeforePhysicsCallback(TimeConsumer beforePhysicsCallback)
+   {
+      return beforePhysicsCallbacks.remove(beforePhysicsCallback);
+   }
+
+   public void addAfterPhysicsCallback(TimeConsumer afterPhysicsCallback)
+   {
+      afterPhysicsCallbacks.add(afterPhysicsCallback);
+   }
+
+   public boolean removeAfterPhysicsCallback(TimeConsumer afterPhysicsCallback)
+   {
+      return afterPhysicsCallbacks.remove(afterPhysicsCallback);
+   }
+
    private class SimulationSessionControlsImpl implements SimulationSessionControls
    {
       @Override
@@ -205,7 +337,7 @@ public class SimulationSession extends Session
 
          double startTime = time.getValue();
          BooleanSupplier terminalCondition = () -> time.getValue() - startTime >= duration;
-         setSessionMode(SessionMode.RUNNING, terminalCondition, SessionMode.PAUSE);
+         setSessionMode(SessionMode.RUNNING, SessionModeTransition.newTransition(terminalCondition, SessionMode.PAUSE));
       }
 
       @Override
@@ -225,7 +357,7 @@ public class SimulationSession extends Session
                return tickCounter >= numberOfTicks;
             }
          };
-         setSessionMode(SessionMode.RUNNING, terminalCondition, SessionMode.PAUSE);
+         setSessionMode(SessionMode.RUNNING, SessionModeTransition.newTransition(terminalCondition, SessionMode.PAUSE));
       }
 
       @Override
@@ -244,15 +376,15 @@ public class SimulationSession extends Session
          MutableBoolean success = new MutableBoolean(false);
          CountDownLatch doneLatch = new CountDownLatch(1);
 
-         Consumer<SessionMode> modeListener = mode ->
+         SessionModeChangeListener modeListener = (prevMode, newMode) ->
          {
-            if (mode != SessionMode.RUNNING)
+            if (newMode != SessionMode.RUNNING)
                doneLatch.countDown();
          };
 
          Runnable shutdownListener = doneLatch::countDown;
 
-         addSessionModeChangedListener(modeListener);
+         addSessionModeChangeListener(modeListener);
          addShutdownListener(shutdownListener);
 
          BooleanSupplier terminalCondition = new BooleanSupplier()
@@ -266,15 +398,12 @@ public class SimulationSession extends Session
                boolean done = tickCounter >= numberOfTicks;
 
                if (done)
-               {
                   success.setTrue();
-                  doneLatch.countDown();
-               }
                return done;
             }
          };
 
-         setSessionMode(SessionMode.RUNNING, terminalCondition, SessionMode.PAUSE);
+         setSessionMode(SessionMode.RUNNING, SessionModeTransition.newTransition(terminalCondition, SessionMode.PAUSE));
 
          try
          {
@@ -285,8 +414,10 @@ public class SimulationSession extends Session
             e.printStackTrace();
          }
 
-         removeSessionModeChangedListener(modeListener);
+         removeSessionModeChangeListener(modeListener);
          removeShutdownListener(shutdownListener);
+
+         activePeriodicTask.waitUntilFirstTickDone();
 
          return success.isTrue();
       }
@@ -299,15 +430,27 @@ public class SimulationSession extends Session
 
       // Buffer controls
       @Override
-      public void setBufferInPointToCurrent()
+      public void setBufferInPointIndexToCurrent()
       {
          submitBufferInPointIndexRequest(sharedBuffer.getProperties().getCurrentIndex());
       }
 
       @Override
-      public void setBufferOutPointToCurrent()
+      public void setBufferOutPointIndexToCurrent()
       {
          submitBufferOutPointIndexRequest(sharedBuffer.getProperties().getCurrentIndex());
+      }
+
+      @Override
+      public void setBufferCurrentIndexToInPoint()
+      {
+         submitBufferIndexRequest(sharedBuffer.getProperties().getInPoint());
+      }
+
+      @Override
+      public void setBufferCurrentIndexToOutPoint()
+      {
+         submitBufferIndexRequest(sharedBuffer.getProperties().getOutPoint());
       }
    }
 }

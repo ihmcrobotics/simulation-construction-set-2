@@ -5,7 +5,7 @@ import java.util.List;
 
 import us.ihmc.mecano.multiBodySystem.interfaces.OneDoFJointReadOnly;
 import us.ihmc.scs2.definition.robot.OneDoFJointDefinition;
-import us.ihmc.scs2.simulation.robot.Robot;
+import us.ihmc.scs2.simulation.robot.RobotInterface;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimOneDoFJointBasics;
 import us.ihmc.yoVariables.registry.YoRegistry;
@@ -16,7 +16,7 @@ public class RobotOneDoFJointSoftLimitCalculator
    private final YoRegistry registry = new YoRegistry(getClass().getSimpleName());
    private final List<JointCalculator> jointCalculators = new ArrayList<>();
 
-   public RobotOneDoFJointSoftLimitCalculator(Robot robot)
+   public RobotOneDoFJointSoftLimitCalculator(RobotInterface robot)
    {
       for (SimJointBasics joint : robot.getJointsToConsider())
       {

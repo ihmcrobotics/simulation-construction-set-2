@@ -71,6 +71,14 @@ public class RobotControllerManager
       }
    }
 
+   public void pauseControllers()
+   {
+      for (Controller controller : controllers)
+      {
+         controller.pause();
+      }
+   }
+
    public void writeControllerOutput(JointStateType... statesToWrite)
    {
       for (JointStateType stateToWrite : statesToWrite)

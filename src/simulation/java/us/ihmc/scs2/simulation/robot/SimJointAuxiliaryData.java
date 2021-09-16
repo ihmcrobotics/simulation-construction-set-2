@@ -3,12 +3,14 @@ package us.ihmc.scs2.simulation.robot;
 import java.util.ArrayList;
 import java.util.List;
 
+import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
 import us.ihmc.scs2.definition.robot.ExternalWrenchPointDefinition;
 import us.ihmc.scs2.definition.robot.GroundContactPointDefinition;
 import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
 import us.ihmc.scs2.definition.robot.KinematicPointDefinition;
 import us.ihmc.scs2.definition.robot.WrenchSensorDefinition;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
+import us.ihmc.scs2.simulation.robot.sensors.SimCameraSensor;
 import us.ihmc.scs2.simulation.robot.sensors.SimIMUSensor;
 import us.ihmc.scs2.simulation.robot.sensors.SimWrenchSensor;
 import us.ihmc.scs2.simulation.robot.trackers.ExternalWrenchPoint;
@@ -25,6 +27,7 @@ public class SimJointAuxiliaryData
 
    private final List<SimIMUSensor> imuSensors = new ArrayList<>();
    private final List<SimWrenchSensor> wrenchSensors = new ArrayList<>();
+   private final List<SimCameraSensor> cameraSensors = new ArrayList<>();
 
    public SimJointAuxiliaryData(SimJointBasics joint)
    {
@@ -39,31 +42,49 @@ public class SimJointAuxiliaryData
 
       imuSensors.forEach(imu -> imu.update(physicsOutput));
       wrenchSensors.forEach(wrench -> wrench.update(physicsOutput));
+      cameraSensors.forEach(camera -> camera.update(physicsOutput));
    }
 
-   public void addKinematicPoint(KinematicPointDefinition definition)
+   public KinematicPoint addKinematicPoint(KinematicPointDefinition definition)
    {
-      kinematicPoints.add(new KinematicPoint(definition, joint));
+      KinematicPoint kinematicPoint = new KinematicPoint(definition, joint);
+      kinematicPoints.add(kinematicPoint);
+      return kinematicPoint;
    }
 
-   public void addExternalWrenchPoint(ExternalWrenchPointDefinition definition)
+   public ExternalWrenchPoint addExternalWrenchPoint(ExternalWrenchPointDefinition definition)
    {
-      externalWrenchPoints.add(new ExternalWrenchPoint(definition, joint));
+      ExternalWrenchPoint externalWrenchPoint = new ExternalWrenchPoint(definition, joint);
+      externalWrenchPoints.add(externalWrenchPoint);
+      return externalWrenchPoint;
    }
 
-   public void addGroundContactPoint(GroundContactPointDefinition definition)
+   public GroundContactPoint addGroundContactPoint(GroundContactPointDefinition definition)
    {
-      groundContactPoints.add(new GroundContactPoint(definition, joint));
+      GroundContactPoint groundContactPoint = new GroundContactPoint(definition, joint);
+      groundContactPoints.add(groundContactPoint);
+      return groundContactPoint;
    }
 
-   public void addIMUSensor(IMUSensorDefinition definition)
+   public SimIMUSensor addIMUSensor(IMUSensorDefinition definition)
    {
-      imuSensors.add(new SimIMUSensor(definition, joint));
+      SimIMUSensor newSensor = new SimIMUSensor(definition, joint);
+      imuSensors.add(newSensor);
+      return newSensor;
    }
 
-   public void addWrenchSensor(WrenchSensorDefinition definition)
+   public SimWrenchSensor addWrenchSensor(WrenchSensorDefinition definition)
    {
-      wrenchSensors.add(new SimWrenchSensor(definition, joint));
+      SimWrenchSensor newSensor = new SimWrenchSensor(definition, joint);
+      wrenchSensors.add(newSensor);
+      return newSensor;
+   }
+
+   public SimCameraSensor addCameraSensor(CameraSensorDefinition definition)
+   {
+      SimCameraSensor newSensor = new SimCameraSensor(definition, joint);
+      cameraSensors.add(newSensor);
+      return newSensor;
    }
 
    public SimJointBasics getJoint()
@@ -94,5 +115,10 @@ public class SimJointAuxiliaryData
    public List<SimWrenchSensor> getWrenchSensors()
    {
       return wrenchSensors;
+   }
+
+   public List<SimCameraSensor> getCameraSensors()
+   {
+      return cameraSensors;
    }
 }

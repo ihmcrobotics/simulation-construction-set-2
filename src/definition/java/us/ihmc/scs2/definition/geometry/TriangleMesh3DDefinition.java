@@ -3,6 +3,8 @@ package us.ihmc.scs2.definition.geometry;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.tuple2D.Point2D32;
 import us.ihmc.euclid.tuple3D.Point3D32;
 import us.ihmc.euclid.tuple3D.Vector3D32;
@@ -46,21 +48,25 @@ public class TriangleMesh3DDefinition extends GeometryDefinition
       triangleIndices = other.triangleIndices == null ? null : Arrays.copyOf(other.triangleIndices, other.triangleIndices.length);
    }
 
+   @XmlElement
    public void setVertices(Point3D32[] vertices)
    {
       this.vertices = vertices;
    }
 
+   @XmlElement
    public void setTextures(Point2D32[] textures)
    {
       this.textures = textures;
    }
 
+   @XmlElement
    public void setNormals(Vector3D32[] normals)
    {
       this.normals = normals;
    }
 
+   @XmlElement
    public void setTriangleIndices(int[] triangleIndices)
    {
       this.triangleIndices = triangleIndices;

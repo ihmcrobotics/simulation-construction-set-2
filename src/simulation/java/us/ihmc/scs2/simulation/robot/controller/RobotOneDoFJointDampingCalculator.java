@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import us.ihmc.scs2.definition.robot.OneDoFJointDefinition;
-import us.ihmc.scs2.simulation.robot.Robot;
+import us.ihmc.scs2.simulation.robot.RobotInterface;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimOneDoFJointBasics;
 import us.ihmc.yoVariables.registry.YoRegistry;
@@ -15,7 +15,7 @@ public class RobotOneDoFJointDampingCalculator
    private final YoRegistry registry = new YoRegistry(getClass().getSimpleName());
    private final List<JointCalculator> jointCalculators = new ArrayList<>();
 
-   public RobotOneDoFJointDampingCalculator(Robot robot)
+   public RobotOneDoFJointDampingCalculator(RobotInterface robot)
    {
       for (SimJointBasics joint : robot.getJointsToConsider())
       {

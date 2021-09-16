@@ -1,5 +1,7 @@
 package us.ihmc.scs2.definition.geometry;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
 
@@ -90,6 +92,7 @@ public class ArcTorus3DDefinition extends GeometryDefinition
     * 
     * @param startAngle the angle at which the torus starts.
     */
+   @XmlElement
    public void setStartAngle(double startAngle)
    {
       this.startAngle = startAngle;
@@ -105,6 +108,7 @@ public class ArcTorus3DDefinition extends GeometryDefinition
     * 
     * @param endAngle the angle at which the torus ends.
     */
+   @XmlElement
    public void setEndAngle(double endAngle)
    {
       this.endAngle = endAngle;
@@ -115,6 +119,7 @@ public class ArcTorus3DDefinition extends GeometryDefinition
     * 
     * @param majorRadius the radius from the torus centroid to the tube center.
     */
+   @XmlElement
    public void setMajorRadius(double majorRadius)
    {
       this.majorRadius = majorRadius;
@@ -125,6 +130,7 @@ public class ArcTorus3DDefinition extends GeometryDefinition
     * 
     * @param minorRadius the radius of the tube.
     */
+   @XmlElement
    public void setMinorRadius(double minorRadius)
    {
       this.minorRadius = minorRadius;
@@ -135,6 +141,7 @@ public class ArcTorus3DDefinition extends GeometryDefinition
     * 
     * @param resolution the torus' resolution.
     */
+   @XmlElement
    public void setResolution(int resolution)
    {
       this.resolution = resolution;

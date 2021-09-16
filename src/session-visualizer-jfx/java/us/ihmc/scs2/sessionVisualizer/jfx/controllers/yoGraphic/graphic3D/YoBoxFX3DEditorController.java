@@ -26,7 +26,7 @@ public class YoBoxFX3DEditorController extends YoGraphicFX3DEditorController<YoB
 
       setupTuple3DPropertyEditor(positionEditorController, "Position", true, yoGraphicToEdit.getPosition());
       setupOrientation3DProperty(orientationEditorController, "Orientation", true, yoGraphicToEdit.getOrientation());
-      setupTuple3DPropertyEditor(sizeEditorController, "Size", false, yoGraphicToEdit.getPosition());
+      setupTuple3DPropertyEditor(sizeEditorController, "Size", false, yoGraphicToEdit.getSize());
 
       resetFields();
    }

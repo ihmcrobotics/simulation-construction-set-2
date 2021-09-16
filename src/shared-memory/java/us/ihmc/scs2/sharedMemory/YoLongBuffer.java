@@ -63,4 +63,10 @@ public class YoLongBuffer extends YoVariableBuffer<YoLong>
    {
       return buffer;
    }
+
+   @Override
+   public void dispose()
+   {
+      buffer = null;
+   }
 }

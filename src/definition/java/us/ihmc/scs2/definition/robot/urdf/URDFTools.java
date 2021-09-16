@@ -22,7 +22,7 @@ import javax.xml.bind.Unmarshaller;
 import us.ihmc.euclid.Axis3D;
 import us.ihmc.euclid.matrix.Matrix3D;
 import us.ihmc.euclid.matrix.interfaces.Matrix3DBasics;
-import us.ihmc.euclid.matrix.interfaces.RotationMatrixBasics;
+import us.ihmc.euclid.orientation.interfaces.Orientation3DBasics;
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.tuple3D.Vector3D;
@@ -30,6 +30,7 @@ import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.yawPitchRoll.YawPitchRoll;
 import us.ihmc.log.LogTools;
+import us.ihmc.scs2.definition.YawPitchRollTransformDefinition;
 import us.ihmc.scs2.definition.geometry.Box3DDefinition;
 import us.ihmc.scs2.definition.geometry.Cylinder3DDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
@@ -287,7 +288,8 @@ public class URDFTools
       if (joint instanceof FixedJointDefinition)
       {
          RigidBodyDefinition rigidBody = joint.getSuccessor();
-         RigidBodyTransform transformToParentJoint = joint.getTransformToParent();
+         YawPitchRollTransformDefinition transformToParentJoint = joint.getTransformToParent();
+
          rigidBody.applyTransform(transformToParentJoint);
          RigidBodyDefinition oldParentRigidBody = parentJoint.getSuccessor();
          parentJoint.setSuccessor(merge(oldParentRigidBody.getName(), oldParentRigidBody, rigidBody));
@@ -393,7 +395,8 @@ public class URDFTools
       momentOfInertiaToTransform.set(m00, m01, m02, m10, m11, m12, m20, m21, m22);
    }
 
-   public static RigidBodyDefinition connectKinematics(List<RigidBodyDefinition> rigidBodyDefinitions, List<JointDefinition> jointDefinitions,
+   public static RigidBodyDefinition connectKinematics(List<RigidBodyDefinition> rigidBodyDefinitions,
+                                                       List<JointDefinition> jointDefinitions,
                                                        List<URDFJoint> urdfJoints)
    {
       Map<String, RigidBodyDefinition> rigidBodyDefinitionMap = rigidBodyDefinitions.stream().collect(Collectors.toMap(RigidBodyDefinition::getName,
@@ -439,11 +442,11 @@ public class URDFTools
 
    public static void correctTransforms(JointDefinition jointDefinition)
    {
-      RotationMatrixBasics jointRotation = jointDefinition.getTransformToParent().getRotation();
+      Orientation3DBasics jointRotation = jointDefinition.getTransformToParent().getRotation();
       if (jointDefinition instanceof OneDoFJointDefinition)
          jointRotation.transform(((OneDoFJointDefinition) jointDefinition).getAxis());
       RigidBodyDefinition linkDefinition = jointDefinition.getSuccessor();
-      RigidBodyTransform inertiaPose = linkDefinition.getInertiaPose();
+      YawPitchRollTransformDefinition inertiaPose = linkDefinition.getInertiaPose();
       inertiaPose.prependOrientation(jointRotation);
       inertiaPose.transform(linkDefinition.getMomentOfInertia());
       inertiaPose.getRotation().setToZero();
@@ -496,7 +499,7 @@ public class URDFTools
          case "prismatic":
             return toPrismaticJointDefinition(urdfJoint);
          case "fixed":
-            return toFixedJoint(urdfJoint);
+            return toFixedJointDefinition(urdfJoint);
          case "floating":
             return toSixDoFJointDefinition(urdfJoint);
          case "planar":
@@ -530,7 +533,7 @@ public class URDFTools
       return definition;
    }
 
-   public static FixedJointDefinition toFixedJoint(URDFJoint urdfJoint)
+   public static FixedJointDefinition toFixedJointDefinition(URDFJoint urdfJoint)
    {
       FixedJointDefinition definition = new FixedJointDefinition(urdfJoint.getName());
 

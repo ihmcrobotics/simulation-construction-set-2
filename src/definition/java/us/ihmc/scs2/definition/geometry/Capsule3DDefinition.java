@@ -1,5 +1,7 @@
 package us.ihmc.scs2.definition.geometry;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
 
@@ -106,6 +108,7 @@ public class Capsule3DDefinition extends GeometryDefinition
     * @param length the capsule's length or height. Distance separating the center of the two half
     *               ellipsoids.
     */
+   @XmlElement
    public void setLength(double length)
    {
       this.length = length;
@@ -126,6 +129,7 @@ public class Capsule3DDefinition extends GeometryDefinition
     * 
     * @param radiusX radius of the capsule along the x-axis.
     */
+   @XmlElement
    public void setRadiusX(double radiusX)
    {
       this.radiusX = radiusX;
@@ -136,6 +140,7 @@ public class Capsule3DDefinition extends GeometryDefinition
     * 
     * @param radiusY radius of the capsule along the y-axis.
     */
+   @XmlElement
    public void setRadiusY(double radiusY)
    {
       this.radiusY = radiusY;
@@ -146,6 +151,7 @@ public class Capsule3DDefinition extends GeometryDefinition
     * 
     * @param radiusZ radius of the capsule along the z-axis.
     */
+   @XmlElement
    public void setRadiusZ(double radiusZ)
    {
       this.radiusZ = radiusZ;
@@ -180,6 +186,7 @@ public class Capsule3DDefinition extends GeometryDefinition
     * 
     * @param resolution the capsule's resolution.
     */
+   @XmlElement
    public void setResolution(int resolution)
    {
       this.resolution = resolution;

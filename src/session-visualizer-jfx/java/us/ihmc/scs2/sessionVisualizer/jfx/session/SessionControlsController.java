@@ -1,8 +1,6 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.session;
 
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.stage.Stage;
-import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 
 public interface SessionControlsController
@@ -10,8 +8,6 @@ public interface SessionControlsController
    void initialize(SessionVisualizerToolkit toolkit);
 
    void notifySessionLoaded();
-
-   ReadOnlyObjectProperty<? extends Session> activeSessionProperty();
 
    void unloadSession();
 

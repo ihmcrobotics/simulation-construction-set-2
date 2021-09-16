@@ -24,6 +24,7 @@ import us.ihmc.yoVariables.variable.YoVariable;
 public class YoVariableDatabase
 {
    private final YoRegistry rootRegistry;
+   private final YoRegistryChangedListener registryChangedListener;
    private final LinkedYoRegistry linkedRootRegistry;
    private final List<YoVariable> allYoVariables = new ArrayList<>();
    private final Map<Class<? extends YoVariable>, List<? extends YoVariable>> allTypedYoVariables = new HashMap<>();
@@ -54,7 +55,7 @@ public class YoVariableDatabase
       allYoVariables.addAll(rootRegistry.collectSubtreeVariables());
       allTypedYoVariables.put(YoVariable.class, allYoVariables);
 
-      rootRegistry.addListener(new YoRegistryChangedListener()
+      registryChangedListener = new YoRegistryChangedListener()
       {
          @Override
          public void changed(Change change)
@@ -83,7 +84,8 @@ public class YoVariableDatabase
             allTypedYoVariables.clear();
             allTypedYoVariables.put(YoVariable.class, allYoVariables);
          }
-      });
+      };
+      rootRegistry.addListener(registryChangedListener);
    }
 
    public <L extends LinkedYoVariable<T>, T extends YoVariable> L linkYoVariable(T variableToLink)
@@ -309,5 +311,15 @@ public class YoVariableDatabase
             return new ScoredObject<>(bestYoVariable, score.get(0));
       }
       return null;
+   }
+
+   public void dispose()
+   {
+      rootRegistry.removeListener(registryChangedListener);
+      allYoVariables.clear();
+      allTypedYoVariables.clear();
+      changedNamespaceMap.clear();
+      previousSearchResults.clear();
+      fromSearchToBestSubname.clear();
    }
 }

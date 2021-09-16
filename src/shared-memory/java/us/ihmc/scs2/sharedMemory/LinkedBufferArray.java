@@ -14,9 +14,11 @@ public class LinkedBufferArray extends LinkedBuffer
    private LinkedBuffer[] linkedBuffers = new LinkedBuffer[8];
 
    private final Set<LinkedBuffer> linkedBuffersWithPendingPushRequest = new HashSet<>();
-   private final PushRequestListener listener = target -> this.linkedBuffersWithPendingPushRequest.add(target);
+   private final PushRequestListener listener = target -> linkedBuffersWithPendingPushRequest.add(target);
 
    private final List<LinkedBufferChangeListener> changeListeners = new ArrayList<>();
+
+   private boolean isDisposed = false;
 
    public LinkedBufferArray()
    {
@@ -24,6 +26,9 @@ public class LinkedBufferArray extends LinkedBuffer
 
    public void cleanupInactiveLinkedBuffers()
    {
+      if (isDisposed)
+         return;
+
       for (int i = size - 1; i >= 0; i--)
       {
          if (!linkedBuffers[i].isActive())
@@ -33,6 +38,9 @@ public class LinkedBufferArray extends LinkedBuffer
 
    public boolean add(LinkedBuffer e)
    {
+      if (isDisposed)
+         return false;
+
       size++;
       ensureCapacity(size);
       linkedBuffers[size - 1] = e;
@@ -44,6 +52,9 @@ public class LinkedBufferArray extends LinkedBuffer
 
    public boolean remove(LinkedBuffer e)
    {
+      if (isDisposed)
+         return false;
+
       int index = indexOf(e);
       if (index == -1)
          return false;
@@ -53,6 +64,9 @@ public class LinkedBufferArray extends LinkedBuffer
 
    public LinkedBuffer remove(int index)
    {
+      if (isDisposed)
+         return null;
+
       LinkedBuffer removedLinkedBuffer = linkedBuffers[index];
       linkedBuffers[index].removePushRequestListener(listener);
       linkedBuffers[index] = linkedBuffers[size - 1];
@@ -65,6 +79,9 @@ public class LinkedBufferArray extends LinkedBuffer
 
    public int indexOf(LinkedBuffer e)
    {
+      if (isDisposed)
+         return -1;
+
       if (e != null)
       {
          for (int i = 0; i < size; i++)
@@ -83,6 +100,9 @@ public class LinkedBufferArray extends LinkedBuffer
 
    public void addChangeListener(LinkedBufferChangeListener listener)
    {
+      if (isDisposed)
+         return;
+
       changeListeners.add(listener);
    }
 
@@ -94,6 +114,9 @@ public class LinkedBufferArray extends LinkedBuffer
    @Override
    public boolean pull()
    {
+      if (isDisposed)
+         return false;
+
       boolean hasPulledSomething = false;
       try
       {
@@ -113,6 +136,9 @@ public class LinkedBufferArray extends LinkedBuffer
    @Override
    public void push()
    {
+      if (isDisposed)
+         return;
+
       for (int i = 0; i < size; i++)
       {
          linkedBuffers[i].push();
@@ -122,6 +148,9 @@ public class LinkedBufferArray extends LinkedBuffer
    @Override
    public boolean processPush(boolean writeBuffer)
    {
+      if (isDisposed)
+         return false;
+
       if (linkedBuffersWithPendingPushRequest.isEmpty())
          return false;
       linkedBuffersWithPendingPushRequest.forEach(buffer -> buffer.processPush(writeBuffer));
@@ -132,6 +161,9 @@ public class LinkedBufferArray extends LinkedBuffer
    @Override
    public void flushPush()
    {
+      if (isDisposed)
+         return;
+
       for (int i = 0; i < size; i++)
       {
          linkedBuffers[i].flushPush();
@@ -141,12 +173,20 @@ public class LinkedBufferArray extends LinkedBuffer
    @Override
    public void prepareForPull()
    {
+      if (isDisposed)
+         return;
+
       for (int i = size - 1; i >= 0; i--)
       {
-         if (!linkedBuffers[i].isActive())
+         LinkedBuffer linkedBuffer = linkedBuffers[i];
+
+         if (linkedBuffer == null)
+            LogTools.error("Unexpected null pointer");
+
+         if (!linkedBuffer.isActive())
             remove(i);
          else
-            linkedBuffers[i].prepareForPull();
+            linkedBuffer.prepareForPull();
       }
    }
 
@@ -182,10 +222,31 @@ public class LinkedBufferArray extends LinkedBuffer
    {
       if (minCapacity < 0) // overflow
          throw new OutOfMemoryError();
-      return (minCapacity > MAX_ARRAY_SIZE) ? Integer.MAX_VALUE : MAX_ARRAY_SIZE;
+      return minCapacity > MAX_ARRAY_SIZE ? Integer.MAX_VALUE : MAX_ARRAY_SIZE;
    }
 
-   public static interface LinkedBufferChangeListener
+   @Override
+   public void dispose()
+   {
+      if (isDisposed)
+         return;
+
+      isDisposed = true;
+
+      for (int i = 0; i < linkedBuffers.length; i++)
+      {
+         if (linkedBuffers[i] != null)
+         {
+            linkedBuffers[i].dispose();
+            linkedBuffers[i] = null;
+         }
+      }
+      linkedBuffers = null;
+      linkedBuffersWithPendingPushRequest.clear();
+      changeListeners.clear();
+   }
+
+   public interface LinkedBufferChangeListener
    {
       void onChange(Change change);
    }

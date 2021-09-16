@@ -56,6 +56,35 @@ import us.ihmc.yoVariables.variable.YoVariable;
 
 public class SharedMemoryIOTools
 {
+   public enum DataFormat
+   {
+      ASCII(".scs2.ascii"), CSV(".scs2.csv"), MATLAB(".scs2.mat");
+
+      private final String fileExtension;
+
+      DataFormat(String fileExtension)
+      {
+         this.fileExtension = fileExtension;
+      }
+
+      public String getFileExtension()
+      {
+         return fileExtension;
+      }
+
+      public static DataFormat fromFilename(String filename)
+      {
+         if (filename == null)
+            return null;
+         for (DataFormat dataFormat : values())
+         {
+            if (filename.endsWith(dataFormat.getFileExtension()))
+               return dataFormat;
+         }
+         return null;
+      }
+   }
+
    private static JAXBContext yoRegistryContext = null;
 
    public static JAXBContext getYoRegistryContext()
@@ -265,15 +294,14 @@ public class SharedMemoryIOTools
       }
 
       PrintStream printStream = new PrintStream(outputStream);
+      YoBufferPropertiesReadOnly properties = buffer.getProperties();
+      int inPoint = properties.getInPoint();
+      int activeBufferLength = properties.getActiveBufferLength();
 
       yoVariableBufferStream.forEach(yoVariableBuffer ->
       {
          String variableName = yoVariableBuffer.getYoVariable().getFullNameString();
-         YoBufferPropertiesReadOnly properties = yoVariableBuffer.getProperties();
-         int inPoint = properties.getInPoint();
-         int activeBufferLength = properties.getActiveBufferLength();
-
-         printStream.print(variableName + ": ");
+         printStream.append(variableName).append(": ");
          printStream.println(arrayToString(yoVariableBuffer.copy(inPoint, activeBufferLength, properties).getSample()));
       });
 
@@ -524,8 +552,12 @@ public class SharedMemoryIOTools
 
    public static YoSharedBuffer importDataASCII(InputStream inputStream, YoRegistry root) throws IOException
    {
-      YoSharedBuffer buffer = new YoSharedBuffer(root, 1);
+      return importDataASCII(inputStream, new YoSharedBuffer(root, 1));
+   }
 
+   public static YoSharedBuffer importDataASCII(InputStream inputStream, YoSharedBuffer buffer) throws IOException
+   {
+      YoRegistry root = buffer.getRootRegistry();
       BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
       bufferedReader.lines().forEach(line ->
@@ -539,7 +571,7 @@ public class SharedMemoryIOTools
 
          data = data.substring(data.indexOf("[") + 1, data.lastIndexOf("]"));
          String[] values = data.split(", ");
-         growBufferIfNeeded(buffer, values.length);
+         setActiveBuffer(buffer, values.length);
 
          if (yoVariable instanceof YoBoolean)
          {
@@ -579,8 +611,12 @@ public class SharedMemoryIOTools
 
    public static YoSharedBuffer importDataCSV(InputStream inputStream, YoRegistry root) throws IOException
    {
-      YoSharedBuffer buffer = new YoSharedBuffer(root, 2048);
+      return importDataCSV(inputStream, new YoSharedBuffer(root, 1));
+   }
 
+   public static YoSharedBuffer importDataCSV(InputStream inputStream, YoSharedBuffer buffer) throws IOException
+   {
+      YoRegistry root = buffer.getRootRegistry();
       BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
       String currentLine = bufferedReader.readLine();
@@ -594,44 +630,40 @@ public class SharedMemoryIOTools
          YoVariable yoVariable = root.findVariable(variableName);
          YoVariableBuffer<?> yoVariableBuffer = buffer.getRegistryBuffer().findYoVariableBuffer(yoVariable);
 
-         Object internalBuffer = yoVariableBuffer.getBuffer();
-
          if (yoVariableBuffer instanceof YoBooleanBuffer)
          {
-            boolean[] booleanBuffer = (boolean[]) internalBuffer;
-            return (ObjIntConsumer<String>) (value, position) -> booleanBuffer[position] = Boolean.parseBoolean(value);
+            return (ObjIntConsumer<String>) (value, position) -> ((boolean[]) yoVariableBuffer.getBuffer())[position] = Boolean.parseBoolean(value);
          }
          if (yoVariableBuffer instanceof YoDoubleBuffer)
          {
-            double[] doubleBuffer = (double[]) internalBuffer;
-            return (ObjIntConsumer<String>) (value, position) -> doubleBuffer[position] = Double.parseDouble(value);
+            return (ObjIntConsumer<String>) (value, position) -> ((double[]) yoVariableBuffer.getBuffer())[position] = Double.parseDouble(value);
          }
          if (yoVariableBuffer instanceof YoIntegerBuffer)
          {
-            int[] intBuffer = (int[]) internalBuffer;
-            return (ObjIntConsumer<String>) (value, position) -> intBuffer[position] = Integer.parseInt(value);
+            return (ObjIntConsumer<String>) (value, position) -> ((int[]) yoVariableBuffer.getBuffer())[position] = Integer.parseInt(value);
          }
          if (yoVariableBuffer instanceof YoLongBuffer)
          {
-            long[] longBuffer = (long[]) internalBuffer;
-            return (ObjIntConsumer<String>) (value, position) -> longBuffer[position] = Long.parseLong(value);
+            return (ObjIntConsumer<String>) (value, position) -> ((long[]) yoVariableBuffer.getBuffer())[position] = Long.parseLong(value);
          }
          if (yoVariableBuffer instanceof YoEnumBuffer)
          {
-            byte[] byteBuffer = (byte[]) internalBuffer;
             List<String> enumConstants = Arrays.asList(((YoEnum<?>) yoVariable).getEnumValuesAsString());
             return (ObjIntConsumer<String>) (value, position) ->
             {
                if (Objects.equals(value, YoEnum.NULL_VALUE_STRING))
-                  byteBuffer[position] = YoEnum.NULL_VALUE;
+                  ((byte[]) yoVariableBuffer.getBuffer())[position] = YoEnum.NULL_VALUE;
                else
-                  byteBuffer[position] = (byte) enumConstants.indexOf(value);
+                  ((byte[]) yoVariableBuffer.getBuffer())[position] = (byte) enumConstants.indexOf(value);
             };
          }
 
          throw new IllegalArgumentException("Unhandled buffer type: " + yoVariableBuffer);
 
       }).toArray(ObjIntConsumer[]::new);
+
+      if (buffer.getProperties().getSize() < 64)
+         buffer.resizeBuffer(64);
 
       while ((currentLine = bufferedReader.readLine()) != null)
       {
@@ -656,6 +688,12 @@ public class SharedMemoryIOTools
 
    public static YoSharedBuffer importDataMatlab(File inputFile, YoRegistry root) throws IOException
    {
+      return importDataMatlab(inputFile, new YoSharedBuffer(root, 1));
+   }
+
+   public static YoSharedBuffer importDataMatlab(File inputFile, YoSharedBuffer buffer) throws IOException
+   {
+      YoRegistry root = buffer.getRootRegistry();
       Mat5File mat5File = Mat5.readFromFile(inputFile);
 
       List<Entry> entries = new ArrayList<>();
@@ -673,7 +711,6 @@ public class SharedMemoryIOTools
          throw new IllegalArgumentException("Registry name mismatch");
       Struct rootStruct = (Struct) entry.getValue();
 
-      YoSharedBuffer buffer = new YoSharedBuffer(root, 1);
       importMatlabStruct(rootStruct, root, buffer);
 
       return buffer;
@@ -704,7 +741,7 @@ public class SharedMemoryIOTools
    private static void importMatlabMatrix(YoVariable variable, Matrix matlabMatrix, YoSharedBuffer buffer)
    {
       int size = matlabMatrix.getNumRows();
-      growBufferIfNeeded(buffer, size);
+      setActiveBuffer(buffer, size);
 
       if (variable instanceof YoBoolean)
       {
@@ -747,13 +784,14 @@ public class SharedMemoryIOTools
       }
    }
 
-   private static void growBufferIfNeeded(YoSharedBuffer buffer, int newSize)
+   private static void setActiveBuffer(YoSharedBuffer buffer, int newSize)
    {
       if (newSize > buffer.getProperties().getSize())
       {
          buffer.resizeBuffer(newSize);
-         buffer.setInPoint(0);
-         buffer.setOutPoint(newSize - 1);
       }
+
+      buffer.setInPoint(0);
+      buffer.setOutPoint(newSize - 1);
    }
 }

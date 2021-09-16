@@ -2,24 +2,23 @@ package us.ihmc.scs2.simulation.physicsEngine.contactPointBased;
 
 import java.util.List;
 
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.algorithms.ForwardDynamicsCalculator;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyReadOnly;
 import us.ihmc.mecano.spatial.interfaces.WrenchReadOnly;
-import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.simulation.collision.Collidable;
 import us.ihmc.scs2.simulation.collision.CollidableHolder;
 import us.ihmc.scs2.simulation.robot.Robot;
+import us.ihmc.scs2.simulation.robot.RobotExtension;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
 
-public class ContactPointBasedRobot extends Robot implements CollidableHolder
+public class ContactPointBasedRobot extends RobotExtension implements CollidableHolder
 {
    private final ContactPointBasedRobotPhysics robotPhysics;
 
-   public ContactPointBasedRobot(RobotDefinition robotDefinition, ReferenceFrame inertialFrame)
+   public ContactPointBasedRobot(Robot robot)
    {
-      super(robotDefinition, inertialFrame);
+      super(robot);
       robotPhysics = new ContactPointBasedRobotPhysics(this);
    }
 
@@ -70,7 +69,7 @@ public class ContactPointBasedRobot extends Robot implements CollidableHolder
 
    public void updateSensors()
    {
-      for (SimJointBasics joint : rootBody.childrenSubtreeIterable())
+      for (SimJointBasics joint : getRootBody().childrenSubtreeIterable())
       {
          joint.getAuxialiryData().update(robotPhysics.getPhysicsOutput());
       }

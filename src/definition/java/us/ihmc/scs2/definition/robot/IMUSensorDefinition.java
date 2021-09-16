@@ -1,5 +1,7 @@
 package us.ihmc.scs2.definition.robot;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.transform.RigidBodyTransform;
 
 public class IMUSensorDefinition extends SensorDefinition
@@ -67,6 +69,7 @@ public class IMUSensorDefinition extends SensorDefinition
       return accelerationNoiseMean;
    }
 
+   @XmlElement
    public void setAccelerationNoiseMean(double accelerationNoiseMean)
    {
       this.accelerationNoiseMean = accelerationNoiseMean;
@@ -77,6 +80,7 @@ public class IMUSensorDefinition extends SensorDefinition
       return accelerationNoiseStandardDeviation;
    }
 
+   @XmlElement
    public void setAccelerationNoiseStandardDeviation(double accelerationNoiseStandardDeviation)
    {
       this.accelerationNoiseStandardDeviation = accelerationNoiseStandardDeviation;
@@ -87,6 +91,7 @@ public class IMUSensorDefinition extends SensorDefinition
       return accelerationBiasMean;
    }
 
+   @XmlElement
    public void setAccelerationBiasMean(double accelerationBiasMean)
    {
       this.accelerationBiasMean = accelerationBiasMean;
@@ -97,6 +102,7 @@ public class IMUSensorDefinition extends SensorDefinition
       return accelerationBiasStandardDeviation;
    }
 
+   @XmlElement
    public void setAccelerationBiasStandardDeviation(double accelerationBiasStandardDeviation)
    {
       this.accelerationBiasStandardDeviation = accelerationBiasStandardDeviation;
@@ -107,6 +113,7 @@ public class IMUSensorDefinition extends SensorDefinition
       return angularVelocityNoiseMean;
    }
 
+   @XmlElement
    public void setAngularVelocityNoiseMean(double angularVelocityNoiseMean)
    {
       this.angularVelocityNoiseMean = angularVelocityNoiseMean;
@@ -117,6 +124,7 @@ public class IMUSensorDefinition extends SensorDefinition
       return angularVelocityNoiseStandardDeviation;
    }
 
+   @XmlElement
    public void setAngularVelocityNoiseStandardDeviation(double angularVelocityNoiseStandardDeviation)
    {
       this.angularVelocityNoiseStandardDeviation = angularVelocityNoiseStandardDeviation;
@@ -127,6 +135,7 @@ public class IMUSensorDefinition extends SensorDefinition
       return angularVelocityBiasMean;
    }
 
+   @XmlElement
    public void setAngularVelocityBiasMean(double angularVelocityBiasMean)
    {
       this.angularVelocityBiasMean = angularVelocityBiasMean;
@@ -137,6 +146,7 @@ public class IMUSensorDefinition extends SensorDefinition
       return angularVelocityBiasStandardDeviation;
    }
 
+   @XmlElement
    public void setAngularVelocityBiasStandardDeviation(double angularVelocityBiasStandardDeviation)
    {
       this.angularVelocityBiasStandardDeviation = angularVelocityBiasStandardDeviation;

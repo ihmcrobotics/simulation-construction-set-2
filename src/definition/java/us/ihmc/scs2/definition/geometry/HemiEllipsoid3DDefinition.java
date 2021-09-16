@@ -1,5 +1,7 @@
 package us.ihmc.scs2.definition.geometry;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
 
@@ -72,6 +74,7 @@ public class HemiEllipsoid3DDefinition extends GeometryDefinition
     * 
     * @param radiusX the hemi-ellipsoid's radius along the x-axis.
     */
+   @XmlElement
    public void setRadiusX(double radiusX)
    {
       this.radiusX = radiusX;
@@ -82,6 +85,7 @@ public class HemiEllipsoid3DDefinition extends GeometryDefinition
     * 
     * @param radiusY the hemi=ellipsoid's radius along the y-axis.
     */
+   @XmlElement
    public void setRadiusY(double radiusY)
    {
       this.radiusY = radiusY;
@@ -92,6 +96,7 @@ public class HemiEllipsoid3DDefinition extends GeometryDefinition
     * 
     * @param radiusZ the hemi-ellipsoid's radius along the z-axis.
     */
+   @XmlElement
    public void setRadiusZ(double radiusZ)
    {
       this.radiusZ = radiusZ;
@@ -116,6 +121,7 @@ public class HemiEllipsoid3DDefinition extends GeometryDefinition
     * 
     * @param resolution the hemi-ellipsoid's resolution.
     */
+   @XmlElement
    public void setResolution(int resolution)
    {
       this.resolution = resolution;

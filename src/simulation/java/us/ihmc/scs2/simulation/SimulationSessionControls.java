@@ -19,7 +19,11 @@ public interface SimulationSessionControls
    void addSimulationThrowableListener(Consumer<Throwable> listener);
 
    // Buffer controls:
-   void setBufferInPointToCurrent();
+   void setBufferInPointIndexToCurrent();
 
-   void setBufferOutPointToCurrent();
+   void setBufferOutPointIndexToCurrent();
+   
+   void setBufferCurrentIndexToInPoint();
+
+   void setBufferCurrentIndexToOutPoint();
 }

@@ -6,6 +6,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.Group;
 import javafx.scene.SubScene;
 import javafx.stage.Stage;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -37,10 +38,11 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    private final SnapshotManager snapshotManager;
    private final VideoRecordingManager videoRecordingManager;
    private final KeyFrameManager keyFrameManager;
+   private final CameraSensorsManager cameraSensorsManager;
 
    private final BackgroundExecutorManager backgroundExecutorManager = new BackgroundExecutorManager(4);
    private final EnvironmentManager environmentManager = new EnvironmentManager(backgroundExecutorManager);
-   private final ReferenceFrameManager referenceFrameManager = new ReferenceFrameManager(backgroundExecutorManager);
+   private final ReferenceFrameManager referenceFrameManager = new ReferenceFrameManager(yoManager, backgroundExecutorManager);
    private final YoRobotFXManager yoRobotFXManager;
    private final SecondaryWindowManager secondaryWindowManager;
 
@@ -51,7 +53,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    private final ObservableList<RobotDefinition> sessionRobotDefinitions = FXCollections.observableArrayList();
    private final ObservableList<TerrainObjectDefinition> sessionTerrainObjectDefinitions = FXCollections.observableArrayList();
 
-   public SessionVisualizerToolkit(Stage mainWindow, SubScene mainScene3D) throws Exception
+   public SessionVisualizerToolkit(Stage mainWindow, SubScene mainScene3D, Group mainView3DRoot) throws Exception
    {
       this.mainWindow = mainWindow;
       this.mainScene3D = mainScene3D;
@@ -72,6 +74,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       keyFrameManager = new KeyFrameManager(messager, topics);
       yoRobotFXManager = new YoRobotFXManager(messager, topics, yoManager, referenceFrameManager, backgroundExecutorManager);
       secondaryWindowManager = new SecondaryWindowManager(this);
+      cameraSensorsManager = new CameraSensorsManager(mainView3DRoot, messager, topics, yoRobotFXManager);
 
       activeSessionProperty.addListener((o, oldValue, newValue) ->
       {
@@ -105,33 +108,40 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
 
       backgroundExecutorManager.executeInBackground(() ->
       {
-         yoManager.startSession(session);
-         referenceFrameManager.startSession(session);
-         yoRobotFXManager.startSession(session);
-         environmentManager.startSession(session);
-         chartDataManager.startSession(session);
-         chartRenderManager.startSession(session);
-         yoGraphicFXManager.startSession(session);
-         yoCompositeSearchManager.startSession(session);
-         keyFrameManager.startSession(session);
-         secondaryWindowManager.startSession(session);
-
-         while (!yoRobotFXManager.isSessionLoaded())
+         try
          {
-            try
-            {
-               Thread.sleep(100);
-            }
-            catch (InterruptedException e)
-            {
-               e.printStackTrace();
-               return;
-            }
-         }
+            yoManager.startSession(session);
+            yoRobotFXManager.startSession(session);
+            environmentManager.startSession(session);
+            referenceFrameManager.startSession(session);
+            chartDataManager.startSession(session);
+            chartRenderManager.startSession(session);
+            yoGraphicFXManager.startSession(session);
+            yoCompositeSearchManager.startSession(session);
+            keyFrameManager.startSession(session);
+            secondaryWindowManager.startSession(session);
 
-         referenceFrameManager.refreshReferenceFramesNow();
-         messager.submitMessage(topics.getSessionCurrentState(), SessionState.ACTIVE);
-         sessionLoadedCallback.run();
+            while (!yoRobotFXManager.isSessionLoaded())
+            {
+               try
+               {
+                  Thread.sleep(100);
+               }
+               catch (InterruptedException e)
+               {
+                  e.printStackTrace();
+                  return;
+               }
+            }
+
+            cameraSensorsManager.startSession(session);
+            messager.submitMessage(topics.getSessionCurrentState(), SessionState.ACTIVE);
+         }
+         finally
+         {
+            if (sessionLoadedCallback != null)
+               sessionLoadedCallback.run();
+         }
       });
 
       mainWindow.setTitle(session.getSessionName());
@@ -144,7 +154,6 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
 
       activeSessionProperty.set(null);
 
-      yoManager.stopSession();
       yoRobotFXManager.stopSession();
       chartDataManager.stopSession();
       chartRenderManager.stopSession();
@@ -155,6 +164,8 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       keyFrameManager.stopSession();
       backgroundExecutorManager.stopSession();
       secondaryWindowManager.stopSession();
+      cameraSensorsManager.stopSession();
+      yoManager.stopSession();
 
       mainWindow.setTitle(SessionVisualizer.NO_ACTIVE_SESSION_TITLE);
 
@@ -180,17 +191,12 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    public void stop()
    {
       super.stop();
+      yoManager.stop();
       yoRobotFXManager.stop();
       yoGraphicFXManager.stop();
       backgroundExecutorManager.shutdown();
-      try
-      {
-         messager.closeMessager();
-      }
-      catch (Exception e)
-      {
-         e.printStackTrace();
-      }
+      environmentManager.dispose();
+      messager.closeMessager();
    }
 
    public BufferedJavaFXMessager getMessager()

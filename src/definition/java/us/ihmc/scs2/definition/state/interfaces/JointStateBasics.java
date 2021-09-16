@@ -13,4 +13,6 @@ public interface JointStateBasics extends JointStateReadOnly
    void setAcceleration(JointReadOnly joint);
    
    void setEffort(JointReadOnly joint);
+
+   JointStateBasics copy();
 }

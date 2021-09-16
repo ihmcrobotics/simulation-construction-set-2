@@ -37,12 +37,14 @@ import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoRobotFXManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoArrowFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoBoxFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoCapsuleFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoConeFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoCoordinateSystemFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoCylinderFX3D;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoEllipsoidFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX3D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXItem;
@@ -66,8 +68,8 @@ public class YoGraphicItemCreatorDialogController
    private ToggleButton yoLineFX2DToggleButton, yoPointcloudFX2DToggleButton, yoPointFX2DToggleButton, yoPolygonFX2DToggleButton;
    @FXML
    private ToggleButton yoArrowFX3DToggleButton, yoBoxFX3DToggleButton, yoCapsuleFX3DToggleButton, yoConeFX3DToggleButton, yoCoordinateSystemFX3DToggleButton,
-         yoCylinderFX3DToggleButton, yoPointcloudFX3DToggleButton, yoPointFX3DToggleButton, yoPolygonExtrudedFX3DToggleButton, yoPolynomialFX3DToggleButton,
-         yoSTPBoxFX3DToggleButton;
+         yoCylinderFX3DToggleButton, yoEllipsoidFX3DToggleButton, yoPointcloudFX3DToggleButton, yoPointFX3DToggleButton, yoPolygonExtrudedFX3DToggleButton,
+         yoPolynomialFX3DToggleButton, yoSTPBoxFX3DToggleButton;
    @FXML
    private FlowPane miscFlowPane;
    @FXML
@@ -88,6 +90,7 @@ public class YoGraphicItemCreatorDialogController
    // These ToggleButtons are created on the fly when start/stop session and added to the miscFlowPane
    private final ObservableList<ToggleButton> robotCollisionsToggleButtons = FXCollections.observableArrayList();
    private ToggleButton terrainCollisionsToggleButton = null;
+   private final ObservableList<ToggleButton> robotMassPropertiesToggleButtons = FXCollections.observableArrayList();
 
    private final ToggleGroup toggleGroup = new ToggleGroup();
    private final Stage stage = new Stage(StageStyle.UTILITY);
@@ -97,6 +100,7 @@ public class YoGraphicItemCreatorDialogController
    private final Map<Class<? extends YoGraphicFXItem>, String> typeToDefaultNameMap = new LinkedHashMap<>();
 
    private ReferenceFrame worldFrame;
+   private YoRobotFXManager robotFXManager;
    private ReferenceFrameManager referenceFrameManager;
    private ObservableList<RobotDefinition> sessionRobotDefinitions;
    private ObservableList<TerrainObjectDefinition> sessionTerrainObjectDefinitions;
@@ -109,6 +113,7 @@ public class YoGraphicItemCreatorDialogController
 
       referenceFrameManager = toolkit.getReferenceFrameManager();
       worldFrame = referenceFrameManager.getWorldFrame();
+      robotFXManager = toolkit.getYoRobotFXManager();
       sessionRobotDefinitions = toolkit.getSessionRobotDefinitions();
       sessionTerrainObjectDefinitions = toolkit.getSessionTerrainObjectDefinitions();
 
@@ -125,6 +130,7 @@ public class YoGraphicItemCreatorDialogController
       buttonToTypeMap.put(yoConeFX3DToggleButton, YoConeFX3D.class);
       buttonToTypeMap.put(yoCoordinateSystemFX3DToggleButton, YoCoordinateSystemFX3D.class);
       buttonToTypeMap.put(yoCylinderFX3DToggleButton, YoCylinderFX3D.class);
+      buttonToTypeMap.put(yoEllipsoidFX3DToggleButton, YoEllipsoidFX3D.class);
       buttonToTypeMap.put(yoPointcloudFX3DToggleButton, YoPointcloudFX3D.class);
       buttonToTypeMap.put(yoPointFX3DToggleButton, YoPointFX3D.class);
       buttonToTypeMap.put(yoPolygonExtrudedFX3DToggleButton, YoPolygonExtrudedFX3D.class);
@@ -146,6 +152,7 @@ public class YoGraphicItemCreatorDialogController
       typeToDefaultNameMap.put(YoConeFX3D.class, "Cone 3D");
       typeToDefaultNameMap.put(YoCoordinateSystemFX3D.class, "Coordinate System 3D");
       typeToDefaultNameMap.put(YoCylinderFX3D.class, "Cylinder 3D");
+      typeToDefaultNameMap.put(YoEllipsoidFX3D.class, "Ellipsoid 3D");
       typeToDefaultNameMap.put(YoPointcloudFX3D.class, "Pointcloud 3D");
       typeToDefaultNameMap.put(YoPointFX3D.class, "Point 3D");
       typeToDefaultNameMap.put(YoPolygonExtrudedFX3D.class, "Polygon Extruded 3D");
@@ -160,6 +167,8 @@ public class YoGraphicItemCreatorDialogController
       refreshRobotCollisionsToggleButtons();
       sessionTerrainObjectDefinitions.addListener((ListChangeListener<TerrainObjectDefinition>) change -> refreshTerrainCollisionsToggleButton());
       refreshTerrainCollisionsToggleButton();
+      sessionRobotDefinitions.addListener((ListChangeListener<RobotDefinition>) change -> refreshRobotMassPropertiesToggleButtons());
+      refreshRobotMassPropertiesToggleButtons();
 
       toggleGroup.selectedToggleProperty().addListener((observable, oldValue, newValue) ->
       {
@@ -175,6 +184,11 @@ public class YoGraphicItemCreatorDialogController
          {
             newItemType = YoGroupFX.class;
             name = "Terrain collisions";
+         }
+         else if (robotMassPropertiesToggleButtons.contains(newValue))
+         {
+            newItemType = YoGroupFX.class;
+            name = sessionRobotDefinitions.get(robotMassPropertiesToggleButtons.indexOf(newValue)).getName() + " mass properties";
          }
          else
          {
@@ -193,6 +207,8 @@ public class YoGraphicItemCreatorDialogController
          if (robotCollisionsToggleButtons.contains(toggleGroup.getSelectedToggle()))
             itemNameValidityProperty.set(isYoGraphicFXItemNameValid(newValue, YoGroupFX.class));
          else if (terrainCollisionsToggleButton != null && terrainCollisionsToggleButton == toggleGroup.getSelectedToggle())
+            itemNameValidityProperty.set(isYoGraphicFXItemNameValid(newValue, YoGroupFX.class));
+         else if (robotMassPropertiesToggleButtons.contains(toggleGroup.getSelectedToggle()))
             itemNameValidityProperty.set(isYoGraphicFXItemNameValid(newValue, YoGroupFX.class));
          else
             itemNameValidityProperty.set(isYoGraphicFXItemNameValid(newValue, toItemType(toggleGroup.getSelectedToggle())));
@@ -243,6 +259,18 @@ public class YoGraphicItemCreatorDialogController
       }
    }
 
+   private void refreshRobotMassPropertiesToggleButtons()
+   {
+      miscFlowPane.getChildren().removeAll(robotMassPropertiesToggleButtons);
+      robotMassPropertiesToggleButtons.forEach(button -> button.setToggleGroup(null));
+
+      robotMassPropertiesToggleButtons.clear();
+      robotMassPropertiesToggleButtons.addAll(sessionRobotDefinitions.stream().map(this::createRobotMassPropertiesToggleButton).collect(Collectors.toList()));
+
+      miscFlowPane.getChildren().addAll(robotMassPropertiesToggleButtons);
+      robotMassPropertiesToggleButtons.forEach(button -> button.setToggleGroup(toggleGroup));
+   }
+
    public void setParent(YoGroupFX parent)
    {
       this.parent = parent;
@@ -281,7 +309,8 @@ public class YoGraphicItemCreatorDialogController
       else if (robotCollisionsToggleButtons.contains(toggleGroup.getSelectedToggle()))
       {
          RobotDefinition robotDefinition = sessionRobotDefinitions.get(robotCollisionsToggleButtons.indexOf(toggleGroup.getSelectedToggle()));
-         YoGroupFX robotCollisionShapeDefinitions = YoGraphicTools.convertRobotCollisionShapeDefinitions(referenceFrameManager, robotDefinition);
+         YoGroupFX robotCollisionShapeDefinitions = YoGraphicTools.convertRobotCollisionShapeDefinitions(robotFXManager.getRobotRootBody(robotDefinition.getName()),
+                                                                                                         robotDefinition);
          robotCollisionShapeDefinitions.setName(itemNameTextField.getText());
          boolean success = parent.addChild(robotCollisionShapeDefinitions);
          return success ? robotCollisionShapeDefinitions : null;
@@ -293,6 +322,15 @@ public class YoGraphicItemCreatorDialogController
          terrainCollisionShapeDefinitions.setName(itemNameTextField.getText());
          boolean success = parent.addChild(terrainCollisionShapeDefinitions);
          return success ? terrainCollisionShapeDefinitions : null;
+      }
+      else if (robotMassPropertiesToggleButtons.contains(toggleGroup.getSelectedToggle()))
+      {
+         RobotDefinition robotDefinition = sessionRobotDefinitions.get(robotMassPropertiesToggleButtons.indexOf(toggleGroup.getSelectedToggle()));
+         YoGroupFX robotMassPropertiesShapeDefinitions = YoGraphicTools.convertRobotMassPropertiesShapeDefinitions(robotFXManager.getRobotRootBody(robotDefinition.getName()),
+                                                                                                                   robotDefinition);
+         robotMassPropertiesShapeDefinitions.setName(itemNameTextField.getText());
+         boolean success = parent.addChild(robotMassPropertiesShapeDefinitions);
+         return success ? robotMassPropertiesShapeDefinitions : null;
       }
       else
       {
@@ -375,6 +413,22 @@ public class YoGraphicItemCreatorDialogController
       try
       {
          return loader.load();
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+         return null;
+      }
+   }
+
+   private ToggleButton createRobotMassPropertiesToggleButton(RobotDefinition robotdefinition)
+   {
+      FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.YO_GRAPHIC_ROBOT_MASS_PROPERTIES_BUTTON_URL);
+      try
+      {
+         ToggleButton button = loader.load();
+         button.setText(StringUtils.capitalize(robotdefinition.getName()) + " Mass Properties");
+         return button;
       }
       catch (IOException e)
       {

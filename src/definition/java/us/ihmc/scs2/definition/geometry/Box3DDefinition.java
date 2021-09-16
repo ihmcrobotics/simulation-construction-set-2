@@ -1,5 +1,7 @@
 package us.ihmc.scs2.definition.geometry;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
@@ -86,6 +88,7 @@ public class Box3DDefinition extends GeometryDefinition
     * 
     * @param sizeX the box size along the x-axis.
     */
+   @XmlElement
    public void setSizeX(double sizeX)
    {
       this.sizeX = sizeX;
@@ -96,6 +99,7 @@ public class Box3DDefinition extends GeometryDefinition
     * 
     * @param sizeY the box size along the y-axis.
     */
+   @XmlElement
    public void setSizeY(double sizeY)
    {
       this.sizeY = sizeY;
@@ -106,6 +110,7 @@ public class Box3DDefinition extends GeometryDefinition
     * 
     * @param sizeZ the box size along the z-axis.
     */
+   @XmlElement
    public void setSizeZ(double sizeZ)
    {
       this.sizeZ = sizeZ;
@@ -141,6 +146,7 @@ public class Box3DDefinition extends GeometryDefinition
     * @param centered {@code true} for the box to be centered at the origin, {@code false} for the
     *                 bottom face to be centered at the origin.
     */
+   @XmlElement
    public void setCentered(boolean centered)
    {
       this.centered = centered;

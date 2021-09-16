@@ -14,20 +14,22 @@ import javafx.scene.shape.Shape;
 import javafx.scene.shape.Shape3D;
 import us.ihmc.euclid.Axis3D;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
+import us.ihmc.euclid.tools.SingularValueDecomposition3D;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.log.LogTools;
-import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyReadOnly;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
 import us.ihmc.scs2.definition.geometry.Box3DDefinition;
 import us.ihmc.scs2.definition.geometry.Capsule3DDefinition;
 import us.ihmc.scs2.definition.geometry.Cone3DDefinition;
 import us.ihmc.scs2.definition.geometry.Cylinder3DDefinition;
+import us.ihmc.scs2.definition.geometry.Ellipsoid3DDefinition;
 import us.ihmc.scs2.definition.geometry.ExtrudedPolygon2DDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 import us.ihmc.scs2.definition.geometry.Point3DDefinition;
@@ -46,6 +48,7 @@ import us.ihmc.scs2.definition.yoGraphic.YoGraphicCone3DDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicCoordinateSystem3DDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicCylinder3DDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicEllipsoid3DDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicLine2DDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicListDefinition;
@@ -553,6 +556,28 @@ public class YoGraphicTools
       yoGraphicFXToPack.setRadius(CompositePropertyTools.toDoubleProperty(yoVariableDatabase, definition.getRadius()));
    }
 
+   public static YoEllipsoidFX3D toYoEllipsoidFX3D(YoVariableDatabase yoVariableDatabase,
+                                                   YoGraphicFXResourceManager resourceManager,
+                                                   ReferenceFrameManager referenceFrameManager,
+                                                   YoGraphicEllipsoid3DDefinition definition)
+   {
+      YoEllipsoidFX3D yoGraphicFX = new YoEllipsoidFX3D();
+      toYoEllipsoidFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFX);
+      return yoGraphicFX;
+   }
+
+   public static void toYoEllipsoidFX3D(YoVariableDatabase yoVariableDatabase,
+                                        YoGraphicFXResourceManager resourceManager,
+                                        ReferenceFrameManager referenceFrameManager,
+                                        YoGraphicEllipsoid3DDefinition definition,
+                                        YoEllipsoidFX3D yoGraphicFXToPack)
+   {
+      toYoGraphicFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
+      yoGraphicFXToPack.setPosition(CompositePropertyTools.toTuple3DProperty(yoVariableDatabase, referenceFrameManager, definition.getPosition()));
+      yoGraphicFXToPack.setOrientation(CompositePropertyTools.toOrientation3DProperty(yoVariableDatabase, referenceFrameManager, definition.getOrientation()));
+      yoGraphicFXToPack.setRadii(CompositePropertyTools.toTuple3DProperty(yoVariableDatabase, referenceFrameManager, definition.getRadii()));
+   }
+
    public static YoPointcloudFX3D toYoPointcloudFX3D(YoVariableDatabase yoVariableDatabase,
                                                      YoGraphicFXResourceManager resourceManager,
                                                      ReferenceFrameManager referenceFrameManager,
@@ -699,18 +724,16 @@ public class YoGraphicTools
       yoGraphicFXToPack.setMaximumMargin(CompositePropertyTools.toDoubleProperty(yoVariableDatabase, definition.getMaximumMargin()));
    }
 
-   public static YoGroupFX convertRobotCollisionShapeDefinitions(ReferenceFrameManager referenceFrameManager, RobotDefinition robotDefinition)
+   public static YoGroupFX convertRobotCollisionShapeDefinitions(RigidBodyReadOnly rootBody, RobotDefinition robotDefinition)
    {
       Color color = Color.AQUAMARINE.deriveColor(0.0, 1.0, 1.0, 0.4); // Transparent aquamarine
-      return convertRobotCollisionShapeDefinitions(referenceFrameManager, robotDefinition, color);
+      return convertRobotCollisionShapeDefinitions(rootBody, robotDefinition, color);
    }
 
-   public static YoGroupFX convertRobotCollisionShapeDefinitions(ReferenceFrameManager referenceFrameManager, RobotDefinition robotDefinition, Color color)
+   public static YoGroupFX convertRobotCollisionShapeDefinitions(RigidBodyReadOnly rootBody, RobotDefinition robotDefinition, Color color)
    {
       YoGroupFX robotCollisionGroup = new YoGroupFX(robotDefinition.getName());
 
-      // We only use the instance of the robot to find the frame names.
-      RigidBodyBasics rootBody = robotDefinition.newIntance(ReferenceFrameTools.constructARootFrame(referenceFrameManager.getWorldFrame().getName()));
       List<RigidBodyDefinition> allRigidBodies = robotDefinition.getAllRigidBodies();
 
       for (RigidBodyDefinition rigidBodyDefinition : allRigidBodies)
@@ -720,11 +743,8 @@ public class YoGraphicTools
          if (rigidBodyDefinition.getCollisionShapeDefinitions().isEmpty())
             continue;
 
-         // We use the instantiated rigid-body to get the name of the reference frame we want to use.
-         RigidBodyBasics rigidBody = MultiBodySystemTools.findRigidBody(rootBody, rigidBodyDefinition.getName());
+         RigidBodyReadOnly rigidBody = MultiBodySystemTools.findRigidBody(rootBody, rigidBodyDefinition.getName());
          ReferenceFrame referenceFrame = rigidBody.isRootBody() ? rigidBody.getBodyFixedFrame() : rigidBody.getParentJoint().getFrameAfterJoint();
-         // Finally, we use the manager to retrieve the right instance of the frame to use.
-         referenceFrame = referenceFrameManager.getReferenceFrameFromFullname(ReferenceFrameManager.getFullname(referenceFrame));
          YoGroupFX collisionGroup = convertRigidBodyCollisionShapeDefinitions(referenceFrame, rigidBodyDefinition, color);
 
          if (collisionGroup != null)
@@ -871,6 +891,71 @@ public class YoGraphicTools
                + geometryDefinition.getClass().getSimpleName());
    }
 
+   public static YoGroupFX convertRobotMassPropertiesShapeDefinitions(RigidBodyReadOnly rootBody, RobotDefinition robotDefinition)
+   {
+      Color color = Color.DARKSEAGREEN.deriveColor(0.0, 1.0, 1.0, 0.4); // Transparent
+      return convertRobotMassPropertiesShapeDefinitions(rootBody, robotDefinition, color);
+   }
+
+   public static YoGroupFX convertRobotMassPropertiesShapeDefinitions(RigidBodyReadOnly rootBody, RobotDefinition robotDefinition, Color color)
+   {
+      YoGroupFX robotMassPropertiesGroup = new YoGroupFX(robotDefinition.getName());
+
+      List<RigidBodyDefinition> allRigidBodies = robotDefinition.getAllRigidBodies();
+
+      for (RigidBodyDefinition rigidBodyDefinition : allRigidBodies)
+      {
+         if (rigidBodyDefinition.getInertiaPose() == null)
+            continue;
+         if (rigidBodyDefinition.getMomentOfInertia() == null)
+            continue;
+
+         SingularValueDecomposition3D svd = new SingularValueDecomposition3D();
+         if (!svd.decompose(rigidBodyDefinition.getMomentOfInertia()))
+            continue;
+
+         RigidBodyReadOnly rigidBody = MultiBodySystemTools.findRigidBody(rootBody, rigidBodyDefinition.getName());
+
+         if (rigidBody.isRootBody())
+            continue;
+
+         ReferenceFrame referenceFrame = rigidBody.getParentJoint().getFrameAfterJoint();
+
+         RigidBodyTransform ellipsoidPose = new RigidBodyTransform(rigidBodyDefinition.getInertiaPose());
+         ellipsoidPose.appendOrientation(svd.getU());
+         Vector3D radii = computeInertiaEllipsoidRadii(svd.getW(), rigidBodyDefinition.getMass());
+         YoEllipsoidFX3D ellipsoid = convertEllipsoid3DDefinition(referenceFrame, ellipsoidPose, new Ellipsoid3DDefinition(radii));
+         ellipsoid.setName(rigidBody.getName() + " inertia");
+         ellipsoid.setColor(color);
+         robotMassPropertiesGroup.addYoGraphicFX3D(ellipsoid);
+      }
+
+      return robotMassPropertiesGroup;
+   }
+
+   /**
+    * Returns the radii of an ellipsoid given the inertia parameters, assuming a uniform mass
+    * distribution.
+    * 
+    * @param principalMomentsOfInertia principal moments of inertia {Ixx, Iyy, Izz}
+    * @param mass                      mass of the link
+    * @return the three radii of the inertia ellipsoid
+    */
+   public static Vector3D computeInertiaEllipsoidRadii(Vector3DReadOnly principalMomentsOfInertia, double mass)
+   {
+      double Ixx = principalMomentsOfInertia.getX();
+      double Iyy = principalMomentsOfInertia.getY();
+      double Izz = principalMomentsOfInertia.getZ();
+
+      //    http://en.wikipedia.org/wiki/Ellipsoid#Mass_properties
+      Vector3D radii = new Vector3D();
+      radii.setX(Math.sqrt(5.0 / 2.0 * (Iyy + Izz - Ixx) / mass));
+      radii.setY(Math.sqrt(5.0 / 2.0 * (Izz + Ixx - Iyy) / mass));
+      radii.setZ(Math.sqrt(5.0 / 2.0 * (Ixx + Iyy - Izz) / mass));
+
+      return radii;
+   }
+
    public static YoBoxFX3D convertBox3DDefinition(ReferenceFrame referenceFrame, RigidBodyTransformReadOnly originPose, Box3DDefinition geometryDefinition)
    {
       YoBoxFX3D yoGraphicFX = new YoBoxFX3D();
@@ -950,6 +1035,22 @@ public class YoGraphicTools
       yoGraphicFX.setAxis(new Tuple3DProperty(referenceFrame, axis.getX(), axis.getY(), axis.getZ()));
       yoGraphicFX.setRadius(geometryDefinition.getRadius());
       yoGraphicFX.setLength(geometryDefinition.getLength());
+      return yoGraphicFX;
+   }
+
+   public static YoEllipsoidFX3D convertEllipsoid3DDefinition(ReferenceFrame referenceFrame,
+                                                              RigidBodyTransformReadOnly originPose,
+                                                              Ellipsoid3DDefinition geometryDefinition)
+   {
+      YoEllipsoidFX3D yoGraphicFX = new YoEllipsoidFX3D();
+      Tuple3DReadOnly position = originPose.getTranslation();
+      yoGraphicFX.setPosition(new Tuple3DProperty(referenceFrame, position.getX(), position.getY(), position.getZ()));
+      Quaternion orientation = new Quaternion(originPose.getRotation());
+      yoGraphicFX.setOrientation(new QuaternionProperty(referenceFrame, orientation.getX(), orientation.getY(), orientation.getZ(), orientation.getS()));
+      yoGraphicFX.setRadii(new Tuple3DProperty(referenceFrame,
+                                               geometryDefinition.getRadiusX(),
+                                               geometryDefinition.getRadiusY(),
+                                               geometryDefinition.getRadiusZ()));
       return yoGraphicFX;
    }
 
@@ -1310,6 +1411,23 @@ public class YoGraphicTools
       definition.setPosition(CompositePropertyTools.toYoTuple3DDefinition(yoGraphicFX.getPosition()));
       definition.setOrientation(CompositePropertyTools.toYoOrientation3DDefinition(yoGraphicFX.getOrientation()));
       definition.setSize(CompositePropertyTools.toYoTuple3DDefinition(yoGraphicFX.getSize()));
+      definition.setColor(toColorDefinition(yoGraphicFX.getColor()));
+
+      return definition;
+   }
+
+   public static YoGraphicEllipsoid3DDefinition toYoGraphicEllipsoid3DDefinition(YoEllipsoidFX3D yoGraphicFX)
+   {
+      if (yoGraphicFX == null)
+         return null;
+
+      YoGraphicEllipsoid3DDefinition definition = new YoGraphicEllipsoid3DDefinition();
+
+      definition.setName(yoGraphicFX.getName());
+      definition.setVisible(yoGraphicFX.isVisible());
+      definition.setPosition(CompositePropertyTools.toYoTuple3DDefinition(yoGraphicFX.getPosition()));
+      definition.setOrientation(CompositePropertyTools.toYoOrientation3DDefinition(yoGraphicFX.getOrientation()));
+      definition.setRadii(CompositePropertyTools.toYoTuple3DDefinition(yoGraphicFX.getRadii()));
       definition.setColor(toColorDefinition(yoGraphicFX.getColor()));
 
       return definition;

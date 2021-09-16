@@ -128,6 +128,8 @@ public class SharedMemoryJavaFXMessager extends SharedMemoryMessager implements 
    @Override
    public void closeMessager()
    {
+      javaFXSyncedTopicListeners.values().forEach(JavaFXSyncedTopicListeners::dispose);
+      javaFXSyncedTopicListeners.clear();
       super.closeMessager();
       animationTimer.stop();
    }
@@ -169,6 +171,12 @@ public class SharedMemoryJavaFXMessager extends SharedMemoryMessager implements 
       public boolean isEmpty()
       {
          return listeners.isEmpty();
+      }
+
+      public void dispose()
+      {
+         inputQueue.clear();
+         listeners.clear();
       }
    }
 }

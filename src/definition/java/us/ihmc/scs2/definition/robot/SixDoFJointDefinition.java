@@ -21,9 +21,20 @@ public class SixDoFJointDefinition extends JointDefinition
       super(name, offsetFromParent);
    }
 
+   public SixDoFJointDefinition(SixDoFJointDefinition other)
+   {
+      super(other);
+   }
+
    @Override
    public SixDoFJointBasics toJoint(RigidBodyBasics predecessor)
    {
       return new SixDoFJoint(getName(), predecessor, getTransformToParent());
+   }
+
+   @Override
+   public SixDoFJointDefinition copy()
+   {
+      return new SixDoFJointDefinition(this);
    }
 }

@@ -12,7 +12,7 @@ import us.ihmc.mecano.multiBodySystem.interfaces.JointReadOnly;
 import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.scs2.definition.state.interfaces.JointStateBasics;
 
-public class JointState implements JointStateBasics
+public class JointState extends JointStateBase implements JointStateBasics
 {
    private final Set<JointStateType> availableStates = EnumSet.noneOf(JointStateType.class);
    private final DMatrixRMaj configuration;
@@ -31,6 +31,17 @@ public class JointState implements JointStateBasics
       velocity = new DMatrixRMaj(degreesOfFreedom, 1);
       acceleration = new DMatrixRMaj(degreesOfFreedom, 1);
       effort = new DMatrixRMaj(degreesOfFreedom, 1);
+   }
+
+   public JointState(JointState other)
+   {
+      configurationSize = other.configurationSize;
+      degreesOfFreedom = other.degreesOfFreedom;
+      configuration = new DMatrixRMaj(other.configuration);
+      velocity = new DMatrixRMaj(other.velocity);
+      acceleration = new DMatrixRMaj(other.acceleration);
+      effort = new DMatrixRMaj(other.effort);
+      availableStates.addAll(other.availableStates);
    }
 
    @Override
@@ -162,5 +173,11 @@ public class JointState implements JointStateBasics
    public DMatrixRMaj getEffort()
    {
       return effort;
+   }
+
+   @Override
+   public JointState copy()
+   {
+      return new JointState(this);
    }
 }

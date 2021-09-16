@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 
+import javax.xml.bind.JAXBException;
+
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
@@ -13,12 +15,15 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.MenuItem;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
+import us.ihmc.scs2.sessionVisualizer.jfx.controllers.SessionDataExportStageController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.VideoRecordingPreviewPaneController;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
+import us.ihmc.scs2.simulation.SimulationDataSession;
 
 public class FileMenuController
 {
@@ -42,10 +47,13 @@ public class FileMenuController
    private SessionVisualizerTopics topics;
 
    private Property<VideoRecordingPreviewPaneController> videoExportController = new SimpleObjectProperty<>(this, "videoExportController", null);
+   private Property<SessionDataExportStageController> dataExportController = new SimpleObjectProperty<>(this, "dataExportController", null);
    private SubScene mainScene3D;
+   private SessionVisualizerWindowToolkit toolkit;
 
    public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
+      this.toolkit = toolkit;
       owner = toolkit.getWindow();
       messager = toolkit.getMessager();
       topics = toolkit.getTopics();
@@ -59,15 +67,55 @@ public class FileMenuController
    }
 
    @FXML
-   private void requestExportData()
+   private void exportData()
    {
-      // TODO implement me
+      if (dataExportController.getValue() != null)
+      {
+         dataExportController.getValue().close();
+         dataExportController.setValue(null);
+      }
+
+      try
+      {
+         FXMLLoader loader = new FXMLLoader(SessionVisualizerIOTools.SESSION_DATA_EXPORT_STAGE_URL);
+         loader.load();
+         SessionDataExportStageController controller = loader.getController();
+         controller.initialize(toolkit);
+         controller.getStage().show();
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+      }
    }
 
    @FXML
-   private void requestImportData()
+   private void importData()
    {
-      // TODO implement me
+      FileChooser fileChooser = new FileChooser();
+      fileChooser.setTitle("Open data file");
+      fileChooser.getExtensionFilters().add(SessionVisualizerIOTools.scs2InfoFilter);
+      fileChooser.setInitialDirectory(SessionVisualizerIOTools.getDefaultFilePath("import-data"));
+      File result = fileChooser.showOpenDialog(owner);
+
+      if (result == null)
+         return;
+
+      SessionVisualizerIOTools.setDefaultFilePath("import-data", result);
+
+      SimulationDataSession newSession;
+
+      try
+      {
+         newSession = new SimulationDataSession(result);
+      }
+      catch (JAXBException | IOException e)
+      {
+         e.printStackTrace();
+         return;
+      }
+
+      messager.submitMessage(topics.getStartNewSessionRequest(), newSession);
    }
 
    @FXML

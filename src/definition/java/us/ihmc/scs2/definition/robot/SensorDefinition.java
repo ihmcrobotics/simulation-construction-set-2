@@ -1,15 +1,17 @@
 package us.ihmc.scs2.definition.robot;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.interfaces.Transformable;
-import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.transform.interfaces.Transform;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
+import us.ihmc.scs2.definition.YawPitchRollTransformDefinition;
 
 public class SensorDefinition implements Transformable
 {
    private String name;
-   private final RigidBodyTransform transformToJoint = new RigidBodyTransform();
+   private YawPitchRollTransformDefinition transformToJoint = new YawPitchRollTransformDefinition();
 
    // Period in milliseconds
    private int updatePeriod;
@@ -42,12 +44,13 @@ public class SensorDefinition implements Transformable
       return name;
    }
 
+   @XmlElement
    public void setName(String name)
    {
       this.name = name;
    }
 
-   public RigidBodyTransform getTransformToJoint()
+   public YawPitchRollTransformDefinition getTransformToJoint()
    {
       return transformToJoint;
    }
@@ -55,6 +58,12 @@ public class SensorDefinition implements Transformable
    public void setOffsetFromJoint(Tuple3DReadOnly offsetFromJoint)
    {
       transformToJoint.setTranslationAndIdentityRotation(offsetFromJoint);
+   }
+
+   @XmlElement
+   public void setTransformToJoint(YawPitchRollTransformDefinition transformToJoint)
+   {
+      this.transformToJoint = transformToJoint;
    }
 
    public void setTransformToJoint(RigidBodyTransformReadOnly transformToJoint)
@@ -67,6 +76,7 @@ public class SensorDefinition implements Transformable
       return updatePeriod;
    }
 
+   @XmlElement
    public void setUpdatePeriod(int updatePeriod)
    {
       this.updatePeriod = updatePeriod;

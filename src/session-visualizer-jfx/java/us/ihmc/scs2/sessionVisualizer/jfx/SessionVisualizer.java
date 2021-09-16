@@ -7,7 +7,9 @@ import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.lang3.mutable.MutableObject;
 
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -16,9 +18,14 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import us.ihmc.javaFXToolkit.cameraControllers.CameraZoomCalculator;
 import us.ihmc.javaFXToolkit.cameraControllers.FocusBasedCameraMouseEventHandler;
 import us.ihmc.javaFXToolkit.scenes.View3DFactory;
 import us.ihmc.log.LogTools;
+import us.ihmc.scs2.definition.visual.VisualDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
+import us.ihmc.scs2.session.DefinitionIOTools;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.MultiSessionManager;
@@ -29,7 +36,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.tools.BufferedJavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.CameraTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXApplicationCreator;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
 import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 
 public class SessionVisualizer
@@ -38,13 +45,14 @@ public class SessionVisualizer
 
    static
    {
-      XMLTools.loadResources();
+      DefinitionIOTools.loadResources();
       YoGraphicFXControllerTools.loadResources();
    }
 
    private final SessionVisualizerToolkit toolkit;
    private final MultiSessionManager multiSessionManager;
 
+   private final Group view3DRoot;
    private final Plotter2D plotter2D = new Plotter2D();
    private final MainWindowController mainWindowController;
    private final FocusBasedCameraMouseEventHandler cameraController;
@@ -66,9 +74,10 @@ public class SessionVisualizer
       primaryStage.setTitle(NO_ACTIVE_SESSION_TITLE);
 
       View3DFactory view3DFactory = View3DFactory.createSubscene();
+      view3DRoot = view3DFactory.getRoot();
       view3DFactory.addDefaultLighting();
 
-      toolkit = new SessionVisualizerToolkit(primaryStage, view3DFactory.getSubScene());
+      toolkit = new SessionVisualizerToolkit(primaryStage, view3DFactory.getSubScene(), view3DRoot);
       messager = toolkit.getMessager();
       topics = toolkit.getTopics();
 
@@ -109,11 +118,7 @@ public class SessionVisualizer
 
    public void startSession(Session session)
    {
-      startSession(session, null);
-   }
-
-   public void startSession(Session session, Runnable sessionLoadedCallback)
-   {
+      Runnable sessionLoadedCallback = () -> sessionVisualizerControls.visualizerReadyLatch.countDown();
       multiSessionManager.startSession(session, sessionLoadedCallback);
    }
 
@@ -155,12 +160,16 @@ public class SessionVisualizer
       LogTools.info("Simulation GUI is going down.");
       try
       {
+         sessionVisualizerControls.visualizerShutdownLatch.countDown();
+         cameraController.dispose();
          multiSessionManager.stopSession(saveConfiguration);
          multiSessionManager.shutdown();
          mainWindowController.stop();
          toolkit.stop();
          if (primaryStage.isShowing())
             primaryStage.close();
+         primaryStage.setScene(null);
+         view3DRoot.getChildren().clear();
 
          stopListeners.forEach(Runnable::run);
       }
@@ -192,6 +201,14 @@ public class SessionVisualizer
 
    public static SessionVisualizerControls startSessionVisualizer(Session session)
    {
+      return startSessionVisualizer(session, null);
+   }
+
+   public static SessionVisualizerControls startSessionVisualizer(Session session, Boolean javaFXThreadImplicitExit)
+   {
+      if (javaFXThreadImplicitExit != null && Platform.isImplicitExit() != javaFXThreadImplicitExit)
+         Platform.setImplicitExit(javaFXThreadImplicitExit);
+
       MutableObject<SessionVisualizerControls> sessionVisualizerControls = new MutableObject<>();
 
       JavaFXApplicationCreator.spawnJavaFXMainApplication();
@@ -203,7 +220,7 @@ public class SessionVisualizer
             SessionVisualizer sessionVisualizer = new SessionVisualizer(new Stage());
             sessionVisualizerControls.setValue(sessionVisualizer.sessionVisualizerControls);
             if (session != null)
-               sessionVisualizer.startSession(session, () -> sessionVisualizer.sessionVisualizerControls.visualizerReadyLatch.countDown());
+               sessionVisualizer.startSession(session);
             JavaFXApplicationCreator.attachStopListener(sessionVisualizer::stop);
          }
          catch (Exception e)
@@ -218,6 +235,7 @@ public class SessionVisualizer
    private class SessionVisualizerControlsImpl implements SessionVisualizerControls
    {
       private final CountDownLatch visualizerReadyLatch = new CountDownLatch(1);
+      private final CountDownLatch visualizerShutdownLatch = new CountDownLatch(1);
 
       public SessionVisualizerControlsImpl()
       {
@@ -229,6 +247,19 @@ public class SessionVisualizer
          try
          {
             visualizerReadyLatch.await();
+         }
+         catch (InterruptedException e)
+         {
+            e.printStackTrace();
+         }
+      }
+
+      @Override
+      public void waitUntilDown()
+      {
+         try
+         {
+            visualizerShutdownLatch.await();
          }
          catch (InterruptedException e)
          {
@@ -258,11 +289,50 @@ public class SessionVisualizer
       }
 
       @Override
+      public void setCameraZoom(double distanceFromFocus)
+      {
+         checkVisualizerRunning();
+         CameraZoomCalculator zoomCalculator = cameraController.getZoomCalculator();
+         if (zoomCalculator.isInvertZoomDirection())
+            distanceFromFocus = -distanceFromFocus;
+         zoomCalculator.setZoom(distanceFromFocus);
+      }
+
+      @Override
       public void requestCameraRigidBodyTracking(String robotName, String rigidBodyName)
       {
          checkVisualizerRunning();
          waitUntilFullyUp();
          messager.submitMessage(topics.getCameraTrackObject(), new CameraObjectTrackingRequest(robotName, rigidBodyName));
+      }
+
+      @Override
+      public void addStaticVisual(VisualDefinition visualDefinition)
+      {
+         checkVisualizerRunning();
+         toolkit.getEnvironmentManager().addStaticVisual(visualDefinition);
+      }
+
+      @Override
+      public void addYoGraphic(String namespace, YoGraphicDefinition yoGraphicDefinition)
+      {
+         String[] subNames = namespace.split(YoGraphicTools.SEPARATOR);
+         if (subNames == null || subNames.length == 0)
+            addYoGraphic(yoGraphicDefinition);
+
+         for (int i = subNames.length - 1; i >= 0; i--)
+         {
+            yoGraphicDefinition = new YoGraphicGroupDefinition(subNames[i], yoGraphicDefinition);
+         }
+
+         addYoGraphic(yoGraphicDefinition);
+      }
+
+      @Override
+      public void addYoGraphic(YoGraphicDefinition yoGraphicDefinition)
+      {
+         checkVisualizerRunning();
+         messager.submitMessage(topics.getAddYoGraphicRequest(), yoGraphicDefinition);
       }
 
       @Override

@@ -14,7 +14,7 @@ import us.ihmc.mecano.multiBodySystem.interfaces.SphericalJointReadOnly;
 import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.scs2.definition.state.interfaces.JointStateBasics;
 
-public class SphericalJointState implements JointStateBasics
+public class SphericalJointState extends JointStateBase implements JointStateBasics
 {
    private final Set<JointStateType> availableStates = EnumSet.noneOf(JointStateType.class);
    private final Quaternion configuration = new Quaternion();
@@ -24,6 +24,15 @@ public class SphericalJointState implements JointStateBasics
 
    public SphericalJointState()
    {
+   }
+
+   public SphericalJointState(SphericalJointState other)
+   {
+      configuration.set(other.configuration);
+      angularVelocity.set(other.angularVelocity);
+      angularAcceleration.set(other.angularAcceleration);
+      torque.set(other.torque);
+      availableStates.addAll(other.availableStates);
    }
 
    @Override
@@ -152,5 +161,11 @@ public class SphericalJointState implements JointStateBasics
    {
       torque.get(startRow, effortToPack);
       return startRow + getDegreesOfFreedom();
+   }
+
+   @Override
+   public SphericalJointState copy()
+   {
+      return new SphericalJointState(this);
    }
 }

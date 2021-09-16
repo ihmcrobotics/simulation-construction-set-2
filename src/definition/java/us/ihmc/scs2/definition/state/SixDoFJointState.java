@@ -12,7 +12,7 @@ import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.scs2.definition.state.interfaces.SixDoFJointStateBasics;
 
-public class SixDoFJointState implements SixDoFJointStateBasics
+public class SixDoFJointState extends JointStateBase implements SixDoFJointStateBasics
 {
    private final Set<JointStateType> availableStates = EnumSet.noneOf(JointStateType.class);
    private final Pose3D configuration = new Pose3D();
@@ -30,6 +30,18 @@ public class SixDoFJointState implements SixDoFJointStateBasics
    public SixDoFJointState(Orientation3DReadOnly orientation, Tuple3DReadOnly position)
    {
       setConfiguration(orientation, position);
+   }
+
+   public SixDoFJointState(SixDoFJointState other)
+   {
+      configuration.set(other.configuration);
+      angularVelocity.set(other.angularVelocity);
+      linearVelocity.set(other.linearVelocity);
+      angularAcceleration.set(other.angularAcceleration);
+      linearAcceleration.set(other.linearAcceleration);
+      torque.set(other.torque);
+      force.set(other.force);
+      availableStates.addAll(other.availableStates);
    }
 
    @Override
@@ -130,5 +142,11 @@ public class SixDoFJointState implements SixDoFJointStateBasics
    public Vector3DReadOnly getForce()
    {
       return force;
+   }
+
+   @Override
+   public SixDoFJointState copy()
+   {
+      return new SixDoFJointState(this);
    }
 }

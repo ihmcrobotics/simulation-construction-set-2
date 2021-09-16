@@ -1,5 +1,6 @@
 package us.ihmc.scs2.sharedMemory.tools;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -8,13 +9,45 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePoint2D;
+import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePoint3D;
+import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePoseUsingYawPitchRoll;
+import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector2D;
+import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameVector3D;
+import us.ihmc.yoVariables.euclid.referenceFrame.YoFrameYawPitchRoll;
 import us.ihmc.yoVariables.registry.YoNamespace;
 import us.ihmc.yoVariables.registry.YoRegistry;
+import us.ihmc.yoVariables.variable.YoDouble;
 import us.ihmc.yoVariables.variable.YoEnum;
 import us.ihmc.yoVariables.variable.YoVariable;
 
 public class SharedMemoryTools
 {
+   @SuppressWarnings("unchecked")
+   public static <T> T[] concatenate(T[]... arrays)
+   {
+      if (arrays == null || arrays.length == 0)
+         return null;
+
+      int length = 0;
+      for (T[] array : arrays)
+      {
+         length += array.length;
+      }
+
+      T[] result = (T[]) Array.newInstance(arrays[0].getClass().getComponentType(), length);
+      int index = 0;
+      for (T[] array : arrays)
+      {
+         for (T element : array)
+         {
+            result[index++] = element;
+         }
+      }
+      return result;
+   }
+
    public static int increment(int index, int stepSize, int size)
    {
       index += stepSize;
@@ -481,5 +514,49 @@ public class SharedMemoryTools
       }
 
       return currentRegistry;
+   }
+
+   public static YoFramePoint2D duplicate(YoFramePoint2D original, YoRegistry newRegistry, ReferenceFrame newReferenceFrame)
+   {
+      YoDouble x = (YoDouble) newRegistry.findVariable(original.getYoX().getFullNameString());
+      YoDouble y = (YoDouble) newRegistry.findVariable(original.getYoY().getFullNameString());
+      return new YoFramePoint2D(x, y, newReferenceFrame);
+   }
+
+   public static YoFrameVector2D duplicate(YoFrameVector2D original, YoRegistry newRegistry, ReferenceFrame newReferenceFrame)
+   {
+      YoDouble x = (YoDouble) newRegistry.findVariable(original.getYoX().getFullNameString());
+      YoDouble y = (YoDouble) newRegistry.findVariable(original.getYoY().getFullNameString());
+      return new YoFrameVector2D(x, y, newReferenceFrame);
+   }
+
+   public static YoFramePoint3D duplicate(YoFramePoint3D original, YoRegistry newRegistry, ReferenceFrame newReferenceFrame)
+   {
+      YoDouble x = (YoDouble) newRegistry.findVariable(original.getYoX().getFullNameString());
+      YoDouble y = (YoDouble) newRegistry.findVariable(original.getYoY().getFullNameString());
+      YoDouble z = (YoDouble) newRegistry.findVariable(original.getYoZ().getFullNameString());
+      return new YoFramePoint3D(x, y, z, newReferenceFrame);
+   }
+
+   public static YoFrameVector3D duplicate(YoFrameVector3D original, YoRegistry newRegistry, ReferenceFrame newReferenceFrame)
+   {
+      YoDouble x = (YoDouble) newRegistry.findVariable(original.getYoX().getFullNameString());
+      YoDouble y = (YoDouble) newRegistry.findVariable(original.getYoY().getFullNameString());
+      YoDouble z = (YoDouble) newRegistry.findVariable(original.getYoZ().getFullNameString());
+      return new YoFrameVector3D(x, y, z, newReferenceFrame);
+   }
+
+   public static YoFrameYawPitchRoll duplicate(YoFrameYawPitchRoll original, YoRegistry newRegistry, ReferenceFrame newReferenceFrame)
+   {
+      YoDouble y = (YoDouble) newRegistry.findVariable(original.getYoYaw().getFullNameString());
+      YoDouble p = (YoDouble) newRegistry.findVariable(original.getYoPitch().getFullNameString());
+      YoDouble r = (YoDouble) newRegistry.findVariable(original.getYoRoll().getFullNameString());
+      return new YoFrameYawPitchRoll(y, p, r, newReferenceFrame);
+   }
+
+   public static YoFramePoseUsingYawPitchRoll duplicate(YoFramePoseUsingYawPitchRoll original, YoRegistry newRegistry, ReferenceFrame newReferenceFrame)
+   {
+      return new YoFramePoseUsingYawPitchRoll(duplicate(original.getPosition(), newRegistry, newReferenceFrame),
+                                              duplicate(original.getYawPitchRoll(), newRegistry, newReferenceFrame));
    }
 }

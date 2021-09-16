@@ -271,7 +271,7 @@ public class YoCompositeEditorPaneController
    {
       if (yoReferenceFrameTextField == null)
          return;
-      referenceFrameSearchTextField.setText(ReferenceFrameManager.getFullname(referenceFrame));
+      referenceFrameSearchTextField.setText(referenceFrame.getNameId());
    }
 
    public ObservableBooleanValue inputsValidityProperty()

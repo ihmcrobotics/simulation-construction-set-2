@@ -12,6 +12,7 @@ import javafx.application.Platform;
 import javafx.scene.Node;
 import us.ihmc.javaFXToolkit.messager.JavaFXMessager;
 import us.ihmc.log.LogTools;
+import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicListDefinition;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
@@ -50,6 +51,7 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
 
       messager.registerJavaFXSyncedTopicListener(topics.getYoGraphicLoadRequest(), this::loadYoGraphicFromFile);
       messager.registerJavaFXSyncedTopicListener(topics.getYoGraphicSaveRequest(), this::saveYoGraphicToFile);
+      messager.registerTopicListener(topics.getAddYoGraphicRequest(), this::setupYoGraphicDefinition);
    }
 
    private void computeBackground()
@@ -110,16 +112,7 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
 
    private void loadYoGraphicFromFile(File file)
    {
-      if (XMLTools.isYoGraphicContextReady())
-      {
-         JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> loadYoGraphicFromFileNow(file));
-      }
-      else
-      {
-         LogTools.info("Loading file scheduled: " + file);
-         backgroundExecutorManager.scheduleInBackgroundWithCondition(() -> XMLTools.isYoGraphicContextReady(),
-                                                                     () -> JavaFXMissingTools.runLater(getClass(), () -> loadYoGraphicFromFileNow(file)));
-      }
+      JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> loadYoGraphicFromFileNow(file));
    }
 
    private void loadYoGraphicFromFileNow(File file)
@@ -163,6 +156,20 @@ public class YoGraphicFXManager extends ObservedAnimationTimer implements Manage
                   postLoadingCallback.run();
             });
          }
+      });
+   }
+
+   private void setupYoGraphicDefinition(YoGraphicDefinition definition)
+   {
+      backgroundExecutorManager.queueTaskToExecuteInBackground(this, () ->
+      {
+         YoGraphicFXItem item = YoGraphicTools.createYoGraphicFX(yoManager.getRootRegistryDatabase(),
+                                                                 root,
+                                                                 yoGraphicFXResourceManager,
+                                                                 referenceFrameManager,
+                                                                 definition);
+         if (item != null)
+            JavaFXMissingTools.runLater(getClass(), () -> root.addYoGraphicFXItem(item));
       });
    }
 

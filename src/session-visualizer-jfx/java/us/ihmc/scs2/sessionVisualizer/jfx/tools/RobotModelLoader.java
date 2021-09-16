@@ -34,6 +34,7 @@ import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.robot.sdf.SDFTools;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFRoot;
 import us.ihmc.scs2.simulation.robot.Robot;
+import us.ihmc.scs2.simulation.robot.RobotInterface;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class RobotModelLoader
@@ -42,12 +43,12 @@ public class RobotModelLoader
 
    private static final TLongObjectHashMap<RobotDefinition> cachedImportedModels = new TLongObjectHashMap<>();
 
-   public static Runnable setupRobotUpdater(RobotDefinition robotDefinition, YoVariableHandshakeParser handshakeParser, YoRegistry rootRegistry)
+   public static Runnable setupRobotUpdater(RobotDefinition robotDefinition, YoVariableHandshakeParser handshakeParser, YoRegistry rootRegistry, ReferenceFrame inertialFrame)
    {
       if (robotDefinition == null)
          return null;
 
-      Robot robot = new Robot(robotDefinition, ReferenceFrame.getWorldFrame());
+      RobotInterface robot = new Robot(robotDefinition, inertialFrame);
 
       Map<String, JointState> jointNameToState = handshakeParser.getJointStates().stream().collect(Collectors.toMap(JointState::getName, Function.identity()));
 

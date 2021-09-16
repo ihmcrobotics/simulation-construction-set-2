@@ -1,5 +1,7 @@
 package us.ihmc.scs2.definition.geometry;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
 
 /**
@@ -43,6 +45,7 @@ public class Tetrahedron3DDefinition extends GeometryDefinition
     *
     * @param edgeLength the length for all edges.
     */
+   @XmlElement
    public void setEdgeLength(double edgeLength)
    {
       this.edgeLength = edgeLength;

@@ -1,5 +1,7 @@
 package us.ihmc.scs2.definition.geometry;
 
+import javax.xml.bind.annotation.XmlElement;
+
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
 
@@ -65,6 +67,7 @@ public class Torus3DDefinition extends GeometryDefinition
     * 
     * @param majorRadius the radius from the torus centroid to the tube center.
     */
+   @XmlElement
    public void setMajorRadius(double majorRadius)
    {
       this.majorRadius = majorRadius;
@@ -75,6 +78,7 @@ public class Torus3DDefinition extends GeometryDefinition
     * 
     * @param minorRadius the radius of the tube.
     */
+   @XmlElement
    public void setMinorRadius(double minorRadius)
    {
       this.minorRadius = minorRadius;
@@ -85,6 +89,7 @@ public class Torus3DDefinition extends GeometryDefinition
     * 
     * @param resolution the torus' resolution.
     */
+   @XmlElement
    public void setResolution(int resolution)
    {
       this.resolution = resolution;
