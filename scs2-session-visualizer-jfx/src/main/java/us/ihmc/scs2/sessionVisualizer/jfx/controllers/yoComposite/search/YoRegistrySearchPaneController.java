@@ -181,7 +181,7 @@ public class YoRegistrySearchPaneController extends ObservedAnimationTimer
             }
 
             return createRootItemForRegistries(YoVariableTools.search(allRegistries,
-                                                                      YoRegistry::getName,
+                                                                      registry -> registry.getNamespace().getName(),
                                                                       searchQuery,
                                                                       YoVariableTools.fromSearchEnginesEnum(activeSearchEngine.get()),
                                                                       Integer.MAX_VALUE,
