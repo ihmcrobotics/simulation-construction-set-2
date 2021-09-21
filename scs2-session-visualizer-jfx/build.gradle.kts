@@ -41,7 +41,7 @@ mainDependencies {
    api("org.reflections:reflections:0.9.11")
 
    // JavaFX extensions
-   api("org.controlsfx:controlsfx:11.0.1")
+   api("org.controlsfx:controlsfx:11.1.0")
    api("de.jensd:fontawesomefx-commons:9.1.2")
    api("de.jensd:fontawesomefx-octicons:4.3.0-9.1.2")
    api("de.jensd:fontawesomefx-materialicons:2.2.0-9.1.2")
@@ -50,7 +50,12 @@ mainDependencies {
    api("com.jfoenix:jfoenix:9.0.10")
    api("org.apache.commons:commons-text:1.9")
 
-   api(fileTree(mapOf("dir" to "libs/JavaFXModelImporters", "include" to "*.jar")))
+   api("us.ihmc:jim3dsModelImporterJFX:0.7")
+   api("us.ihmc:jimColModelImporterJFX:0.6")
+   api("us.ihmc:jimFxmlModelImporterJFX:0.5")
+   api("us.ihmc:jimObjModelImporterJFX:0.8")
+   api("us.ihmc:jimStlMeshImporterJFX:0.7")
+   api("us.ihmc:jimX3dModelImporterJFX:0.4")
 }
 
 testDependencies {
