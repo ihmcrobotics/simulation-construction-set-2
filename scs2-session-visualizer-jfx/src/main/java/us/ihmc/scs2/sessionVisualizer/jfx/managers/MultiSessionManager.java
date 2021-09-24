@@ -289,8 +289,9 @@ public class MultiSessionManager
    public void saveSessionDefaultConfiguration()
    {
       SCSGuiConfiguration configuration = SCSGuiConfiguration.defaultSaver(robotName, sessionName);
+      // TODO Some things like sliderboard aren't exported systematically, so we don't want to delete these files unless we change the save.
       // Cleanup files with old extensions.
-      SessionIOTools.emptyDirectory(configuration.getMainConfigurationFile().getParentFile());
+      //      SessionIOTools.emptyDirectory(configuration.getMainConfigurationFile().getParentFile());
       saveSessionConfiguration(configuration);
    }
 
