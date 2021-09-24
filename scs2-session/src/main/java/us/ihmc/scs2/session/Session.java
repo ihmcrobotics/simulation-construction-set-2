@@ -121,6 +121,12 @@ public abstract class Session
 
    public Session()
    {
+      this(SessionMode.PAUSE);
+   }
+
+   public Session(SessionMode initialMode)
+   {
+      activeMode.set(initialMode);
       rootRegistry.addChild(sessionRegistry);
       sessionRegistry.addChild(runRegistry);
       sessionRegistry.addChild(playbackRegistry);
