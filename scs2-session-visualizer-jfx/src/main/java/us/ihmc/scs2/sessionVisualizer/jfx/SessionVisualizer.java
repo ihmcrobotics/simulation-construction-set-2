@@ -191,7 +191,7 @@ public class SessionVisualizer
 
    public static void main(String[] args)
    {
-      startSessionVisualizer(null);
+      startSessionVisualizer(null, true);
    }
 
    public static SessionVisualizerControls startSessionVisualizer()

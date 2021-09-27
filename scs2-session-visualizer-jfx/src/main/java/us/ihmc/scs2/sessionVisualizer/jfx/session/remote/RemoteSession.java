@@ -45,6 +45,8 @@ public class RemoteSession extends Session
                         YoVariableHandshakeParser handshakeParser,
                         DebugRegistry debugRegistry)
    {
+      super(SessionMode.RUNNING);
+
       this.yoVariableClientInterface = yoVariableClientInterface;
 
       sessionName = yoVariableClientInterface.getServerName();
@@ -76,7 +78,6 @@ public class RemoteSession extends Session
             disconnect();
       });
       submitDesiredBufferPublishPeriod(Conversions.secondsToNanoseconds(1.0 / 60.0));
-      setSessionMode(SessionMode.RUNNING);
    }
 
    public long getDelay()

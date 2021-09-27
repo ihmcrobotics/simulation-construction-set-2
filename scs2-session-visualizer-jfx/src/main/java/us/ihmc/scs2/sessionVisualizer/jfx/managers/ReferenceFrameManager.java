@@ -22,6 +22,7 @@ import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.session.YoFixedMovingReferenceFrameUsingYawPitchRoll;
 import us.ihmc.scs2.session.YoFixedReferenceFrameUsingYawPitchRoll;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
 import us.ihmc.scs2.sharedMemory.LinkedYoDouble;
 import us.ihmc.scs2.sharedMemory.tools.SharedMemoryTools;
@@ -53,6 +54,16 @@ public class ReferenceFrameManager implements Manager
          registerNewSessionFrames(ReferenceFrameTools.collectFramesInSubtree(change.getTarget()));
    };
 
+   private final ObservedAnimationTimer taskRunner = new ObservedAnimationTimer(getClass().getSimpleName())
+   {
+      @Override
+      public void handleImpl(long now)
+      {
+         for (int i = 0; i < updateTasks.size(); i++)
+            updateTasks.get(i).run();
+      }
+   };
+
    public ReferenceFrameManager(YoManager yoManager, BackgroundExecutorManager backgroundExecutorManager)
    {
       this.yoManager = yoManager;
@@ -66,11 +77,14 @@ public class ReferenceFrameManager implements Manager
       registerNewSessionFramesNow(ReferenceFrameTools.collectFramesInSubtree(session.getInertialFrame()));
       session.getInertialFrame().addListener(frameChangedListener);
       addCleanupTask(() -> session.getInertialFrame().removeListener(frameChangedListener));
+      taskRunner.start();
    }
 
    @Override
    public void stopSession()
    {
+      taskRunner.stop();
+
       if (cleanupTasks != null)
       {
          cleanupTasks.forEach(Runnable::run);
