@@ -19,6 +19,7 @@ import us.ihmc.scs2.simulation.robot.Robot;
 import us.ihmc.scs2.simulation.robot.RobotInterface;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
+import us.ihmc.scs2.simulation.robot.trackers.ExternalWrenchPoint;
 import us.ihmc.scs2.simulation.robot.trackers.GroundContactPoint;
 import us.ihmc.yoVariables.registry.YoRegistry;
 
@@ -104,8 +105,9 @@ public class ContactPointBasedPhysicsEngine implements PhysicsEngine
          for (SimJointBasics joint : robot.getJointsToConsider())
          {
             List<GroundContactPoint> groundContactPoints = joint.getAuxialiryData().getGroundContactPoints();
+            List<ExternalWrenchPoint> externalWrenchPoints = joint.getAuxialiryData().getExternalWrenchPoints();
 
-            if (groundContactPoints.isEmpty())
+            if (groundContactPoints.isEmpty() && externalWrenchPoints.isEmpty())
                continue;
 
             SimRigidBodyBasics body = joint.getSuccessor();
@@ -114,6 +116,13 @@ public class ContactPointBasedPhysicsEngine implements PhysicsEngine
             for (GroundContactPoint gcp : groundContactPoints)
             {
                tempWrench.setIncludingFrame(gcp.getWrench());
+               tempWrench.changeFrame(externalWrench.getReferenceFrame());
+               externalWrench.add(tempWrench);
+            }
+
+            for (ExternalWrenchPoint efp : externalWrenchPoints)
+            {
+               tempWrench.setIncludingFrame(efp.getWrench());
                tempWrench.changeFrame(externalWrench.getReferenceFrame());
                externalWrench.add(tempWrench);
             }

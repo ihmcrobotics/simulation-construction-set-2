@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.mecano.spatial.Wrench;
+import us.ihmc.mecano.spatial.interfaces.FixedFrameWrenchBasics;
 import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
@@ -26,6 +28,9 @@ import us.ihmc.scs2.simulation.physicsEngine.MultiRobotCollisionGroup;
 import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngine;
 import us.ihmc.scs2.simulation.physicsEngine.SimpleCollisionDetection;
 import us.ihmc.scs2.simulation.robot.Robot;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimJointBasics;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.interfaces.SimRigidBodyBasics;
+import us.ihmc.scs2.simulation.robot.trackers.ExternalWrenchPoint;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -152,6 +157,8 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
    private final YoTimer handleCollisionsTimer = new YoTimer("handleCollisionsTimer", TimeUnit.MILLISECONDS, physicsEngineRegistry);
    private final YoTimer finalPhaseTimer = new YoTimer("finalPhaseTimer", TimeUnit.MILLISECONDS, physicsEngineRegistry);
 
+   private final Wrench tempWrench = new Wrench();
+
    @Override
    public void simulate(double currentTime, double dt, Vector3DReadOnly gravity)
    {
@@ -172,6 +179,25 @@ public class ImpulseBasedPhysicsEngine implements PhysicsEngine
       {
          robot.getControllerManager().writeControllerOutput(JointStateType.EFFORT);
          robot.getControllerManager().writeControllerOutputForJointsToIgnore(JointStateType.values());
+
+         for (SimJointBasics joint : robot.getJointsToConsider())
+         {
+            List<ExternalWrenchPoint> externalWrenchPoints = joint.getAuxialiryData().getExternalWrenchPoints();
+
+            if (externalWrenchPoints.isEmpty())
+               continue;
+
+            SimRigidBodyBasics body = joint.getSuccessor();
+            FixedFrameWrenchBasics externalWrench = robot.getForwardDynamicsCalculator().getExternalWrench(body);
+
+            for (ExternalWrenchPoint efp : externalWrenchPoints)
+            {
+               tempWrench.setIncludingFrame(efp.getWrench());
+               tempWrench.changeFrame(externalWrench.getReferenceFrame());
+               externalWrench.add(tempWrench);
+            }
+         }
+
          robot.doForwardDynamics(gravity);
       }
 

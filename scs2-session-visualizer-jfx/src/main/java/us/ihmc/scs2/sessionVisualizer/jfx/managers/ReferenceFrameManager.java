@@ -59,8 +59,11 @@ public class ReferenceFrameManager implements Manager
       @Override
       public void handleImpl(long now)
       {
-         for (int i = 0; i < updateTasks.size(); i++)
-            updateTasks.get(i).run();
+         if (updateTasks != null)
+         {
+            for (int i = 0; i < updateTasks.size(); i++)
+               updateTasks.get(i).run();
+         }
       }
    };
 
