@@ -257,9 +257,11 @@ public class YoRegistrySearchPaneController extends ObservedAnimationTimer
 
    private static void buildTreeRecursively(TreeItem<YoRegistry> parent)
    {
-      for (int i = 0; i < parent.getValue().getChildren().size(); i++)
+      List<YoRegistry> children = parent.getValue().getChildren();
+
+      for (int i = 0; i < children.size(); i++)
       {
-         YoRegistry child = parent.getValue().getChildren().get(i);
+         YoRegistry child = children.get(i);
          TreeItem<YoRegistry> childItem = new TreeItem<>(child);
          parent.getChildren().add(childItem);
          buildTreeRecursively(childItem);
