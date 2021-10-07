@@ -191,7 +191,9 @@ public class SessionVisualizer
 
    public static void main(String[] args)
    {
-      startSessionVisualizer(null, true);
+      SessionVisualizerControls controls = startSessionVisualizer(null, true);
+      // When running as remote visualizer, some non-daemon threads are not cleaned up properly.
+      controls.addVisualizerShutdownListener(() -> System.exit(0));
    }
 
    public static SessionVisualizerControls startSessionVisualizer()
