@@ -79,12 +79,18 @@ public class LogSession extends Session
    @Override
    protected void initializeRunTick()
    {
-      sharedBuffer.incrementBufferIndex(true);
-
       if (firstRunTick)
       {
-         sharedBuffer.setInPoint(sharedBuffer.getProperties().getCurrentIndex());
+         if (sharedBuffer.getProperties().getCurrentIndex() != sharedBuffer.getProperties().getOutPoint())
+            sharedBuffer.setInPoint(sharedBuffer.getProperties().getCurrentIndex());
+         sharedBuffer.incrementBufferIndex(true);
+         nextRunBufferRecordTickCounter = 0;
          firstRunTick = false;
+      }
+      else if (nextRunBufferRecordTickCounter <= 0)
+      {
+         sharedBuffer.incrementBufferIndex(true);
+         sharedBuffer.processLinkedPushRequests(false);
       }
 
       // Push from the linked registries are unnecessary when reading a log file.

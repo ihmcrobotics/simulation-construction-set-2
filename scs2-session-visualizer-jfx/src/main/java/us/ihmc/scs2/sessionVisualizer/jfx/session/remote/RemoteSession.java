@@ -176,11 +176,13 @@ public class RemoteSession extends Session
          sharedBuffer.incrementBufferIndex(true);
          sharedBuffer.setInPoint(sharedBuffer.getProperties().getCurrentIndex());
          sharedBuffer.processLinkedPushRequests(false);
+         nextRunBufferRecordTickCounter = 0;
          firstRunTick = false;
       }
-      else
+      else if (nextRunBufferRecordTickCounter <= 0)
       {
-         super.initializeRunTick();
+         sharedBuffer.incrementBufferIndex(true);
+         sharedBuffer.processLinkedPushRequests(false);
       }
    }
 

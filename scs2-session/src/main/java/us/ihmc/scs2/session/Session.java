@@ -554,7 +554,7 @@ public abstract class Session
       }
    }
 
-   private int nextBufferRecordTickCounter = 0;
+   protected int nextRunBufferRecordTickCounter = 0;
 
    public void runTick()
    {
@@ -600,10 +600,10 @@ public abstract class Session
       {
          sharedBuffer.incrementBufferIndex(true);
          sharedBuffer.processLinkedPushRequests(false);
-         nextBufferRecordTickCounter = 0;
+         nextRunBufferRecordTickCounter = 0;
          firstRunTick = false;
       }
-      else if (nextBufferRecordTickCounter <= 0)
+      else if (nextRunBufferRecordTickCounter <= 0)
       {
          sharedBuffer.incrementBufferIndex(true);
          sharedBuffer.processLinkedPushRequests(false);
@@ -619,7 +619,7 @@ public abstract class Session
 
    protected void finalizeRunTick(boolean forceWriteBuffer)
    {
-      boolean writeBuffer = nextBufferRecordTickCounter <= 0;
+      boolean writeBuffer = nextRunBufferRecordTickCounter <= 0;
 
       if (!writeBuffer && forceWriteBuffer)
       {
@@ -642,10 +642,10 @@ public abstract class Session
          processBufferRequests(false);
          publishBufferProperties(sharedBuffer.getProperties());
 
-         nextBufferRecordTickCounter = Math.max(1, bufferRecordTickPeriod.get());
+         nextRunBufferRecordTickCounter = Math.max(1, bufferRecordTickPeriod.get());
       }
 
-      nextBufferRecordTickCounter--;
+      nextRunBufferRecordTickCounter--;
    }
 
    protected long computePlaybackTaskPeriod()
