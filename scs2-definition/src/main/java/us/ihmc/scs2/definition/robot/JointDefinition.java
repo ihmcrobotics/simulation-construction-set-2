@@ -33,6 +33,8 @@ public abstract class JointDefinition implements Transformable
    private List<ExternalWrenchPointDefinition> externalWrenchPointDefinitions = new ArrayList<>();
    private List<GroundContactPointDefinition> groundContactPointDefinitions = new ArrayList<>();
 
+   private LoopClosureDefinition loopClosureDefinition = null;
+
    public JointDefinition()
    {
    }
@@ -62,6 +64,7 @@ public abstract class JointDefinition implements Transformable
          externalWrenchPointDefinitions.add(externalWrenchPointDefinition.copy());
       for (GroundContactPointDefinition groundContactPointDefinition : other.groundContactPointDefinitions)
          groundContactPointDefinitions.add(groundContactPointDefinition.copy());
+      loopClosureDefinition = other.loopClosureDefinition == null ? null : other.loopClosureDefinition.copy();
    }
 
    @XmlAttribute
@@ -205,6 +208,21 @@ public abstract class JointDefinition implements Transformable
    public List<GroundContactPointDefinition> getGroundContactPointDefinitions()
    {
       return groundContactPointDefinitions;
+   }
+
+   public void setLoopClosureDefinition(LoopClosureDefinition loopClosureDefinition)
+   {
+      this.loopClosureDefinition = loopClosureDefinition;
+   }
+
+   public boolean isLoopClosure()
+   {
+      return loopClosureDefinition != null;
+   }
+
+   public LoopClosureDefinition getLoopClosureDefinition()
+   {
+      return loopClosureDefinition;
    }
 
    public abstract JointBasics toJoint(RigidBodyBasics predecessor);
