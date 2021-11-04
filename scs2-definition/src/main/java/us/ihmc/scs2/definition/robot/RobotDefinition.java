@@ -34,6 +34,14 @@ public class RobotDefinition
       setName(name);
    }
 
+   public RobotDefinition(RobotDefinition other)
+   {
+      name = other.name;
+      rootBodyDefinition = other.rootBodyDefinition == null ? null : other.rootBodyDefinition.copyRecursive();
+      nameOfJointsToIgnore.addAll(other.nameOfJointsToIgnore);
+      resourceClassLoader = other.resourceClassLoader;
+   }
+
    @XmlAttribute
    public void setName(String name)
    {
