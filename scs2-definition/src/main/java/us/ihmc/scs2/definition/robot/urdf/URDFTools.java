@@ -103,6 +103,8 @@ public class URDFTools
    private static final double DEFAULT_EFFORT_LIMIT = Double.POSITIVE_INFINITY;
    private static final double DEFAULT_VELOCITY_LIMIT = Double.POSITIVE_INFINITY;
 
+   private static final MaterialDefinition DEFAULT_MATERIAL = new MaterialDefinition(ColorDefinitions.Orange().derive(0, 1, 1, 0.6));
+
    public static URDFModel loadURDFModel(File urdfFile) throws JAXBException
    {
       return loadURDFModel(urdfFile, Collections.emptyList());
@@ -274,10 +276,16 @@ public class URDFTools
 
    public static void simplifyKinematics(JointDefinition joint)
    {
-      List<JointDefinition> childrenJoints = new ArrayList<>(joint.getSuccessor().getChildrenJoints());
-
-      for (JointDefinition child : childrenJoints)
+      // The children list may shrink or grow depending the simplyKinematics(joint.child)
+      // Also, if a child is a fixed-joint, the successor of this joint will be replaced with a new one, so can't save the successor as a local variable.
+      for (int i = 0; i < joint.getSuccessor().getChildrenJoints().size();)
       {
+         List<JointDefinition> children = joint.getSuccessor().getChildrenJoints();
+         JointDefinition child = children.get(i);
+
+         if (!(child instanceof FixedJointDefinition))
+            i++; // This child won't be removed, we can increment to the next.
+
          simplifyKinematics(child);
       }
 
@@ -319,7 +327,7 @@ public class URDFTools
             parentJoint.addSensorDefinition(sensor);
             return true;
          });
-         childrenJoints.removeIf(child ->
+         joint.getSuccessor().getChildrenJoints().removeIf(child ->
          {
             child.getTransformToParent().preMultiply(transformToParentJoint);
             parentJoint.getSuccessor().addChildJoint(child);
@@ -707,6 +715,11 @@ public class URDFTools
       visualDefinition.setOriginPose(parseRigidBodyTransform(urdfVisual.getOrigin()));
       visualDefinition.setMaterialDefinition(toMaterialDefinition(urdfVisual.getMaterial()));
       visualDefinition.setGeometryDefinition(toGeometryDefinition(urdfVisual.getGeometry()));
+      if (visualDefinition.getMaterialDefinition() == null)
+      {
+         if (!(visualDefinition.getGeometryDefinition() instanceof ModelFileGeometryDefinition))
+            visualDefinition.setMaterialDefinition(DEFAULT_MATERIAL);
+      }
       return visualDefinition;
    }
 
