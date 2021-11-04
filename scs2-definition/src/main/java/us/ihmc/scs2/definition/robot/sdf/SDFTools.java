@@ -29,6 +29,7 @@ import us.ihmc.euclid.yawPitchRoll.YawPitchRoll;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.AffineTransformDefinition;
 import us.ihmc.scs2.definition.YawPitchRollTransformDefinition;
+import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
 import us.ihmc.scs2.definition.geometry.Box3DDefinition;
 import us.ihmc.scs2.definition.geometry.Cylinder3DDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
@@ -47,6 +48,7 @@ import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.robot.SensorDefinition;
 import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
+import us.ihmc.scs2.definition.robot.sdf.items.SDFCollision;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFGeometry;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFInertia;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFJoint;
@@ -356,6 +358,8 @@ public class SDFTools
 
       if (sdfLink.getVisuals() != null)
          sdfLink.getVisuals().stream().map(SDFTools::toVisualDefinition).forEach(definition::addVisualDefinition);
+      if (sdfLink.getCollisions() != null)
+         sdfLink.getCollisions().stream().map(SDFTools::toCollisionShapeDefinition).forEach(definition::addCollisionShapeDefinition);
 
       return definition;
    }
@@ -578,10 +582,25 @@ public class SDFTools
       visualDefinition.setGeometryDefinition(toGeometryDefinition(sdfVisual.getGeometry()));
       if (visualDefinition.getMaterialDefinition() == null)
       {
-         if (!(visualDefinition.getGeometryDefinition() instanceof ModelFileGeometryDefinition))
+         GeometryDefinition geometryDefinition = visualDefinition.getGeometryDefinition();
+         if (!(geometryDefinition instanceof ModelFileGeometryDefinition))
             visualDefinition.setMaterialDefinition(DEFAULT_MATERIAL);
+         else if (((ModelFileGeometryDefinition) geometryDefinition).getFileName().toLowerCase().endsWith(".stl"))
+            visualDefinition.setMaterialDefinition(DEFAULT_MATERIAL); // STLs do not have material
       }
       return visualDefinition;
+   }
+
+   public static CollisionShapeDefinition toCollisionShapeDefinition(SDFCollision sdfCollision)
+   {
+      if (sdfCollision == null)
+         return null;
+
+      CollisionShapeDefinition collisionShapeDefinition = new CollisionShapeDefinition();
+      collisionShapeDefinition.setName(sdfCollision.getName());
+      collisionShapeDefinition.setOriginPose(parsePose(sdfCollision.getPose()));
+      collisionShapeDefinition.setGeometryDefinition(toGeometryDefinition(sdfCollision.getGeometry()));
+      return collisionShapeDefinition;
    }
 
    public static GeometryDefinition toGeometryDefinition(SDFGeometry sdfGeometry)

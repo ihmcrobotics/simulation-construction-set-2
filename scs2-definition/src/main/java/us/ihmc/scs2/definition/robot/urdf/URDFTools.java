@@ -717,8 +717,11 @@ public class URDFTools
       visualDefinition.setGeometryDefinition(toGeometryDefinition(urdfVisual.getGeometry()));
       if (visualDefinition.getMaterialDefinition() == null)
       {
-         if (!(visualDefinition.getGeometryDefinition() instanceof ModelFileGeometryDefinition))
+         GeometryDefinition geometryDefinition = visualDefinition.getGeometryDefinition();
+         if (!(geometryDefinition instanceof ModelFileGeometryDefinition))
             visualDefinition.setMaterialDefinition(DEFAULT_MATERIAL);
+         else if (((ModelFileGeometryDefinition) geometryDefinition).getFileName().toLowerCase().endsWith(".stl"))
+            visualDefinition.setMaterialDefinition(DEFAULT_MATERIAL); // STLs do not have material
       }
       return visualDefinition;
    }
