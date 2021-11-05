@@ -204,9 +204,19 @@ public class SDFTools
       return null;
    }
 
+   public static RobotDefinition toFloatingRobotDefinition(SDFRoot sdfRoot, String modelName)
+   {
+      return toFloatingRobotDefinition(sdfRoot.getModels().stream().filter(model -> model.getName().equals(modelName)).findFirst().get());
+   }
+
    public static RobotDefinition toFloatingRobotDefinition(SDFModel sdfModel)
    {
       return toRobotDefinition(new SixDoFJointDefinition(), sdfModel);
+   }
+
+   public static RobotDefinition toRobotDefinition(JointDefinition rootJointDefinition, SDFRoot sdfRoot, String modelName)
+   {
+      return toRobotDefinition(rootJointDefinition, sdfRoot.getModels().stream().filter(model -> model.getName().equals(modelName)).findFirst().get());
    }
 
    public static RobotDefinition toRobotDefinition(JointDefinition rootJointDefinition, SDFModel sdfModel)
