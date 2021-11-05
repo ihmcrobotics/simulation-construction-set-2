@@ -38,11 +38,14 @@ public class RobotDefinition
    {
       name = other.name;
       rootBodyDefinition = other.rootBodyDefinition == null ? null : other.rootBodyDefinition.copyRecursive();
-      getAllJoints().stream().filter(j -> j.isLoopClosure()).forEach(joint ->
+      for (JointDefinition jointDefinition : getAllJoints())
       {
-         String secondPredecessorName = other.getJointDefinition(joint.getName()).getLoopClosureDefinition().getSecondPredecessor().getName();
-         joint.getLoopClosureDefinition().setSecondPredecessor(getRigidBodyDefinition(secondPredecessorName));
-      });
+         if (!jointDefinition.isLoopClosure())
+            continue;
+         String successorName = other.getJointDefinition(jointDefinition.getName()).getSuccessor().getName();
+         RigidBodyDefinition rigidBodyDefinition = getRigidBodyDefinition(successorName);
+         jointDefinition.setLoopClosureSuccessor(rigidBodyDefinition);
+      }
       nameOfJointsToIgnore.addAll(other.nameOfJointsToIgnore);
       resourceClassLoader = other.resourceClassLoader;
    }

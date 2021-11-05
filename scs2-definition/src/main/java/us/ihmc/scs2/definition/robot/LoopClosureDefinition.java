@@ -2,13 +2,12 @@ package us.ihmc.scs2.definition.robot;
 
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.scs2.definition.YawPitchRollTransformDefinition;
 
 public class LoopClosureDefinition
 {
-   private YawPitchRollTransformDefinition transformToSecondParent = new YawPitchRollTransformDefinition();
-   private RigidBodyDefinition secondPredecessor;
-
+   private YawPitchRollTransformDefinition transformToSuccessorParent = new YawPitchRollTransformDefinition();
    private Vector3D kpSoftConstraint;
    private Vector3D kdSoftConstraint;
 
@@ -18,34 +17,34 @@ public class LoopClosureDefinition
 
    public LoopClosureDefinition(LoopClosureDefinition other)
    {
-      transformToSecondParent.set(other.transformToSecondParent);
+      transformToSuccessorParent.set(other.transformToSuccessorParent);
       kpSoftConstraint = other.kpSoftConstraint == null ? null : new Vector3D(other.kpSoftConstraint);
       kdSoftConstraint = other.kdSoftConstraint == null ? null : new Vector3D(other.kdSoftConstraint);
    }
 
-   public void setTransformToSecondParent(YawPitchRollTransformDefinition transformToSecondParent)
+   public void setTransformToSuccessorParent(YawPitchRollTransformDefinition transformToSuccessorParent)
    {
-      this.transformToSecondParent = transformToSecondParent;
+      this.transformToSuccessorParent = transformToSuccessorParent;
    }
 
-   public void setTransformToSecondParent(RigidBodyTransformReadOnly transformToSecondParent)
+   public void setTransformToSuccessorParent(RigidBodyTransformReadOnly transformToSuccessorParent)
    {
-      this.transformToSecondParent.set(transformToSecondParent);
+      this.transformToSuccessorParent.set(transformToSuccessorParent);
    }
 
-   public YawPitchRollTransformDefinition getTransformToSecondParent()
+   public void setOffsetFromSuccessorParent(Tuple3DReadOnly offsetFromSuccessorParent)
    {
-      return transformToSecondParent;
+      this.transformToSuccessorParent.setTranslationAndIdentityRotation(offsetFromSuccessorParent);
    }
 
-   public void setSecondPredecessor(RigidBodyDefinition secondPredecessor)
+   public YawPitchRollTransformDefinition getTransformToSuccessorParent()
    {
-      this.secondPredecessor = secondPredecessor;
+      return transformToSuccessorParent;
    }
 
-   public RigidBodyDefinition getSecondPredecessor()
+   public void setKpSoftConstraint(double kpSoftConstraint)
    {
-      return secondPredecessor;
+      setKpSoftConstraint(new Vector3D(kpSoftConstraint, kpSoftConstraint, kpSoftConstraint));
    }
 
    public void setKpSoftConstraint(Vector3D kpSoftConstraint)
@@ -56,6 +55,11 @@ public class LoopClosureDefinition
    public Vector3D getKpSoftConstraint()
    {
       return kpSoftConstraint;
+   }
+
+   public void setKdSoftConstraint(double kdSoftConstraint)
+   {
+      setKdSoftConstraint(new Vector3D(kdSoftConstraint, kdSoftConstraint, kdSoftConstraint));
    }
 
    public void setKdSoftConstraint(Vector3D kdSoftConstraint)
@@ -76,6 +80,6 @@ public class LoopClosureDefinition
    @Override
    public String toString()
    {
-      return "transformToSecondParent: " + transformToSecondParent + ", secondPredecessor: " + secondPredecessor;
+      return "transformToSuccessorParent: " + transformToSuccessorParent;
    }
 }

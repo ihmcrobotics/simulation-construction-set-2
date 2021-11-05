@@ -105,6 +105,14 @@ public abstract class JointDefinition implements Transformable
       return predecessor;
    }
 
+   @XmlTransient
+   public void setLoopClosureSuccessor(RigidBodyDefinition successor)
+   {
+      if (loopClosureDefinition == null)
+         loopClosureDefinition = new LoopClosureDefinition();
+      this.successor = successor;
+   }
+
    @XmlElement
    public void setSuccessor(RigidBodyDefinition successor)
    {
@@ -252,7 +260,8 @@ public abstract class JointDefinition implements Transformable
    public JointDefinition copyRecursive()
    {
       JointDefinition copy = copy();
-      copy.setSuccessor(successor.copyRecursive());
+      if (!isLoopClosure()) // Prevent infinite copying loop, but needs to be addressed manually
+         copy.setSuccessor(successor.copyRecursive());
       return copy;
    }
 
