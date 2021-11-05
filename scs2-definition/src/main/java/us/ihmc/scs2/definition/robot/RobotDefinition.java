@@ -133,7 +133,7 @@ public class RobotDefinition
    {
       if (rootBodyDefinition.getName().equals(bodyName))
          return rootBodyDefinition;
-      return getAllJoints().stream().map(JointDefinition::getSuccessor).filter(rigidBody -> rigidBody.getName().equals(bodyName)).findFirst().orElse(null);
+      return getAllRigidBodies().stream().filter(rigidBody -> rigidBody.getName().equals(bodyName)).findFirst().orElse(null);
    }
 
    public List<JointDefinition> getAllJoints()
