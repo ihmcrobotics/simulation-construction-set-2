@@ -93,8 +93,6 @@ public class SDFTools
    private static final double DEFAULT_EFFORT_LIMIT = Double.POSITIVE_INFINITY;
    private static final double DEFAULT_VELOCITY_LIMIT = Double.POSITIVE_INFINITY;
 
-   private static final MaterialDefinition DEFAULT_MATERIAL = new MaterialDefinition(ColorDefinitions.Orange().derive(0, 1, 1, 0.6));
-
    public static SDFRoot loadSDFRoot(File sdfFile) throws JAXBException
    {
       return loadSDFRoot(sdfFile, Collections.emptyList());
@@ -590,14 +588,6 @@ public class SDFTools
       visualDefinition.setOriginPose(parsePose(sdfVisual.getPose()));
       visualDefinition.setMaterialDefinition(toMaterialDefinition(sdfVisual.getMaterial()));
       visualDefinition.setGeometryDefinition(toGeometryDefinition(sdfVisual.getGeometry()));
-      if (visualDefinition.getMaterialDefinition() == null)
-      {
-         GeometryDefinition geometryDefinition = visualDefinition.getGeometryDefinition();
-         if (!(geometryDefinition instanceof ModelFileGeometryDefinition))
-            visualDefinition.setMaterialDefinition(DEFAULT_MATERIAL);
-         else if (((ModelFileGeometryDefinition) geometryDefinition).getFileName().toLowerCase().endsWith(".stl"))
-            visualDefinition.setMaterialDefinition(DEFAULT_MATERIAL); // STLs do not have material
-      }
       return visualDefinition;
    }
 
