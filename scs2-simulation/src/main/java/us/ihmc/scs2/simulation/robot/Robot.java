@@ -114,6 +114,7 @@ public class Robot implements RobotInterface
    {
       SimRigidBody rootBody = bodyBuilder.rootFromDefinition(rootBodyDefinition, inertialFrame, registry);
       createJointsRecursive(rootBody, rootBodyDefinition, jointBuilder, bodyBuilder, registry);
+      RobotDefinition.closeLoops(rootBody, rootBodyDefinition);
       return rootBody;
    }
 
@@ -125,10 +126,11 @@ public class Robot implements RobotInterface
    {
       for (JointDefinition childJointDefinition : rigidBodyDefinition.getChildrenJoints())
       {
-         if (childJointDefinition.isLoopClosure())
-            continue; // TODO All loop closures are solved using a soft constraint (PD-control) applied by a controller created after the kinematics.
-
          SimJointBasics childJoint = jointBuilder.fromDefinition(childJointDefinition, rigidBody);
+
+         if (childJointDefinition.isLoopClosure())
+            continue;
+
          SimRigidBody childSuccessor = bodyBuilder.fromDefinition(childJointDefinition.getSuccessor(), childJoint);
 
          childJointDefinition.getKinematicPointDefinitions().forEach(childJoint.getAuxialiryData()::addKinematicPoint);

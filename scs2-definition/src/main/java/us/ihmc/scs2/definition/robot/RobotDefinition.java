@@ -217,7 +217,7 @@ public class RobotDefinition
       }
    }
 
-   private void closeLoops(RigidBodyBasics predecessor, RigidBodyDefinition predecessorDefinition)
+   public static void closeLoops(RigidBodyBasics predecessor, RigidBodyDefinition predecessorDefinition)
    {
       if (predecessor == null)
          return;
