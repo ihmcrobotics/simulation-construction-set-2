@@ -1,6 +1,7 @@
 package us.ihmc.scs2.simulation.collision;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import us.ihmc.euclid.referenceFrame.FrameBox3D;
@@ -25,6 +26,7 @@ import us.ihmc.euclid.shape.primitives.Sphere3D;
 import us.ihmc.euclid.shape.primitives.Torus3D;
 import us.ihmc.euclid.shape.primitives.interfaces.Shape3DReadOnly;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
+import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
 import us.ihmc.scs2.definition.geometry.Box3DDefinition;
 import us.ihmc.scs2.definition.geometry.Capsule3DDefinition;
@@ -67,7 +69,7 @@ public class CollisionTools
    public static List<Collidable> toCollidableRigidBody(RigidBodyDefinition definition, SimRigidBodyBasics rigidBodyInstance)
    {
       return definition.getCollisionShapeDefinitions().stream().map(collisionShapeDefinition -> toCollidable(collisionShapeDefinition, rigidBodyInstance))
-                       .collect(Collectors.toList());
+                       .filter(Objects::nonNull).collect(Collectors.toList());
    }
 
    private static Collidable toCollidable(CollisionShapeDefinition definition, SimRigidBodyBasics rigidBody)
@@ -126,8 +128,9 @@ public class CollisionTools
          return toSTPRamp3D(originPose, (STPRamp3DDefinition) definition);
       else if (definition instanceof Ramp3DDefinition)
          return toRamp3D(originPose, (Ramp3DDefinition) definition);
-      else
-         throw new UnsupportedOperationException("Unhandled geometry type: " + definition.getClass().getSimpleName());
+
+      LogTools.warn("Unhandled geometry type: " + definition.getClass().getSimpleName());
+      return null;
    }
 
    public static FrameShape3DReadOnly toFrameShape3D(RigidBodyTransformReadOnly originPose, ReferenceFrame referenceFrame, GeometryDefinition definition)
@@ -158,8 +161,9 @@ public class CollisionTools
          return new FrameSTPRamp3D(referenceFrame, toSTPRamp3D(originPose, (STPRamp3DDefinition) definition));
       else if (definition instanceof Ramp3DDefinition)
          return new FrameRamp3D(referenceFrame, toRamp3D(originPose, (Ramp3DDefinition) definition));
-      else
-         throw new UnsupportedOperationException("Unhandled geometry type: " + definition.getClass().getSimpleName());
+
+      LogTools.warn("Unhandled geometry type: " + definition.getClass().getSimpleName());
+      return null;
    }
 
    public static STPBox3D toSTPBox3D(RigidBodyTransformReadOnly originPose, STPBox3DDefinition definition)
