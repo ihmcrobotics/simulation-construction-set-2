@@ -6,16 +6,25 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
+import us.ihmc.euclid.matrix.Matrix3D;
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.matrix.interfaces.Matrix3DBasics;
+import us.ihmc.euclid.matrix.interfaces.Matrix3DReadOnly;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.log.LogTools;
 import us.ihmc.mecano.frames.MovingReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointMatrixIndexProvider;
 import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
+import us.ihmc.scs2.definition.controller.interfaces.ControllerDefinition;
 import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
 import us.ihmc.scs2.definition.robot.FixedJointDefinition;
 import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
 import us.ihmc.scs2.definition.robot.JointDefinition;
+import us.ihmc.scs2.definition.robot.LoopClosureDefinition;
 import us.ihmc.scs2.definition.robot.PlanarJointDefinition;
 import us.ihmc.scs2.definition.robot.PrismaticJointDefinition;
 import us.ihmc.scs2.definition.robot.RevoluteJointDefinition;
@@ -25,6 +34,7 @@ import us.ihmc.scs2.definition.robot.SensorDefinition;
 import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
 import us.ihmc.scs2.definition.robot.WrenchSensorDefinition;
 import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
+import us.ihmc.scs2.simulation.robot.controller.LoopClosureSoftConstraintController;
 import us.ihmc.scs2.simulation.robot.controller.RobotControllerManager;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimFixedJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimPlanarJoint;
@@ -86,6 +96,8 @@ public class Robot implements RobotInterface
                                        .collect(Collectors.toList());
 
       controllerManager = new RobotControllerManager(this, registry);
+
+      createSoftConstraintControllerDefinitions(robotDefinition).forEach(controllerManager::addController);
       robotDefinition.getControllerDefinitions().forEach(controllerManager::addController);
    }
 
@@ -113,6 +125,9 @@ public class Robot implements RobotInterface
    {
       for (JointDefinition childJointDefinition : rigidBodyDefinition.getChildrenJoints())
       {
+         if (childJointDefinition.isLoopClosure())
+            continue; // TODO All loop closures are solved using a soft constraint (PD-control) applied by a controller created after the kinematics.
+
          SimJointBasics childJoint = jointBuilder.fromDefinition(childJointDefinition, rigidBody);
          SimRigidBody childSuccessor = bodyBuilder.fromDefinition(childJointDefinition.getSuccessor(), childJoint);
 
@@ -133,6 +148,67 @@ public class Robot implements RobotInterface
 
          createJointsRecursive(childSuccessor, childJointDefinition.getSuccessor(), jointBuilder, bodyBuilder, registry);
       }
+   }
+
+   public static List<ControllerDefinition> createSoftConstraintControllerDefinitions(RobotDefinition robotDefinition)
+   {
+      List<ControllerDefinition> controllerDefinitions = new ArrayList<>();
+
+      for (JointDefinition jointDefinition : robotDefinition.getAllJoints())
+      {
+         if (!jointDefinition.isLoopClosure())
+            continue;
+
+         controllerDefinitions.add((controllerInput, controllerOutput) ->
+         {
+            String name = jointDefinition.getName();
+            LoopClosureDefinition loopClosureDefinition = jointDefinition.getLoopClosureDefinition();
+            RigidBodyTransformReadOnly transformToParentJoint = jointDefinition.getTransformToParent();
+            RigidBodyTransformReadOnly transformToSuccessorParentJoint = loopClosureDefinition.getTransformToSuccessorParent();
+
+            if (!(jointDefinition instanceof RevoluteJointDefinition))
+               throw new UnsupportedOperationException("Loop closures are only supported for revolute joints.");
+
+            RevoluteJointDefinition revoluteJointDefinition = (RevoluteJointDefinition) jointDefinition;
+
+            Matrix3DReadOnly constraintForceSubSpace = identityMatrix3D();
+            Matrix3DReadOnly constraintMomentSubSpace = matrix3DOrthogonalToVector3D(revoluteJointDefinition.getAxis());
+            LoopClosureSoftConstraintController constraint = new LoopClosureSoftConstraintController(name,
+                                                                                                     transformToParentJoint,
+                                                                                                     transformToSuccessorParentJoint,
+                                                                                                     constraintForceSubSpace,
+                                                                                                     constraintMomentSubSpace);
+            constraint.setParentJoint((SimJointBasics) controllerInput.getInput().findJoint(jointDefinition.getParentJoint().getName()));
+            constraint.setSuccessor((SimRigidBodyBasics) controllerInput.getInput().findRigidBody(jointDefinition.getSuccessor().getName()));
+            constraint.setGains(loopClosureDefinition.getKpSoftConstraint(), loopClosureDefinition.getKdSoftConstraint());
+            return constraint;
+         });
+      }
+
+      return controllerDefinitions;
+   }
+
+   private static Matrix3D identityMatrix3D()
+   {
+      Matrix3D identity = new Matrix3D();
+      identity.setIdentity();
+      return identity;
+   }
+
+   private static Matrix3D matrix3DOrthogonalToVector3D(Vector3DReadOnly vector3D)
+   {
+      Matrix3D orthogonalMatrix = new Matrix3D();
+      matrix3DOrthogonalToVector3D(vector3D, orthogonalMatrix);
+      return orthogonalMatrix;
+   }
+
+   private static void matrix3DOrthogonalToVector3D(Vector3DReadOnly vector3D, Matrix3DBasics orthogonalMatrixToPack)
+   {
+      RotationMatrix R = new RotationMatrix();
+      EuclidGeometryTools.orientation3DFromZUpToVector3D(vector3D, R);
+      orthogonalMatrixToPack.setIdentity();
+      orthogonalMatrixToPack.setM22(0.0);
+      R.transform(orthogonalMatrixToPack);
    }
 
    @Override

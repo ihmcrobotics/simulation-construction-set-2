@@ -80,6 +80,12 @@ public class JavaFXRigidBody implements RigidBodyBasics
    }
 
    @Override
+   public List<JointBasics> getParentLoopClosureJoints()
+   {
+      return rigidBody.getParentLoopClosureJoints();
+   }
+
+   @Override
    public void addChildJoint(JointBasics joint)
    {
       rigidBody.addChildJoint(joint);
