@@ -6,15 +6,10 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
-import us.ihmc.euclid.matrix.Matrix3D;
-import us.ihmc.euclid.matrix.RotationMatrix;
-import us.ihmc.euclid.matrix.interfaces.Matrix3DBasics;
 import us.ihmc.euclid.matrix.interfaces.Matrix3DReadOnly;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
-import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.log.LogTools;
 import us.ihmc.mecano.frames.MovingReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointMatrixIndexProvider;
@@ -168,13 +163,11 @@ public class Robot implements RobotInterface
             RigidBodyTransformReadOnly transformToParentJoint = jointDefinition.getTransformToParent();
             RigidBodyTransformReadOnly transformToSuccessorParentJoint = loopClosureDefinition.getTransformToSuccessorParent();
 
-            if (!(jointDefinition instanceof RevoluteJointDefinition))
-               throw new UnsupportedOperationException("Loop closures are only supported for revolute joints.");
+            Matrix3DReadOnly constraintForceSubSpace = LoopClosureDefinition.jointForceSubSpace(jointDefinition);
+            Matrix3DReadOnly constraintMomentSubSpace = LoopClosureDefinition.jointMomentSubSpace(jointDefinition);
+            if (constraintForceSubSpace == null || constraintMomentSubSpace == null)
+               throw new UnsupportedOperationException("Loop closure not supported for " + jointDefinition);
 
-            RevoluteJointDefinition revoluteJointDefinition = (RevoluteJointDefinition) jointDefinition;
-
-            Matrix3DReadOnly constraintForceSubSpace = identityMatrix3D();
-            Matrix3DReadOnly constraintMomentSubSpace = matrix3DOrthogonalToVector3D(revoluteJointDefinition.getAxis());
             LoopClosureSoftConstraintController constraint = new LoopClosureSoftConstraintController(name,
                                                                                                      transformToParentJoint,
                                                                                                      transformToSuccessorParentJoint,
@@ -188,29 +181,6 @@ public class Robot implements RobotInterface
       }
 
       return controllerDefinitions;
-   }
-
-   private static Matrix3D identityMatrix3D()
-   {
-      Matrix3D identity = new Matrix3D();
-      identity.setIdentity();
-      return identity;
-   }
-
-   private static Matrix3D matrix3DOrthogonalToVector3D(Vector3DReadOnly vector3D)
-   {
-      Matrix3D orthogonalMatrix = new Matrix3D();
-      matrix3DOrthogonalToVector3D(vector3D, orthogonalMatrix);
-      return orthogonalMatrix;
-   }
-
-   private static void matrix3DOrthogonalToVector3D(Vector3DReadOnly vector3D, Matrix3DBasics orthogonalMatrixToPack)
-   {
-      RotationMatrix R = new RotationMatrix();
-      EuclidGeometryTools.orientation3DFromZUpToVector3D(vector3D, R);
-      orthogonalMatrixToPack.setIdentity();
-      orthogonalMatrixToPack.setM22(0.0);
-      R.transform(orthogonalMatrixToPack);
    }
 
    @Override

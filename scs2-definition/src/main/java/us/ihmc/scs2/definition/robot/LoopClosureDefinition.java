@@ -1,8 +1,13 @@
 package us.ihmc.scs2.definition.robot;
 
+import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
+import us.ihmc.euclid.matrix.Matrix3D;
+import us.ihmc.euclid.matrix.RotationMatrix;
+import us.ihmc.euclid.matrix.interfaces.Matrix3DBasics;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.scs2.definition.YawPitchRollTransformDefinition;
 
 public class LoopClosureDefinition
@@ -81,5 +86,50 @@ public class LoopClosureDefinition
    public String toString()
    {
       return "transformToSuccessorParent: " + transformToSuccessorParent;
+   }
+
+   // TODO Tools for computing the force/moment subspace given a joint. Should live somewhere elese.
+
+   public static Matrix3D jointForceSubSpace(JointDefinition joint)
+   {
+      if (joint instanceof RevoluteJointDefinition)
+         return identityMatrix3D();
+      if (joint instanceof PrismaticJointDefinition)
+         return matrix3DOrthogonalToVector3D(((PrismaticJointDefinition) joint).getAxis());
+      else
+         return null;
+   }
+
+   public static Matrix3D jointMomentSubSpace(JointDefinition joint)
+   {
+      if (joint instanceof RevoluteJointDefinition)
+         return matrix3DOrthogonalToVector3D(((RevoluteJointDefinition) joint).getAxis());
+      if (joint instanceof PrismaticJointDefinition)
+         return identityMatrix3D();
+      else
+         return null;
+   }
+
+   public static Matrix3D identityMatrix3D()
+   {
+      Matrix3D identity = new Matrix3D();
+      identity.setIdentity();
+      return identity;
+   }
+
+   public static Matrix3D matrix3DOrthogonalToVector3D(Vector3DReadOnly vector3D)
+   {
+      Matrix3D orthogonalMatrix = new Matrix3D();
+      matrix3DOrthogonalToVector3D(vector3D, orthogonalMatrix);
+      return orthogonalMatrix;
+   }
+
+   public static void matrix3DOrthogonalToVector3D(Vector3DReadOnly vector3D, Matrix3DBasics orthogonalMatrixToPack)
+   {
+      RotationMatrix R = new RotationMatrix();
+      EuclidGeometryTools.orientation3DFromZUpToVector3D(vector3D, R);
+      orthogonalMatrixToPack.setIdentity();
+      orthogonalMatrixToPack.setM22(0.0);
+      R.transform(orthogonalMatrixToPack);
    }
 }
