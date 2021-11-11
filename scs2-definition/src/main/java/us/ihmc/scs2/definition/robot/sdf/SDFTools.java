@@ -196,8 +196,10 @@ public class SDFTools
       }
       catch (URISyntaxException e)
       {
-         System.err.println("Malformed resource path in SDF file for path: " + filename);
+         System.err.println(SDFTools.class.getSimpleName() + ": Malformed resource path in SDF file for path: " + filename);
       }
+
+      System.err.println(SDFTools.class.getSimpleName() + ": Unable to resolve the path: " + filename);
 
       return null;
    }
