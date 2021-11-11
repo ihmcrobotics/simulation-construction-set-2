@@ -2,8 +2,6 @@ package us.ihmc.scs2.definition.robot.urdf;
 
 import java.io.File;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -50,6 +48,7 @@ import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.robot.SensorDefinition;
 import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
 import us.ihmc.scs2.definition.robot.WrenchSensorDefinition;
+import us.ihmc.scs2.definition.robot.sdf.SDFTools;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFAxis;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFColor;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFDynamics;
@@ -102,8 +101,6 @@ public class URDFTools
    private static final double DEFAULT_UPPER_LIMIT = Double.POSITIVE_INFINITY;
    private static final double DEFAULT_EFFORT_LIMIT = Double.POSITIVE_INFINITY;
    private static final double DEFAULT_VELOCITY_LIMIT = Double.POSITIVE_INFINITY;
-
-   private static final MaterialDefinition DEFAULT_MATERIAL = new MaterialDefinition(ColorDefinitions.Orange().derive(0, 1, 1, 0.6));
 
    public static URDFModel loadURDFModel(File urdfFile) throws JAXBException
    {
@@ -161,57 +158,7 @@ public class URDFTools
 
    public static String tryToConvertToPath(String filename, Collection<String> resourceDirectories, ClassLoader resourceClassLoader)
    {
-      try
-      {
-         URI uri = new URI(filename);
-
-         String authority = uri.getAuthority() == null ? "" : uri.getAuthority();
-
-         for (String resourceDirectory : resourceDirectories)
-         {
-            String fullname = resourceDirectory + authority + uri.getPath();
-            // Path relative to class root
-            if (resourceClassLoader.getResource(fullname) != null)
-            {
-               return fullname;
-            }
-            // Absolute path
-            if (new File(fullname).exists())
-            {
-               return fullname;
-            }
-         }
-
-         // Let's look in the parent directories of the resources if we can find a match to authority
-         String resourceContainingAuthority = null;
-
-         for (String resourceDirectory : resourceDirectories)
-         {
-            if (resourceDirectory.contains(authority))
-            {
-               resourceContainingAuthority = resourceDirectory;
-               break;
-            }
-         }
-
-         if (resourceContainingAuthority != null)
-         {
-            int lastIndexOf = resourceContainingAuthority.lastIndexOf(authority, resourceContainingAuthority.length());
-            String newResource = resourceContainingAuthority.substring(0, lastIndexOf);
-
-            if (!resourceDirectories.contains(newResource))
-            {
-               resourceDirectories.add(newResource);
-               return tryToConvertToPath(filename, resourceDirectories, resourceClassLoader);
-            }
-         }
-      }
-      catch (URISyntaxException e)
-      {
-         System.err.println("Malformed resource path in URDF file for path: " + filename);
-      }
-
-      return null;
+      return SDFTools.tryToConvertToPath(filename, resourceDirectories, resourceClassLoader);
    }
 
    public static RobotDefinition toFloatingRobotDefinition(URDFModel urdfModel)
@@ -715,11 +662,6 @@ public class URDFTools
       visualDefinition.setOriginPose(parseRigidBodyTransform(urdfVisual.getOrigin()));
       visualDefinition.setMaterialDefinition(toMaterialDefinition(urdfVisual.getMaterial()));
       visualDefinition.setGeometryDefinition(toGeometryDefinition(urdfVisual.getGeometry()));
-      if (visualDefinition.getMaterialDefinition() == null)
-      {
-         if (!(visualDefinition.getGeometryDefinition() instanceof ModelFileGeometryDefinition))
-            visualDefinition.setMaterialDefinition(DEFAULT_MATERIAL);
-      }
       return visualDefinition;
    }
 

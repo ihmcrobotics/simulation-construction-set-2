@@ -18,6 +18,7 @@ public abstract class OneDoFJointDefinition extends JointDefinition
 
    private double kpSoftLimitStop = -1.0;
    private double kdSoftLimitStop = -1.0;
+   private double dampingVelocitySoftLimit = -1.0;
 
    public OneDoFJointDefinition()
    {
@@ -49,6 +50,7 @@ public abstract class OneDoFJointDefinition extends JointDefinition
       stiction = other.stiction;
       kpSoftLimitStop = other.kpSoftLimitStop;
       kdSoftLimitStop = other.kdSoftLimitStop;
+      dampingVelocitySoftLimit = other.dampingVelocitySoftLimit;
    }
 
    @XmlElement
@@ -211,5 +213,16 @@ public abstract class OneDoFJointDefinition extends JointDefinition
    public double getKdSoftLimitStop()
    {
       return kdSoftLimitStop;
+   }
+
+   @XmlElement
+   public void setDampingVelocitySoftLimit(double dampingVelocitySoftLimit)
+   {
+      this.dampingVelocitySoftLimit = dampingVelocitySoftLimit;
+   }
+
+   public double getDampingVelocitySoftLimit()
+   {
+      return dampingVelocitySoftLimit;
    }
 }

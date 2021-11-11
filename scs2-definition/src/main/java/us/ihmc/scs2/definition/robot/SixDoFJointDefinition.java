@@ -7,6 +7,10 @@ import us.ihmc.mecano.multiBodySystem.interfaces.SixDoFJointBasics;
 
 public class SixDoFJointDefinition extends JointDefinition
 {
+   // For compatibility with SCS1
+   @Deprecated
+   private String variableName;
+
    public SixDoFJointDefinition()
    {
    }
@@ -30,6 +34,20 @@ public class SixDoFJointDefinition extends JointDefinition
    public SixDoFJointBasics toJoint(RigidBodyBasics predecessor)
    {
       return new SixDoFJoint(getName(), predecessor, getTransformToParent());
+   }
+
+   // For compatibility with SCS1
+   @Deprecated
+   public void setVariableName(String variableName)
+   {
+      this.variableName = variableName;
+   }
+
+   // For compatibility with SCS1
+   @Deprecated
+   public String getVariableName()
+   {
+      return variableName;
    }
 
    @Override

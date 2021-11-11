@@ -5,6 +5,8 @@ import javax.xml.bind.annotation.XmlElement;
 import us.ihmc.euclid.transform.AffineTransform;
 import us.ihmc.euclid.transform.interfaces.AffineTransformReadOnly;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
+import us.ihmc.euclid.tuple4D.Quaternion;
 import us.ihmc.scs2.definition.AffineTransformDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 
@@ -23,6 +25,11 @@ public class VisualDefinition
    {
       this.geometryDefinition = geometryDefinition;
       this.materialDefinition = materialDefinition;
+   }
+
+   public VisualDefinition(Tuple3DReadOnly originPosition, GeometryDefinition geometryDefinition, MaterialDefinition materialDefinition)
+   {
+      this(new AffineTransform(new Quaternion(), originPosition), geometryDefinition, materialDefinition);
    }
 
    public VisualDefinition(RigidBodyTransformReadOnly originPose, GeometryDefinition geometryDefinition, MaterialDefinition materialDefinition)

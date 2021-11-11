@@ -33,6 +33,8 @@ public abstract class JointDefinition implements Transformable
    private List<ExternalWrenchPointDefinition> externalWrenchPointDefinitions = new ArrayList<>();
    private List<GroundContactPointDefinition> groundContactPointDefinitions = new ArrayList<>();
 
+   private LoopClosureDefinition loopClosureDefinition = null;
+
    public JointDefinition()
    {
    }
@@ -62,6 +64,7 @@ public abstract class JointDefinition implements Transformable
          externalWrenchPointDefinitions.add(externalWrenchPointDefinition.copy());
       for (GroundContactPointDefinition groundContactPointDefinition : other.groundContactPointDefinitions)
          groundContactPointDefinitions.add(groundContactPointDefinition.copy());
+      loopClosureDefinition = other.loopClosureDefinition == null ? null : other.loopClosureDefinition.copy();
    }
 
    @XmlAttribute
@@ -100,6 +103,14 @@ public abstract class JointDefinition implements Transformable
    public RigidBodyDefinition getPredecessor()
    {
       return predecessor;
+   }
+
+   @XmlTransient
+   public void setLoopClosureSuccessor(RigidBodyDefinition successor)
+   {
+      if (loopClosureDefinition == null)
+         loopClosureDefinition = new LoopClosureDefinition();
+      this.successor = successor;
    }
 
    @XmlElement
@@ -207,6 +218,21 @@ public abstract class JointDefinition implements Transformable
       return groundContactPointDefinitions;
    }
 
+   public void setLoopClosureDefinition(LoopClosureDefinition loopClosureDefinition)
+   {
+      this.loopClosureDefinition = loopClosureDefinition;
+   }
+
+   public boolean isLoopClosure()
+   {
+      return loopClosureDefinition != null;
+   }
+
+   public LoopClosureDefinition getLoopClosureDefinition()
+   {
+      return loopClosureDefinition;
+   }
+
    public abstract JointBasics toJoint(RigidBodyBasics predecessor);
 
    @Override
@@ -234,7 +260,8 @@ public abstract class JointDefinition implements Transformable
    public JointDefinition copyRecursive()
    {
       JointDefinition copy = copy();
-      copy.setSuccessor(successor.copyRecursive());
+      if (!isLoopClosure()) // Prevent infinite copying loop, but needs to be addressed manually
+         copy.setSuccessor(successor.copyRecursive());
       return copy;
    }
 

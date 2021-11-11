@@ -2,7 +2,7 @@ package us.ihmc.scs2.definition.robot;
 
 import javax.xml.bind.annotation.XmlElement;
 
-import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 
 public class IMUSensorDefinition extends SensorDefinition
 {
@@ -20,7 +20,7 @@ public class IMUSensorDefinition extends SensorDefinition
    {
    }
 
-   public IMUSensorDefinition(String name, RigidBodyTransform imuTransform)
+   public IMUSensorDefinition(String name, RigidBodyTransformReadOnly imuTransform)
    {
       super(name, imuTransform);
    }
