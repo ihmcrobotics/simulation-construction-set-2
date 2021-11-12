@@ -16,17 +16,17 @@ public interface JointStateReadOnly
 
    void getConfiguration(JointBasics jointToUpdate);
 
-   void getVelocity(JointBasics jointToUpdate);
-
-   void getAcceleration(JointBasics jointToUpdate);
-
-   void getEffort(JointBasics jointToUpdate);
-
    int getConfiguration(int startRow, DMatrix configurationToPack);
+
+   void getVelocity(JointBasics jointToUpdate);
 
    int getVelocity(int startRow, DMatrix velocityToPack);
 
+   void getAcceleration(JointBasics jointToUpdate);
+
    int getAcceleration(int startRow, DMatrix accelerationToPack);
+
+   void getEffort(JointBasics jointToUpdate);
 
    int getEffort(int startRow, DMatrix effortToPack);
 

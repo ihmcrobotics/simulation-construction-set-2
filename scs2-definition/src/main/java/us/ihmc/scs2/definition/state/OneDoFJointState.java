@@ -3,8 +3,12 @@ package us.ihmc.scs2.definition.state;
 import java.util.EnumSet;
 import java.util.Set;
 
+import org.ejml.data.DMatrixRMaj;
+
 import us.ihmc.mecano.tools.JointStateType;
+import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
 import us.ihmc.scs2.definition.state.interfaces.OneDoFJointStateBasics;
+import us.ihmc.scs2.definition.state.interfaces.OneDoFJointStateReadOnly;
 
 public class OneDoFJointState extends JointStateBase implements OneDoFJointStateBasics
 {
@@ -13,6 +17,8 @@ public class OneDoFJointState extends JointStateBase implements OneDoFJointState
    private double velocity = 0.0;
    private double acceleration = 0.0;
    private double effort = 0.0;
+
+   private final DMatrixRMaj temp = new DMatrixRMaj(1, 1);
 
    public OneDoFJointState()
    {
@@ -36,7 +42,18 @@ public class OneDoFJointState extends JointStateBase implements OneDoFJointState
       setEffort(tau);
    }
 
-   public OneDoFJointState(OneDoFJointState other)
+   public OneDoFJointState(JointStateReadOnly other)
+   {
+      set(other);
+   }
+
+   @Override
+   public void clear()
+   {
+      availableStates.clear();
+   }
+
+   public void set(OneDoFJointState other)
    {
       configuration = other.configuration;
       velocity = other.velocity;
@@ -46,9 +63,42 @@ public class OneDoFJointState extends JointStateBase implements OneDoFJointState
    }
 
    @Override
-   public void clear()
+   public void set(JointStateReadOnly jointStateReadOnly)
    {
-      availableStates.clear();
+      if (jointStateReadOnly instanceof OneDoFJointState)
+      {
+         set((OneDoFJointState) jointStateReadOnly);
+      }
+      else if (jointStateReadOnly instanceof OneDoFJointStateReadOnly)
+      {
+         OneDoFJointStateBasics.super.set((OneDoFJointStateReadOnly) jointStateReadOnly);
+      }
+      else
+      {
+         if (jointStateReadOnly.getConfigurationSize() != getConfigurationSize() || jointStateReadOnly.getDegreesOfFreedom() != getDegreesOfFreedom())
+            throw new IllegalArgumentException("Dimension mismatch");
+         clear();
+         if (jointStateReadOnly.hasOutputFor(JointStateType.CONFIGURATION))
+         {
+            jointStateReadOnly.getConfiguration(0, temp);
+            setConfiguration(0, temp);
+         }
+         if (jointStateReadOnly.hasOutputFor(JointStateType.VELOCITY))
+         {
+            jointStateReadOnly.getVelocity(0, temp);
+            setVelocity(0, temp);
+         }
+         if (jointStateReadOnly.hasOutputFor(JointStateType.ACCELERATION))
+         {
+            jointStateReadOnly.getAcceleration(0, temp);
+            setAcceleration(0, temp);
+         }
+         if (jointStateReadOnly.hasOutputFor(JointStateType.EFFORT))
+         {
+            jointStateReadOnly.getEffort(0, temp);
+            setEffort(0, temp);
+         }
+      }
    }
 
    @Override
