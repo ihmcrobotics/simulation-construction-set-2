@@ -4,6 +4,8 @@ import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.FixedJoint;
 import us.ihmc.mecano.multiBodySystem.interfaces.FixedJointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
+import us.ihmc.scs2.definition.state.interfaces.JointStateBasics;
+import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
 
 public class FixedJointDefinition extends JointDefinition
 {
@@ -24,6 +26,17 @@ public class FixedJointDefinition extends JointDefinition
    public FixedJointDefinition(FixedJointDefinition other)
    {
       super(other);
+   }
+
+   @Override
+   public void setInitialJointState(JointStateReadOnly initialJointState)
+   {
+   }
+
+   @Override
+   public JointStateBasics getInitialJointState()
+   {
+      return null;
    }
 
    @Override

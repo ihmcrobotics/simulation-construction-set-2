@@ -5,6 +5,8 @@ import javax.xml.bind.annotation.XmlElement;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.scs2.definition.state.OneDoFJointState;
+import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
 
 public abstract class OneDoFJointDefinition extends JointDefinition
 {
@@ -19,6 +21,8 @@ public abstract class OneDoFJointDefinition extends JointDefinition
    private double kpSoftLimitStop = -1.0;
    private double kdSoftLimitStop = -1.0;
    private double dampingVelocitySoftLimit = -1.0;
+
+   private OneDoFJointState initialJointState;
 
    public OneDoFJointDefinition()
    {
@@ -51,6 +55,7 @@ public abstract class OneDoFJointDefinition extends JointDefinition
       kpSoftLimitStop = other.kpSoftLimitStop;
       kdSoftLimitStop = other.kdSoftLimitStop;
       dampingVelocitySoftLimit = other.dampingVelocitySoftLimit;
+      initialJointState = other.initialJointState == null ? null : other.initialJointState.copy();
    }
 
    @XmlElement
@@ -224,5 +229,42 @@ public abstract class OneDoFJointDefinition extends JointDefinition
    public double getDampingVelocitySoftLimit()
    {
       return dampingVelocitySoftLimit;
+   }
+
+   public void setInitialJointState(double q)
+   {
+      if (initialJointState == null)
+         setInitialJointState(new OneDoFJointState());
+      initialJointState.setConfiguration(q);
+   }
+
+   public void setInitialJointState(double q, double qd)
+   {
+      if (initialJointState == null)
+         setInitialJointState(new OneDoFJointState());
+      initialJointState.setConfiguration(q);
+      initialJointState.setVelocity(qd);
+   }
+
+   public void setInitialJointState(OneDoFJointState initialJointState)
+   {
+      this.initialJointState = initialJointState;
+   }
+
+   @Override
+   public void setInitialJointState(JointStateReadOnly initialJointState)
+   {
+      if (initialJointState instanceof OneDoFJointState)
+         setInitialJointState((OneDoFJointState) initialJointState);
+      else if (this.initialJointState == null)
+         this.initialJointState = new OneDoFJointState(initialJointState);
+      else
+         this.initialJointState.set(initialJointState);
+   }
+
+   @Override
+   public OneDoFJointState getInitialJointState()
+   {
+      return initialJointState;
    }
 }

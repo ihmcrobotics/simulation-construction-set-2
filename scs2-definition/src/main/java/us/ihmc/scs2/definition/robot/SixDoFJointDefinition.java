@@ -4,9 +4,13 @@ import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.SixDoFJointBasics;
+import us.ihmc.scs2.definition.state.SixDoFJointState;
+import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
 
 public class SixDoFJointDefinition extends JointDefinition
 {
+   private SixDoFJointState initialJointState;
+
    // For compatibility with SCS1
    @Deprecated
    private String variableName;
@@ -28,12 +32,7 @@ public class SixDoFJointDefinition extends JointDefinition
    public SixDoFJointDefinition(SixDoFJointDefinition other)
    {
       super(other);
-   }
-
-   @Override
-   public SixDoFJointBasics toJoint(RigidBodyBasics predecessor)
-   {
-      return new SixDoFJoint(getName(), predecessor, getTransformToParent());
+      initialJointState = other.initialJointState == null ? null : other.initialJointState.copy();
    }
 
    // For compatibility with SCS1
@@ -48,6 +47,34 @@ public class SixDoFJointDefinition extends JointDefinition
    public String getVariableName()
    {
       return variableName;
+   }
+
+   public void setInitialJointState(SixDoFJointState initialJointState)
+   {
+      this.initialJointState = initialJointState;
+   }
+
+   @Override
+   public void setInitialJointState(JointStateReadOnly initialJointState)
+   {
+      if (initialJointState instanceof SixDoFJointState)
+         setInitialJointState((SixDoFJointState) initialJointState);
+      else if (this.initialJointState == null)
+         this.initialJointState = new SixDoFJointState(initialJointState);
+      else
+         this.initialJointState.set(initialJointState);
+   }
+
+   @Override
+   public SixDoFJointState getInitialJointState()
+   {
+      return initialJointState;
+   }
+
+   @Override
+   public SixDoFJointBasics toJoint(RigidBodyBasics predecessor)
+   {
+      return new SixDoFJoint(getName(), predecessor, getTransformToParent());
    }
 
    @Override
