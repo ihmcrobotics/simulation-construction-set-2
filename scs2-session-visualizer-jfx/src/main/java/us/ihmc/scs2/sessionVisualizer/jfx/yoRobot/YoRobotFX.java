@@ -59,7 +59,7 @@ public class YoRobotFX
       LogTools.info("Loading robot: " + robotDefinition.getName());
       ReferenceFrame robotRootFrame = Robot.createRobotRootFrame(robotDefinition, referenceFrameManager.getWorldFrame());
 
-      rootBody = toYoJavaFXMultiBodySystem(robotDefinition.newIntance(ReferenceFrameTools.constructARootFrame("dummy")),
+      rootBody = toYoJavaFXMultiBodySystem(robotDefinition.newInstance(ReferenceFrameTools.constructARootFrame("dummy")),
                                            robotRootFrame,
                                            robotDefinition,
                                            robotRegistry,

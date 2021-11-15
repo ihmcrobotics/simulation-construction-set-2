@@ -86,7 +86,7 @@ public class SimpleModelViewer
          return;
       }
 
-      RigidBodyBasics rigidBody = robotDefinition.newIntance(rootFrame);
+      RigidBodyBasics rigidBody = robotDefinition.newInstance(rootFrame);
       JavaFXRigidBody javaFXRootBody = JavaFXMultiBodySystemFactories.toJavaFXMultiBodySystem(rigidBody, rootFrame, robotDefinition);
       javaFXRootBody.updateFramesRecursively();
       javaFXRootBody.updateSubtreeGraphics();
