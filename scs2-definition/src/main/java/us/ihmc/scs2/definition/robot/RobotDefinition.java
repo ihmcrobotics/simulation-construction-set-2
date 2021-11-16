@@ -3,7 +3,6 @@ package us.ihmc.scs2.definition.robot;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
@@ -160,9 +159,13 @@ public class RobotDefinition
       forEachJointDefinition(rootBodyDefinition, jointConsumer);
    }
 
-   public void forEachJointDefinitionLazy(Predicate<JointDefinition> searchDoneCriteria)
+   public void forEachOneDoFJointDefinition(Consumer<OneDoFJointDefinition> jointConsumer)
    {
-      forEachJointDefinitionLazy(rootBodyDefinition, searchDoneCriteria);
+      forEachJointDefinition(rootBodyDefinition, joint ->
+      {
+         if (joint instanceof OneDoFJointDefinition)
+            jointConsumer.accept((OneDoFJointDefinition) joint);
+      });
    }
 
    public void forEachRigidBodyDefinition(Consumer<RigidBodyDefinition> rigidBodyConsumer)
@@ -170,15 +173,17 @@ public class RobotDefinition
       forEachRigidBodyDefinition(rootBodyDefinition, rigidBodyConsumer);
    }
 
-   public void forEachRigidBodyDefinitionLazy(Predicate<RigidBodyDefinition> searchDoneCriteria)
-   {
-      forEachRigidBodyDefinitionLazy(rootBodyDefinition, searchDoneCriteria);
-   }
-
    public List<JointDefinition> getAllJoints()
    {
       List<JointDefinition> joints = new ArrayList<>();
-      forEachJointDefinition(rootBodyDefinition, joints::add);
+      forEachJointDefinition(joints::add);
+      return joints;
+   }
+
+   public List<OneDoFJointDefinition> getAllOneDoFJoints()
+   {
+      List<OneDoFJointDefinition> joints = new ArrayList<>();
+      forEachOneDoFJointDefinition(joints::add);
       return joints;
    }
 
@@ -350,22 +355,6 @@ public class RobotDefinition
       }
    }
 
-   public static void forEachJointDefinitionLazy(RigidBodyDefinition start, Predicate<JointDefinition> searchDoneCriteria)
-   {
-      if (start == null)
-         return;
-
-      for (int i = 0; i < start.getChildrenJoints().size(); i++)
-      {
-         JointDefinition jointDefinition = start.getChildrenJoints().get(i);
-
-         if (searchDoneCriteria.test(jointDefinition))
-            return;
-
-         forEachJointDefinitionLazy(jointDefinition.getSuccessor(), searchDoneCriteria);
-      }
-   }
-
    public static void forEachRigidBodyDefinition(RigidBodyDefinition start, Consumer<RigidBodyDefinition> rigidBodyConsumer)
    {
       if (start == null)
@@ -376,20 +365,6 @@ public class RobotDefinition
       for (int i = 0; i < start.getChildrenJoints().size(); i++)
       {
          forEachRigidBodyDefinition(start.getChildrenJoints().get(i).getSuccessor(), rigidBodyConsumer);
-      }
-   }
-
-   public static void forEachRigidBodyDefinitionLazy(RigidBodyDefinition start, Predicate<RigidBodyDefinition> searchDoneCriteria)
-   {
-      if (start == null)
-         return;
-
-      if (searchDoneCriteria.test(start))
-         return;
-
-      for (int i = 0; i < start.getChildrenJoints().size(); i++)
-      {
-         forEachRigidBodyDefinitionLazy(start.getChildrenJoints().get(i).getSuccessor(), searchDoneCriteria);
       }
    }
 
