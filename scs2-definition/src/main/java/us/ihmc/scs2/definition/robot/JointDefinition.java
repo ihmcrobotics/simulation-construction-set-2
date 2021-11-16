@@ -15,10 +15,9 @@ import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.scs2.definition.YawPitchRollTransformDefinition;
-import us.ihmc.scs2.definition.state.JointStateBase;
 import us.ihmc.scs2.definition.state.interfaces.JointStateBasics;
+import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
 
-// TODO Add option for loop closure
 public abstract class JointDefinition implements Transformable
 {
    private String name;
@@ -26,7 +25,6 @@ public abstract class JointDefinition implements Transformable
 
    private RigidBodyDefinition predecessor;
    private RigidBodyDefinition successor;
-   private JointStateBase initialJointState;
 
    private List<SensorDefinition> sensorDefinitions = new ArrayList<>();
    private List<KinematicPointDefinition> kinematicPointDefinitions = new ArrayList<>();
@@ -54,8 +52,6 @@ public abstract class JointDefinition implements Transformable
    {
       name = other.name;
       transformToParent.set(other.transformToParent);
-      if (other.initialJointState != null)
-         initialJointState = other.initialJointState.copy();
       for (SensorDefinition sensorDefinition : other.sensorDefinitions)
          sensorDefinitions.add(sensorDefinition.copy());
       for (KinematicPointDefinition kinematicPointDefinition : other.kinematicPointDefinitions)
@@ -138,16 +134,9 @@ public abstract class JointDefinition implements Transformable
          return predecessor.getParentJoint();
    }
 
-   @XmlElement(name = "initialJointState")
-   public void setInitialJointState(JointStateBase initialJointState)
-   {
-      this.initialJointState = initialJointState;
-   }
+   public abstract void setInitialJointState(JointStateReadOnly initialJointState);
 
-   public JointStateBasics getInitialJointState()
-   {
-      return initialJointState;
-   }
+   public abstract JointStateBasics getInitialJointState();
 
    @XmlElement(name = "sensor")
    public void setSensorDefinitions(List<SensorDefinition> sensorDefinitions)
