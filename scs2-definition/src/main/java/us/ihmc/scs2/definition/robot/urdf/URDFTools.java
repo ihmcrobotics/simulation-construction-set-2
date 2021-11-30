@@ -35,9 +35,12 @@ import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 import us.ihmc.scs2.definition.geometry.ModelFileGeometryDefinition;
 import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
 import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
+import us.ihmc.scs2.definition.robot.ExternalWrenchPointDefinition;
 import us.ihmc.scs2.definition.robot.FixedJointDefinition;
+import us.ihmc.scs2.definition.robot.GroundContactPointDefinition;
 import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
 import us.ihmc.scs2.definition.robot.JointDefinition;
+import us.ihmc.scs2.definition.robot.KinematicPointDefinition;
 import us.ihmc.scs2.definition.robot.LidarSensorDefinition;
 import us.ihmc.scs2.definition.robot.OneDoFJointDefinition;
 import us.ihmc.scs2.definition.robot.PlanarJointDefinition;
@@ -196,6 +199,9 @@ public class URDFTools
 
    public static void addSensor(List<URDFGazebo> urdfGazebos, List<JointDefinition> jointDefinitions)
    {
+      if (urdfGazebos == null || urdfGazebos.isEmpty())
+         return;
+
       Map<String, JointDefinition> jointDefinitionMap = jointDefinitions.stream().collect(Collectors.toMap(JointDefinition::getName, Function.identity()));
       Map<String, JointDefinition> linkNameToJointDefinitionMap = jointDefinitions.stream().collect(Collectors.toMap(joint -> joint.getSuccessor().getName(),
                                                                                                                      Function.identity()));
@@ -406,8 +412,18 @@ public class URDFTools
       inertiaPose.transform(linkDefinition.getMomentOfInertia());
       inertiaPose.getRotation().setToZero();
 
+      for (KinematicPointDefinition kinematicPointDefinition : jointDefinition.getKinematicPointDefinitions())
+         kinematicPointDefinition.getTransformToParent().prependOrientation(jointRotation);
+      for (ExternalWrenchPointDefinition externalWrenchPointDefinition : jointDefinition.getExternalWrenchPointDefinitions())
+         externalWrenchPointDefinition.getTransformToParent().prependOrientation(jointRotation);
+      for (GroundContactPointDefinition groundContactPointDefinition : jointDefinition.getGroundContactPointDefinitions())
+         groundContactPointDefinition.getTransformToParent().prependOrientation(jointRotation);
+
       for (SensorDefinition sensorDefinition : jointDefinition.getSensorDefinitions())
          sensorDefinition.getTransformToJoint().prependOrientation(jointRotation);
+
+      for (VisualDefinition visualDefinition : linkDefinition.getVisualDefinitions())
+         visualDefinition.getOriginPose().prependOrientation(jointRotation);
 
       for (JointDefinition childDefinition : jointDefinition.getSuccessor().getChildrenJoints())
       {
