@@ -2,18 +2,41 @@ package us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem;
 
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.function.Function;
 
 import javafx.scene.Node;
 import us.ihmc.euclid.matrix.interfaces.Matrix3DReadOnly;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.interfaces.FrameVector3DReadOnly;
 import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
+import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
+import us.ihmc.mecano.multiBodySystem.CrossFourBarJoint;
+import us.ihmc.mecano.multiBodySystem.PlanarJoint;
+import us.ihmc.mecano.multiBodySystem.PrismaticJoint;
+import us.ihmc.mecano.multiBodySystem.RevoluteJoint;
+import us.ihmc.mecano.multiBodySystem.SixDoFJoint;
+import us.ihmc.mecano.multiBodySystem.SphericalJoint;
+import us.ihmc.mecano.multiBodySystem.interfaces.CrossFourBarJointBasics;
+import us.ihmc.mecano.multiBodySystem.interfaces.CrossFourBarJointReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
+import us.ihmc.mecano.multiBodySystem.interfaces.PlanarJointBasics;
+import us.ihmc.mecano.multiBodySystem.interfaces.PrismaticJointBasics;
+import us.ihmc.mecano.multiBodySystem.interfaces.RevoluteJointBasics;
+import us.ihmc.mecano.multiBodySystem.interfaces.RevoluteJointReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyReadOnly;
+import us.ihmc.mecano.multiBodySystem.interfaces.SixDoFJointBasics;
+import us.ihmc.mecano.multiBodySystem.interfaces.SphericalJointBasics;
 import us.ihmc.mecano.tools.MultiBodySystemFactories;
 import us.ihmc.mecano.tools.MultiBodySystemFactories.JointBuilder;
 import us.ihmc.mecano.tools.MultiBodySystemFactories.RigidBodyBuilder;
-import us.ihmc.mecano.yoVariables.tools.YoMultiBodySystemFactories;
+import us.ihmc.mecano.yoVariables.multiBodySystem.YoCrossFourBarJoint;
+import us.ihmc.mecano.yoVariables.multiBodySystem.YoPlanarJoint;
+import us.ihmc.mecano.yoVariables.multiBodySystem.YoPrismaticJoint;
+import us.ihmc.mecano.yoVariables.multiBodySystem.YoRevoluteJoint;
+import us.ihmc.mecano.yoVariables.multiBodySystem.YoSixDoFJoint;
+import us.ihmc.mecano.yoVariables.multiBodySystem.YoSphericalJoint;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
@@ -22,95 +45,242 @@ import us.ihmc.yoVariables.registry.YoRegistry;
 
 public class JavaFXMultiBodySystemFactories
 {
-   public static JavaFXRigidBody toJavaFXMultiBodySystem(RigidBodyReadOnly originalRootBody, ReferenceFrame cloneStationaryFrame,
+   public static JavaFXRigidBody toJavaFXMultiBodySystem(RigidBodyReadOnly originalRootBody,
+                                                         ReferenceFrame cloneStationaryFrame,
                                                          RobotDefinition robotDefinition)
    {
-      return toJavaFXMultiBodySystem(originalRootBody, cloneStationaryFrame, robotDefinition, MultiBodySystemFactories.DEFAULT_JOINT_BUILDER);
+      return toYoJavaFXMultiBodySystem(originalRootBody, cloneStationaryFrame, robotDefinition, null, null);
    }
 
-   public static JavaFXRigidBody toJavaFXMultiBodySystem(RigidBodyReadOnly originalRootBody, ReferenceFrame cloneStationaryFrame,
-                                                         RobotDefinition robotDefinition, Executor graphicLoader)
+   public static JavaFXRigidBody toYoJavaFXMultiBodySystem(RigidBodyReadOnly originalRootBody,
+                                                           ReferenceFrame cloneStationaryFrame,
+                                                           RobotDefinition robotDefinition,
+                                                           YoRegistry registry,
+                                                           Executor graphicLoader)
    {
-      return toJavaFXMultiBodySystem(originalRootBody, cloneStationaryFrame, robotDefinition, MultiBodySystemFactories.DEFAULT_JOINT_BUILDER, graphicLoader);
+      JavaFXRigidBodyBuilder rigidBodyBuilder = new JavaFXRigidBodyBuilder(robotDefinition, graphicLoader);
+      JavaFXJointBuilder jointBuilder = new JavaFXJointBuilder(registry, rigidBodyBuilder);
+      return (JavaFXRigidBody) MultiBodySystemFactories.cloneMultiBodySystem(originalRootBody, cloneStationaryFrame, "", rigidBodyBuilder, jointBuilder);
    }
 
-   public static JavaFXRigidBody toYoJavaFXMultiBodySystem(RigidBodyReadOnly originalRootBody, ReferenceFrame cloneStationaryFrame,
-                                                           RobotDefinition robotDefinition, YoRegistry registry)
+   public static class JavaFXJointBuilder implements JointBuilder
    {
-      return toJavaFXMultiBodySystem(originalRootBody, cloneStationaryFrame, robotDefinition, YoMultiBodySystemFactories.newYoJointBuilder(registry), null);
-   }
+      private final YoRegistry registry;
+      private final JavaFXRigidBodyBuilder rigidBodyBuilder;
 
-   public static JavaFXRigidBody toYoJavaFXMultiBodySystem(RigidBodyReadOnly originalRootBody, ReferenceFrame cloneStationaryFrame,
-                                                           RobotDefinition robotDefinition, YoRegistry registry, Executor graphicLoader)
-   {
-      return toJavaFXMultiBodySystem(originalRootBody,
-                                     cloneStationaryFrame,
-                                     robotDefinition,
-                                     YoMultiBodySystemFactories.newYoJointBuilder(registry),
-                                     graphicLoader);
-   }
-
-   public static JavaFXRigidBody toJavaFXMultiBodySystem(RigidBodyReadOnly originalRootBody, ReferenceFrame cloneStationaryFrame,
-                                                         RobotDefinition robotDefinition, JointBuilder jointBuilder)
-   {
-      return toJavaFXMultiBodySystem(originalRootBody, cloneStationaryFrame, robotDefinition, jointBuilder, null);
-   }
-
-   public static JavaFXRigidBody toJavaFXMultiBodySystem(RigidBodyReadOnly originalRootBody, ReferenceFrame cloneStationaryFrame,
-                                                         RobotDefinition robotDefinition, JointBuilder jointBuilder, Executor graphicLoader)
-   {
-      return (JavaFXRigidBody) MultiBodySystemFactories.cloneMultiBodySystem(originalRootBody,
-                                                                             cloneStationaryFrame,
-                                                                             "",
-                                                                             newJavaFXRigidBodyBuilder(robotDefinition, graphicLoader),
-                                                                             jointBuilder);
-   }
-
-   public static RigidBodyBuilder newJavaFXRigidBodyBuilder(RobotDefinition robotDefinition)
-   {
-      return newJavaFXRigidBodyBuilder(robotDefinition, null);
-   }
-
-   public static RigidBodyBuilder newJavaFXRigidBodyBuilder(RobotDefinition robotDefinition, Executor graphicLoader)
-   {
-      return newJavaFXRigidBodyBuilder(MultiBodySystemFactories.DEFAULT_RIGID_BODY_BUILDER,
-                                       robotDefinition,
-                                       graphicLoader,
-                                       robotDefinition.getResourceClassLoader());
-   }
-
-   public static RigidBodyBuilder newJavaFXRigidBodyBuilder(RigidBodyBuilder rigidBodyBuilder, RobotDefinition robotDefinition)
-   {
-      return newJavaFXRigidBodyBuilder(rigidBodyBuilder, robotDefinition, null, robotDefinition.getResourceClassLoader());
-   }
-
-   public static RigidBodyBuilder newJavaFXRigidBodyBuilder(RigidBodyBuilder rigidBodyBuilder, RobotDefinition robotDefinition, Executor graphicLoader,
-                                                            ClassLoader resourceClassLoader)
-   {
-      return new RigidBodyBuilder()
+      public JavaFXJointBuilder(JavaFXRigidBodyBuilder rigidBodyBuilder)
       {
-         @Override
-         public JavaFXRigidBody buildRoot(String bodyName, RigidBodyTransform transformToParent, ReferenceFrame parentStationaryFrame)
-         {
-            RigidBodyBasics rootBody = rigidBodyBuilder.buildRoot(bodyName, transformToParent, parentStationaryFrame);
-            return toJavaFXRigidBody(rootBody, robotDefinition.getRigidBodyDefinition(rootBody.getName()), graphicLoader, resourceClassLoader);
-         }
+         this(null, rigidBodyBuilder);
+      }
 
-         @Override
-         public JavaFXRigidBody build(String bodyName, JointBasics parentJoint, Matrix3DReadOnly momentOfInertia, double mass, RigidBodyTransform inertiaPose)
+      public JavaFXJointBuilder(YoRegistry registry, JavaFXRigidBodyBuilder rigidBodyBuilder)
+      {
+         this.registry = registry;
+         this.rigidBodyBuilder = rigidBodyBuilder;
+      }
+
+      @Override
+      public SixDoFJointBasics buildSixDoFJoint(String name, RigidBodyBasics predecessor, RigidBodyTransformReadOnly transformToParent)
+      {
+         if (registry != null)
+            return new YoSixDoFJoint(name, predecessor, transformToParent, registry);
+         else
+            return new SixDoFJoint(name, predecessor, transformToParent);
+      }
+
+      @Override
+      public PlanarJointBasics buildPlanarJoint(String name, RigidBodyBasics predecessor, RigidBodyTransformReadOnly transformToParent)
+      {
+         if (registry != null)
+            return new YoPlanarJoint(name, predecessor, transformToParent, registry);
+         else
+            return new PlanarJoint(name, predecessor, transformToParent);
+      }
+
+      @Override
+      public SphericalJointBasics buildSphericalJoint(String name, RigidBodyBasics predecessor, RigidBodyTransformReadOnly transformToParent)
+      {
+         if (registry != null)
+            return new YoSphericalJoint(name, predecessor, transformToParent, registry);
+         else
+            return new SphericalJoint(name, predecessor, transformToParent);
+      }
+
+      @Override
+      public RevoluteJointBasics buildRevoluteJoint(String name,
+                                                    RigidBodyBasics predecessor,
+                                                    RigidBodyTransformReadOnly transformToParent,
+                                                    Vector3DReadOnly jointAxis)
+      {
+         if (registry != null)
+            return new YoRevoluteJoint(name, predecessor, transformToParent, jointAxis, registry);
+         else
+            return new RevoluteJoint(name, predecessor, transformToParent, jointAxis);
+      }
+
+      @Override
+      public PrismaticJointBasics buildPrismaticJoint(String name,
+                                                      RigidBodyBasics predecessor,
+                                                      RigidBodyTransformReadOnly transformToParent,
+                                                      Vector3DReadOnly jointAxis)
+      {
+         if (registry != null)
+            return new YoPrismaticJoint(name, predecessor, transformToParent, jointAxis, registry);
+         else
+            return new PrismaticJoint(name, predecessor, transformToParent, jointAxis);
+      }
+
+      @Override
+      public CrossFourBarJointBasics cloneCrossFourBarJoint(CrossFourBarJointReadOnly original, String cloneSuffix, RigidBodyBasics clonePredecessor)
+      {
+         RevoluteJointReadOnly originalJointA = original.getJointA();
+         RevoluteJointReadOnly originalJointB = original.getJointB();
+         RevoluteJointReadOnly originalJointC = original.getJointC();
+         RevoluteJointReadOnly originalJointD = original.getJointD();
+         RigidBodyReadOnly originalBodyDA = originalJointA.getSuccessor();
+         RigidBodyReadOnly originalBodyBC = originalJointB.getSuccessor();
+         int loopClosureIndex;
+         if (originalJointA.isLoopClosure())
+            loopClosureIndex = 0;
+         else if (originalJointB.isLoopClosure())
+            loopClosureIndex = 1;
+         else if (originalJointC.isLoopClosure())
+            loopClosureIndex = 2;
+         else
+            loopClosureIndex = 3;
+
+         String cloneName = original.getName() + cloneSuffix;
+         String cloneJointNameA = originalJointA.getName() + cloneSuffix;
+         String cloneJointNameB = originalJointB.getName() + cloneSuffix;
+         String cloneJointNameC = originalJointC.getName() + cloneSuffix;
+         String cloneJointNameD = originalJointD.getName() + cloneSuffix;
+         String cloneBodyNameDA = originalBodyDA.getName() + cloneSuffix;
+         String cloneBodyNameBC = originalBodyBC.getName() + cloneSuffix;
+         RigidBodyTransform transformAToPredecessor = originalJointA.getFrameBeforeJoint().getTransformToParent();
+         RigidBodyTransform transformBToPredecessor = originalJointB.getFrameBeforeJoint().getTransformToParent();
+         RigidBodyTransform transformCToB = originalJointC.getFrameBeforeJoint().getTransformToParent();
+         RigidBodyTransform transformDToA = originalJointD.getFrameBeforeJoint().getTransformToParent();
+         Matrix3DReadOnly bodyInertiaDA = originalBodyDA.getInertia().getMomentOfInertia();
+         Matrix3DReadOnly bodyInertiaBC = originalBodyBC.getInertia().getMomentOfInertia();
+         double bodyMassDA = originalBodyDA.getInertia().getMass();
+         double bodyMassBC = originalBodyBC.getInertia().getMass();
+         RigidBodyTransform bodyInertiaPoseDA = originalBodyDA.getBodyFixedFrame().getTransformToParent();
+         RigidBodyTransform bodyInertiaPoseBC = originalBodyBC.getBodyFixedFrame().getTransformToParent();
+         int actuatedJointIndex = original.getActuatedJointIndex();
+         FrameVector3DReadOnly jointAxis = original.getJointAxis();
+
+         if (registry != null)
          {
-            RigidBodyBasics rigidBody = rigidBodyBuilder.build(bodyName, parentJoint, momentOfInertia, mass, inertiaPose);
-            return toJavaFXRigidBody(rigidBody, robotDefinition.getRigidBodyDefinition(rigidBody.getName()), graphicLoader, resourceClassLoader);
+            return new YoCrossFourBarJoint(cloneName,
+                                           clonePredecessor,
+                                           cloneJointNameA,
+                                           cloneJointNameB,
+                                           cloneJointNameC,
+                                           cloneJointNameD,
+                                           cloneBodyNameDA,
+                                           cloneBodyNameBC,
+                                           transformAToPredecessor,
+                                           transformBToPredecessor,
+                                           transformCToB,
+                                           transformDToA,
+                                           bodyInertiaDA,
+                                           bodyInertiaBC,
+                                           bodyMassDA,
+                                           bodyMassBC,
+                                           bodyInertiaPoseDA,
+                                           bodyInertiaPoseBC,
+                                           rigidBodyBuilder,
+                                           actuatedJointIndex,
+                                           loopClosureIndex,
+                                           jointAxis,
+                                           registry);
          }
-      };
+         else
+         {
+            return new CrossFourBarJoint(cloneName,
+                                         clonePredecessor,
+                                         cloneJointNameA,
+                                         cloneJointNameB,
+                                         cloneJointNameC,
+                                         cloneJointNameD,
+                                         cloneBodyNameDA,
+                                         cloneBodyNameBC,
+                                         transformAToPredecessor,
+                                         transformBToPredecessor,
+                                         transformCToB,
+                                         transformDToA,
+                                         bodyInertiaDA,
+                                         bodyInertiaBC,
+                                         bodyMassDA,
+                                         bodyMassBC,
+                                         bodyInertiaPoseDA,
+                                         bodyInertiaPoseBC,
+                                         rigidBodyBuilder,
+                                         actuatedJointIndex,
+                                         loopClosureIndex,
+                                         jointAxis);
+         }
+      }
    }
 
-   public static JavaFXRigidBody toJavaFXRigidBody(RigidBodyBasics rigidBody, RigidBodyDefinition rigidBodyDefinition, ClassLoader resourceClassLoader)
+   public static class JavaFXRigidBodyBuilder implements RigidBodyBuilder
    {
-      return toJavaFXRigidBody(rigidBody, rigidBodyDefinition, null, resourceClassLoader);
+      private final RigidBodyBuilder rigidBodyBuilder;
+      private final Function<String, RigidBodyDefinition> rigidBodyDefinitionProvider;
+      private final Executor graphicLoader;
+      private final ClassLoader resourceClassLoader;
+
+      public JavaFXRigidBodyBuilder(RobotDefinition robotDefinition, Executor graphicLoader)
+      {
+         this(MultiBodySystemFactories.DEFAULT_RIGID_BODY_BUILDER,
+              robotDefinition::getRigidBodyDefinition,
+              graphicLoader,
+              robotDefinition.getResourceClassLoader());
+      }
+
+      public JavaFXRigidBodyBuilder(RigidBodyBuilder rigidBodyBuilder,
+                                    Function<String, RigidBodyDefinition> rigidBodyDefinitionProvider,
+                                    Executor graphicLoader,
+                                    ClassLoader resourceClassLoader)
+      {
+         this.rigidBodyBuilder = rigidBodyBuilder;
+         this.rigidBodyDefinitionProvider = rigidBodyDefinitionProvider;
+         this.graphicLoader = graphicLoader;
+         this.resourceClassLoader = resourceClassLoader;
+      }
+
+      public static Function<String, RigidBodyDefinition> toRigidBodyDefinitionProvider(RobotDefinition robotDefinition)
+      {
+         return name ->
+         {
+            RigidBodyDefinition rigidBodyDefinition = robotDefinition.getRigidBodyDefinition(name);
+            if (rigidBodyDefinition!= null)
+               return rigidBodyDefinition;
+         };
+      }
+
+      @Override
+      public JavaFXRigidBody buildRoot(String bodyName, RigidBodyTransformReadOnly transformToParent, ReferenceFrame parentStationaryFrame)
+      {
+         RigidBodyBasics rootBody = rigidBodyBuilder.buildRoot(bodyName, transformToParent, parentStationaryFrame);
+         return toJavaFXRigidBody(rootBody, rigidBodyDefinitionProvider.apply(rootBody.getName()), graphicLoader, resourceClassLoader);
+      }
+
+      @Override
+      public JavaFXRigidBody build(String bodyName,
+                                   JointBasics parentJoint,
+                                   Matrix3DReadOnly momentOfInertia,
+                                   double mass,
+                                   RigidBodyTransformReadOnly inertiaPose)
+      {
+         RigidBodyBasics rigidBody = rigidBodyBuilder.build(bodyName, parentJoint, momentOfInertia, mass, inertiaPose);
+         return toJavaFXRigidBody(rigidBody, rigidBodyDefinitionProvider.apply(rigidBody.getName()), graphicLoader, resourceClassLoader);
+      }
    }
 
-   public static JavaFXRigidBody toJavaFXRigidBody(RigidBodyBasics rigidBody, RigidBodyDefinition rigidBodyDefinition, Executor graphicLoader,
+   public static JavaFXRigidBody toJavaFXRigidBody(RigidBodyBasics rigidBody,
+                                                   RigidBodyDefinition rigidBodyDefinition,
+                                                   Executor graphicLoader,
                                                    ClassLoader resourceClassLoader)
    {
       JavaFXRigidBody javaFXRigidBody = new JavaFXRigidBody(rigidBody);

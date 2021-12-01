@@ -16,6 +16,7 @@ import us.ihmc.mecano.multiBodySystem.interfaces.JointMatrixIndexProvider;
 import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
 import us.ihmc.scs2.definition.controller.interfaces.ControllerDefinition;
 import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
+import us.ihmc.scs2.definition.robot.CrossFourBarJointDefinition;
 import us.ihmc.scs2.definition.robot.FixedJointDefinition;
 import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
 import us.ihmc.scs2.definition.robot.JointDefinition;
@@ -31,6 +32,7 @@ import us.ihmc.scs2.definition.robot.WrenchSensorDefinition;
 import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
 import us.ihmc.scs2.simulation.robot.controller.LoopClosureSoftConstraintController;
 import us.ihmc.scs2.simulation.robot.controller.RobotControllerManager;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.SimCrossFourBarJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimFixedJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimPlanarJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimPrismaticJoint;
@@ -281,6 +283,8 @@ public class Robot implements RobotInterface
             return new SimPrismaticJoint((PrismaticJointDefinition) definition, predecessor);
          else if (definition instanceof RevoluteJointDefinition)
             return new SimRevoluteJoint((RevoluteJointDefinition) definition, predecessor);
+         else if (definition instanceof CrossFourBarJointDefinition)
+            return new SimCrossFourBarJoint((CrossFourBarJointDefinition) definition, predecessor);
          else
             throw new UnsupportedOperationException("Unsupported joint definition: " + definition.getClass().getSimpleName());
       }

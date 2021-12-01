@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import us.ihmc.mecano.frames.MovingReferenceFrame;
+import us.ihmc.mecano.multiBodySystem.interfaces.CrossFourBarJointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.multiBodySystem.iterators.RigidBodyIterable;
@@ -37,6 +38,15 @@ public class JavaFXRigidBody implements RigidBodyBasics
    public void updateSubtreeGraphics()
    {
       updateGraphics();
+      for (JointBasics child : getChildrenJoints())
+      {
+         if (child instanceof CrossFourBarJointBasics)
+         {
+            CrossFourBarJointBasics childCrossFourBarJoint = (CrossFourBarJointBasics) child;
+            ((JavaFXRigidBody) childCrossFourBarJoint.getBodyDA()).updateGraphics();
+            ((JavaFXRigidBody) childCrossFourBarJoint.getBodyBC()).updateGraphics();
+         }
+      }
       subtreeStream().forEach(JavaFXRigidBody::updateGraphics);
    }
 

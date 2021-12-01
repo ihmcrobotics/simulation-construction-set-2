@@ -14,7 +14,9 @@ import javafx.util.Duration;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.log.LogTools;
+import us.ihmc.mecano.multiBodySystem.interfaces.CrossFourBarJointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyReadOnly;
+import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameManager;
@@ -73,43 +75,14 @@ public class YoRobotFX
    {
       for (JavaFXRigidBody rigidBody : rootBody.subtreeIterable())
       {
-         ChangeListener<? super FrameNode> listener = (o, oldValue, newValue) ->
-         {
-            if (newValue != null)
-            {
-               if (oldValue == null)
-               {
-                  Node node = newValue.getNode();
-                  node.setScaleX(0.0);
-                  node.setScaleY(0.0);
-                  node.setScaleZ(0.0);
-                  Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(0.25),
-                                                                new KeyValue(node.scaleXProperty(), 1.0),
-                                                                new KeyValue(node.scaleYProperty(), 1.0),
-                                                                new KeyValue(node.scaleZProperty(), 1.0)));
-                  timeline.setCycleCount(1);
-
-                  JavaFXMissingTools.runLaterIfNeeded(getClass(), () ->
-                  {
-                     newValue.updatePose();
-                     timeline.playFromStart();
-                     rootNode.getChildren().add(newValue.getNode());
-                  });
-               }
-               else
-               {
-                  JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> rootNode.getChildren().remove(oldValue.getNode()));
-                  JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> rootNode.getChildren().add(newValue.getNode()));
-               }
-            }
-            else if (oldValue != null)
-            {
-               JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> rootNode.getChildren().remove(oldValue.getNode()));
-            }
-         };
-         rigidBody.graphicsProperty().addListener(listener);
-         listener.changed(null, null, rigidBody.getGraphics());
+         setupRigidBody(rigidBody);
       }
+
+      SubtreeStreams.fromChildren(CrossFourBarJointBasics.class, rootBody).forEach(joint ->
+      {
+         setupRigidBody((JavaFXRigidBody) joint.getBodyDA());
+         setupRigidBody((JavaFXRigidBody) joint.getBodyBC());
+      });
 
       robotLinkedYoRegistry = yoManager.newLinkedYoRegistry(robotRegistry);
       robotRegistry.getVariables().forEach(var ->
@@ -117,6 +90,46 @@ public class YoRobotFX
          LinkedYoVariable<YoVariable> linkYoVariable = robotLinkedYoRegistry.linkYoVariable(var);
          linkYoVariable.addUser(this);
       });
+   }
+
+   private void setupRigidBody(JavaFXRigidBody rigidBody)
+   {
+      ChangeListener<? super FrameNode> listener = (o, oldValue, newValue) ->
+      {
+         if (newValue != null)
+         {
+            if (oldValue == null)
+            {
+               Node node = newValue.getNode();
+               node.setScaleX(0.0);
+               node.setScaleY(0.0);
+               node.setScaleZ(0.0);
+               Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(0.25),
+                                                             new KeyValue(node.scaleXProperty(), 1.0),
+                                                             new KeyValue(node.scaleYProperty(), 1.0),
+                                                             new KeyValue(node.scaleZProperty(), 1.0)));
+               timeline.setCycleCount(1);
+
+               JavaFXMissingTools.runLaterIfNeeded(getClass(), () ->
+               {
+                  newValue.updatePose();
+                  timeline.playFromStart();
+                  rootNode.getChildren().add(newValue.getNode());
+               });
+            }
+            else
+            {
+               JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> rootNode.getChildren().remove(oldValue.getNode()));
+               JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> rootNode.getChildren().add(newValue.getNode()));
+            }
+         }
+         else if (oldValue != null)
+         {
+            JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> rootNode.getChildren().remove(oldValue.getNode()));
+         }
+      };
+      rigidBody.graphicsProperty().addListener(listener);
+      listener.changed(null, null, rigidBody.getGraphics());
    }
 
    public void render()
