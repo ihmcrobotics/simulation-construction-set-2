@@ -46,8 +46,9 @@ public class JavaFXRigidBody implements RigidBodyBasics
             ((JavaFXRigidBody) childCrossFourBarJoint.getBodyDA()).updateGraphics();
             ((JavaFXRigidBody) childCrossFourBarJoint.getBodyBC()).updateGraphics();
          }
+
+         ((JavaFXRigidBody) child.getSuccessor()).updateSubtreeGraphics();
       }
-      subtreeStream().forEach(JavaFXRigidBody::updateGraphics);
    }
 
    public void updateGraphics()

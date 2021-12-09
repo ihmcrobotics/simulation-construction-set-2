@@ -1,6 +1,8 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
 
@@ -37,6 +39,7 @@ import us.ihmc.mecano.yoVariables.multiBodySystem.YoPrismaticJoint;
 import us.ihmc.mecano.yoVariables.multiBodySystem.YoRevoluteJoint;
 import us.ihmc.mecano.yoVariables.multiBodySystem.YoSixDoFJoint;
 import us.ihmc.mecano.yoVariables.multiBodySystem.YoSphericalJoint;
+import us.ihmc.scs2.definition.robot.CrossFourBarJointDefinition;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
@@ -233,7 +236,7 @@ public class JavaFXMultiBodySystemFactories
       public JavaFXRigidBodyBuilder(RobotDefinition robotDefinition, Executor graphicLoader)
       {
          this(MultiBodySystemFactories.DEFAULT_RIGID_BODY_BUILDER,
-              robotDefinition::getRigidBodyDefinition,
+              toRigidBodyDefinitionProvider(robotDefinition),
               graphicLoader,
               robotDefinition.getResourceClassLoader());
       }
@@ -251,12 +254,18 @@ public class JavaFXMultiBodySystemFactories
 
       public static Function<String, RigidBodyDefinition> toRigidBodyDefinitionProvider(RobotDefinition robotDefinition)
       {
-         return name ->
+         Map<String, RigidBodyDefinition> nameToDefinitionMap = new HashMap<>();
+         robotDefinition.forEachRigidBodyDefinition(definition -> nameToDefinitionMap.put(definition.getName(), definition));
+         robotDefinition.forEachOneDoFJointDefinition(joint ->
          {
-            RigidBodyDefinition rigidBodyDefinition = robotDefinition.getRigidBodyDefinition(name);
-            if (rigidBodyDefinition!= null)
-               return rigidBodyDefinition;
-         };
+            if (joint instanceof CrossFourBarJointDefinition)
+            {
+               CrossFourBarJointDefinition fourBarDefinition = (CrossFourBarJointDefinition) joint;
+               nameToDefinitionMap.putIfAbsent(fourBarDefinition.getBodyDA().getName(), fourBarDefinition.getBodyDA());
+               nameToDefinitionMap.putIfAbsent(fourBarDefinition.getBodyBC().getName(), fourBarDefinition.getBodyBC());
+            }
+         });
+         return nameToDefinitionMap::get;
       }
 
       @Override
