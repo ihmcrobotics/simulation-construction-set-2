@@ -24,7 +24,7 @@ import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.FrameNode;
-import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.JavaFXMultiBodySystemFactories;
+import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.RigidBodyFrameNodeFactories;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 import us.ihmc.scs2.sharedMemory.LinkedYoVariable;
@@ -97,7 +97,7 @@ public class YoRobotFX
             });
          }
       });
-      JavaFXMultiBodySystemFactories.createRobotFrameNodeMap(rootBody, robotDefinition, graphicLoader, rigidBodyFrameNodeMap);
+      RigidBodyFrameNodeFactories.createRobotFrameNodeMap(rootBody, robotDefinition, graphicLoader, rigidBodyFrameNodeMap);
       LogTools.info("Loaded robot: " + robotDefinition.getName());
 
       attachRobotToScene();
