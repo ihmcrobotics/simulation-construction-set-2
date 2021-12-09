@@ -12,8 +12,6 @@ public class CrossFourBarJointDefinition extends OneDoFJointDefinition
    private String jointNameB;
    private String jointNameC;
    private String jointNameD;
-   private String bodyNameDA;
-   private String bodyNameBC;
    private YawPitchRollTransformDefinition transformAToPredecessor = new YawPitchRollTransformDefinition();
    private YawPitchRollTransformDefinition transformBToPredecessor = new YawPitchRollTransformDefinition();
    private YawPitchRollTransformDefinition transformCToB = new YawPitchRollTransformDefinition();
@@ -28,11 +26,13 @@ public class CrossFourBarJointDefinition extends OneDoFJointDefinition
    public CrossFourBarJointDefinition(String name)
    {
       super(name);
+      bodyDA.setName(name + "_DA");
+      bodyBC.setName(name + "_BC");
    }
 
    public CrossFourBarJointDefinition(String name, Vector3DReadOnly axis)
    {
-      super(name);
+      this(name);
       setAxis(axis);
    }
 
@@ -62,22 +62,6 @@ public class CrossFourBarJointDefinition extends OneDoFJointDefinition
       this.jointNameB = jointNameB;
       this.jointNameC = jointNameC;
       this.jointNameD = jointNameD;
-   }
-
-   public void setBodyNameDA(String bodyNameDA)
-   {
-      this.bodyNameDA = bodyNameDA;
-   }
-
-   public void setBodyNameBC(String bodyNameBC)
-   {
-      this.bodyNameBC = bodyNameBC;
-   }
-
-   public void setBodyNames(String bodyNameDA, String bodyNameBC)
-   {
-      this.bodyNameDA = bodyNameDA;
-      this.bodyNameBC = bodyNameDA;
    }
 
    public void setTransformAToPredecessor(YawPitchRollTransformDefinition transformAToPredecessor)
@@ -171,16 +155,6 @@ public class CrossFourBarJointDefinition extends OneDoFJointDefinition
       return jointNameD;
    }
 
-   public String getBodyNameDA()
-   {
-      return bodyNameDA;
-   }
-
-   public String getBodyNameBC()
-   {
-      return bodyNameBC;
-   }
-
    public YawPitchRollTransformDefinition getTransformAToPredecessor()
    {
       return transformAToPredecessor;
@@ -230,8 +204,8 @@ public class CrossFourBarJointDefinition extends OneDoFJointDefinition
                                    jointNameB,
                                    jointNameC,
                                    jointNameD,
-                                   bodyNameDA,
-                                   bodyNameBC,
+                                   bodyDA.getName(),
+                                   bodyBC.getName(),
                                    transformAToPredecessor,
                                    transformBToPredecessor,
                                    transformCToB,
@@ -255,8 +229,6 @@ public class CrossFourBarJointDefinition extends OneDoFJointDefinition
       clone.jointNameB = jointNameB;
       clone.jointNameC = jointNameC;
       clone.jointNameD = jointNameD;
-      clone.bodyNameDA = bodyNameDA;
-      clone.bodyNameBC = bodyNameBC;
       clone.transformAToPredecessor.set(transformAToPredecessor);
       clone.transformBToPredecessor.set(transformBToPredecessor);
       clone.transformCToB.set(transformCToB);
