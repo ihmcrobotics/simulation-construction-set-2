@@ -122,6 +122,9 @@ public class LinkedBufferArray extends LinkedBuffer
       {
          for (int i = 0; i < size; i++)
          {
+            if (linkedBuffers[i] == null)
+               break;
+
             hasPulledSomething |= linkedBuffers[i].pull();
          }
       }

@@ -2,7 +2,7 @@ package us.ihmc.scs2.simulation.screwTools;
 
 import us.ihmc.euclid.matrix.interfaces.Matrix3DReadOnly;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.FixedJointReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
@@ -37,7 +37,10 @@ public class SimMultiBodySystemFactories
       }
 
       @Override
-      public SimJointBasics buildJoint(Class<? extends JointReadOnly> jointType, String name, RigidBodyBasics predecessor, RigidBodyTransform transformToParent)
+      public SimJointBasics buildJoint(Class<? extends JointReadOnly> jointType,
+                                       String name,
+                                       RigidBodyBasics predecessor,
+                                       RigidBodyTransformReadOnly transformToParent)
       {
          if (SixDoFJointReadOnly.class.isAssignableFrom(jointType))
             return buildSixDoFJoint(name, predecessor, transformToParent);
@@ -51,8 +54,11 @@ public class SimMultiBodySystemFactories
       }
 
       @Override
-      public SimOneDoFJointBasics buildOneDoFJoint(Class<? extends OneDoFJointReadOnly> jointType, String name, RigidBodyBasics predecessor,
-                                                   RigidBodyTransform transformToParent, Vector3DReadOnly jointAxis)
+      public SimOneDoFJointBasics buildOneDoFJoint(Class<? extends OneDoFJointReadOnly> jointType,
+                                                   String name,
+                                                   RigidBodyBasics predecessor,
+                                                   RigidBodyTransformReadOnly transformToParent,
+                                                   Vector3DReadOnly jointAxis)
       {
          if (RevoluteJointBasics.class.isAssignableFrom(jointType))
             return buildRevoluteJoint(name, predecessor, transformToParent, jointAxis);
@@ -62,37 +68,43 @@ public class SimMultiBodySystemFactories
       }
 
       @Override
-      public SimSixDoFJoint buildSixDoFJoint(String name, RigidBodyBasics predecessor, RigidBodyTransform transformToParent)
+      public SimSixDoFJoint buildSixDoFJoint(String name, RigidBodyBasics predecessor, RigidBodyTransformReadOnly transformToParent)
       {
          return new SimSixDoFJoint(name, (SimRigidBodyBasics) predecessor, transformToParent);
       }
 
       @Override
-      public SimPlanarJoint buildPlanarJoint(String name, RigidBodyBasics predecessor, RigidBodyTransform transformToParent)
+      public SimPlanarJoint buildPlanarJoint(String name, RigidBodyBasics predecessor, RigidBodyTransformReadOnly transformToParent)
       {
          return new SimPlanarJoint(name, (SimRigidBodyBasics) predecessor, transformToParent);
       }
 
       @Override
-      public SimSphericalJoint buildSphericalJoint(String name, RigidBodyBasics predecessor, RigidBodyTransform transformToParent)
+      public SimSphericalJoint buildSphericalJoint(String name, RigidBodyBasics predecessor, RigidBodyTransformReadOnly transformToParent)
       {
          return new SimSphericalJoint(name, (SimRigidBodyBasics) predecessor, transformToParent);
       }
 
       @Override
-      public SimRevoluteJoint buildRevoluteJoint(String name, RigidBodyBasics predecessor, RigidBodyTransform transformToParent, Vector3DReadOnly jointAxis)
+      public SimRevoluteJoint buildRevoluteJoint(String name,
+                                                 RigidBodyBasics predecessor,
+                                                 RigidBodyTransformReadOnly transformToParent,
+                                                 Vector3DReadOnly jointAxis)
       {
          return new SimRevoluteJoint(name, (SimRigidBodyBasics) predecessor, transformToParent, jointAxis);
       }
 
       @Override
-      public SimPrismaticJoint buildPrismaticJoint(String name, RigidBodyBasics predecessor, RigidBodyTransform transformToParent, Vector3DReadOnly jointAxis)
+      public SimPrismaticJoint buildPrismaticJoint(String name,
+                                                   RigidBodyBasics predecessor,
+                                                   RigidBodyTransformReadOnly transformToParent,
+                                                   Vector3DReadOnly jointAxis)
       {
          return new SimPrismaticJoint(name, (SimRigidBodyBasics) predecessor, transformToParent, jointAxis);
       }
 
       @Override
-      public SimFixedJoint buildFixedJoint(String name, RigidBodyBasics predecessor, RigidBodyTransform transformToParent)
+      public SimFixedJoint buildFixedJoint(String name, RigidBodyBasics predecessor, RigidBodyTransformReadOnly transformToParent)
       {
          return new SimFixedJoint(name, (SimRigidBodyBasics) predecessor, transformToParent);
       }
@@ -108,13 +120,17 @@ public class SimMultiBodySystemFactories
       }
 
       @Override
-      public RigidBodyBasics buildRoot(String bodyName, RigidBodyTransform transformToParent, ReferenceFrame parentStationaryFrame)
+      public RigidBodyBasics buildRoot(String bodyName, RigidBodyTransformReadOnly transformToParent, ReferenceFrame parentStationaryFrame)
       {
          return new SimRigidBody(bodyName, transformToParent, parentStationaryFrame, registry);
       }
 
       @Override
-      public RigidBodyBasics build(String bodyName, JointBasics parentJoint, Matrix3DReadOnly momentOfInertia, double mass, RigidBodyTransform inertiaPose)
+      public RigidBodyBasics build(String bodyName,
+                                   JointBasics parentJoint,
+                                   Matrix3DReadOnly momentOfInertia,
+                                   double mass,
+                                   RigidBodyTransformReadOnly inertiaPose)
       {
          return new SimRigidBody(bodyName, (SimJointBasics) parentJoint, momentOfInertia, mass, inertiaPose);
       }

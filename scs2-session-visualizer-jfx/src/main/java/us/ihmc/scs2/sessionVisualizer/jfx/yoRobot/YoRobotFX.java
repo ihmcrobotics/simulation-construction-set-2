@@ -1,26 +1,30 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.yoRobot;
 
-import static us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.JavaFXMultiBodySystemFactories.toYoJavaFXMultiBodySystem;
-
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.beans.value.ChangeListener;
+import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableMap;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.util.Duration;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.log.LogTools;
+import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyReadOnly;
+import us.ihmc.mecano.tools.MultiBodySystemFactories;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
+import us.ihmc.mecano.yoVariables.tools.YoMultiBodySystemFactories;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.FrameNode;
-import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.JavaFXRigidBody;
+import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.RigidBodyFrameNodeFactories;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 import us.ihmc.scs2.sharedMemory.LinkedYoVariable;
@@ -37,8 +41,9 @@ public class YoRobotFX
    private final YoManager yoManager;
    private final ReferenceFrameManager referenceFrameManager;
 
-   private JavaFXRigidBody rootBody;
+   private RigidBodyBasics rootBody;
    private final YoRegistry robotRegistry;
+   private ObservableMap<String, FrameNode> rigidBodyFrameNodeMap = FXCollections.observableMap(new ConcurrentHashMap<>(64));
 
    private LinkedYoRegistry robotLinkedYoRegistry;
 
@@ -59,11 +64,40 @@ public class YoRobotFX
       LogTools.info("Loading robot: " + robotDefinition.getName());
       ReferenceFrame robotRootFrame = Robot.createRobotRootFrame(robotDefinition, referenceFrameManager.getWorldFrame());
 
-      rootBody = toYoJavaFXMultiBodySystem(robotDefinition.newInstance(ReferenceFrameTools.constructARootFrame("dummy")),
-                                           robotRootFrame,
-                                           robotDefinition,
-                                           robotRegistry,
-                                           graphicLoader);
+      rootBody = MultiBodySystemFactories.cloneMultiBodySystem(robotDefinition.newInstance(ReferenceFrameTools.constructARootFrame("dummy")),
+                                                               robotRootFrame,
+                                                               "",
+                                                               MultiBodySystemFactories.DEFAULT_RIGID_BODY_BUILDER,
+                                                               YoMultiBodySystemFactories.newYoJointBuilder(robotRegistry));
+      rigidBodyFrameNodeMap.addListener((MapChangeListener<String, FrameNode>) change ->
+      {
+         if (change.wasRemoved())
+         {
+            FrameNode removedNode = change.getValueRemoved();
+            JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> rootNode.getChildren().remove(removedNode.getNode()));
+         }
+         else if (change.wasAdded())
+         {
+            FrameNode addedNode = change.getValueAdded();
+            Node node = addedNode.getNode();
+            node.setScaleX(0.0);
+            node.setScaleY(0.0);
+            node.setScaleZ(0.0);
+            Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(0.25),
+                                                          new KeyValue(node.scaleXProperty(), 1.0),
+                                                          new KeyValue(node.scaleYProperty(), 1.0),
+                                                          new KeyValue(node.scaleZProperty(), 1.0)));
+            timeline.setCycleCount(1);
+
+            JavaFXMissingTools.runLaterIfNeeded(getClass(), () ->
+            {
+               addedNode.updatePose();
+               timeline.playFromStart();
+               rootNode.getChildren().add(addedNode.getNode());
+            });
+         }
+      });
+      RigidBodyFrameNodeFactories.createRobotFrameNodeMap(rootBody, robotDefinition, graphicLoader, rigidBodyFrameNodeMap);
       LogTools.info("Loaded robot: " + robotDefinition.getName());
 
       attachRobotToScene();
@@ -71,46 +105,6 @@ public class YoRobotFX
 
    private void attachRobotToScene()
    {
-      for (JavaFXRigidBody rigidBody : rootBody.subtreeIterable())
-      {
-         ChangeListener<? super FrameNode> listener = (o, oldValue, newValue) ->
-         {
-            if (newValue != null)
-            {
-               if (oldValue == null)
-               {
-                  Node node = newValue.getNode();
-                  node.setScaleX(0.0);
-                  node.setScaleY(0.0);
-                  node.setScaleZ(0.0);
-                  Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(0.25),
-                                                                new KeyValue(node.scaleXProperty(), 1.0),
-                                                                new KeyValue(node.scaleYProperty(), 1.0),
-                                                                new KeyValue(node.scaleZProperty(), 1.0)));
-                  timeline.setCycleCount(1);
-
-                  JavaFXMissingTools.runLaterIfNeeded(getClass(), () ->
-                  {
-                     newValue.updatePose();
-                     timeline.playFromStart();
-                     rootNode.getChildren().add(newValue.getNode());
-                  });
-               }
-               else
-               {
-                  JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> rootNode.getChildren().remove(oldValue.getNode()));
-                  JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> rootNode.getChildren().add(newValue.getNode()));
-               }
-            }
-            else if (oldValue != null)
-            {
-               JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> rootNode.getChildren().remove(oldValue.getNode()));
-            }
-         };
-         rigidBody.graphicsProperty().addListener(listener);
-         listener.changed(null, null, rigidBody.getGraphics());
-      }
-
       robotLinkedYoRegistry = yoManager.newLinkedYoRegistry(robotRegistry);
       robotRegistry.getVariables().forEach(var ->
       {
@@ -126,7 +120,7 @@ public class YoRobotFX
          if (robotLinkedYoRegistry.pull() || initialize)
          {
             rootBody.updateFramesRecursively();
-            rootBody.updateSubtreeGraphics();
+            rigidBodyFrameNodeMap.values().forEach(node -> node.updatePose());
             initialize = false;
          }
       }
@@ -137,9 +131,14 @@ public class YoRobotFX
       return rootBody;
    }
 
-   public JavaFXRigidBody findRigidBody(String rigidBodyName)
+   public RigidBodyBasics findRigidBody(String rigidBodyName)
    {
-      return (JavaFXRigidBody) MultiBodySystemTools.findRigidBody(rootBody, rigidBodyName);
+      return MultiBodySystemTools.findRigidBody(rootBody, rigidBodyName);
+   }
+
+   public FrameNode findRigidBodyFrameNode(String rigidBodyName)
+   {
+      return rigidBodyFrameNodeMap.get(rigidBodyName);
    }
 
    public RobotDefinition getRobotDefinition()
