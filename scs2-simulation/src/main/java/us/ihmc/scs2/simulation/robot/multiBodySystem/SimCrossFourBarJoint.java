@@ -136,6 +136,29 @@ public class SimCrossFourBarJoint extends YoCrossFourBarJoint implements SimOneD
    }
 
    @Override
+   public void setQ(double q)
+   {
+      if (!Double.isFinite(q))
+         throw new IllegalStateException("Invalid joint configuration: " + q);
+
+      super.setQ(q);
+   }
+
+   @Override
+   public double computeActuatedJointQ(double q)
+   {
+      if (!Double.isFinite(q))
+         throw new IllegalStateException("Invalid joint configuration: " + q);
+
+      double actuatedJointQ = super.computeActuatedJointQ(q);
+
+      if (!Double.isFinite(actuatedJointQ))
+         throw new IllegalStateException("Invalid joint configuration: " + actuatedJointQ);
+
+      return actuatedJointQ;
+   }
+
+   @Override
    public double getDeltaQd()
    {
       return deltaQd.getValue();

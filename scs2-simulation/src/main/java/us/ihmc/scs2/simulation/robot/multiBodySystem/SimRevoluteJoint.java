@@ -85,6 +85,14 @@ public class SimRevoluteJoint extends YoRevoluteJoint implements SimOneDoFJointB
    }
 
    @Override
+   public void setQ(double q)
+   {
+      if (!Double.isFinite(q))
+         throw new IllegalStateException("Invalid joint configuration: " + q);
+      super.setQ(q);
+   }
+
+   @Override
    public double getDeltaQd()
    {
       return deltaQd.getValue();
