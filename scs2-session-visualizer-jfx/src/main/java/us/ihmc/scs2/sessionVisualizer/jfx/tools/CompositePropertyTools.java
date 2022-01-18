@@ -33,7 +33,8 @@ import us.ihmc.yoVariables.variable.YoInteger;
 
 public class CompositePropertyTools
 {
-   public static List<CompositeProperty> toCompositePropertyList(YoVariableDatabase yoVariableDatabase, ReferenceFrameManager referenceFrameManager,
+   public static List<CompositeProperty> toCompositePropertyList(YoVariableDatabase yoVariableDatabase,
+                                                                 ReferenceFrameManager referenceFrameManager,
                                                                  List<? extends YoCompositeDefinition> definitionList)
    {
       if (definitionList == null)
@@ -41,7 +42,8 @@ public class CompositePropertyTools
       return definitionList.stream().map(definition -> toCompositeProperty(yoVariableDatabase, referenceFrameManager, definition)).collect(Collectors.toList());
    }
 
-   public static List<Tuple2DProperty> toTuple2DPropertyList(YoVariableDatabase yoVariableDatabase, ReferenceFrameManager referenceFrameManager,
+   public static List<Tuple2DProperty> toTuple2DPropertyList(YoVariableDatabase yoVariableDatabase,
+                                                             ReferenceFrameManager referenceFrameManager,
                                                              List<? extends YoCompositeDefinition> definitionList)
    {
       if (definitionList == null)
@@ -49,7 +51,8 @@ public class CompositePropertyTools
       return definitionList.stream().map(definition -> toTuple2DProperty(yoVariableDatabase, referenceFrameManager, definition)).collect(Collectors.toList());
    }
 
-   public static List<Tuple3DProperty> toTuple3DPropertyList(YoVariableDatabase yoVariableDatabase, ReferenceFrameManager referenceFrameManager,
+   public static List<Tuple3DProperty> toTuple3DPropertyList(YoVariableDatabase yoVariableDatabase,
+                                                             ReferenceFrameManager referenceFrameManager,
                                                              List<? extends YoCompositeDefinition> definitionList)
    {
       if (definitionList == null)
@@ -57,19 +60,22 @@ public class CompositePropertyTools
       return definitionList.stream().map(definition -> toTuple3DProperty(yoVariableDatabase, referenceFrameManager, definition)).collect(Collectors.toList());
    }
 
-   public static CompositeProperty toCompositeProperty(YoVariableDatabase yoVariableDatabase, ReferenceFrameManager referenceFrameManager,
+   public static CompositeProperty toCompositeProperty(YoVariableDatabase yoVariableDatabase,
+                                                       ReferenceFrameManager referenceFrameManager,
                                                        YoCompositeDefinition definition)
    {
       if (definition == null)
          return null;
 
-      CompositeProperty property = new CompositeProperty(definition.getType(), definition.getComponentIdentifiers());
-      property.setComponentValueProperties(toDoublePropertyArray(yoVariableDatabase, definition.getComponentValues()));
-      property.setReferenceFrameProperty(toReferenceFrameProperty(yoVariableDatabase, referenceFrameManager, definition.getReferenceFrame()));
+      CompositeProperty property = new CompositeProperty(definition.getType(),
+                                                         definition.getComponentIdentifiers(),
+                                                         toReferenceFrameProperty(yoVariableDatabase, referenceFrameManager, definition.getReferenceFrame()),
+                                                         toDoublePropertyArray(yoVariableDatabase, definition.getComponentValues()));
       return property;
    }
 
-   public static Tuple2DProperty toTuple2DProperty(YoVariableDatabase yoVariableDatabase, ReferenceFrameManager referenceFrameManager,
+   public static Tuple2DProperty toTuple2DProperty(YoVariableDatabase yoVariableDatabase,
+                                                   ReferenceFrameManager referenceFrameManager,
                                                    YoCompositeDefinition definition)
    {
       if (definition == null)
@@ -77,7 +83,8 @@ public class CompositePropertyTools
       return new Tuple2DProperty(toCompositeProperty(yoVariableDatabase, referenceFrameManager, definition));
    }
 
-   public static Tuple3DProperty toTuple3DProperty(YoVariableDatabase yoVariableDatabase, ReferenceFrameManager referenceFrameManager,
+   public static Tuple3DProperty toTuple3DProperty(YoVariableDatabase yoVariableDatabase,
+                                                   ReferenceFrameManager referenceFrameManager,
                                                    YoCompositeDefinition definition)
    {
       if (definition == null)
@@ -85,7 +92,8 @@ public class CompositePropertyTools
       return new Tuple3DProperty(toCompositeProperty(yoVariableDatabase, referenceFrameManager, definition));
    }
 
-   public static Orientation3DProperty toOrientation3DProperty(YoVariableDatabase yoVariableDatabase, ReferenceFrameManager referenceFrameManager,
+   public static Orientation3DProperty toOrientation3DProperty(YoVariableDatabase yoVariableDatabase,
+                                                               ReferenceFrameManager referenceFrameManager,
                                                                YoCompositeDefinition definition)
    {
       if (definition == null)
@@ -98,7 +106,8 @@ public class CompositePropertyTools
          throw new UnsupportedOperationException("Unsupported orientation definition: " + definition.getType());
    }
 
-   public static QuaternionProperty toQuaternionProperty(YoVariableDatabase yoVariableDatabase, ReferenceFrameManager referenceFrameManager,
+   public static QuaternionProperty toQuaternionProperty(YoVariableDatabase yoVariableDatabase,
+                                                         ReferenceFrameManager referenceFrameManager,
                                                          YoCompositeDefinition definition)
    {
       if (definition == null)
@@ -106,7 +115,8 @@ public class CompositePropertyTools
       return new QuaternionProperty(toCompositeProperty(yoVariableDatabase, referenceFrameManager, definition));
    }
 
-   public static YawPitchRollProperty toYawPitchRollProperty(YoVariableDatabase yoVariableDatabase, ReferenceFrameManager referenceFrameManager,
+   public static YawPitchRollProperty toYawPitchRollProperty(YoVariableDatabase yoVariableDatabase,
+                                                             ReferenceFrameManager referenceFrameManager,
                                                              YoCompositeDefinition definition)
    {
       if (definition == null)
@@ -178,7 +188,8 @@ public class CompositePropertyTools
       }
    }
 
-   public static Property<ReferenceFrame> toReferenceFrameProperty(YoVariableDatabase yoVariableDatabase, ReferenceFrameManager referenceFrameManager,
+   public static Property<ReferenceFrame> toReferenceFrameProperty(YoVariableDatabase yoVariableDatabase,
+                                                                   ReferenceFrameManager referenceFrameManager,
                                                                    String field)
    {
       if (field == null)

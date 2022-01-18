@@ -2,8 +2,6 @@ package us.ihmc.scs2.definition.robot.urdf;
 
 import java.io.File;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,9 +35,12 @@ import us.ihmc.scs2.definition.geometry.GeometryDefinition;
 import us.ihmc.scs2.definition.geometry.ModelFileGeometryDefinition;
 import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
 import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
+import us.ihmc.scs2.definition.robot.ExternalWrenchPointDefinition;
 import us.ihmc.scs2.definition.robot.FixedJointDefinition;
+import us.ihmc.scs2.definition.robot.GroundContactPointDefinition;
 import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
 import us.ihmc.scs2.definition.robot.JointDefinition;
+import us.ihmc.scs2.definition.robot.KinematicPointDefinition;
 import us.ihmc.scs2.definition.robot.LidarSensorDefinition;
 import us.ihmc.scs2.definition.robot.OneDoFJointDefinition;
 import us.ihmc.scs2.definition.robot.PlanarJointDefinition;
@@ -50,6 +51,7 @@ import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.robot.SensorDefinition;
 import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
 import us.ihmc.scs2.definition.robot.WrenchSensorDefinition;
+import us.ihmc.scs2.definition.robot.sdf.SDFTools;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFAxis;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFColor;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFDynamics;
@@ -159,57 +161,7 @@ public class URDFTools
 
    public static String tryToConvertToPath(String filename, Collection<String> resourceDirectories, ClassLoader resourceClassLoader)
    {
-      try
-      {
-         URI uri = new URI(filename);
-
-         String authority = uri.getAuthority() == null ? "" : uri.getAuthority();
-
-         for (String resourceDirectory : resourceDirectories)
-         {
-            String fullname = resourceDirectory + authority + uri.getPath();
-            // Path relative to class root
-            if (resourceClassLoader.getResource(fullname) != null)
-            {
-               return fullname;
-            }
-            // Absolute path
-            if (new File(fullname).exists())
-            {
-               return fullname;
-            }
-         }
-
-         // Let's look in the parent directories of the resources if we can find a match to authority
-         String resourceContainingAuthority = null;
-
-         for (String resourceDirectory : resourceDirectories)
-         {
-            if (resourceDirectory.contains(authority))
-            {
-               resourceContainingAuthority = resourceDirectory;
-               break;
-            }
-         }
-
-         if (resourceContainingAuthority != null)
-         {
-            int lastIndexOf = resourceContainingAuthority.lastIndexOf(authority, resourceContainingAuthority.length());
-            String newResource = resourceContainingAuthority.substring(0, lastIndexOf);
-
-            if (!resourceDirectories.contains(newResource))
-            {
-               resourceDirectories.add(newResource);
-               return tryToConvertToPath(filename, resourceDirectories, resourceClassLoader);
-            }
-         }
-      }
-      catch (URISyntaxException e)
-      {
-         System.err.println("Malformed resource path in URDF file for path: " + filename);
-      }
-
-      return null;
+      return SDFTools.tryToConvertToPath(filename, resourceDirectories, resourceClassLoader);
    }
 
    public static RobotDefinition toFloatingRobotDefinition(URDFModel urdfModel)
@@ -247,6 +199,9 @@ public class URDFTools
 
    public static void addSensor(List<URDFGazebo> urdfGazebos, List<JointDefinition> jointDefinitions)
    {
+      if (urdfGazebos == null || urdfGazebos.isEmpty())
+         return;
+
       Map<String, JointDefinition> jointDefinitionMap = jointDefinitions.stream().collect(Collectors.toMap(JointDefinition::getName, Function.identity()));
       Map<String, JointDefinition> linkNameToJointDefinitionMap = jointDefinitions.stream().collect(Collectors.toMap(joint -> joint.getSuccessor().getName(),
                                                                                                                      Function.identity()));
@@ -274,10 +229,16 @@ public class URDFTools
 
    public static void simplifyKinematics(JointDefinition joint)
    {
-      List<JointDefinition> childrenJoints = new ArrayList<>(joint.getSuccessor().getChildrenJoints());
-
-      for (JointDefinition child : childrenJoints)
+      // The children list may shrink or grow depending the simplyKinematics(joint.child)
+      // Also, if a child is a fixed-joint, the successor of this joint will be replaced with a new one, so can't save the successor as a local variable.
+      for (int i = 0; i < joint.getSuccessor().getChildrenJoints().size();)
       {
+         List<JointDefinition> children = joint.getSuccessor().getChildrenJoints();
+         JointDefinition child = children.get(i);
+
+         if (!(child instanceof FixedJointDefinition))
+            i++; // This child won't be removed, we can increment to the next.
+
          simplifyKinematics(child);
       }
 
@@ -319,7 +280,7 @@ public class URDFTools
             parentJoint.addSensorDefinition(sensor);
             return true;
          });
-         childrenJoints.removeIf(child ->
+         joint.getSuccessor().getChildrenJoints().removeIf(child ->
          {
             child.getTransformToParent().preMultiply(transformToParentJoint);
             parentJoint.getSuccessor().addChildJoint(child);
@@ -451,8 +412,18 @@ public class URDFTools
       inertiaPose.transform(linkDefinition.getMomentOfInertia());
       inertiaPose.getRotation().setToZero();
 
+      for (KinematicPointDefinition kinematicPointDefinition : jointDefinition.getKinematicPointDefinitions())
+         kinematicPointDefinition.getTransformToParent().prependOrientation(jointRotation);
+      for (ExternalWrenchPointDefinition externalWrenchPointDefinition : jointDefinition.getExternalWrenchPointDefinitions())
+         externalWrenchPointDefinition.getTransformToParent().prependOrientation(jointRotation);
+      for (GroundContactPointDefinition groundContactPointDefinition : jointDefinition.getGroundContactPointDefinitions())
+         groundContactPointDefinition.getTransformToParent().prependOrientation(jointRotation);
+
       for (SensorDefinition sensorDefinition : jointDefinition.getSensorDefinitions())
          sensorDefinition.getTransformToJoint().prependOrientation(jointRotation);
+
+      for (VisualDefinition visualDefinition : linkDefinition.getVisualDefinitions())
+         visualDefinition.getOriginPose().prependOrientation(jointRotation);
 
       for (JointDefinition childDefinition : jointDefinition.getSuccessor().getChildrenJoints())
       {

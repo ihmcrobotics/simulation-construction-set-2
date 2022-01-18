@@ -29,6 +29,7 @@ import us.ihmc.euclid.yawPitchRoll.YawPitchRoll;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.AffineTransformDefinition;
 import us.ihmc.scs2.definition.YawPitchRollTransformDefinition;
+import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
 import us.ihmc.scs2.definition.geometry.Box3DDefinition;
 import us.ihmc.scs2.definition.geometry.Cylinder3DDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
@@ -47,6 +48,7 @@ import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.robot.SensorDefinition;
 import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
+import us.ihmc.scs2.definition.robot.sdf.items.SDFCollision;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFGeometry;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFInertia;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFJoint;
@@ -194,15 +196,27 @@ public class SDFTools
       }
       catch (URISyntaxException e)
       {
-         System.err.println("Malformed resource path in SDF file for path: " + filename);
+         System.err.println(SDFTools.class.getSimpleName() + ": Malformed resource path in SDF file for path: " + filename);
       }
 
+      System.err.println(SDFTools.class.getSimpleName() + ": Unable to resolve the path: " + filename);
+
       return null;
+   }
+
+   public static RobotDefinition toFloatingRobotDefinition(SDFRoot sdfRoot, String modelName)
+   {
+      return toFloatingRobotDefinition(sdfRoot.getModels().stream().filter(model -> model.getName().equals(modelName)).findFirst().get());
    }
 
    public static RobotDefinition toFloatingRobotDefinition(SDFModel sdfModel)
    {
       return toRobotDefinition(new SixDoFJointDefinition(), sdfModel);
+   }
+
+   public static RobotDefinition toRobotDefinition(JointDefinition rootJointDefinition, SDFRoot sdfRoot, String modelName)
+   {
+      return toRobotDefinition(rootJointDefinition, sdfRoot.getModels().stream().filter(model -> model.getName().equals(modelName)).findFirst().get());
    }
 
    public static RobotDefinition toRobotDefinition(JointDefinition rootJointDefinition, SDFModel sdfModel)
@@ -354,6 +368,8 @@ public class SDFTools
 
       if (sdfLink.getVisuals() != null)
          sdfLink.getVisuals().stream().map(SDFTools::toVisualDefinition).forEach(definition::addVisualDefinition);
+      if (sdfLink.getCollisions() != null)
+         sdfLink.getCollisions().stream().map(SDFTools::toCollisionShapeDefinition).forEach(definition::addCollisionShapeDefinition);
 
       return definition;
    }
@@ -575,6 +591,18 @@ public class SDFTools
       visualDefinition.setMaterialDefinition(toMaterialDefinition(sdfVisual.getMaterial()));
       visualDefinition.setGeometryDefinition(toGeometryDefinition(sdfVisual.getGeometry()));
       return visualDefinition;
+   }
+
+   public static CollisionShapeDefinition toCollisionShapeDefinition(SDFCollision sdfCollision)
+   {
+      if (sdfCollision == null)
+         return null;
+
+      CollisionShapeDefinition collisionShapeDefinition = new CollisionShapeDefinition();
+      collisionShapeDefinition.setName(sdfCollision.getName());
+      collisionShapeDefinition.setOriginPose(parsePose(sdfCollision.getPose()));
+      collisionShapeDefinition.setGeometryDefinition(toGeometryDefinition(sdfCollision.getGeometry()));
+      return collisionShapeDefinition;
    }
 
    public static GeometryDefinition toGeometryDefinition(SDFGeometry sdfGeometry)

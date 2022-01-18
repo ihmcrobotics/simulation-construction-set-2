@@ -1,7 +1,7 @@
 plugins {
    id("us.ihmc.ihmc-build")
-   id("us.ihmc.ihmc-ci") version "7.4"
-   id("us.ihmc.ihmc-cd") version "1.21"
+   id("us.ihmc.ihmc-ci") version "7.6"
+   id("us.ihmc.ihmc-cd") version "1.23"
 }
 
 ihmc {
@@ -36,7 +36,7 @@ mainDependencies {
    api("us.ihmc:ihmc-video-codecs:2.1.6")
    api("us.ihmc:ihmc-robot-data-logger:0.20.9")
    api("us.ihmc:svgloader:0.0")
-   api("us.ihmc:ihmc-javafx-extensions:15-0.0.3")
+   api("us.ihmc:ihmc-javafx-extensions:0.0.3")
 
    api("org.reflections:reflections:0.9.11")
 

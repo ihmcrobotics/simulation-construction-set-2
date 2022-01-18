@@ -8,11 +8,6 @@ import us.ihmc.euclid.tuple4D.Quaternion;
 
 public abstract class Orientation3DProperty extends CompositeProperty implements FrameOrientation3DReadOnly
 {
-   public Orientation3DProperty()
-   {
-      super();
-   }
-
    public Orientation3DProperty(String type, String[] componentIdentifiers)
    {
       super(type, componentIdentifiers);

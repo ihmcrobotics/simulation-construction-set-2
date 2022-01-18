@@ -17,14 +17,10 @@ import us.ihmc.euclid.tuple2D.interfaces.Vector2DReadOnly;
 
 public class CompositeProperty implements ReferenceFrameHolder
 {
-   protected String type;
-   protected String[] componentIdentifiers;
+   protected final String type;
+   protected final String[] componentIdentifiers;
    protected DoubleProperty[] componentValueProperties;
    protected Property<ReferenceFrame> referenceFrameProperty;
-
-   public CompositeProperty()
-   {
-   }
 
    public CompositeProperty(String type, String[] componentIdentifiers)
    {
@@ -59,13 +55,19 @@ public class CompositeProperty implements ReferenceFrameHolder
 
    public CompositeProperty(CompositeProperty other)
    {
+      type = other.type;
+      componentIdentifiers = other.componentIdentifiers;
       set(other);
    }
 
    public void set(CompositeProperty other)
    {
-      type = other.type;
-      componentIdentifiers = other.componentIdentifiers;
+      if (!type.equals(other.type))
+         throw new IllegalArgumentException("Incompatible composite type: this=" + type + ", other=" + other.type);
+      if (!Arrays.deepEquals(componentIdentifiers, other.componentIdentifiers))
+         throw new IllegalArgumentException("Incompatible composite identifiers: this=" + Arrays.toString(componentIdentifiers) + ", other="
+               + Arrays.toString(componentIdentifiers));
+
       componentValueProperties = Arrays.copyOf(other.componentValueProperties, other.componentValueProperties.length);
       referenceFrameProperty = other.referenceFrameProperty;
    }

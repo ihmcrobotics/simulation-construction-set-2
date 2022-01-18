@@ -1,13 +1,12 @@
 package us.ihmc.scs2.examples.sessionVisualizer.jfx.model.viewer;
 
 import java.io.File;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.xml.bind.JAXBException;
 
 import javafx.application.Platform;
-import javafx.scene.Node;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
@@ -23,8 +22,7 @@ import us.ihmc.scs2.definition.robot.urdf.URDFTools;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFModel;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.FrameNode;
-import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.JavaFXMultiBodySystemFactories;
-import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.JavaFXRigidBody;
+import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.RigidBodyFrameNodeFactories;
 
 public class SimpleModelViewer
 {
@@ -86,27 +84,21 @@ public class SimpleModelViewer
          return;
       }
 
-      RigidBodyBasics rigidBody = robotDefinition.newIntance(rootFrame);
-      JavaFXRigidBody javaFXRootBody = JavaFXMultiBodySystemFactories.toJavaFXMultiBodySystem(rigidBody, rootFrame, robotDefinition);
-      javaFXRootBody.updateFramesRecursively();
-      javaFXRootBody.updateSubtreeGraphics();
+      RigidBodyBasics rigidBody = robotDefinition.newInstance(rootFrame);
+      Map<String, FrameNode> frameNodes = new LinkedHashMap<>();
+      RigidBodyFrameNodeFactories.createRobotFrameNodeMap(rigidBody, robotDefinition, null, frameNodes);
+      rigidBody.updateFramesRecursively();
+      frameNodes.values().forEach(FrameNode::updatePose);
 
-      List<Node> graphicsNodes = collectGraphicsNodes(javaFXRootBody);
 
       View3DFactory view3dFactory = new View3DFactory(1024, 768);
       view3dFactory.addWorldCoordinateSystem(0.2);
-      view3dFactory.addNodesToView(graphicsNodes);
+      frameNodes.values().forEach(frameNode -> view3dFactory.addNodeToView(frameNode.getNode()));
       view3dFactory.addCameraController();
 
       primaryStage.setTitle("Robot Model Viewer");
       primaryStage.setScene(view3dFactory.getScene());
       primaryStage.show();
-   }
-
-   public static List<Node> collectGraphicsNodes(JavaFXRigidBody rootBody)
-   {
-      return rootBody.subtreeStream().map(JavaFXRigidBody::getGraphics).filter(graphics -> graphics != null).map(FrameNode::getNode)
-                     .collect(Collectors.toList());
    }
 
    public void stop()

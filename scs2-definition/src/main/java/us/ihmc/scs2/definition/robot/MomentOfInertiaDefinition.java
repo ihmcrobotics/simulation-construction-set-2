@@ -78,6 +78,18 @@ public class MomentOfInertiaDefinition implements Matrix3DBasics
       setIyz(matrix1.getM12() + matrix2.getM12());
    }
 
+   @Override
+   public void scale(double scalar)
+   {
+      scaleM00(scalar);
+      scaleM11(scalar);
+      scaleM22(scalar);
+
+      scaleM01(scalar);
+      scaleM02(scalar);
+      scaleM12(scalar);
+   }
+
    @XmlAttribute
    public void setIxx(double ixx)
    {

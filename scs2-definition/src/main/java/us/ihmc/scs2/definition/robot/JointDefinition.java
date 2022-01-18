@@ -15,10 +15,9 @@ import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyBasics;
 import us.ihmc.scs2.definition.YawPitchRollTransformDefinition;
-import us.ihmc.scs2.definition.state.JointStateBase;
 import us.ihmc.scs2.definition.state.interfaces.JointStateBasics;
+import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
 
-// TODO Add option for loop closure
 public abstract class JointDefinition implements Transformable
 {
    private String name;
@@ -26,12 +25,13 @@ public abstract class JointDefinition implements Transformable
 
    private RigidBodyDefinition predecessor;
    private RigidBodyDefinition successor;
-   private JointStateBase initialJointState;
 
    private List<SensorDefinition> sensorDefinitions = new ArrayList<>();
    private List<KinematicPointDefinition> kinematicPointDefinitions = new ArrayList<>();
    private List<ExternalWrenchPointDefinition> externalWrenchPointDefinitions = new ArrayList<>();
    private List<GroundContactPointDefinition> groundContactPointDefinitions = new ArrayList<>();
+
+   private LoopClosureDefinition loopClosureDefinition = null;
 
    public JointDefinition()
    {
@@ -52,8 +52,6 @@ public abstract class JointDefinition implements Transformable
    {
       name = other.name;
       transformToParent.set(other.transformToParent);
-      if (other.initialJointState != null)
-         initialJointState = other.initialJointState.copy();
       for (SensorDefinition sensorDefinition : other.sensorDefinitions)
          sensorDefinitions.add(sensorDefinition.copy());
       for (KinematicPointDefinition kinematicPointDefinition : other.kinematicPointDefinitions)
@@ -62,6 +60,7 @@ public abstract class JointDefinition implements Transformable
          externalWrenchPointDefinitions.add(externalWrenchPointDefinition.copy());
       for (GroundContactPointDefinition groundContactPointDefinition : other.groundContactPointDefinitions)
          groundContactPointDefinitions.add(groundContactPointDefinition.copy());
+      loopClosureDefinition = other.loopClosureDefinition == null ? null : other.loopClosureDefinition.copy();
    }
 
    @XmlAttribute
@@ -102,6 +101,14 @@ public abstract class JointDefinition implements Transformable
       return predecessor;
    }
 
+   @XmlTransient
+   public void setLoopClosureSuccessor(RigidBodyDefinition successor)
+   {
+      if (loopClosureDefinition == null)
+         loopClosureDefinition = new LoopClosureDefinition();
+      this.successor = successor;
+   }
+
    @XmlElement
    public void setSuccessor(RigidBodyDefinition successor)
    {
@@ -127,16 +134,9 @@ public abstract class JointDefinition implements Transformable
          return predecessor.getParentJoint();
    }
 
-   @XmlElement(name = "initialJointState")
-   public void setInitialJointState(JointStateBase initialJointState)
-   {
-      this.initialJointState = initialJointState;
-   }
+   public abstract void setInitialJointState(JointStateReadOnly initialJointState);
 
-   public JointStateBasics getInitialJointState()
-   {
-      return initialJointState;
-   }
+   public abstract JointStateBasics getInitialJointState();
 
    @XmlElement(name = "sensor")
    public void setSensorDefinitions(List<SensorDefinition> sensorDefinitions)
@@ -207,6 +207,21 @@ public abstract class JointDefinition implements Transformable
       return groundContactPointDefinitions;
    }
 
+   public void setLoopClosureDefinition(LoopClosureDefinition loopClosureDefinition)
+   {
+      this.loopClosureDefinition = loopClosureDefinition;
+   }
+
+   public boolean isLoopClosure()
+   {
+      return loopClosureDefinition != null;
+   }
+
+   public LoopClosureDefinition getLoopClosureDefinition()
+   {
+      return loopClosureDefinition;
+   }
+
    public abstract JointBasics toJoint(RigidBodyBasics predecessor);
 
    @Override
@@ -234,7 +249,8 @@ public abstract class JointDefinition implements Transformable
    public JointDefinition copyRecursive()
    {
       JointDefinition copy = copy();
-      copy.setSuccessor(successor.copyRecursive());
+      if (!isLoopClosure()) // Prevent infinite copying loop, but needs to be addressed manually
+         copy.setSuccessor(successor.copyRecursive());
       return copy;
    }
 

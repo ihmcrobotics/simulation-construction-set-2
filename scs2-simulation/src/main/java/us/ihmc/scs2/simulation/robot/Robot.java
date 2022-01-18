@@ -6,16 +6,21 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import us.ihmc.euclid.matrix.interfaces.Matrix3DReadOnly;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.log.LogTools;
 import us.ihmc.mecano.frames.MovingReferenceFrame;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointMatrixIndexProvider;
 import us.ihmc.mecano.multiBodySystem.iterators.SubtreeStreams;
+import us.ihmc.scs2.definition.controller.interfaces.ControllerDefinition;
 import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
+import us.ihmc.scs2.definition.robot.CrossFourBarJointDefinition;
 import us.ihmc.scs2.definition.robot.FixedJointDefinition;
 import us.ihmc.scs2.definition.robot.IMUSensorDefinition;
 import us.ihmc.scs2.definition.robot.JointDefinition;
+import us.ihmc.scs2.definition.robot.LoopClosureDefinition;
 import us.ihmc.scs2.definition.robot.PlanarJointDefinition;
 import us.ihmc.scs2.definition.robot.PrismaticJointDefinition;
 import us.ihmc.scs2.definition.robot.RevoluteJointDefinition;
@@ -25,7 +30,9 @@ import us.ihmc.scs2.definition.robot.SensorDefinition;
 import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
 import us.ihmc.scs2.definition.robot.WrenchSensorDefinition;
 import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
+import us.ihmc.scs2.simulation.robot.controller.LoopClosureSoftConstraintController;
 import us.ihmc.scs2.simulation.robot.controller.RobotControllerManager;
+import us.ihmc.scs2.simulation.robot.multiBodySystem.SimCrossFourBarJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimFixedJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimPlanarJoint;
 import us.ihmc.scs2.simulation.robot.multiBodySystem.SimPrismaticJoint;
@@ -86,6 +93,8 @@ public class Robot implements RobotInterface
                                        .collect(Collectors.toList());
 
       controllerManager = new RobotControllerManager(this, registry);
+
+      createSoftConstraintControllerDefinitions(robotDefinition).forEach(controllerManager::addController);
       robotDefinition.getControllerDefinitions().forEach(controllerManager::addController);
    }
 
@@ -102,6 +111,7 @@ public class Robot implements RobotInterface
    {
       SimRigidBody rootBody = bodyBuilder.rootFromDefinition(rootBodyDefinition, inertialFrame, registry);
       createJointsRecursive(rootBody, rootBodyDefinition, jointBuilder, bodyBuilder, registry);
+      RobotDefinition.closeLoops(rootBody, rootBodyDefinition);
       return rootBody;
    }
 
@@ -114,6 +124,10 @@ public class Robot implements RobotInterface
       for (JointDefinition childJointDefinition : rigidBodyDefinition.getChildrenJoints())
       {
          SimJointBasics childJoint = jointBuilder.fromDefinition(childJointDefinition, rigidBody);
+
+         if (childJointDefinition.isLoopClosure())
+            continue;
+
          SimRigidBody childSuccessor = bodyBuilder.fromDefinition(childJointDefinition.getSuccessor(), childJoint);
 
          childJointDefinition.getKinematicPointDefinitions().forEach(childJoint.getAuxialiryData()::addKinematicPoint);
@@ -133,6 +147,42 @@ public class Robot implements RobotInterface
 
          createJointsRecursive(childSuccessor, childJointDefinition.getSuccessor(), jointBuilder, bodyBuilder, registry);
       }
+   }
+
+   public static List<ControllerDefinition> createSoftConstraintControllerDefinitions(RobotDefinition robotDefinition)
+   {
+      List<ControllerDefinition> controllerDefinitions = new ArrayList<>();
+
+      for (JointDefinition jointDefinition : robotDefinition.getAllJoints())
+      {
+         if (!jointDefinition.isLoopClosure())
+            continue;
+
+         controllerDefinitions.add((controllerInput, controllerOutput) ->
+         {
+            String name = jointDefinition.getName();
+            LoopClosureDefinition loopClosureDefinition = jointDefinition.getLoopClosureDefinition();
+            RigidBodyTransformReadOnly transformToParentJoint = jointDefinition.getTransformToParent();
+            RigidBodyTransformReadOnly transformToSuccessorParentJoint = loopClosureDefinition.getTransformToSuccessorParent();
+
+            Matrix3DReadOnly constraintForceSubSpace = LoopClosureDefinition.jointForceSubSpace(jointDefinition);
+            Matrix3DReadOnly constraintMomentSubSpace = LoopClosureDefinition.jointMomentSubSpace(jointDefinition);
+            if (constraintForceSubSpace == null || constraintMomentSubSpace == null)
+               throw new UnsupportedOperationException("Loop closure not supported for " + jointDefinition);
+
+            LoopClosureSoftConstraintController constraint = new LoopClosureSoftConstraintController(name,
+                                                                                                     transformToParentJoint,
+                                                                                                     transformToSuccessorParentJoint,
+                                                                                                     constraintForceSubSpace,
+                                                                                                     constraintMomentSubSpace);
+            constraint.setParentJoint((SimJointBasics) controllerInput.getInput().findJoint(jointDefinition.getParentJoint().getName()));
+            constraint.setSuccessor((SimRigidBodyBasics) controllerInput.getInput().findRigidBody(jointDefinition.getSuccessor().getName()));
+            constraint.setGains(loopClosureDefinition.getKpSoftConstraint(), loopClosureDefinition.getKdSoftConstraint());
+            return constraint;
+         });
+      }
+
+      return controllerDefinitions;
    }
 
    @Override
@@ -233,6 +283,8 @@ public class Robot implements RobotInterface
             return new SimPrismaticJoint((PrismaticJointDefinition) definition, predecessor);
          else if (definition instanceof RevoluteJointDefinition)
             return new SimRevoluteJoint((RevoluteJointDefinition) definition, predecessor);
+         else if (definition instanceof CrossFourBarJointDefinition)
+            return new SimCrossFourBarJoint((CrossFourBarJointDefinition) definition, predecessor);
          else
             throw new UnsupportedOperationException("Unsupported joint definition: " + definition.getClass().getSimpleName());
       }

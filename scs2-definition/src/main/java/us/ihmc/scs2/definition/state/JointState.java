@@ -11,6 +11,7 @@ import us.ihmc.mecano.multiBodySystem.interfaces.JointBasics;
 import us.ihmc.mecano.multiBodySystem.interfaces.JointReadOnly;
 import us.ihmc.mecano.tools.JointStateType;
 import us.ihmc.scs2.definition.state.interfaces.JointStateBasics;
+import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
 
 public class JointState extends JointStateBase implements JointStateBasics
 {
@@ -44,10 +45,45 @@ public class JointState extends JointStateBase implements JointStateBasics
       availableStates.addAll(other.availableStates);
    }
 
+   public JointState(JointStateReadOnly other)
+   {
+      this(other.getConfigurationSize(), other.getDegreesOfFreedom());
+      set(other);
+   }
+
    @Override
    public void clear()
    {
       availableStates.clear();
+   }
+
+   @Override
+   public void set(JointStateReadOnly other)
+   {
+      if (other.getConfigurationSize() != configurationSize || other.getDegreesOfFreedom() != degreesOfFreedom)
+         throw new IllegalArgumentException("Dimension mismatch");
+
+      clear();
+      if (other.hasOutputFor(JointStateType.CONFIGURATION))
+      {
+         other.getConfiguration(0, configuration);
+         availableStates.add(JointStateType.CONFIGURATION);
+      }
+      if (other.hasOutputFor(JointStateType.VELOCITY))
+      {
+         other.getVelocity(0, velocity);
+         availableStates.add(JointStateType.VELOCITY);
+      }
+      if (other.hasOutputFor(JointStateType.ACCELERATION))
+      {
+         other.getAcceleration(0, acceleration);
+         availableStates.add(JointStateType.ACCELERATION);
+      }
+      if (other.hasOutputFor(JointStateType.EFFORT))
+      {
+         other.getEffort(0, effort);
+         availableStates.add(JointStateType.EFFORT);
+      }
    }
 
    @Override
@@ -71,12 +107,28 @@ public class JointState extends JointStateBase implements JointStateBasics
    }
 
    @Override
+   public int setConfiguration(int startRow, DMatrix configuration)
+   {
+      CommonOps_DDRM.extract(configuration, startRow, startRow + getConfigurationSize(), 0, 1, this.configuration);
+      availableStates.add(JointStateType.CONFIGURATION);
+      return startRow + getConfigurationSize();
+   }
+
+   @Override
    public void setVelocity(JointReadOnly joint)
    {
       checkDegreesOfFreedom(joint);
       availableStates.add(JointStateType.VELOCITY);
       velocity.reshape(joint.getDegreesOfFreedom(), 1);
       joint.getJointVelocity(0, velocity);
+   }
+
+   @Override
+   public int setVelocity(int startRow, DMatrix velocity)
+   {
+      CommonOps_DDRM.extract(velocity, startRow, startRow + getDegreesOfFreedom(), 0, 1, this.velocity);
+      availableStates.add(JointStateType.VELOCITY);
+      return startRow + getDegreesOfFreedom();
    }
 
    @Override
@@ -89,12 +141,28 @@ public class JointState extends JointStateBase implements JointStateBasics
    }
 
    @Override
+   public int setAcceleration(int startRow, DMatrix acceleration)
+   {
+      CommonOps_DDRM.extract(acceleration, startRow, startRow + getDegreesOfFreedom(), 0, 1, this.acceleration);
+      availableStates.add(JointStateType.ACCELERATION);
+      return startRow + getDegreesOfFreedom();
+   }
+
+   @Override
    public void setEffort(JointReadOnly joint)
    {
       checkDegreesOfFreedom(joint);
       availableStates.add(JointStateType.EFFORT);
       effort.reshape(joint.getDegreesOfFreedom(), 1);
       joint.getJointTau(0, effort);
+   }
+
+   @Override
+   public int setEffort(int startRow, DMatrix effort)
+   {
+      CommonOps_DDRM.extract(effort, startRow, startRow + getDegreesOfFreedom(), 0, 1, this.effort);
+      availableStates.add(JointStateType.EFFORT);
+      return startRow + getDegreesOfFreedom();
    }
 
    @Override

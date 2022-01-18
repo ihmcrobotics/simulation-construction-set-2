@@ -31,6 +31,6 @@ public class LinkedYoEnum<E extends Enum<E>> extends LinkedYoVariable<YoEnum<E>>
    @Override
    public String toString()
    {
-      return String.format("%s: %s", linkedYoVariable.getName(), linkedYoVariable.getValue());
+      return String.format("%s: %s", linkedYoVariable.getName(), linkedYoVariable.getStringValue());
    }
 }

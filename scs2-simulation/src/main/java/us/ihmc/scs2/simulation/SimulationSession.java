@@ -16,6 +16,7 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import us.ihmc.commons.Conversions;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
 import us.ihmc.messager.Messager;
 import us.ihmc.messager.TopicListener;
 import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
@@ -40,7 +41,8 @@ import us.ihmc.yoVariables.exceptions.IllegalOperationException;
 
 public class SimulationSession extends Session
 {
-   private final ReferenceFrame inertialFrame;
+   public static final ReferenceFrame DEFAULT_INERTIAL_FRAME = ReferenceFrameTools.constructARootFrame("worldFrame");
+
    private final PhysicsEngine physicsEngine;
    private final YoFrameVector3D gravity = new YoFrameVector3D("gravity", ReferenceFrame.getWorldFrame(), rootRegistry);
    private final String simulationName;
@@ -71,7 +73,7 @@ public class SimulationSession extends Session
 
    public SimulationSession(String simulationName)
    {
-      this(Session.DEFAULT_INERTIAL_FRAME, simulationName);
+      this(DEFAULT_INERTIAL_FRAME, simulationName);
    }
 
    public SimulationSession(ReferenceFrame inertialFrame, String simulationName)
@@ -81,15 +83,16 @@ public class SimulationSession extends Session
 
    public SimulationSession(String simulationName, PhysicsEngineFactory physicsEngineFactory)
    {
-      this(Session.DEFAULT_INERTIAL_FRAME, simulationName, physicsEngineFactory);
+      this(DEFAULT_INERTIAL_FRAME, simulationName, physicsEngineFactory);
    }
 
    public SimulationSession(ReferenceFrame inertialFrame, String simulationName, PhysicsEngineFactory physicsEngineFactory)
    {
+      super(inertialFrame);
+
       if (!inertialFrame.isRootFrame())
          throw new IllegalArgumentException("The given inertialFrame is not a root frame: " + inertialFrame);
 
-      this.inertialFrame = inertialFrame;
       this.simulationName = simulationName;
 
       physicsEngine = physicsEngineFactory.build(inertialFrame, rootRegistry);
@@ -246,12 +249,6 @@ public class SimulationSession extends Session
       {
          addYoGraphicDefinition(yoGraphicDefinition);
       }
-   }
-
-   @Override
-   public ReferenceFrame getInertialFrame()
-   {
-      return inertialFrame;
    }
 
    @Override

@@ -15,7 +15,7 @@ import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.CameraObjectTrackingRequest;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
-import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.JavaFXRigidBody;
+import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.FrameNode;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoRobot.YoRobotFX;
@@ -51,22 +51,22 @@ public class YoRobotFXManager extends ObservedAnimationTimer implements Manager
 
          if (rigidBodyName != null)
          {
-            Optional<JavaFXRigidBody> result;
+            Optional<FrameNode> result;
 
             if (robotName != null)
             {
                result = robots.stream().filter(r -> r.getRobotDefinition().getName().equalsIgnoreCase(robotName)).findFirst()
-                              .map(r -> r.findRigidBody(rigidBodyName));
+                              .map(r -> r.findRigidBodyFrameNode(rigidBodyName));
             }
             else
             {
-               result = robots.stream().map(r -> r.findRigidBody(rigidBodyName)).filter(Objects::nonNull).findFirst();
+               result = robots.stream().map(r -> r.findRigidBodyFrameNode(rigidBodyName)).filter(Objects::nonNull).findFirst();
             }
 
-            result.ifPresent(rigidBody ->
+            result.ifPresent(rigidBodyFrameNode ->
             {
-               if (rigidBody.getGraphics() != null && rigidBody.getGraphics().getNode() != null)
-                  messager.submitMessage(topics.getCameraTrackObject(), new CameraObjectTrackingRequest(rigidBody.getGraphics().getNode()));
+               if (rigidBodyFrameNode != null && rigidBodyFrameNode.getNode() != null)
+                  messager.submitMessage(topics.getCameraTrackObject(), new CameraObjectTrackingRequest(rigidBodyFrameNode.getNode()));
             });
          }
       });

@@ -3,6 +3,9 @@ package us.ihmc.scs2.definition.state;
 import java.util.EnumSet;
 import java.util.Set;
 
+import org.ejml.data.DMatrix;
+import org.ejml.data.DMatrixRMaj;
+
 import us.ihmc.euclid.geometry.Pose3D;
 import us.ihmc.euclid.geometry.interfaces.Pose3DReadOnly;
 import us.ihmc.euclid.orientation.interfaces.Orientation3DReadOnly;
@@ -10,7 +13,9 @@ import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.mecano.tools.JointStateType;
+import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
 import us.ihmc.scs2.definition.state.interfaces.SixDoFJointStateBasics;
+import us.ihmc.scs2.definition.state.interfaces.SixDoFJointStateReadOnly;
 
 public class SixDoFJointState extends JointStateBase implements SixDoFJointStateBasics
 {
@@ -23,6 +28,8 @@ public class SixDoFJointState extends JointStateBase implements SixDoFJointState
    private final Vector3D torque = new Vector3D();
    private final Vector3D force = new Vector3D();
 
+   private final DMatrixRMaj temp = new DMatrixRMaj(7, 1);
+
    public SixDoFJointState()
    {
    }
@@ -32,7 +39,18 @@ public class SixDoFJointState extends JointStateBase implements SixDoFJointState
       setConfiguration(orientation, position);
    }
 
-   public SixDoFJointState(SixDoFJointState other)
+   public SixDoFJointState(JointStateReadOnly other)
+   {
+      set(other);
+   }
+
+   @Override
+   public void clear()
+   {
+      availableStates.clear();
+   }
+
+   public void set(SixDoFJointState other)
    {
       configuration.set(other.configuration);
       angularVelocity.set(other.angularVelocity);
@@ -45,9 +63,42 @@ public class SixDoFJointState extends JointStateBase implements SixDoFJointState
    }
 
    @Override
-   public void clear()
+   public void set(JointStateReadOnly jointStateReadOnly)
    {
-      availableStates.clear();
+      if (jointStateReadOnly instanceof SixDoFJointState)
+      {
+         set((SixDoFJointState) jointStateReadOnly);
+      }
+      else if (jointStateReadOnly instanceof SixDoFJointStateReadOnly)
+      {
+         SixDoFJointStateBasics.super.set((SixDoFJointStateReadOnly) jointStateReadOnly);
+      }
+      else
+      {
+         if (jointStateReadOnly.getConfigurationSize() != getConfigurationSize() || jointStateReadOnly.getDegreesOfFreedom() != getDegreesOfFreedom())
+            throw new IllegalArgumentException("Dimension mismatch");
+         clear();
+         if (jointStateReadOnly.hasOutputFor(JointStateType.CONFIGURATION))
+         {
+            jointStateReadOnly.getConfiguration(0, temp);
+            setConfiguration(0, temp);
+         }
+         if (jointStateReadOnly.hasOutputFor(JointStateType.VELOCITY))
+         {
+            jointStateReadOnly.getVelocity(0, temp);
+            setVelocity(0, temp);
+         }
+         if (jointStateReadOnly.hasOutputFor(JointStateType.ACCELERATION))
+         {
+            jointStateReadOnly.getAcceleration(0, temp);
+            setAcceleration(0, temp);
+         }
+         if (jointStateReadOnly.hasOutputFor(JointStateType.EFFORT))
+         {
+            jointStateReadOnly.getEffort(0, temp);
+            setEffort(0, temp);
+         }
+      }
    }
 
    @Override
@@ -67,6 +118,15 @@ public class SixDoFJointState extends JointStateBase implements SixDoFJointState
    }
 
    @Override
+   public int setConfiguration(int startRow, DMatrix configuration)
+   {
+      this.configuration.getOrientation().set(startRow, configuration);
+      this.configuration.getPosition().set(startRow + 4, configuration);
+      availableStates.add(JointStateType.CONFIGURATION);
+      return startRow + getConfigurationSize();
+   }
+
+   @Override
    public void setVelocity(Vector3DReadOnly angularVelocity, Vector3DReadOnly linearVelocity)
    {
       availableStates.add(JointStateType.VELOCITY);
@@ -81,19 +141,58 @@ public class SixDoFJointState extends JointStateBase implements SixDoFJointState
    }
 
    @Override
+   public int setVelocity(int startRow, DMatrix velocity)
+   {
+      angularVelocity.set(startRow, velocity);
+      linearVelocity.set(startRow + 3, velocity);
+      availableStates.add(JointStateType.VELOCITY);
+      return startRow + getDegreesOfFreedom();
+   }
+
+   @Override
    public void setAcceleration(Vector3DReadOnly angularAcceleration, Vector3DReadOnly linearAcceleration)
    {
       availableStates.add(JointStateType.ACCELERATION);
-      this.angularAcceleration.set(angularAcceleration);
-      this.linearAcceleration.set(linearAcceleration);
+      if (angularAcceleration != null)
+         this.angularAcceleration.set(angularAcceleration);
+      else
+         this.angularAcceleration.setToZero();
+      if (linearAcceleration != null)
+         this.linearAcceleration.set(linearAcceleration);
+      else
+         this.linearAcceleration.setToZero();
+   }
+
+   @Override
+   public int setAcceleration(int startRow, DMatrix acceleration)
+   {
+      angularAcceleration.set(startRow, acceleration);
+      linearAcceleration.set(startRow + 3, acceleration);
+      availableStates.add(JointStateType.ACCELERATION);
+      return startRow + getDegreesOfFreedom();
    }
 
    @Override
    public void setEffort(Vector3DReadOnly torque, Vector3DReadOnly force)
    {
       availableStates.add(JointStateType.EFFORT);
-      this.torque.set(torque);
-      this.force.set(force);
+      if (torque != null)
+         this.torque.set(torque);
+      else
+         this.torque.setToZero();
+      if (force != null)
+         this.force.set(force);
+      else
+         this.force.setToZero();
+   }
+
+   @Override
+   public int setEffort(int startRow, DMatrix effort)
+   {
+      torque.set(startRow, effort);
+      force.set(startRow + 3, effort);
+      availableStates.add(JointStateType.EFFORT);
+      return startRow + getDegreesOfFreedom();
    }
 
    @Override

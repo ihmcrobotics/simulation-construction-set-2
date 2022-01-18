@@ -40,12 +40,13 @@ import us.ihmc.yoVariables.variable.YoDouble;
 public abstract class Session
 {
    public static final String ROOT_REGISTRY_NAME = "root";
-   public static final ReferenceFrame DEFAULT_INERTIAL_FRAME = ReferenceFrameTools.constructARootFrame("worldFrame");
+
+   protected final ReferenceFrame inertialFrame;
 
    protected final YoRegistry rootRegistry = new YoRegistry(ROOT_REGISTRY_NAME);
    protected final YoRegistry sessionRegistry = new YoRegistry(getClass().getSimpleName());
    protected final YoDouble time = new YoDouble("time", rootRegistry);
-   private final JVMStatisticsGenerator jvmStatisticsGenerator = new JVMStatisticsGenerator(sessionRegistry);
+   private final JVMStatisticsGenerator jvmStatisticsGenerator = new JVMStatisticsGenerator("SCS2Stats", sessionRegistry);
 
    protected final YoRegistry runRegistry = new YoRegistry("runStatistics");
    private final YoTimer runActualDT = new YoTimer("runActualDT", TimeUnit.MILLISECONDS, runRegistry);
@@ -126,6 +127,18 @@ public abstract class Session
 
    public Session(SessionMode initialMode)
    {
+      this(ReferenceFrameTools.constructARootFrame("worldFrame"), initialMode);
+   }
+
+   public Session(ReferenceFrame inertialFrame)
+   {
+      this(inertialFrame, SessionMode.PAUSE);
+   }
+
+   public Session(ReferenceFrame inertialFrame, SessionMode initialMode)
+   {
+      this.inertialFrame = inertialFrame;
+
       activeMode.set(initialMode);
       rootRegistry.addChild(sessionRegistry);
       sessionRegistry.addChild(runRegistry);
@@ -913,9 +926,9 @@ public abstract class Session
 
    public abstract String getSessionName();
 
-   public ReferenceFrame getInertialFrame()
+   public final ReferenceFrame getInertialFrame()
    {
-      return DEFAULT_INERTIAL_FRAME;
+      return inertialFrame;
    }
 
    public abstract List<RobotDefinition> getRobotDefinitions();

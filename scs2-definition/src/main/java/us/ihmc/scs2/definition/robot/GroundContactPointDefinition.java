@@ -40,6 +40,11 @@ public class GroundContactPointDefinition extends ExternalWrenchPointDefinition
       groupIdentifier = other.groupIdentifier;
    }
 
+   public void setGroupIdentifier(int groupIdentifier)
+   {
+      this.groupIdentifier = groupIdentifier;
+   }
+
    public int getGroupIdentifier()
    {
       return groupIdentifier;
