@@ -12,6 +12,7 @@ import org.bytedeco.bullet.BulletCollision.btCylinderShapeZ;
 import org.bytedeco.bullet.BulletCollision.btGImpactMeshShape;
 import org.bytedeco.bullet.BulletCollision.btSphereShape;
 import org.bytedeco.bullet.BulletCollision.btTriangleMesh;
+import org.bytedeco.bullet.LinearMath.btMatrix3x3;
 import org.bytedeco.bullet.LinearMath.btQuaternion;
 import org.bytedeco.bullet.LinearMath.btTransform;
 import org.bytedeco.bullet.LinearMath.btVector3;
@@ -31,20 +32,25 @@ import us.ihmc.scs2.definition.geometry.*;
 
 public class BulletTools
 {
+   private static final btVector3 origin = new btVector3();
+   private static final btMatrix3x3 basis = new btMatrix3x3();
+
    public static void toBullet(RigidBodyTransform rigidBodyTransform, btTransform bulletAffineToPack)
    {
-      bulletAffineToPack.getOrigin().setValue(rigidBodyTransform.getTranslationX(),
-                                              rigidBodyTransform.getTranslationY(),
-                                              rigidBodyTransform.getTranslationZ());
-      bulletAffineToPack.getBasis().setValue(rigidBodyTransform.getM00(),
-                                             rigidBodyTransform.getM01(),
-                                             rigidBodyTransform.getM02(),
-                                             rigidBodyTransform.getM10(),
-                                             rigidBodyTransform.getM11(),
-                                             rigidBodyTransform.getM12(),
-                                             rigidBodyTransform.getM20(),
-                                             rigidBodyTransform.getM21(),
-                                             rigidBodyTransform.getM22());
+      origin.setValue(rigidBodyTransform.getTranslationX(),
+                      rigidBodyTransform.getTranslationY(),
+                      rigidBodyTransform.getTranslationZ());
+      bulletAffineToPack.setOrigin(origin);
+      basis.setValue(rigidBodyTransform.getM00(),
+                     rigidBodyTransform.getM01(),
+                     rigidBodyTransform.getM02(),
+                     rigidBodyTransform.getM10(),
+                     rigidBodyTransform.getM11(),
+                     rigidBodyTransform.getM12(),
+                     rigidBodyTransform.getM20(),
+                     rigidBodyTransform.getM21(),
+                     rigidBodyTransform.getM22());
+      bulletAffineToPack.setBasis(basis);
    }
 
    public static void toEuclid(btTransform bulletAffine, RigidBodyTransform rigidBodyTransform)
