@@ -10,8 +10,11 @@ import us.ihmc.scs2.definition.robot.RevoluteTwinsJointDefinition;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.robot.urdf.URDFTools;
+import us.ihmc.scs2.definition.robot.urdf.URDFTools.URDFParserProperties;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFModel;
 
+import javax.xml.bind.JAXBException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 
@@ -20,11 +23,42 @@ import static org.junit.jupiter.api.Assertions.*;
 public class SimpleRevoluteTwinsRobotTest
 {
    @Test
-   public void testLoadingURDF() throws Exception
+   public void testLoadingURDFTypeA() throws Exception
    {
-      InputStream is = SimpleCrossFourBarURDFRobot.class.getClassLoader().getResourceAsStream("urdf/SimpleRevoluteTwinsRobot.urdf");
-      URDFModel urdfModel = URDFTools.loadURDFModel(is, Collections.emptyList(), SimpleCrossFourBarURDFRobot.class.getClassLoader());
-      URDFTools.URDFParserProperties parserProperties = new URDFTools.URDFParserProperties();
+      URDFModel urdfModel = getURDFModel("urdf/SimpleRevoluteTwinsRobotTypeA.urdf");
+      buildRobotDefinitionAndTest(urdfModel);
+   }
+
+   @Test
+   public void testLoadingURDFTypeB() throws Exception
+   {
+      URDFModel urdfModel = getURDFModel("urdf/SimpleRevoluteTwinsRobotTypeB.urdf");
+      urdfModel.getJoints().stream().filter(j -> j.getName().equals("jointA_jointB")).findFirst().get().setName("revoluteTwins");
+      buildRobotDefinitionAndTest(urdfModel);
+   }
+
+   @Test
+   public void testLoadingURDFTypeC() throws Exception
+   {
+      URDFModel urdfModel = getURDFModel("urdf/SimpleRevoluteTwinsRobotTypeC.urdf");
+      buildRobotDefinitionAndTest(urdfModel);
+   }
+
+   private static URDFModel getURDFModel(String urdfFilename) throws JAXBException
+   {
+      try (InputStream is = SimpleCrossFourBarURDFRobot.class.getClassLoader().getResourceAsStream(urdfFilename))
+      {
+         return URDFTools.loadURDFModel(is, Collections.emptyList(), SimpleCrossFourBarURDFRobot.class.getClassLoader());
+      }
+      catch (IOException e)
+      {
+         throw new RuntimeException(e);
+      }
+   }
+
+   private static void buildRobotDefinitionAndTest(URDFModel urdfModel)
+   {
+      URDFParserProperties parserProperties = new URDFParserProperties();
       parserProperties.setRootJointFactory(null);
       RobotDefinition robotDefinition = URDFTools.toRobotDefinition(urdfModel, parserProperties);
       assertAsExpected(robotDefinition);
@@ -44,6 +78,7 @@ public class SimpleRevoluteTwinsRobotTest
 
       RevoluteTwinsJointDefinition joint = (RevoluteTwinsJointDefinition) rootBody.getChildrenJoints().get(0);
       assertEquals("revoluteTwins", joint.getName());
+      assertEquals(0, joint.getActuatedJointIndex());
       EuclidCoreTestTools.assertEquals(Axis3D.Y, joint.getAxis(), 0.0);
 
       assertEquals("jointA", joint.getJointNameA());
