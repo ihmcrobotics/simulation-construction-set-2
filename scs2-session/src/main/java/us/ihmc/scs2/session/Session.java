@@ -1567,7 +1567,8 @@ public abstract class Session
                                    runAtRealTimeRate.get(),
                                    playbackRealTimeRate.get(),
                                    sessionDTNanoseconds.get(),
-                                   bufferRecordTickPeriod.get());
+                                   bufferRecordTickPeriod.get(),
+                                   runMaxDuration.get());
    }
 
    /**
@@ -2248,6 +2249,16 @@ public abstract class Session
    }
 
    /**
+    * The max duration in nanoseconds for the running mode before switching back to pause mode.
+    *
+    * @return the max duration for the running mode in nanoseconds.
+    */
+   public long getRunMaxDuration()
+   {
+      return runMaxDuration.get();
+   }
+
+   /**
     * Gets the session name.
     *
     * @return the session name.
@@ -2501,6 +2512,7 @@ public abstract class Session
             messager.submitMessage(SessionMessagerAPI.PlaybackRealTimeRate, sessionProperties.getPlaybackRealTimeRate());
             messager.submitMessage(SessionMessagerAPI.RunAtRealTimeRate, sessionProperties.isRunAtRealTimeRate());
             messager.submitMessage(SessionMessagerAPI.BufferRecordTickPeriod, sessionProperties.getBufferRecordTickPeriod());
+            messager.submitMessage(SessionMessagerAPI.RunMaxDuration, sessionProperties.getRunMaxDuration());
          };
       }
    }
