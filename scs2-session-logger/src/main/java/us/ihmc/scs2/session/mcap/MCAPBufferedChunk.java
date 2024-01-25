@@ -11,14 +11,18 @@ import us.ihmc.scs2.session.mcap.MCAP.Record;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static us.ihmc.scs2.session.mcap.MCAPChunkManager.round;
+import static us.ihmc.scs2.session.mcap.MCAPMessageManager.round;
 
+/**
+ * This class is used to identify the chunks that need to be loaded and how many chunks can be loaded at the same time.
+ */
 public class MCAPBufferedChunk
 {
    private static final double ALLOWABLE_CHUNK_MEMORY_RATIO = 0.025;
@@ -92,6 +96,12 @@ public class MCAPBufferedChunk
          return null;
       else
          return chunkBundles[chunkIndex];
+   }
+
+   public void requestLoadChunk(long logTime, boolean wait)
+   {
+      ChunkBundle chunkBundle = getChunkBundle(logTime);
+      chunkBundle.requestLoadChunk(wait);
    }
 
    public int getMaxNumberOfChunksLoaded()
@@ -178,13 +188,18 @@ public class MCAPBufferedChunk
          return index > 0 ? chunkBundles[index - 1] : null;
       }
 
-      public void loadChunk() throws IOException
+      private void freeUpChunkBundleSpots(int numberOfSpots)
       {
-         chunk = (Chunk) chunkIndex.chunk().body();
+         while (loadedChunkBundles.size() > maxNumberOfChunksLoaded - numberOfSpots)
+         {
+            loadedChunkBundles.sort(Comparator.comparingLong(chunkBundle -> chunkBundle.lastLoadingRequestTime));
+            loadedChunkBundles.remove(0).unloadChunk();
+         }
       }
 
       private void unloadChunk()
       {
+         LogTools.warn("Unloading chunk: %s".formatted(index));
          chunk = null;
          bundledMessages = null;
       }
@@ -201,11 +216,7 @@ public class MCAPBufferedChunk
             chunkLoadedLatch = new CountDownLatch(1);
             chunkLoading = true;
 
-            while (loadedChunkBundles.size() >= maxNumberOfChunksLoaded)
-            {
-               loadedChunkBundles.sort(Comparator.comparingLong(chunkBundle -> chunkBundle.lastLoadingRequestTime));
-               loadedChunkBundles.remove(0).unloadChunk();
-            }
+            freeUpChunkBundleSpots(1);
 
             executorService.submit(() ->
                                    {
@@ -240,10 +251,17 @@ public class MCAPBufferedChunk
 
       private void loadChunkImpl() throws IOException
       {
+         LogTools.info("Loading chunk: %s".formatted(index));
+         if (chunk == null)
+            chunk = (Chunk) chunkIndex.chunk().body();
+
          for (MCAP.Record record : chunk.records())
          {
             if (record.op() != MCAP.Opcode.MESSAGE)
                continue;
+
+            if (bundledMessages == null)
+               bundledMessages = new TLongObjectHashMap<>();
 
             MCAP.Message message = (MCAP.Message) record.body();
             List<MCAP.Message> messages = bundledMessages.get(round(message.logTime(), desiredLogDT));
@@ -254,6 +272,24 @@ public class MCAPBufferedChunk
             }
             messages.add(message);
          }
+      }
+
+      public long startTime()
+      {
+         return round(chunkIndex.messageStartTime(), desiredLogDT);
+      }
+
+      public long endTime()
+      {
+         return round(chunkIndex.messageEndTime(), desiredLogDT);
+      }
+
+      public List<Message> getMessages(long logTime)
+      {
+         if (bundledMessages == null)
+            return Collections.emptyList();
+         else
+            return bundledMessages.get(round(logTime, desiredLogDT));
       }
    }
 }

@@ -54,7 +54,7 @@ public class MCAPLogSession extends Session
 
    public MCAPLogSession(File mcapFile, long desiredLogDT, File robotModelFile) throws Exception
    {
-      mcapLogFileReader = new MCAPLogFileReader(mcapFile, desiredLogDT, getInertialFrame(), mcapRegistry);
+      mcapLogFileReader = new MCAPLogFileReader(mcapFile, desiredLogDT, getInertialFrame(), mcapRegistry, sessionRegistry);
       mcapLogFileReader.loadSchemas();
       mcapLogFileReader.loadChannels();
       yoGraphicDefinitions.add(mcapLogFileReader.getYoGraphic());
@@ -223,7 +223,7 @@ public class MCAPLogSession extends Session
       {// Handles when the user is scrubbing through the log using the log slider.
          processBufferRequests(false);
 
-         mcapLogFileReader.setCurrentTimestamp(mcapLogFileReader.getChunkManager().getTimestampAtIndex(logPosition));
+         mcapLogFileReader.setCurrentTimestamp(mcapLogFileReader.getMessageManager().getTimestampAtIndex(logPosition));
          try
          {
             mcapLogFileReader.readMessagesAtCurrentTimestamp();
