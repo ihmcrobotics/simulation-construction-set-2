@@ -46,6 +46,7 @@ public class MCAPLogFileReader
    private final File mcapFile;
    private final YoRegistry mcapRegistry;
    private final MCAP mcap;
+   private final MCAPBufferedChunk chunkBuffer;
    private final MCAPChunkManager chunkManager;
    private final TIntObjectHashMap<MCAPSchema> schemas = new TIntObjectHashMap<>();
    private final TIntObjectHashMap<MCAP.Schema> rawSchemas = new TIntObjectHashMap<>();
@@ -74,8 +75,8 @@ public class MCAPLogFileReader
       FileInputStream mcapFileInputStream = new FileInputStream(mcapFile);
       FileChannel mcapFileChannel = mcapFileInputStream.getChannel();
       mcap = new MCAP(mcapFileChannel);
-      chunkManager = new MCAPChunkManager(desiredLogDT);
-      chunkManager.loadFromMCAP(mcap);
+      chunkBuffer = new MCAPBufferedChunk(mcap, desiredLogDT);
+      chunkManager = new MCAPChunkManager(mcap, chunkBuffer, desiredLogDT);
       initialTimestamp = chunkManager.firstMessageTimestamp();
       finalTimestamp = chunkManager.lastMessageTimestamp();
       frameTransformManager = new MCAPFrameTransformManager(inertialFrame);

@@ -29,23 +29,14 @@ public class MCAPChunkManager
     * All the chunk indices of the MCAP file.
     */
    private final List<MCAP.ChunkIndex> mcapChunkIndices = new ArrayList<>();
+   private final MCAPBufferedChunk chunkBuffer;
    private final long desiredLogDT;
-   /**
-    * The number of chunks currently loaded. It can either be 0, 1 or 2.
-    */
-   private int numberOfLoadedChunks = -1;
-   /**
-    * Wrapper for the currently loaded chunks.
-    */
-   private ChunkExtra loadedChunkA = new ChunkExtra();
-   /**
-    * Wrapper for the currently loaded chunks.
-    */
-   private ChunkExtra loadedChunkB = new ChunkExtra();
 
-   public MCAPChunkManager(long desiredLogDT)
+   public MCAPChunkManager(MCAP mcap, MCAPBufferedChunk chunkBuffer, long desiredLogDT)
    {
+      this.chunkBuffer = chunkBuffer;
       this.desiredLogDT = desiredLogDT;
+      loadFromMCAP(mcap);
    }
 
    /**
