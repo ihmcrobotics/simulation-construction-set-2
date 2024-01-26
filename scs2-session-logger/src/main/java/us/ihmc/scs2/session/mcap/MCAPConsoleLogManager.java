@@ -4,6 +4,7 @@ import us.ihmc.log.LogTools;
 import us.ihmc.scs2.session.mcap.MCAP.Channel;
 import us.ihmc.scs2.session.mcap.MCAP.Message;
 import us.ihmc.scs2.session.mcap.MCAP.Opcode;
+import us.ihmc.scs2.session.mcap.MCAP.Record;
 import us.ihmc.scs2.session.mcap.MCAP.Schema;
 import us.ihmc.scs2.simulation.SpyList;
 
@@ -58,18 +59,18 @@ public class MCAPConsoleLogManager
 
             channelId = logChannel.get().id();
 
-            //            chunkBuffer.peekAllChunkRecords(records ->
-            //                                            {
-            //                                               for (Record record : records)
-            //                                               {
-            //                                                  if (record.op() != Opcode.MESSAGE)
-            //                                                     continue;
-            //                                                  Message message = (Message) record.body();
-            //                                                  if (message.channelId() == channelId)
-            //                                                     allConsoleLogItems.add(parseLogItem(message, desiredLogDT));
-            //                                                  record.unloadBody();
-            //                                               }
-            //                                            });
+            chunkBuffer.peekAllChunkRecords(records ->
+                                            {
+                                               for (Record record : records)
+                                               {
+                                                  if (record.op() != Opcode.MESSAGE)
+                                                     continue;
+                                                  Message message = (Message) record.body();
+                                                  if (message.channelId() == channelId)
+                                                     allConsoleLogItems.add(parseLogItem(message, desiredLogDT));
+                                                  record.unloadBody();
+                                               }
+                                            });
          }
       }
 
@@ -80,6 +81,25 @@ public class MCAPConsoleLogManager
    {
       if (channelId < 0)
          return;
+
+      // First, if we actually need to update the currentConsoleLogItems
+      if (currentConsoleLogItems.isEmpty())
+      { // Case 1: We have no currentConsoleLogItems, but logTime is still before the first log item
+         if (!allConsoleLogItems.isEmpty() && logTime < allConsoleLogItems.get(0).logTime())
+            return;
+      }
+      else if (currentConsoleLogItems.size() == allConsoleLogItems.size())
+      { // Case 2: We loaded all log items, and logTime is after the last log item
+         if (logTime >= allConsoleLogItems.get(allConsoleLogItems.size() - 1).logTime())
+            return;
+      }
+      else
+      {// Case 3: We have some log items, and logTime is after the last loaded log item and before the next not-loaded log item
+         int lastLoadedIndex = currentConsoleLogItems.size() - 1;
+         int nextNotLoadedIndex = lastLoadedIndex + 1;
+         if (logTime >= currentConsoleLogItems.get(lastLoadedIndex).logTime() && logTime < allConsoleLogItems.get(nextNotLoadedIndex).logTime())
+            return;
+      }
 
       int index = Collections.binarySearch(allConsoleLogItems,
                                            new MCAPConsoleLogItem(logTime, null, null, null, null, null, 0),

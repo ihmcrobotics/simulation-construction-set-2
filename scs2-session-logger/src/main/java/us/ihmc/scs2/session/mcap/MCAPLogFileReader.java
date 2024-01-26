@@ -80,6 +80,9 @@ public class MCAPLogFileReader
       chunkBuffer = new MCAPBufferedChunk(mcap, desiredLogDT);
       messageManager = new MCAPMessageManager(mcap, chunkBuffer, desiredLogDT);
       consoleLogManager = new MCAPConsoleLogManager(mcap, chunkBuffer, desiredLogDT);
+
+      currentTimestamp.addListener(v -> consoleLogManager.update(currentTimestamp.getValue()));
+
       initialTimestamp = messageManager.firstMessageTimestamp();
       finalTimestamp = messageManager.lastMessageTimestamp();
       frameTransformManager = new MCAPFrameTransformManager(inertialFrame);

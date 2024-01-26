@@ -48,6 +48,8 @@ import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.scs2.simulation.SpyList;
 
 import java.io.File;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -302,19 +304,24 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
       // Setup the console output
       consoleOutputListView.getItems().clear();
       SpyList<MCAPConsoleLogItem> sessionLogItems = session.getMCAPLogFileReader().getConsoleLogManager().getCurrentConsoleLogItems();
-      //      sessionLogItems.addListener((change) ->
-      //                                  {
-      //                                     if (change.wasAdded())
-      //                                     {
-      //                                        List<MCAPConsoleLogItem> newLogItems = sessionLogItems.subList(change.getIndex(), change.getIndex() + change.getSize());
-      //                                        JavaFXMissingTools.runLater(getClass(), () -> consoleOutputListView.getItems().addAll(newLogItems));
-      //                                     }
-      //                                     else if (change.wasRemoved())
-      //                                     {
-      //                                        List<MCAPConsoleLogItem> newLogItems = sessionLogItems.subList(change.getIndex(), change.getIndex() + change.getSize());
-      //                                        JavaFXMissingTools.runLater(getClass(), () -> consoleOutputListView.getItems().removeAll(newLogItems));
-      //                                     }
-      //                                  });
+      sessionLogItems.addListener((change) ->
+                                  {
+                                     try
+                                     {
+                                        if (change.wasAdded())
+                                        {
+                                           JavaFXMissingTools.runLater(getClass(), () -> consoleOutputListView.getItems().addAll(change.getNewElements()));
+                                        }
+                                        else if (change.wasRemoved())
+                                        {
+                                           JavaFXMissingTools.runLater(getClass(), () -> consoleOutputListView.getItems().removeAll(change.getOldElements()));
+                                        }
+                                     }
+                                     catch (Exception e)
+                                     {
+                                        e.printStackTrace();
+                                     }
+                                  });
 
       JavaFXMissingTools.runNFramesLater(5, () -> stage.sizeToScene());
       JavaFXMissingTools.runNFramesLater(6, () -> stage.toFront());
@@ -465,7 +472,8 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
                                                                            "ERROR",
                                                                            MCAPLogLevel.FATAL,
                                                                            "FATAL");
-      private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
+      private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS a z");
+      private final ZoneId zoneId = ZoneId.systemDefault(); // Need to parameterize this.
 
       @Override
       protected void updateItem(MCAPConsoleLogItem item, boolean empty)
@@ -481,12 +489,20 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
          {
             setFont(Font.font("Monospaced", 14.0));
             setTextFill(logLevelToColorMap.get(item.logLevel()));
-            setText("[%s] [%s]\n\t[%s]: %s".formatted(logLevelToStringMap.get(item.logLevel()),
-                                                      dateTimeFormatter.format(item.instant()),
-                                                      item.processName(),
-                                                      item.message()));
+            String dateTimeFormatted = dateTimeFormatter.format(item.instant().atZone(zoneId));
+            setText("[%s] [%s]\n\t[%s]: %s".formatted(logLevelToStringMap.get(item.logLevel()), dateTimeFormatted, item.processName(), item.message()));
             setGraphic(null);
          }
       }
+   }
+
+   public static void main(String[] args)
+   {
+      int seconds = 1701192801;
+      int nanos = 789030589;
+      Instant instant = Instant.ofEpochSecond(seconds, nanos);
+      System.out.println(instant);
+      DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS a z");
+      System.out.println(dateTimeFormatter.format(instant.atZone(ZoneId.systemDefault())));
    }
 }
