@@ -12,6 +12,7 @@ import us.ihmc.scs2.session.mcap.MCAP.Records;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -26,7 +27,7 @@ import static us.ihmc.scs2.session.mcap.MCAPMessageManager.round;
  */
 public class MCAPBufferedChunk
 {
-   private static final double ALLOWABLE_CHUNK_MEMORY_RATIO = 0.025;
+   private static final double ALLOWABLE_CHUNK_MEMORY_RATIO = 0.0125;
    private final long desiredLogDT;
    private final int maxNumberOfChunksLoaded;
 
@@ -103,6 +104,26 @@ public class MCAPBufferedChunk
    {
       ChunkBundle chunkBundle = getChunkBundle(logTime);
       chunkBundle.requestLoadChunk(wait);
+   }
+
+   public void peekAllChunkRecords(Consumer<Records> recordsConsumer)
+   {
+      Arrays.stream(chunkBundles).forEach(chunkBundle ->
+                                          {
+                                             try
+                                             {
+                                                boolean wasLoaded = chunkBundle.isLoaded;
+                                                chunkBundle.requestLoadChunk(true);
+                                                recordsConsumer.accept(chunkBundle.chunk.records());
+                                                if (!wasLoaded)
+                                                   chunkBundle.unloadChunk();
+                                             }
+                                             catch (IOException e)
+                                             {
+                                                throw new RuntimeException(e);
+                                             }
+                                          });
+      System.gc();
    }
 
    public int getMaxNumberOfChunksLoaded()

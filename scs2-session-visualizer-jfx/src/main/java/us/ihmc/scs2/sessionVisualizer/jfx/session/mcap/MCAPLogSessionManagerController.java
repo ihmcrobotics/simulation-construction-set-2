@@ -10,10 +10,17 @@ import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
+import javafx.scene.control.TitledPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
@@ -25,6 +32,8 @@ import us.ihmc.log.LogTools;
 import us.ihmc.messager.TopicListener;
 import us.ihmc.messager.javafx.JavaFXMessager;
 import us.ihmc.scs2.session.SessionRobotDefinitionListChange;
+import us.ihmc.scs2.session.mcap.MCAPConsoleLogManager.MCAPConsoleLogItem;
+import us.ihmc.scs2.session.mcap.MCAPConsoleLogManager.MCAPLogLevel;
 import us.ihmc.scs2.session.mcap.MCAPLogFileReader;
 import us.ihmc.scs2.session.mcap.MCAPLogSession;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
@@ -36,8 +45,11 @@ import us.ihmc.scs2.sessionVisualizer.jfx.session.log.LogSessionManagerControlle
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.PositiveIntegerValueFilter;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
+import us.ihmc.scs2.simulation.SpyList;
 
 import java.io.File;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -71,6 +83,8 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
    private TitledPane thumbnailsTitledPane;
    @FXML
    private FlowPane videoThumbnailPane;
+   @FXML
+   private ListView<MCAPConsoleLogItem> consoleOutputListView;
    private Stage stage;
    private SessionVisualizerTopics topics;
    private JavaFXMessager messager;
@@ -78,7 +92,7 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
    private File defaultRobotModelFile = null;
 
    private static String getDate(String filename)
-   { // FIXME it seems that the timestamps in the MCAP file are epoch unix timestamp. Should use that.
+   { // FIXME it seems that the timestamps in the MCAP file are epoch unix instant. Should use that.
       String year = filename.substring(0, 4);
       String month = filename.substring(4, 6);
       String day = filename.substring(6, 8);
@@ -259,7 +273,8 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
          if (!e.isConsumed())
             shutdown();
       });
-      // TODO Auto-generated method stub
+
+      consoleOutputListView.setCellFactory(param -> new MCAPConsoleLogItemListCell());
    }
 
    private void initializeControls(MCAPLogSession session)
@@ -283,6 +298,24 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
       thumbnailsTitledPane.setText(logHasVideos ? "Logged videos" : "No video");
       thumbnailsTitledPane.setExpanded(logHasVideos);
       thumbnailsTitledPane.setDisable(!logHasVideos);
+
+      // Setup the console output
+      consoleOutputListView.getItems().clear();
+      SpyList<MCAPConsoleLogItem> sessionLogItems = session.getMCAPLogFileReader().getConsoleLogManager().getCurrentConsoleLogItems();
+      //      sessionLogItems.addListener((change) ->
+      //                                  {
+      //                                     if (change.wasAdded())
+      //                                     {
+      //                                        List<MCAPConsoleLogItem> newLogItems = sessionLogItems.subList(change.getIndex(), change.getIndex() + change.getSize());
+      //                                        JavaFXMissingTools.runLater(getClass(), () -> consoleOutputListView.getItems().addAll(newLogItems));
+      //                                     }
+      //                                     else if (change.wasRemoved())
+      //                                     {
+      //                                        List<MCAPConsoleLogItem> newLogItems = sessionLogItems.subList(change.getIndex(), change.getIndex() + change.getSize());
+      //                                        JavaFXMissingTools.runLater(getClass(), () -> consoleOutputListView.getItems().removeAll(newLogItems));
+      //                                     }
+      //                                  });
+
       JavaFXMissingTools.runNFramesLater(5, () -> stage.sizeToScene());
       JavaFXMissingTools.runNFramesLater(6, () -> stage.toFront());
    }
@@ -295,6 +328,7 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
       endSessionButton.setDisable(true);
       logPositionSlider.setDisable(true);
       multiVideoViewerObjectProperty.set(null);
+      consoleOutputListView.getItems().clear();
    }
 
    public void openLogFile()
@@ -406,5 +440,53 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
          }
       };
       messager.addFXTopicListener(topics.getSessionRobotDefinitionListChangeState(), listener);
+   }
+
+   private static class MCAPConsoleLogItemListCell extends javafx.scene.control.ListCell<MCAPConsoleLogItem>
+   {
+      private final Map<MCAPLogLevel, Color> logLevelToColorMap = Map.of(MCAPLogLevel.UNKNOWN,
+                                                                         Color.CORNFLOWERBLUE,
+                                                                         MCAPLogLevel.INFO,
+                                                                         Color.BLACK,
+                                                                         MCAPLogLevel.WARNING,
+                                                                         Color.ORANGE,
+                                                                         MCAPLogLevel.ERROR,
+                                                                         Color.RED,
+                                                                         MCAPLogLevel.FATAL,
+                                                                         Color.DARKRED);
+
+      private final Map<MCAPLogLevel, String> logLevelToStringMap = Map.of(MCAPLogLevel.UNKNOWN,
+                                                                           "  ???",
+                                                                           MCAPLogLevel.INFO,
+                                                                           " INFO",
+                                                                           MCAPLogLevel.WARNING,
+                                                                           " WARN",
+                                                                           MCAPLogLevel.ERROR,
+                                                                           "ERROR",
+                                                                           MCAPLogLevel.FATAL,
+                                                                           "FATAL");
+      private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
+
+      @Override
+      protected void updateItem(MCAPConsoleLogItem item, boolean empty)
+      {
+         super.updateItem(item, empty);
+
+         if (empty || item == null)
+         {
+            setText(null);
+            setGraphic(null);
+         }
+         else
+         {
+            setFont(Font.font("Monospaced", 14.0));
+            setTextFill(logLevelToColorMap.get(item.logLevel()));
+            setText("[%s] [%s]\n\t[%s]: %s".formatted(logLevelToStringMap.get(item.logLevel()),
+                                                      dateTimeFormatter.format(item.instant()),
+                                                      item.processName(),
+                                                      item.message()));
+            setGraphic(null);
+         }
+      }
    }
 }

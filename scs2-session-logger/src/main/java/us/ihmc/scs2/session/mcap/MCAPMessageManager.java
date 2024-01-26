@@ -34,7 +34,7 @@ public class MCAPMessageManager
    }
 
    /**
-    * @return the timestamp of the message at the given index.
+    * @return the instant of the message at the given index.
     */
    public long getTimestampAtIndex(int index)
    {
@@ -42,7 +42,7 @@ public class MCAPMessageManager
    }
 
    /**
-    * @return the timestamp of the message at the given index relative to the first message timestamp.
+    * @return the instant of the message at the given index relative to the first message instant.
     */
    public long getRelativeTimestampAtIndex(int index)
    {
@@ -50,7 +50,7 @@ public class MCAPMessageManager
    }
 
    /**
-    * @return the index of the message with the given timestamp.
+    * @return the index of the message with the given instant.
     */
    public int getIndexFromTimestamp(long timestamp)
    {
@@ -91,7 +91,7 @@ public class MCAPMessageManager
                }
                else if (timestamp == allMessageTimestamps.get(allMessageTimestamps.size() - 1))
                {
-                  // Nothing, the timestamp is already there.
+                  // Nothing, the instant is already there.
                }
                else
                {
@@ -102,7 +102,7 @@ public class MCAPMessageManager
                   }
                   else
                   {
-                     // Nothing, the timestamp is already there.
+                     // Nothing, the instant is already there.
                   }
                }
             }
@@ -114,7 +114,7 @@ public class MCAPMessageManager
    }
 
    /**
-    * @return the timestamp of the first message in the MCAP file.
+    * @return the instant of the first message in the MCAP file.
     */
    public long firstMessageTimestamp()
    {
@@ -122,7 +122,7 @@ public class MCAPMessageManager
    }
 
    /**
-    * @return the timestamp of the last message in the MCAP file.
+    * @return the instant of the last message in the MCAP file.
     */
    public long lastMessageTimestamp()
    {
@@ -130,7 +130,7 @@ public class MCAPMessageManager
    }
 
    /**
-    * @return the timestamp of the next message after the given timestamp.
+    * @return the instant of the next message after the given instant.
     */
    public long nextMessageTimestamp(long timestamp)
    {
@@ -165,7 +165,7 @@ public class MCAPMessageManager
    }
 
    /**
-    * @return retrieves the messages at the given timestamp.
+    * @return retrieves the messages at the given instant.
     */
    public List<MCAP.Message> loadMessages(long timestamp) throws IOException
    {
@@ -217,7 +217,7 @@ public class MCAPMessageManager
    }
 
    /**
-    * @return the timestamp of the first message in the currently loaded chunk.
+    * @return the instant of the first message in the currently loaded chunk.
     */
    public long getActiveChunkStartTimestamp()
    {
@@ -228,7 +228,7 @@ public class MCAPMessageManager
    }
 
    /**
-    * @return the timestamp of the last message in the currently loaded chunk.
+    * @return the instant of the last message in the currently loaded chunk.
     */
    public long getActiveChunkEndTimestamp()
    {

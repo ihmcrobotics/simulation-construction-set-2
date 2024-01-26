@@ -48,6 +48,7 @@ public class MCAPLogFileReader
    private final MCAP mcap;
    private final MCAPBufferedChunk chunkBuffer;
    private final MCAPMessageManager messageManager;
+   private final MCAPConsoleLogManager consoleLogManager;
    private final TIntObjectHashMap<MCAPSchema> schemas = new TIntObjectHashMap<>();
    private final TIntObjectHashMap<MCAP.Schema> rawSchemas = new TIntObjectHashMap<>();
    private final TIntObjectHashMap<YoMCAPMessage> yoMessageMap = new TIntObjectHashMap<>();
@@ -78,7 +79,7 @@ public class MCAPLogFileReader
       mcap = new MCAP(mcapFileChannel);
       chunkBuffer = new MCAPBufferedChunk(mcap, desiredLogDT);
       messageManager = new MCAPMessageManager(mcap, chunkBuffer, desiredLogDT);
-      new MCAPConsoleLogManager(mcap, chunkBuffer);
+      consoleLogManager = new MCAPConsoleLogManager(mcap, chunkBuffer, desiredLogDT);
       initialTimestamp = messageManager.firstMessageTimestamp();
       finalTimestamp = messageManager.lastMessageTimestamp();
       frameTransformManager = new MCAPFrameTransformManager(inertialFrame);
@@ -276,7 +277,7 @@ public class MCAPLogFileReader
       List<MCAP.Message> messages = messageManager.loadMessages(currentTimestamp.getValue());
       if (messages == null)
       {
-         LogTools.error("No messages at timestamp {}.", currentTimestamp.getValue());
+         LogTools.error("No messages at instant {}.", currentTimestamp.getValue());
          return;
       }
       currentChunkStartTimestamp.set(messageManager.getActiveChunkStartTimestamp());
@@ -353,7 +354,7 @@ public class MCAPLogFileReader
    private static void exportMessageDataToFile(Path path, MCAP.Message message, MCAPSchema schema, Exception e) throws IOException
    {
       File debugFile;
-      String prefix = "messageData-timestamp-%d-schema-%s";
+      String prefix = "messageData-instant-%d-schema-%s";
       if (e != null)
          debugFile = path.resolve((prefix + "-%s.txt").formatted(message.logTime(), cleanupName(schema.getName()), e.getClass().getSimpleName())).toFile();
       else
@@ -375,6 +376,11 @@ public class MCAPLogFileReader
    public MCAPMessageManager getMessageManager()
    {
       return messageManager;
+   }
+
+   public MCAPConsoleLogManager getConsoleLogManager()
+   {
+      return consoleLogManager;
    }
 
    public File getMcapFile()

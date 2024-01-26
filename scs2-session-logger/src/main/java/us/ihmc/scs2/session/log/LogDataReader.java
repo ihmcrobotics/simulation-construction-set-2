@@ -65,7 +65,7 @@ public class LogDataReader
 
       LogTools.info("This log contains " + parser.getNumberOfVariables() + " YoVariables");
 
-      timestamp = new YoLong("timestamp", registry);
+      timestamp = new YoLong("instant", registry);
       robotTime = new YoDouble("robotTime", registry);
       currentRecordTick = new YoInteger("currentRecordTick", registry);
 
@@ -223,7 +223,7 @@ public class LogDataReader
    {
       if (!compressed)
       {
-         throw new RuntimeException("Cannot get timestamp for non-compressed logs");
+         throw new RuntimeException("Cannot get instant for non-compressed logs");
       }
 
       return logIndex.timestamps[position];
