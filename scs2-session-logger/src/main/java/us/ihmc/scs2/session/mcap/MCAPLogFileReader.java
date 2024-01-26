@@ -78,6 +78,7 @@ public class MCAPLogFileReader
       mcap = new MCAP(mcapFileChannel);
       chunkBuffer = new MCAPBufferedChunk(mcap, desiredLogDT);
       messageManager = new MCAPMessageManager(mcap, chunkBuffer, desiredLogDT);
+      new MCAPConsoleLogManager(mcap, chunkBuffer);
       initialTimestamp = messageManager.firstMessageTimestamp();
       finalTimestamp = messageManager.lastMessageTimestamp();
       frameTransformManager = new MCAPFrameTransformManager(inertialFrame);
