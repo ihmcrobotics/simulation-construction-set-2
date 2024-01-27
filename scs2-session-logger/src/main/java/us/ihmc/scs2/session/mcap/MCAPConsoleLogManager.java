@@ -160,7 +160,7 @@ public class MCAPConsoleLogManager
       String processName = deserializer.read_string();
       String filename = deserializer.read_string();
       long lineNumberInFile = deserializer.read_uint32();
-      deserializer.finalize(false);
+      deserializer.finalize(true);
       return new MCAPConsoleLogItem(logTime, instant, logLevel, logMessage, processName, filename, lineNumberInFile);
    }
 

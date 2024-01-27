@@ -328,7 +328,7 @@ public class MCAPFrameTransformManager
       }
       finally
       {
-         cdr.finalize(false);
+         cdr.finalize(true);
       }
 
       YoFoxGloveFrameTransform transform = rawNameToTransformMap.get(childFrameName);

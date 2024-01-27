@@ -161,7 +161,7 @@ public final class YoMCAPMessage
       }
       finally
       {
-         cdr.finalize(false);
+         cdr.finalize(true);
       }
    }
 
