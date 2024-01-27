@@ -6,6 +6,7 @@ import us.ihmc.euclid.tools.EuclidCoreIOTools;
 
 import java.io.IOException;
 import java.io.Serial;
+import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
@@ -1860,23 +1861,32 @@ public class MCAP
          }
       }
 
-      private Record chunk;
+      private WeakReference<Record> chunkRef;
 
       public Record chunk() throws IOException
       {
+         Record chunk = null;
+         if (chunkRef != null)
+            chunk = chunkRef.get();
+
          if (chunk == null)
          {
             // TODO Check if we can use the lenChunk for verification or something.
             chunk = new Record(fileChannel, ofsChunk);
+            chunkRef = new WeakReference<>(chunk);
          }
-         return chunk;
+         return chunkRef.get();
       }
 
       public void unloadChunk()
       {
-         if (chunk != null)
-            chunk.unloadBody();
-         chunk = null;
+         if (chunkRef != null)
+         {
+            Record chunk = chunkRef.get();
+            if (chunk != null)
+               chunk.unloadBody();
+         }
+         chunkRef = null;
       }
 
       public long messageStartTime()
