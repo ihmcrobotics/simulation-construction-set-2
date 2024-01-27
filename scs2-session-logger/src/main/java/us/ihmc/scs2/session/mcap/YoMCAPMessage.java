@@ -298,7 +298,13 @@ public final class YoMCAPMessage
             }
             else
             {
-               int size = cdr.read_sequence((elementIndex, des) -> elementDeserializer.accept(array[elementIndex], des));
+               int size = cdr.read_sequence((elementIndex, des) ->
+                                            {
+                                               if (elementIndex < length)
+                                                  elementDeserializer.accept(array[elementIndex], des);
+                                            });
+               if (size > length)
+                  LogTools.warn("Received array of size: " + size + ", but expected size: " + length + ", registry: " + registry);
                for (int i = size; i < length; i++)
                   elementResetter.accept(array[i]);
             }
