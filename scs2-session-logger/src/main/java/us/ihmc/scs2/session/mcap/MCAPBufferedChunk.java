@@ -57,7 +57,6 @@ public class MCAPBufferedChunk
             minChunkSize = Math.min(minChunkSize, chunkSize);
             maxChunkSize = Math.max(maxChunkSize, chunkSize);
             totalChunkSize += chunkSize;
-            record.unloadBody();
          }
          else if (record.op() == Opcode.CHUNK_INDEX)
          {
@@ -123,7 +122,6 @@ public class MCAPBufferedChunk
                                                 throw new RuntimeException(e);
                                              }
                                           });
-      System.gc();
    }
 
    public int getMaxNumberOfChunksLoaded()

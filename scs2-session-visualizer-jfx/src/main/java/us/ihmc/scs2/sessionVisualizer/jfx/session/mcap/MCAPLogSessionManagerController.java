@@ -306,20 +306,13 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
       SpyList<MCAPConsoleLogItem> sessionLogItems = session.getMCAPLogFileReader().getConsoleLogManager().getCurrentConsoleLogItems();
       sessionLogItems.addListener((change) ->
                                   {
-                                     try
+                                     if (change.wasAdded())
                                      {
-                                        if (change.wasAdded())
-                                        {
-                                           JavaFXMissingTools.runLater(getClass(), () -> consoleOutputListView.getItems().addAll(change.getNewElements()));
-                                        }
-                                        else if (change.wasRemoved())
-                                        {
-                                           JavaFXMissingTools.runLater(getClass(), () -> consoleOutputListView.getItems().removeAll(change.getOldElements()));
-                                        }
+                                        JavaFXMissingTools.runLater(getClass(), () -> consoleOutputListView.getItems().addAll(change.getNewElements()));
                                      }
-                                     catch (Exception e)
+                                     else if (change.wasRemoved())
                                      {
-                                        e.printStackTrace();
+                                        JavaFXMissingTools.runLater(getClass(), () -> consoleOutputListView.getItems().removeAll(change.getOldElements()));
                                      }
                                   });
 

@@ -106,7 +106,6 @@ public class MCAPMessageManager
                   }
                }
             }
-            record.unloadBody(); // Unload the message index to save memory. TODO Investigate memory usage.
          }
       }
       // TODO The underlying algorithm seems quite expensive.

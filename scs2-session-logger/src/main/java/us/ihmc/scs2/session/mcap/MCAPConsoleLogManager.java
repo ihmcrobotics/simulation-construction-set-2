@@ -59,6 +59,7 @@ public class MCAPConsoleLogManager
 
             channelId = logChannel.get().id();
 
+            // TODO Partial loading of log console outputs
             chunkBuffer.peekAllChunkRecords(records ->
                                             {
                                                for (Record record : records)
@@ -68,7 +69,6 @@ public class MCAPConsoleLogManager
                                                   Message message = (Message) record.body();
                                                   if (message.channelId() == channelId)
                                                      allConsoleLogItems.add(parseLogItem(message, desiredLogDT));
-                                                  record.unloadBody();
                                                }
                                             });
          }

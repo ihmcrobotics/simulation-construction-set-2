@@ -126,7 +126,6 @@ public class MCAPFrameTransformManager
             {
                channelIdToTopicMap.put(channel.id(), channel.topic());
             }
-            record.unloadBody();
          }
       }
       channelIds.addAll(channelIdToTopicMap.keys());
@@ -140,29 +139,11 @@ public class MCAPFrameTransformManager
             MCAP.Chunk chunk = (MCAP.Chunk) record.body();
             for (MCAP.Record chunkRecord : chunk.records())
             {
-               if (chunkRecord.op() == MCAP.Opcode.MESSAGE)
-               {
-                  MCAP.Message message = (MCAP.Message) chunkRecord.body();
-                  String topic = channelIdToTopicMap.get(message.channelId());
-                  if (topic == null)
-                     continue;
-                  BasicTransformInfo transformInfo = extractFromMessage(foxgloveFrameTransformSchema, topic, message);
-                  allTransforms.put(transformInfo.childFrameName(), transformInfo);
-               }
+               processRecord(chunkRecord, channelIdToTopicMap, allTransforms);
             }
-            chunk.unloadRecords();
-            record.unloadBody();
          }
-         else if (record.op() == MCAP.Opcode.MESSAGE)
-         {
-            MCAP.Message message = (MCAP.Message) record.body();
-            String topic = channelIdToTopicMap.get(message.channelId());
-            if (topic == null)
-               continue;
-            BasicTransformInfo transformInfo = extractFromMessage(foxgloveFrameTransformSchema, topic, message);
-            allTransforms.put(transformInfo.childFrameName(), transformInfo);
-            record.unloadBody();
-         }
+         else
+            processRecord(record, channelIdToTopicMap, allTransforms);
       }
 
       for (BasicTransformInfo transformInfo : allTransforms.values())
@@ -197,6 +178,21 @@ public class MCAPFrameTransformManager
          }
          yoGraphicGroupDefinition.setVisible(false);
       }
+   }
+
+   private void processRecord(MCAP.Record record, TIntObjectHashMap<String> channelIdToTopicMap, Map<String, BasicTransformInfo> allTransforms)
+   {
+      if (record.op() != MCAP.Opcode.MESSAGE)
+         return;
+
+      MCAP.Message message = (MCAP.Message) record.body();
+      String topic = channelIdToTopicMap.get(message.channelId());
+
+      if (topic == null)
+         return;
+
+      BasicTransformInfo transformInfo = extractFromMessage(foxgloveFrameTransformSchema, topic, message);
+      allTransforms.put(transformInfo.childFrameName(), transformInfo);
    }
 
    private static LinkedList<BasicTransformInfo> sortTransforms(Map<String, BasicTransformInfo> allTransforms)

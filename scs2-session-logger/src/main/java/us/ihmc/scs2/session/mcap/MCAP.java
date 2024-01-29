@@ -98,7 +98,7 @@ public class MCAP
       headerMagic = new Magic(fileChannel, currentPos);
       currentPos += headerMagic.getItemTotalLength();
       records = new ArrayList<>();
-      Record lastRecord = null;
+      Record lastRecord;
 
       do
       {
@@ -174,7 +174,7 @@ public class MCAP
       /**
        * The decompressed records.
        */
-      private Records records;
+      private WeakReference<Records> recordsRef;
 
       public Chunk(ByteBuffer buffer, long _pos, int _length) throws IOException
       {
@@ -240,44 +240,43 @@ public class MCAP
 
       public Records records() throws IOException
       {
-         if (records == null)
-         {
-            if (compression.equalsIgnoreCase(""))
-            {
-               records = new Records(buffer, offsetRecords, (int) lengthRecords);
-            }
-            else if (compression.equalsIgnoreCase("lz4"))
-            {
-               if (lz4FrameDecoder == null)
-                  lz4FrameDecoder = new LZ4FrameDecoder();
-               ByteBuffer decompressedData = ByteBuffer.allocate((int) uncompressedSize);
-               lz4FrameDecoder.decode(buffer, (int) offsetRecords, (int) lengthRecords, decompressedData, 0);
-               records = new Records(decompressedData);
-            }
-            else if (compression.equalsIgnoreCase("zstd"))
-            {
-               if (zstdDecompressCtx == null)
-                  zstdDecompressCtx = new ZstdDecompressCtx();
-               int previousPosition = buffer.position();
-               int previousLimit = buffer.limit();
-               buffer.limit((int) (offsetRecords + lengthRecords));
-               buffer.position((int) offsetRecords);
-               ByteBuffer decompressedData = zstdDecompressCtx.decompress(buffer, (int) uncompressedSize);
-               buffer.position(previousPosition);
-               buffer.limit(previousLimit);
-               records = new Records(decompressedData);
-            }
-            else
-            {
-               throw new UnsupportedOperationException("Unsupported compression algorithm: " + compression);
-            }
-         }
-         return records;
-      }
+         Records records = recordsRef == null ? null : recordsRef.get();
 
-      public void unloadRecords()
-      {
-         records = null;
+         if (records != null)
+            return records;
+
+         if (compression.equalsIgnoreCase(""))
+         {
+            records = new Records(buffer, offsetRecords, (int) lengthRecords);
+         }
+         else if (compression.equalsIgnoreCase("lz4"))
+         {
+            if (lz4FrameDecoder == null)
+               lz4FrameDecoder = new LZ4FrameDecoder();
+            ByteBuffer decompressedData = ByteBuffer.allocate((int) uncompressedSize);
+            lz4FrameDecoder.decode(buffer, (int) offsetRecords, (int) lengthRecords, decompressedData, 0);
+            records = new Records(decompressedData);
+         }
+         else if (compression.equalsIgnoreCase("zstd"))
+         {
+            if (zstdDecompressCtx == null)
+               zstdDecompressCtx = new ZstdDecompressCtx();
+            int previousPosition = buffer.position();
+            int previousLimit = buffer.limit();
+            buffer.limit((int) (offsetRecords + lengthRecords));
+            buffer.position((int) offsetRecords);
+            ByteBuffer decompressedData = zstdDecompressCtx.decompress(buffer, (int) uncompressedSize);
+            buffer.position(previousPosition);
+            buffer.limit(previousLimit);
+            records = new Records(decompressedData);
+         }
+         else
+         {
+            throw new UnsupportedOperationException("Unsupported compression algorithm: " + compression);
+         }
+
+         recordsRef = new WeakReference<>(records);
+         return records;
       }
 
       @Override
@@ -1498,8 +1497,7 @@ public class MCAP
          if (summaryCrc32Input == null)
          {
             ByteBuffer tmpBuffer = ByteBuffer.allocate((int) (fileChannel.size() - ofsSummaryCrc32Input() - 8 - 4));
-            fileChannel.position(ofsSummaryCrc32Input());
-            fileChannel.read(tmpBuffer);
+            fileChannel.read(tmpBuffer, ofsSummaryCrc32Input());
             summaryCrc32Input = tmpBuffer.array();
          }
          return summaryCrc32Input;
@@ -1542,7 +1540,7 @@ public class MCAP
       private Opcode op;
       private long lengthBody;
       private long bodyPos;
-      private Object body;
+      private WeakReference<Object> bodyRef;
 
       public Record(ByteBuffer buffer) throws IOException
       {
@@ -1576,10 +1574,12 @@ public class MCAP
          setComputedLength(RECORD_HEADER_LENGTH + (int) lengthBody);
       }
 
-      public void readBody() throws IOException
+      private Object readBody() throws IOException
       {
+         Object body = bodyRef == null ? null : bodyRef.get();
+
          if (body != null)
-            return;
+            return body;
 
          if (op == null)
          {
@@ -1594,7 +1594,7 @@ public class MCAP
                body = new byte[(int) lengthBody];
                buffer.get((int) bodyPos, (byte[]) body);
             }
-            return;
+            return body;
          }
 
          if (fileChannel != null)
@@ -1641,6 +1641,8 @@ public class MCAP
          }
 
          setComputedLength(RECORD_HEADER_LENGTH + ((KaitaiStruct) body).getItemTotalLength());
+         bodyRef = new WeakReference<>(body);
+         return body;
       }
 
       public Opcode op()
@@ -1657,18 +1659,12 @@ public class MCAP
       {
          try
          {
-            readBody();
-            return body;
+            return readBody();
          }
          catch (IOException e)
          {
             throw new RuntimeException(e);
          }
-      }
-
-      public void unloadBody()
-      {
-         body = null;
       }
 
       @Override
@@ -1683,6 +1679,7 @@ public class MCAP
          String out = getClass().getSimpleName() + ":";
          out += "\n\t-op = " + op;
          out += "\n\t-lengthBody = " + lengthBody;
+         Object body = bodyRef == null ? null : bodyRef.get();
          out += "\n\t-body = " + (body == null ? "null" : "\n" + ((KaitaiStruct) body).toString(indent + 2));
          return indent(out, indent);
       }
@@ -1865,9 +1862,7 @@ public class MCAP
 
       public Record chunk() throws IOException
       {
-         Record chunk = null;
-         if (chunkRef != null)
-            chunk = chunkRef.get();
+         Record chunk = chunkRef == null ? null : chunkRef.get();
 
          if (chunk == null)
          {
@@ -1876,17 +1871,6 @@ public class MCAP
             chunkRef = new WeakReference<>(chunk);
          }
          return chunkRef.get();
-      }
-
-      public void unloadChunk()
-      {
-         if (chunkRef != null)
-         {
-            Record chunk = chunkRef.get();
-            if (chunk != null)
-               chunk.unloadBody();
-         }
-         chunkRef = null;
       }
 
       public long messageStartTime()
@@ -2026,8 +2010,7 @@ public class MCAP
          }
          else
          {
-            fileChannel.position(_pos);
-            fileChannel.read(buffer);
+            fileChannel.read(buffer, _pos);
             buffer.flip();
          }
       }

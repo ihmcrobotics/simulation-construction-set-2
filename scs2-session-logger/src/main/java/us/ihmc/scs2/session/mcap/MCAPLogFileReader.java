@@ -178,10 +178,6 @@ public class MCAPLogFileReader
             LogTools.error("Failed to load schema: " + schema.name() + ", saved to: " + debugFile.getAbsolutePath());
             throw e;
          }
-         finally
-         {
-            record.unloadBody();
-         }
       }
    }
 
