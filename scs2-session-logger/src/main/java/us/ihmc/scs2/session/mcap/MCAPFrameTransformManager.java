@@ -68,6 +68,7 @@ public class MCAPFrameTransformManager
 
    public void initialize(MCAP mcap) throws IOException
    {
+      long startTime = System.nanoTime();
       for (MCAP.Record record : mcap.records())
       {
          if (record.op() != MCAP.Opcode.SCHEMA)
@@ -91,6 +92,8 @@ public class MCAPFrameTransformManager
             break;
          }
       }
+      long endTime = System.nanoTime();
+      LogTools.info("Loaded MCAP schema in {} ms.", (endTime - startTime) * 1.0e-6);
 
       if (foxgloveFrameTransformSchema == null)
       {
@@ -98,6 +101,7 @@ public class MCAPFrameTransformManager
          return;
       }
 
+      startTime = System.nanoTime();
       // Flatten the schema to make it easier to read.
       foxgloveFrameTransformSchema = foxgloveFrameTransformSchema.flattenSchema();
       for (String fieldName : Arrays.asList(PARENT_FRAME_FIELD_NAME,
@@ -115,7 +119,10 @@ public class MCAPFrameTransformManager
          if (foxgloveFrameTransformSchema.getFields().stream().noneMatch(field -> field.getName().equalsIgnoreCase(fieldName)))
             throw new RuntimeException("Could not find the field " + fieldName + " in the schema for foxglove::FrameTransform");
       }
+      endTime = System.nanoTime();
+      LogTools.info("Flattened MCAP schema in {} ms.", (endTime - startTime) * 1.0e-6);
 
+      startTime = System.nanoTime();
       TIntObjectHashMap<String> channelIdToTopicMap = new TIntObjectHashMap<>();
       for (MCAP.Record record : mcap.records())
       {
@@ -129,7 +136,10 @@ public class MCAPFrameTransformManager
          }
       }
       channelIds.addAll(channelIdToTopicMap.keys());
+      endTime = System.nanoTime();
+      LogTools.info("Loaded MCAP channels in {} ms.", (endTime - startTime) * 1.0e-6);
 
+      startTime = System.nanoTime();
       Map<String, BasicTransformInfo> allTransforms = new LinkedHashMap<>();
 
       for (MCAP.Record record : mcap.records())
@@ -145,7 +155,10 @@ public class MCAPFrameTransformManager
          else
             processRecord(record, channelIdToTopicMap, allTransforms);
       }
+      endTime = System.nanoTime();
+      LogTools.info("Loaded MCAP records in {} ms.", (endTime - startTime) * 1.0e-6);
 
+      startTime = System.nanoTime();
       for (BasicTransformInfo transformInfo : allTransforms.values())
       {
          if (!allTransforms.containsKey(transformInfo.parentFrameName()) && !transformInfo.parentFrameName().equals(WORLD_FRAME_NAME))
@@ -153,7 +166,10 @@ public class MCAPFrameTransformManager
             unattachedRootNames.add(transformInfo.parentFrameName());
          }
       }
+      endTime = System.nanoTime();
+      LogTools.info("Found {} unattached root frames in {} ms.", unattachedRootNames.size(), (endTime - startTime) * 1.0e-6);
 
+      startTime = System.nanoTime();
       if (!allTransforms.isEmpty())
       {
          LinkedList<BasicTransformInfo> ordered = sortTransforms(allTransforms);
@@ -178,6 +194,8 @@ public class MCAPFrameTransformManager
          }
          yoGraphicGroupDefinition.setVisible(false);
       }
+      endTime = System.nanoTime();
+      LogTools.info("Created {} YoFoxGloveFrameTransforms in {} ms.", transformList.size(), (endTime - startTime) * 1.0e-6);
    }
 
    private void processRecord(MCAP.Record record, TIntObjectHashMap<String> channelIdToTopicMap, Map<String, BasicTransformInfo> allTransforms)

@@ -84,7 +84,9 @@ public class MCAPConsoleLogManager
                   orderedItems.add(parseLogItem(message, desiredLogDT));
             }
 
-            LogTools.info("Loaded {} log items from chunk bundle {}/{}", orderedItems.size(), ++counter, chunkBuffer.getChunkBundles().length);
+            counter++;
+            if (counter % (chunkBuffer.getChunkBundles().length / 10) == 0 || counter == chunkBuffer.getChunkBundles().length - 1)
+               LogTools.info("Loaded {} log items from chunk bundle {}/{}", orderedItems.size(), counter, chunkBuffer.getChunkBundles().length);
             orderedItems.sort(Comparator.comparingLong(MCAPConsoleLogItem::logTime));
             allConsoleLogItems.addAll(orderedItems);
          }

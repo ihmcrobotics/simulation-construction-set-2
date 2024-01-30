@@ -137,9 +137,6 @@ public class MCAP
 
    public static class Chunk extends KaitaiStruct
    {
-      private LZ4FrameDecoder lz4FrameDecoder;
-      private ZstdDecompressCtx zstdDecompressCtx;
-
       /**
        * Earliest message log_time in the chunk. Zero if the chunk has no messages.
        */
@@ -251,24 +248,24 @@ public class MCAP
          }
          else if (compression.equalsIgnoreCase("lz4"))
          {
-            if (lz4FrameDecoder == null)
-               lz4FrameDecoder = new LZ4FrameDecoder();
+            LZ4FrameDecoder lz4FrameDecoder = new LZ4FrameDecoder();
             ByteBuffer decompressedData = ByteBuffer.allocate((int) uncompressedSize);
             lz4FrameDecoder.decode(buffer, (int) offsetRecords, (int) lengthRecords, decompressedData, 0);
             records = new Records(decompressedData);
          }
          else if (compression.equalsIgnoreCase("zstd"))
          {
-            if (zstdDecompressCtx == null)
-               zstdDecompressCtx = new ZstdDecompressCtx();
-            int previousPosition = buffer.position();
-            int previousLimit = buffer.limit();
-            buffer.limit((int) (offsetRecords + lengthRecords));
-            buffer.position((int) offsetRecords);
-            ByteBuffer decompressedData = zstdDecompressCtx.decompress(buffer, (int) uncompressedSize);
-            buffer.position(previousPosition);
-            buffer.limit(previousLimit);
-            records = new Records(decompressedData);
+            try (ZstdDecompressCtx zstdDecompressCtx = new ZstdDecompressCtx())
+            {
+               int previousPosition = buffer.position();
+               int previousLimit = buffer.limit();
+               buffer.limit((int) (offsetRecords + lengthRecords));
+               buffer.position((int) offsetRecords);
+               ByteBuffer decompressedData = zstdDecompressCtx.decompress(buffer, (int) uncompressedSize);
+               buffer.position(previousPosition);
+               buffer.limit(previousLimit);
+               records = new Records(decompressedData);
+            }
          }
          else
          {

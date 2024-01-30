@@ -367,8 +367,11 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
    @Override
    public void unloadSession()
    {
-      // TODO Auto-generated method stub
-
+      if (activeSessionProperty.get() != null)
+      {
+         activeSessionProperty.get().shutdownSession();
+         activeSessionProperty.set(null);
+      }
    }
 
    @Override
