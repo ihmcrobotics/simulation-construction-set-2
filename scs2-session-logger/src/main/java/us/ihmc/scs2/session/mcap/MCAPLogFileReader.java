@@ -24,6 +24,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class MCAPLogFileReader
 {
@@ -81,7 +82,11 @@ public class MCAPLogFileReader
       messageManager = new MCAPMessageManager(mcap, chunkBuffer, desiredLogDT);
       consoleLogManager = new MCAPConsoleLogManager(mcap, chunkBuffer, desiredLogDT);
 
-      currentTimestamp.addListener(v -> consoleLogManager.update(currentTimestamp.getValue()));
+      currentTimestamp.addListener(v ->
+                                   {
+                                      chunkBuffer.preloadChunks(currentTimestamp.getValue(), TimeUnit.MILLISECONDS.toNanos(500));
+                                      consoleLogManager.update(currentTimestamp.getValue());
+                                   });
 
       initialTimestamp = messageManager.firstMessageTimestamp();
       finalTimestamp = messageManager.lastMessageTimestamp();

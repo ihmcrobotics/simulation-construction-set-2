@@ -173,7 +173,7 @@ public class MCAPMessageManager
          currentChunkBundle = chunkBuffer.getChunkBundle(timestamp);
          if (currentChunkBundle == null)
             return Collections.emptyList();
-         currentChunkBundle.requestLoadChunk(true);
+         currentChunkBundle.requestLoadChunkBundle(true);
       }
 
       if (currentChunkBundle.startTime() == timestamp)
@@ -182,7 +182,7 @@ public class MCAPMessageManager
          if (previous == null)
             return currentChunkBundle.getMessages(timestamp);
 
-         previous.requestLoadChunk(true);
+         previous.requestLoadChunkBundle(true);
          return merge(previous.getMessages(timestamp), currentChunkBundle.getMessages(timestamp));
       }
       else if (currentChunkBundle.endTime() == timestamp)
@@ -191,7 +191,7 @@ public class MCAPMessageManager
          if (next == null)
             return currentChunkBundle.getMessages(timestamp);
 
-         next.requestLoadChunk(true);
+         next.requestLoadChunkBundle(true);
          return merge(currentChunkBundle.getMessages(timestamp), next.getMessages(timestamp));
       }
       else

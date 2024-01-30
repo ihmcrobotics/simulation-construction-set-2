@@ -27,7 +27,7 @@ import static us.ihmc.scs2.session.mcap.MCAPMessageManager.round;
  */
 public class MCAPBufferedChunk
 {
-   private static final double ALLOWABLE_CHUNK_MEMORY_RATIO = 0.0125;
+   private static final double ALLOWABLE_CHUNK_MEMORY_RATIO = 0.05;
    private final long desiredLogDT;
    private final int maxNumberOfChunksLoaded;
 
@@ -40,7 +40,6 @@ public class MCAPBufferedChunk
       this.desiredLogDT = desiredLogDT;
 
       int numberOfChunks = 0;
-      long averageChunkSize = 0;
       long minChunkSize = Long.MAX_VALUE;
       long maxChunkSize = Long.MIN_VALUE;
       long totalChunkSize = 0;
@@ -65,7 +64,7 @@ public class MCAPBufferedChunk
          }
       }
 
-      averageChunkSize = totalChunkSize / numberOfChunks;
+      long averageChunkSize = totalChunkSize / numberOfChunks;
       maxNumberOfChunksLoaded = (int) Math.ceil(ALLOWABLE_CHUNK_MEMORY_RATIO * Runtime.getRuntime().maxMemory() / averageChunkSize);
       LogTools.info("Chunk stats: [Average size: %d, min size: %d, max size: %d, total size: %d, quantity: %d], max memory: %d, max chunks loaded: %d".formatted(
             averageChunkSize,
@@ -102,7 +101,30 @@ public class MCAPBufferedChunk
    public void requestLoadChunk(long logTime, boolean wait)
    {
       ChunkBundle chunkBundle = getChunkBundle(logTime);
-      chunkBundle.requestLoadChunk(wait);
+      if (chunkBundle != null)
+         chunkBundle.requestLoadChunkBundle(wait);
+   }
+
+   public void preloadChunks(long startTime, long duration)
+   {
+      ChunkBundle chunkBundle = getChunkBundle(startTime);
+      if (chunkBundle == null)
+         return;
+
+      int maxNumberOfChunksToLoad = maxNumberOfChunksLoaded / 2;
+      int numberOfChunksLoaded = 1;
+      chunkBundle.requestLoadChunkBundle(false);
+
+      while (chunkBundle.endTime() < startTime + duration && numberOfChunksLoaded < maxNumberOfChunksToLoad)
+      {
+         chunkBundle = chunkBundle.next();
+
+         if (chunkBundle == null)
+            break;
+
+         numberOfChunksLoaded++;
+         chunkBundle.requestLoadChunkBundle(false);
+      }
    }
 
    public void peekAllChunkRecords(Consumer<Records> recordsConsumer)
@@ -111,9 +133,9 @@ public class MCAPBufferedChunk
                                           {
                                              try
                                              {
-                                                boolean wasLoaded = chunkBundle.isLoaded;
-                                                chunkBundle.requestLoadChunk(true);
-                                                recordsConsumer.accept(chunkBundle.chunk.records());
+                                                boolean wasLoaded = chunkBundle.isChunkLoaded;
+                                                chunkBundle.requestLoadChunkBundle(true);
+                                                recordsConsumer.accept(chunkBundle.chunkRecords.records());
                                                 if (!wasLoaded)
                                                    chunkBundle.unloadChunk();
                                              }
@@ -185,18 +207,27 @@ public class MCAPBufferedChunk
    {
       private final int index;
       private final ChunkIndex chunkIndex;
-      private Chunk chunk;
+      private Records chunkRecords;
       private TLongObjectHashMap<List<Message>> bundledMessages;
 
-      private volatile boolean isLoaded = false;
-      private volatile boolean isLoading = false;
+      private volatile boolean isChunkLoaded = false;
+      private volatile boolean isChunkLoading = false;
       private volatile CountDownLatch chunkLoadedLatch;
+
+      private volatile boolean areMessagesLoaded = false;
+      private volatile boolean areMessagesLoading = false;
+      private volatile CountDownLatch messagesLoadedLatch;
       private long lastLoadingRequestTime = Long.MIN_VALUE;
 
       public ChunkBundle(int index, ChunkIndex chunkIndex)
       {
          this.index = index;
          this.chunkIndex = chunkIndex;
+      }
+
+      public ChunkIndex getChunkIndex()
+      {
+         return chunkIndex;
       }
 
       public ChunkBundle next()
@@ -220,31 +251,51 @@ public class MCAPBufferedChunk
 
       private void unloadChunk()
       {
-         chunk = null;
+         chunkRecords = null;
          bundledMessages = null;
          loadedChunkBundles.remove(this);
-         isLoaded = false;
+         isChunkLoaded = false;
       }
 
-      public void requestLoadChunk(boolean wait)
+      public void requestLoadChunkBundle(boolean wait)
       {
          lastLoadingRequestTime = System.nanoTime();
 
-         if (isLoaded)
+         if (isChunkLoaded && areMessagesLoaded)
             return;
 
-         if (!isLoading)
+         if (!isChunkLoading || !areMessagesLoading)
          {
-            chunkLoadedLatch = new CountDownLatch(1);
-            isLoading = true;
+            if (!isChunkLoading)
+            {
+               chunkLoadedLatch = new CountDownLatch(1);
+               isChunkLoading = true;
+               freeUpChunkBundleSpots(1);
+            }
+            else
+            {
+               try
+               {
+                  chunkLoadedLatch.await();
+               }
+               catch (InterruptedException e)
+               {
+                  throw new RuntimeException(e);
+               }
+            }
 
-            freeUpChunkBundleSpots(1);
+            if (!areMessagesLoading)
+            {
+               messagesLoadedLatch = new CountDownLatch(1);
+               areMessagesLoading = true;
+            }
 
             executorService.submit(() ->
                                    {
                                       try
                                       {
-                                         loadChunkImpl();
+                                         loadChunkNow();
+                                         loadMessagesNow();
                                       }
                                       catch (Exception e)
                                       {
@@ -253,7 +304,56 @@ public class MCAPBufferedChunk
                                       }
                                       finally
                                       {
-                                         isLoading = false;
+                                         isChunkLoading = false;
+                                         chunkLoadedLatch.countDown();
+                                         chunkLoadedLatch = null;
+                                         areMessagesLoading = false;
+                                         messagesLoadedLatch.countDown();
+                                         messagesLoadedLatch = null;
+                                      }
+                                   });
+         }
+
+         try
+         {
+            if (chunkLoadedLatch != null && wait)
+               chunkLoadedLatch.await();
+            if (messagesLoadedLatch != null && wait)
+               messagesLoadedLatch.await();
+         }
+         catch (InterruptedException e)
+         {
+            throw new RuntimeException(e);
+         }
+      }
+
+      public void requestLoadChunk(boolean wait)
+      {
+         lastLoadingRequestTime = System.nanoTime();
+
+         if (isChunkLoaded)
+            return;
+
+         if (!isChunkLoading)
+         {
+            chunkLoadedLatch = new CountDownLatch(1);
+            isChunkLoading = true;
+            freeUpChunkBundleSpots(1);
+
+            executorService.submit(() ->
+                                   {
+                                      try
+                                      {
+                                         loadChunkNow();
+                                      }
+                                      catch (Exception e)
+                                      {
+                                         e.printStackTrace();
+                                         unloadChunk();
+                                      }
+                                      finally
+                                      {
+                                         isChunkLoading = false;
                                          chunkLoadedLatch.countDown();
                                          chunkLoadedLatch = null;
                                       }
@@ -271,22 +371,19 @@ public class MCAPBufferedChunk
          }
       }
 
-      private void loadChunkImpl() throws IOException
+      public void loadChunkNow() throws IOException
       {
-         if (chunk == null)
-            chunk = (Chunk) chunkIndex.chunk().body();
+         if (chunkRecords == null)
+            chunkRecords = ((Chunk) chunkIndex.chunk().body()).records();
 
-         loadMessagesImpl();
-
-         loadedChunkBundles.add(this);
-         isLoaded = true;
+         if (!loadedChunkBundles.contains(this))
+            loadedChunkBundles.add(this);
+         isChunkLoaded = true;
       }
 
-      private void loadMessagesImpl() throws IOException
+      public void loadMessagesNow() throws IOException
       {
-         Records records = chunk.records();
-
-         for (Record record : records)
+         for (Record record : chunkRecords)
          {
             if (record.op() != Opcode.MESSAGE)
                continue;
@@ -303,19 +400,8 @@ public class MCAPBufferedChunk
             }
             messages.add(message);
          }
-      }
 
-      public void forEachRecord(Opcode opcode, Consumer<Record> recordConsumer) throws IOException
-      {
-         Records records = chunk.records();
-
-         for (Record record : records)
-         {
-            if (record.op() != opcode)
-               continue;
-
-            recordConsumer.accept(record);
-         }
+         areMessagesLoaded = true;
       }
 
       public long startTime()
@@ -330,13 +416,13 @@ public class MCAPBufferedChunk
 
       public List<Message> getMessages(long logTime)
       {
-         if (!isLoaded)
+         if (!isChunkLoaded)
             return null;
          if (bundledMessages == null)
          {
             try
             {
-               loadMessagesImpl();
+               loadMessagesNow();
             }
             catch (IOException e)
             {
