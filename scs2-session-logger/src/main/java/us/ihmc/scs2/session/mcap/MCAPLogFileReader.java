@@ -79,19 +79,18 @@ public class MCAPLogFileReader
       FileChannel mcapFileChannel = mcapFileInputStream.getChannel();
       mcap = new MCAP(mcapFileChannel);
       chunkBuffer = new MCAPBufferedChunk(mcap, desiredLogDT);
-      messageManager = new MCAPMessageManager(mcap, chunkBuffer, desiredLogDT);
+      LogTools.info("About to create MCAPConsoleLogManager");
       consoleLogManager = new MCAPConsoleLogManager(mcap, chunkBuffer, desiredLogDT);
+      LogTools.info("About to create MCAPMessageManager");
+      messageManager = new MCAPMessageManager(mcap, chunkBuffer, desiredLogDT);
 
-      currentTimestamp.addListener(v ->
-                                   {
-                                      chunkBuffer.preloadChunks(currentTimestamp.getValue(), TimeUnit.MILLISECONDS.toNanos(500));
-                                      consoleLogManager.update(currentTimestamp.getValue());
-                                   });
+      currentTimestamp.addListener(v -> chunkBuffer.preloadChunks(currentTimestamp.getValue(), TimeUnit.MILLISECONDS.toNanos(500)));
 
       initialTimestamp = messageManager.firstMessageTimestamp();
       finalTimestamp = messageManager.lastMessageTimestamp();
       frameTransformManager = new MCAPFrameTransformManager(inertialFrame);
       mcapRegistry.addChild(frameTransformManager.getRegistry());
+      LogTools.info("Done creating MCAPLogFileReader");
    }
 
    public long getDesiredLogDT()
