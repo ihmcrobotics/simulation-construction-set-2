@@ -9,6 +9,10 @@ import us.ihmc.scs2.definition.visual.ColorDefinitions;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinitionFactory;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicGroupDefinition;
+import us.ihmc.scs2.session.mcap.MCAP.Message;
+import us.ihmc.scs2.session.mcap.MCAP.Opcode;
+import us.ihmc.scs2.session.mcap.MCAP.Record;
+import us.ihmc.scs2.session.mcap.MCAPBufferedChunk.ChunkBundle;
 import us.ihmc.scs2.session.mcap.MCAPSchema.MCAPSchemaField;
 import us.ihmc.yoVariables.euclid.YoPoint3D;
 import us.ihmc.yoVariables.euclid.YoPose3D;
@@ -66,12 +70,11 @@ public class MCAPFrameTransformManager
       this.inertialFrame = inertialFrame;
    }
 
-   public void initialize(MCAP mcap) throws IOException
+   public void initialize(MCAP mcap, MCAPBufferedChunk chunkBuffer) throws IOException
    {
-      long startTime = System.nanoTime();
       for (MCAP.Record record : mcap.records())
       {
-         if (record.op() != MCAP.Opcode.SCHEMA)
+         if (record.op() != Opcode.SCHEMA)
             continue;
 
          mcapSchema = (MCAP.Schema) record.body();
@@ -92,8 +95,6 @@ public class MCAPFrameTransformManager
             break;
          }
       }
-      long endTime = System.nanoTime();
-      LogTools.info("Loaded MCAP schema in {} ms.", (endTime - startTime) * 1.0e-6);
 
       if (foxgloveFrameTransformSchema == null)
       {
@@ -101,7 +102,6 @@ public class MCAPFrameTransformManager
          return;
       }
 
-      startTime = System.nanoTime();
       // Flatten the schema to make it easier to read.
       foxgloveFrameTransformSchema = foxgloveFrameTransformSchema.flattenSchema();
       for (String fieldName : Arrays.asList(PARENT_FRAME_FIELD_NAME,
@@ -119,14 +119,11 @@ public class MCAPFrameTransformManager
          if (foxgloveFrameTransformSchema.getFields().stream().noneMatch(field -> field.getName().equalsIgnoreCase(fieldName)))
             throw new RuntimeException("Could not find the field " + fieldName + " in the schema for foxglove::FrameTransform");
       }
-      endTime = System.nanoTime();
-      LogTools.info("Flattened MCAP schema in {} ms.", (endTime - startTime) * 1.0e-6);
 
-      startTime = System.nanoTime();
       TIntObjectHashMap<String> channelIdToTopicMap = new TIntObjectHashMap<>();
       for (MCAP.Record record : mcap.records())
       {
-         if (record.op() == MCAP.Opcode.CHANNEL)
+         if (record.op() == Opcode.CHANNEL)
          {
             MCAP.Channel channel = (MCAP.Channel) record.body();
             if (channel.schemaId() == foxgloveFrameTransformSchema.getId())
@@ -136,29 +133,39 @@ public class MCAPFrameTransformManager
          }
       }
       channelIds.addAll(channelIdToTopicMap.keys());
-      endTime = System.nanoTime();
-      LogTools.info("Loaded MCAP channels in {} ms.", (endTime - startTime) * 1.0e-6);
 
-      startTime = System.nanoTime();
       Map<String, BasicTransformInfo> allTransforms = new LinkedHashMap<>();
 
-      for (MCAP.Record record : mcap.records())
+      for (Record record : mcap.records())
       {
-         if (record.op() == MCAP.Opcode.CHUNK)
-         {
-            MCAP.Chunk chunk = (MCAP.Chunk) record.body();
-            for (MCAP.Record chunkRecord : chunk.records())
-            {
-               processRecord(chunkRecord, channelIdToTopicMap, allTransforms);
-            }
-         }
-         else
+         if (record.op() == Opcode.MESSAGE)
             processRecord(record, channelIdToTopicMap, allTransforms);
       }
-      endTime = System.nanoTime();
-      LogTools.info("Loaded MCAP records in {} ms.", (endTime - startTime) * 1.0e-6);
 
-      startTime = System.nanoTime();
+      int numberOfTransforms = allTransforms.size();
+      int numberOfChunkWithoutNewTransforms = 0;
+
+      for (ChunkBundle chunkBundle : chunkBuffer.getChunkBundles())
+      {
+         chunkBundle.requestLoadChunkBundle(true, false, false);
+
+         for (Record record : chunkBundle.getChunkRecords())
+         {
+            if (record.op() == Opcode.MESSAGE)
+               processRecord(record, channelIdToTopicMap, allTransforms);
+         }
+
+         if (allTransforms.size() == numberOfTransforms)
+            numberOfChunkWithoutNewTransforms++;
+         else
+            numberOfChunkWithoutNewTransforms = 0;
+
+         if (numberOfChunkWithoutNewTransforms > 5)
+            break;
+
+         numberOfTransforms = allTransforms.size();
+      }
+
       for (BasicTransformInfo transformInfo : allTransforms.values())
       {
          if (!allTransforms.containsKey(transformInfo.parentFrameName()) && !transformInfo.parentFrameName().equals(WORLD_FRAME_NAME))
@@ -166,10 +173,7 @@ public class MCAPFrameTransformManager
             unattachedRootNames.add(transformInfo.parentFrameName());
          }
       }
-      endTime = System.nanoTime();
-      LogTools.info("Found {} unattached root frames in {} ms.", unattachedRootNames.size(), (endTime - startTime) * 1.0e-6);
 
-      startTime = System.nanoTime();
       if (!allTransforms.isEmpty())
       {
          LinkedList<BasicTransformInfo> ordered = sortTransforms(allTransforms);
@@ -194,16 +198,11 @@ public class MCAPFrameTransformManager
          }
          yoGraphicGroupDefinition.setVisible(false);
       }
-      endTime = System.nanoTime();
-      LogTools.info("Created {} YoFoxGloveFrameTransforms in {} ms.", transformList.size(), (endTime - startTime) * 1.0e-6);
    }
 
    private void processRecord(MCAP.Record record, TIntObjectHashMap<String> channelIdToTopicMap, Map<String, BasicTransformInfo> allTransforms)
    {
-      if (record.op() != MCAP.Opcode.MESSAGE)
-         return;
-
-      MCAP.Message message = (MCAP.Message) record.body();
+      Message message = (Message) record.body();
       String topic = channelIdToTopicMap.get(message.channelId());
 
       if (topic == null)
@@ -254,7 +253,7 @@ public class MCAPFrameTransformManager
     * @param message the message to read.
     * @return {@code true} if the message was successfully read, {@code false} otherwise.
     */
-   public boolean readMessage(MCAP.Message message)
+   public boolean readMessage(Message message)
    {
       if (foxgloveFrameTransformSchema == null)
          return false;
@@ -393,7 +392,7 @@ public class MCAPFrameTransformManager
       return sanitizedNameToTransformMap.get(name);
    }
 
-   private static BasicTransformInfo extractFromMessage(MCAPSchema flatSchema, String topic, MCAP.Message message)
+   private static BasicTransformInfo extractFromMessage(MCAPSchema flatSchema, String topic, Message message)
    {
       if (!flatSchema.isSchemaFlat())
          throw new IllegalArgumentException("The schema is not flat.");
@@ -463,8 +462,8 @@ public class MCAPFrameTransformManager
          poseToParent = new YoPose3D(namePrefix, registry);
          if (parent == null)
          {
-            YoPoint3D yoPosition = (YoPoint3D) poseToParent.getPosition();
-            YoQuaternion yoOrientation = (YoQuaternion) poseToParent.getOrientation();
+            YoPoint3D yoPosition = poseToParent.getPosition();
+            YoQuaternion yoOrientation = poseToParent.getOrientation();
             poseToRoot = new YoFramePose3D(new YoFramePoint3D(yoPosition.getYoX(), yoPosition.getYoY(), yoPosition.getYoZ(), inertialFrame),
                                            new YoFrameQuaternion(yoOrientation.getYoQx(),
                                                                  yoOrientation.getYoQy(),
