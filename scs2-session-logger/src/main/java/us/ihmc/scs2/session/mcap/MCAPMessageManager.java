@@ -82,7 +82,7 @@ public class MCAPMessageManager
          else if (record.op() == MCAP.Opcode.MESSAGE_INDEX)
          {
             MCAP.MessageIndex messageIndex = (MCAP.MessageIndex) record.body();
-            for (MCAP.MessageIndex.MessageIndexEntry mcapEntry : messageIndex.records())
+            for (MCAP.MessageIndex.MessageIndexEntry mcapEntry : messageIndex.messageIndexEntries())
             {
                long timestamp = round(mcapEntry.logTime(), desiredLogDT);
                if (allMessageTimestamps.isEmpty() || timestamp > allMessageTimestamps.get(allMessageTimestamps.size() - 1))

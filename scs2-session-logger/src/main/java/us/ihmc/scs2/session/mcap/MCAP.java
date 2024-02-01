@@ -87,14 +87,14 @@ public class MCAP
 
       long currentPos = 0;
       headerMagic = new Magic(fileChannel, currentPos);
-      currentPos += headerMagic.getItemTotalLength();
+      currentPos += headerMagic.getElementLength();
       records = new ArrayList<>();
       Record lastRecord;
 
       do
       {
          lastRecord = new Record(fileChannel, currentPos);
-         currentPos += lastRecord.getItemTotalLength();
+         currentPos += lastRecord.getElementLength();
          records.add(lastRecord);
       }
       while (!(lastRecord.op() == Opcode.FOOTER));
@@ -171,19 +171,19 @@ public class MCAP
        */
       private WeakReference<Records> recordsRef;
 
-      public Chunk(FileChannel fileChannel, ByteBuffer buffer, long _pos, int _length)
+      public Chunk(FileChannel fileChannel, ByteBuffer buffer, long elementPosition, int elementLength)
       {
          this.fileChannel = fileChannel;
          this.buffer = buffer;
 
          if (buffer == null)
          {
-            buffer = newByteBuffer(_length, false);
-            readIntoBuffer(fileChannel, _pos, buffer);
+            buffer = newByteBuffer(elementLength, false);
+            readIntoBuffer(fileChannel, elementPosition, buffer);
          }
          else
          {
-            buffer.position((int) _pos);
+            buffer.position((int) elementPosition);
          }
 
          int bufferStart = buffer.position();
@@ -193,11 +193,11 @@ public class MCAP
          uncompressedCrc32 = Integer.toUnsignedLong(buffer.getInt());
          compression = parseString(buffer);
          lengthRecords = buffer.getLong();
-         offsetRecords = _pos + buffer.position() - bufferStart;
+         offsetRecords = elementPosition + buffer.position() - bufferStart;
       }
 
       @Override
-      public int getItemTotalLength()
+      public int getElementLength()
       {
          return 3 * Long.BYTES + 2 * Integer.BYTES + compression.length() + Long.BYTES + (int) lengthRecords;
       }
@@ -319,23 +319,23 @@ public class MCAP
    {
       private final long dataSectionCrc32;
 
-      public DataEnd(FileChannel fileChannel, ByteBuffer buffer, long _pos, int _length)
+      public DataEnd(FileChannel fileChannel, ByteBuffer buffer, long elementPosition, int elementLength)
       {
          if (buffer == null)
          {
-            buffer = newByteBuffer(_length, false);
-            readIntoBuffer(fileChannel, _pos, buffer);
+            buffer = newByteBuffer(elementLength, false);
+            readIntoBuffer(fileChannel, elementPosition, buffer);
          }
          else
          {
-            buffer.position((int) _pos);
+            buffer.position((int) elementPosition);
          }
 
          dataSectionCrc32 = Integer.toUnsignedLong(buffer.getInt());
       }
 
       @Override
-      public int getItemTotalLength()
+      public int getElementLength()
       {
          return Integer.BYTES;
       }
@@ -364,16 +364,16 @@ public class MCAP
       private final List<TupleStrStr> metadata;
       private final int metadataLength;
 
-      public Channel(FileChannel fileChannel, ByteBuffer buffer, long _pos, int _length)
+      public Channel(FileChannel fileChannel, ByteBuffer buffer, long elementPosition, int elementLength)
       {
          if (buffer == null)
          {
-            buffer = newByteBuffer(_length, false);
-            readIntoBuffer(fileChannel, _pos, buffer);
+            buffer = newByteBuffer(elementLength, false);
+            readIntoBuffer(fileChannel, elementPosition, buffer);
          }
          else
          {
-            buffer.position((int) _pos);
+            buffer.position((int) elementPosition);
          }
 
          id = Short.toUnsignedInt(buffer.getShort());
@@ -387,7 +387,7 @@ public class MCAP
       }
 
       @Override
-      public int getItemTotalLength()
+      public int getElementLength()
       {
          return 2 * Short.BYTES + 2 * Integer.BYTES + topic.length() + messageEncoding.length() + metadataLength;
       }
@@ -436,16 +436,16 @@ public class MCAP
       private final List<MessageIndexEntry> messageIndexEntries;
       private final int messageIndexEntriesLength;
 
-      public MessageIndex(FileChannel fileChannel, ByteBuffer buffer, long _pos, int _length)
+      public MessageIndex(FileChannel fileChannel, ByteBuffer buffer, long elementPosition, int elementLength)
       {
          if (buffer == null)
          {
-            buffer = newByteBuffer(_length, false);
-            readIntoBuffer(fileChannel, _pos, buffer);
+            buffer = newByteBuffer(elementLength, false);
+            readIntoBuffer(fileChannel, elementPosition, buffer);
          }
          else
          {
-            buffer.position((int) _pos);
+            buffer.position((int) elementPosition);
          }
 
          int start = buffer.position();
@@ -455,7 +455,7 @@ public class MCAP
       }
 
       @Override
-      public int getItemTotalLength()
+      public int getElementLength()
       {
          return Short.BYTES + messageIndexEntriesLength;
       }
@@ -479,7 +479,7 @@ public class MCAP
          }
 
          @Override
-         public int getItemTotalLength()
+         public int getElementLength()
          {
             return 2 * Long.BYTES;
          }
@@ -515,7 +515,7 @@ public class MCAP
          return channelId;
       }
 
-      public List<MessageIndexEntry> records()
+      public List<MessageIndexEntry> messageIndexEntries()
       {
          return messageIndexEntries;
       }
@@ -551,16 +551,16 @@ public class MCAP
       private final List<ChannelMessageCount> channelMessageCounts;
       private final int channelMessageCountsLength;
 
-      public Statistics(FileChannel fileChannel, ByteBuffer buffer, long _pos, int length)
+      public Statistics(FileChannel fileChannel, ByteBuffer buffer, long elementPosition, int elementLength)
       {
          if (buffer == null)
          {
-            buffer = newByteBuffer(length, false);
-            readIntoBuffer(fileChannel, _pos, buffer);
+            buffer = newByteBuffer(elementLength, false);
+            readIntoBuffer(fileChannel, elementPosition, buffer);
          }
          else
          {
-            buffer.position((int) _pos);
+            buffer.position((int) elementPosition);
          }
 
          int start = buffer.position();
@@ -577,7 +577,7 @@ public class MCAP
       }
 
       @Override
-      public int getItemTotalLength()
+      public int getElementLength()
       {
          return 3 * Long.BYTES + 5 * Integer.BYTES + Short.BYTES + channelMessageCountsLength;
       }
@@ -594,7 +594,7 @@ public class MCAP
          }
 
          @Override
-         public int getItemTotalLength()
+         public int getElementLength()
          {
             return Short.BYTES + Long.BYTES;
          }
@@ -701,19 +701,19 @@ public class MCAP
 
       private WeakReference<Record> attachmentRef;
 
-      private AttachmentIndex(FileChannel fileChannel, ByteBuffer buffer, long _pos, int _length)
+      private AttachmentIndex(FileChannel fileChannel, ByteBuffer buffer, long elementPosition, int elementLength)
       {
          this.fileChannel = fileChannel;
          this.buffer = buffer;
 
          if (buffer == null)
          {
-            buffer = newByteBuffer(_length, false);
-            readIntoBuffer(fileChannel, _pos, buffer);
+            buffer = newByteBuffer(elementLength, false);
+            readIntoBuffer(fileChannel, elementPosition, buffer);
          }
          else
          {
-            buffer.position((int) _pos);
+            buffer.position((int) elementPosition);
          }
 
          offsetAttachment = buffer.getLong();
@@ -726,7 +726,7 @@ public class MCAP
       }
 
       @Override
-      public int getItemTotalLength()
+      public int getElementLength()
       {
          return 5 * Long.BYTES + 2 * Integer.BYTES + name.length() + mediaType.length();
       }
@@ -809,19 +809,19 @@ public class MCAP
       private final long offsetData;
       private WeakReference<ByteBuffer> dataRef;
 
-      public Schema(FileChannel fileChannel, ByteBuffer buffer, long _pos, int _length)
+      public Schema(FileChannel fileChannel, ByteBuffer buffer, long elementPosition, int elementLength)
       {
          this.fileChannel = fileChannel;
          this.buffer = buffer;
 
          if (buffer == null)
          {
-            buffer = newByteBuffer(_length, false);
-            readIntoBuffer(fileChannel, _pos, buffer);
+            buffer = newByteBuffer(elementLength, false);
+            readIntoBuffer(fileChannel, elementPosition, buffer);
          }
          else
          {
-            buffer.position((int) _pos);
+            buffer.position((int) elementPosition);
          }
 
          int bufferStart = buffer.position();
@@ -829,11 +829,11 @@ public class MCAP
          name = parseString(buffer);
          encoding = parseString(buffer);
          lengthData = Integer.toUnsignedLong(buffer.getInt());
-         offsetData = _pos + buffer.position() - bufferStart;
+         offsetData = elementPosition + buffer.position() - bufferStart;
       }
 
       @Override
-      public int getItemTotalLength()
+      public int getElementLength()
       {
          return Short.BYTES + 3 * Integer.BYTES + name.length() + encoding.length() + (int) lengthData;
       }
@@ -892,19 +892,19 @@ public class MCAP
 
       private WeakReference<Records> groupRef;
 
-      public SummaryOffset(FileChannel fileChannel, ByteBuffer buffer, long _pos, int _length)
+      public SummaryOffset(FileChannel fileChannel, ByteBuffer buffer, long elementPosition, int elementLength)
       {
          this.fileChannel = fileChannel;
          this.buffer = buffer;
 
          if (buffer == null)
          {
-            buffer = newByteBuffer(_length, false);
-            readIntoBuffer(fileChannel, _pos, buffer);
+            buffer = newByteBuffer(elementLength, false);
+            readIntoBuffer(fileChannel, elementPosition, buffer);
          }
          else
          {
-            buffer.position((int) _pos);
+            buffer.position((int) elementPosition);
          }
 
          groupOpcode = Opcode.byId(Byte.toUnsignedInt(buffer.get()));
@@ -913,7 +913,7 @@ public class MCAP
       }
 
       @Override
-      public int getItemTotalLength()
+      public int getElementLength()
       {
          return Byte.BYTES + 2 * Long.BYTES;
       }
@@ -975,36 +975,36 @@ public class MCAP
       private final int crc32InputLength;
       private WeakReference<ByteBuffer> crc32InputRef;
 
-      private Attachment(FileChannel fileChannel, ByteBuffer buffer, long _pos, int _length)
+      private Attachment(FileChannel fileChannel, ByteBuffer buffer, long elementPosition, int elementLength)
       {
          this.fileChannel = fileChannel;
          this.buffer = buffer;
 
          if (buffer == null)
          {
-            buffer = newByteBuffer(_length, false);
-            readIntoBuffer(fileChannel, _pos, buffer);
+            buffer = newByteBuffer(elementLength, false);
+            readIntoBuffer(fileChannel, elementPosition, buffer);
          }
          else
          {
-            buffer.position((int) _pos);
+            buffer.position((int) elementPosition);
          }
 
          int bufferStart = buffer.position();
-         crc32InputStart = _pos;
+         crc32InputStart = elementPosition;
          logTime = buffer.getLong();
          createTime = buffer.getLong();
          name = parseString(buffer);
          mediaType = parseString(buffer);
          lengthData = buffer.getLong();
-         offsetData = _pos + buffer.position() - bufferStart;
+         offsetData = elementPosition + buffer.position() - bufferStart;
          buffer.position((int) (buffer.position() + lengthData));
          crc32InputLength = buffer.position() - bufferStart;
          crc32 = Integer.toUnsignedLong(buffer.getInt());
       }
 
       @Override
-      public int getItemTotalLength()
+      public int getElementLength()
       {
          return 3 * Long.BYTES + 3 * Integer.BYTES + name.length() + mediaType.length() + (int) lengthData;
       }
@@ -1102,16 +1102,16 @@ public class MCAP
       private final List<TupleStrStr> metadata;
       private final int metadataLength;
 
-      private Metadata(FileChannel fileChannel, ByteBuffer buffer, long _pos, int _length)
+      private Metadata(FileChannel fileChannel, ByteBuffer buffer, long elementPosition, int elementLength)
       {
          if (buffer == null)
          {
-            buffer = newByteBuffer(_length, false);
-            readIntoBuffer(fileChannel, _pos, buffer);
+            buffer = newByteBuffer(elementLength, false);
+            readIntoBuffer(fileChannel, elementPosition, buffer);
          }
          else
          {
-            buffer.position((int) _pos);
+            buffer.position((int) elementPosition);
          }
 
          name = parseString(buffer);
@@ -1121,7 +1121,7 @@ public class MCAP
       }
 
       @Override
-      public int getItemTotalLength()
+      public int getElementLength()
       {
          return Integer.BYTES + name.length() + metadataLength;
       }
@@ -1151,16 +1151,16 @@ public class MCAP
       private final String profile;
       private final String library;
 
-      public Header(FileChannel fileChannel, ByteBuffer buffer, long _pos, int _length)
+      public Header(FileChannel fileChannel, ByteBuffer buffer, long elementPosition, int elementLength)
       {
          if (buffer == null)
          {
-            buffer = newByteBuffer(_length, false);
-            readIntoBuffer(fileChannel, _pos, buffer);
+            buffer = newByteBuffer(elementLength, false);
+            readIntoBuffer(fileChannel, elementPosition, buffer);
          }
          else
          {
-            buffer.position((int) _pos);
+            buffer.position((int) elementPosition);
          }
 
          profile = parseString(buffer);
@@ -1168,7 +1168,7 @@ public class MCAP
       }
 
       @Override
-      public int getItemTotalLength()
+      public int getElementLength()
       {
          return 2 * Integer.BYTES + profile.length() + library.length();
       }
@@ -1248,29 +1248,29 @@ public class MCAP
          buffer = null;
       }
 
-      public Message(ByteBuffer buffer, long _pos, int _length)
+      public Message(ByteBuffer buffer, long elementPosition, int elementLength)
       {
-         this(null, buffer, _pos, _length);
+         this(null, buffer, elementPosition, elementLength);
       }
 
-      public Message(FileChannel fileChannel, long _pos, int _length)
+      public Message(FileChannel fileChannel, long elementPosition, int elementLength)
       {
-         this(fileChannel, null, _pos, _length);
+         this(fileChannel, null, elementPosition, elementLength);
       }
 
-      private Message(FileChannel fileChannel, ByteBuffer buffer, long _pos, int _length)
+      private Message(FileChannel fileChannel, ByteBuffer buffer, long elementPosition, int elementLength)
       {
          this.fileChannel = fileChannel;
          this.buffer = buffer;
 
          if (buffer == null)
          {
-            buffer = newByteBuffer(_length, false);
-            readIntoBuffer(fileChannel, _pos, buffer);
+            buffer = newByteBuffer(elementLength, false);
+            readIntoBuffer(fileChannel, elementPosition, buffer);
          }
          else
          {
-            buffer.position((int) _pos);
+            buffer.position((int) elementPosition);
             messageBufferRef = new WeakReference<>(buffer);
          }
 
@@ -1279,12 +1279,12 @@ public class MCAP
          sequence = Integer.toUnsignedLong(buffer.getInt());
          logTime = buffer.getLong();
          publishTime = buffer.getLong();
-         offsetData = _pos + buffer.position() - bufferStart;
-         lengthData = _length - (Short.BYTES + Integer.BYTES + 2 * Long.BYTES);
+         offsetData = elementPosition + buffer.position() - bufferStart;
+         lengthData = elementLength - (Short.BYTES + Integer.BYTES + 2 * Long.BYTES);
       }
 
       @Override
-      public int getItemTotalLength()
+      public int getElementLength()
       {
          return lengthData + Short.BYTES + Integer.BYTES + 2 * Long.BYTES;
       }
@@ -1386,7 +1386,7 @@ public class MCAP
       }
 
       @Override
-      public int getItemTotalLength()
+      public int getElementLength()
       {
          return key.length() + value.length() + 2 * Integer.BYTES;
       }
@@ -1417,19 +1417,19 @@ public class MCAP
       private final String name;
       private WeakReference<Record> metadataRef;
 
-      private MetadataIndex(FileChannel fileChannel, ByteBuffer buffer, long _pos, int _length)
+      private MetadataIndex(FileChannel fileChannel, ByteBuffer buffer, long elementPosition, int elementLength)
       {
          this.fileChannel = fileChannel;
          this.buffer = buffer;
 
          if (buffer == null)
          {
-            buffer = newByteBuffer(_length, false);
-            readIntoBuffer(fileChannel, _pos, buffer);
+            buffer = newByteBuffer(elementLength, false);
+            readIntoBuffer(fileChannel, elementPosition, buffer);
          }
          else
          {
-            buffer.position((int) _pos);
+            buffer.position((int) elementPosition);
          }
 
          offsetMetadata = buffer.getLong();
@@ -1438,7 +1438,7 @@ public class MCAP
       }
 
       @Override
-      public int getItemTotalLength()
+      public int getElementLength()
       {
          return 2 * Long.BYTES + Integer.BYTES + name.length();
       }
@@ -1496,10 +1496,10 @@ public class MCAP
 
       private final byte[] magic;
 
-      public Magic(FileChannel fileChannel, long _pos)
+      public Magic(FileChannel fileChannel, long elementPosition)
       {
          ByteBuffer buffer = newByteBuffer(MAGIC_SIZE, false);
-         readIntoBuffer(fileChannel, _pos, buffer);
+         readIntoBuffer(fileChannel, elementPosition, buffer);
          magic = new byte[MAGIC_SIZE];
          buffer.get(magic);
          if (!(Arrays.equals(magic, MAGIC_BYTES)))
@@ -1507,7 +1507,7 @@ public class MCAP
       }
 
       @Override
-      public int getItemTotalLength()
+      public int getElementLength()
       {
          return MAGIC_SIZE;
       }
@@ -1539,14 +1539,14 @@ public class MCAP
          this(buffer, buffer.position(), buffer.remaining());
       }
 
-      public Records(ByteBuffer buffer, long _pos, int _length)
+      public Records(ByteBuffer buffer, long elementPosition, int elementLength)
       {
-         parseList(buffer, Record::new, _pos, _length, this);
+         parseList(buffer, Record::new, elementPosition, elementLength, this);
       }
 
-      public Records(FileChannel fileChannel, long _pos, int _length)
+      public Records(FileChannel fileChannel, long elementPosition, int elementLength)
       {
-         parseList(fileChannel, Record::new, _pos, _length, this);
+         parseList(fileChannel, Record::new, elementPosition, elementLength, this);
       }
 
       @Override
@@ -1576,17 +1576,17 @@ public class MCAP
       private Records summaryOffsetSection;
       private Records summarySection;
 
-      public Footer(FileChannel fileChannel, ByteBuffer buffer, long _pos, int _length)
+      public Footer(FileChannel fileChannel, ByteBuffer buffer, long elementPosition, int elementLength)
       {
          this.fileChannel = fileChannel;
          if (buffer == null)
          {
-            buffer = newByteBuffer(_length, false);
-            readIntoBuffer(fileChannel, _pos, buffer);
+            buffer = newByteBuffer(elementLength, false);
+            readIntoBuffer(fileChannel, elementPosition, buffer);
          }
          else
          {
-            buffer.position((int) _pos);
+            buffer.position((int) elementPosition);
          }
 
          ofsSummarySection = buffer.getLong();
@@ -1595,7 +1595,7 @@ public class MCAP
       }
 
       @Override
-      public int getItemTotalLength()
+      public int getElementLength()
       {
          return 2 * Long.BYTES + Integer.BYTES;
       }
@@ -1694,62 +1694,16 @@ public class MCAP
          bodyPos = buffer.position();
       }
 
-      public Record(FileChannel fileChannel, long _pos)
+      public Record(FileChannel fileChannel, long elementPosition)
       {
          this.fileChannel = fileChannel;
          this.buffer = null;
 
          ByteBuffer buffer = newByteBuffer(RECORD_HEADER_LENGTH, false);
-         readIntoBuffer(fileChannel, _pos, buffer);
+         readIntoBuffer(fileChannel, elementPosition, buffer);
          op = Opcode.byId(Byte.toUnsignedInt(buffer.get()));
          lengthBody = buffer.getLong();
-         bodyPos = _pos + RECORD_HEADER_LENGTH;
-      }
-
-      private Object readBody()
-      {
-         Object body = bodyRef == null ? null : bodyRef.get();
-
-         if (body != null)
-            return body;
-
-         if (op == null)
-         {
-            if (fileChannel != null)
-            {
-               ByteBuffer bb = newByteBuffer((int) lengthBody, false);
-               readIntoBuffer(fileChannel, bodyPos, bb);
-               body = bb.array();
-            }
-            else
-            {
-               body = new byte[(int) lengthBody];
-               buffer.get((int) bodyPos, (byte[]) body);
-            }
-            return body;
-         }
-
-         body = switch (op)
-         {
-            case MESSAGE -> new Message(fileChannel, buffer, bodyPos, (int) lengthBody);
-            case METADATA_INDEX -> new MetadataIndex(fileChannel, buffer, bodyPos, (int) lengthBody);
-            case CHUNK -> new Chunk(fileChannel, buffer, bodyPos, (int) lengthBody);
-            case SCHEMA -> new Schema(fileChannel, buffer, bodyPos, (int) lengthBody);
-            case CHUNK_INDEX -> new ChunkIndex(fileChannel, buffer, bodyPos, (int) lengthBody);
-            case DATA_END -> new DataEnd(fileChannel, buffer, bodyPos, (int) lengthBody);
-            case ATTACHMENT_INDEX -> new AttachmentIndex(fileChannel, buffer, bodyPos, (int) lengthBody);
-            case STATISTICS -> new Statistics(fileChannel, buffer, bodyPos, (int) lengthBody);
-            case MESSAGE_INDEX -> new MessageIndex(fileChannel, buffer, bodyPos, (int) lengthBody);
-            case CHANNEL -> new Channel(fileChannel, buffer, bodyPos, (int) lengthBody);
-            case METADATA -> new Metadata(fileChannel, buffer, bodyPos, (int) lengthBody);
-            case ATTACHMENT -> new Attachment(fileChannel, buffer, bodyPos, (int) lengthBody);
-            case HEADER -> new Header(fileChannel, buffer, bodyPos, (int) lengthBody);
-            case FOOTER -> new Footer(fileChannel, buffer, bodyPos, (int) lengthBody);
-            case SUMMARY_OFFSET -> new SummaryOffset(fileChannel, buffer, bodyPos, (int) lengthBody);
-         };
-
-         bodyRef = new WeakReference<>(body);
-         return body;
+         bodyPos = elementPosition + RECORD_HEADER_LENGTH;
       }
 
       public Opcode op()
@@ -1809,7 +1763,7 @@ public class MCAP
       }
 
       @Override
-      public int getItemTotalLength()
+      public int getElementLength()
       {
          return (int) (RECORD_HEADER_LENGTH + lengthBody);
       }
@@ -1847,15 +1801,15 @@ public class MCAP
       /**
        * Offset to the chunk record from the start of the file.
        */
-      private final long ofsChunk;
+      private final long chunkOffset;
       /**
        * Byte length of the chunk record, including opcode and length prefix.
        */
-      private final long lenChunk;
+      private final long chunkLength;
       /**
        * Total length in bytes of the message index records after the chunk.
        */
-      private final long lenMessageIndexOffsets;
+      private final long messageIndexOffsetsLength;
       /**
        * Mapping from channel ID to the offset of the message index record for that channel after the
        * chunk, from the start of the file. An empty map indicates no message indexing is available.
@@ -1880,28 +1834,28 @@ public class MCAP
        */
       private final long uncompressedSize;
 
-      private ChunkIndex(FileChannel fileChannel, ByteBuffer buffer, long _pos, int _length)
+      private ChunkIndex(FileChannel fileChannel, ByteBuffer buffer, long elementPosition, int elementLength)
       {
          this.fileChannel = fileChannel;
          this.buffer = buffer;
 
          if (buffer == null)
          {
-            buffer = newByteBuffer(_length, false);
-            readIntoBuffer(fileChannel, _pos, buffer);
+            buffer = newByteBuffer(elementLength, false);
+            readIntoBuffer(fileChannel, elementPosition, buffer);
          }
          else
          {
-            buffer.position((int) _pos);
+            buffer.position((int) elementPosition);
          }
 
          messageStartTime = buffer.getLong();
          messageEndTime = buffer.getLong();
-         ofsChunk = buffer.getLong();
-         lenChunk = buffer.getLong();
-         lenMessageIndexOffsets = Integer.toUnsignedLong(buffer.getInt());
+         chunkOffset = buffer.getLong();
+         chunkLength = buffer.getLong();
+         messageIndexOffsetsLength = Integer.toUnsignedLong(buffer.getInt());
          messageIndexOffsets = new MessageIndexOffsets(buffer,
-                                                       (int) lenMessageIndexOffsets); // TODO Looks into postponing the loading of the messageIndexOffsets.
+                                                       (int) messageIndexOffsetsLength); // TODO Looks into postponing the loading of the messageIndexOffsets.
          messageIndexLength = buffer.getLong();
          compression = parseString(buffer);
          compressedSize = buffer.getLong();
@@ -1909,9 +1863,9 @@ public class MCAP
       }
 
       @Override
-      public int getItemTotalLength()
+      public int getElementLength()
       {
-         return 7 * Long.BYTES + 2 * Integer.BYTES + messageIndexOffsets.getItemTotalLength() + compression.length();
+         return 7 * Long.BYTES + 2 * Integer.BYTES + messageIndexOffsets.getElementLength() + compression.length();
       }
 
       public static class MessageIndexOffset implements MCAPElement
@@ -1932,7 +1886,7 @@ public class MCAP
          }
 
          @Override
-         public int getItemTotalLength()
+         public int getElementLength()
          {
             return Short.BYTES + Long.BYTES;
          }
@@ -1968,23 +1922,23 @@ public class MCAP
          private final List<MessageIndexOffset> entries;
          private final int entriesLength;
 
-         public MessageIndexOffsets(ByteBuffer buffer, int _length)
+         public MessageIndexOffsets(ByteBuffer buffer, int elementLength)
          {
             entries = new ArrayList<>();
 
-            int remaining = _length;
+            int remaining = elementLength;
 
             while (remaining > 0)
             {
                MessageIndexOffset entry = new MessageIndexOffset(buffer);
                entries.add(entry);
-               remaining -= entry.getItemTotalLength();
+               remaining -= entry.getElementLength();
             }
-            entriesLength = _length;
+            entriesLength = elementLength;
          }
 
          @Override
-         public int getItemTotalLength()
+         public int getElementLength()
          {
             return entriesLength;
          }
@@ -2019,9 +1973,9 @@ public class MCAP
          {
             // TODO Check if we can use the lenChunk for verification or something.
             if (buffer != null)
-               chunk = new Record(buffer.position((int) ofsChunk));
+               chunk = new Record(buffer.position((int) chunkOffset));
             else
-               chunk = new Record(fileChannel, ofsChunk);
+               chunk = new Record(fileChannel, chunkOffset);
             chunkRef = new WeakReference<>(chunk);
          }
          return chunkRef.get();
@@ -2037,19 +1991,19 @@ public class MCAP
          return messageEndTime;
       }
 
-      public long ofsChunk()
+      public long chunkOffset()
       {
-         return ofsChunk;
+         return chunkOffset;
       }
 
-      public long lenChunk()
+      public long chunkLength()
       {
-         return lenChunk;
+         return chunkLength;
       }
 
-      public long lenMessageIndexOffsets()
+      public long messageIndexOffsetsLength()
       {
-         return lenMessageIndexOffsets;
+         return messageIndexOffsetsLength;
       }
 
       public MessageIndexOffsets messageIndexOffsets()
@@ -2089,9 +2043,9 @@ public class MCAP
          String out = getClass().getSimpleName() + ":";
          out += "\n\t-messageStartTime = " + messageStartTime;
          out += "\n\t-messageEndTime = " + messageEndTime;
-         out += "\n\t-ofsChunk = " + ofsChunk;
-         out += "\n\t-lenChunk = " + lenChunk;
-         out += "\n\t-lenMessageIndexOffsets = " + lenMessageIndexOffsets;
+         out += "\n\t-chunkOffset = " + chunkOffset;
+         out += "\n\t-chunkLength = " + chunkLength;
+         out += "\n\t-messageIndexOffsetsLength = " + messageIndexOffsetsLength;
          out += "\n\t-messageIndexOffsets = " + (messageIndexOffsets == null ? "null" : "\n" + messageIndexOffsets.toString(indent + 1));
          out += "\n\t-messageIndexLength = " + messageIndexLength;
          out += "\n\t-compression = " + compression;
@@ -2103,7 +2057,7 @@ public class MCAP
 
    public interface MCAPElement
    {
-      int getItemTotalLength();
+      int getElementLength();
 
       default String toString(int indent)
       {
@@ -2197,7 +2151,7 @@ public class MCAP
          buffer.position(position);
          T parsed = elementParser.parse(buffer);
          listToPack.add(parsed);
-         position += parsed.getItemTotalLength();
+         position += parsed.getElementLength();
       }
 
       return listToPack;
@@ -2228,7 +2182,7 @@ public class MCAP
       {
          T parsed = elementParser.parse(fileChannel, position);
          listToPack.add(parsed);
-         position += parsed.getItemTotalLength();
+         position += parsed.getElementLength();
       }
 
       return listToPack;
@@ -2258,12 +2212,12 @@ public class MCAP
       return byteBuffer;
    }
 
-   private static void readIntoBuffer(FileChannel fileChannel, long _pos, ByteBuffer buffer)
+   private static void readIntoBuffer(FileChannel fileChannel, long elementPosition, ByteBuffer buffer)
    {
       try
       {
          buffer.clear();
-         fileChannel.read(buffer, _pos);
+         fileChannel.read(buffer, elementPosition);
          buffer.flip();
       }
       catch (IOException e)
