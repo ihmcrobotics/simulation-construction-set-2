@@ -1217,6 +1217,24 @@ public class MCAP
             }
 
             @Override
+            public int offsetData()
+            {
+               return 0;
+            }
+
+            @Override
+            public int lengthData()
+            {
+               return data.length;
+            }
+
+            @Override
+            public ByteBuffer messageBuffer()
+            {
+               return ByteBuffer.wrap(data);
+            }
+
+            @Override
             public byte[] messageData()
             {
                return data;
