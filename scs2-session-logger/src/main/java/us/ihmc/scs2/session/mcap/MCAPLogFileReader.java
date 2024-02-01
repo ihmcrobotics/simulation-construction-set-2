@@ -347,7 +347,7 @@ public class MCAPLogFileReader
          debugFile.delete();
       debugFile.createNewFile();
       FileOutputStream os = new FileOutputStream(debugFile);
-      os.write(schema.data());
+      os.getChannel().write(schema.data());
       os.close();
       return debugFile;
    }
@@ -380,7 +380,7 @@ public class MCAPLogFileReader
          debugFile.delete();
       debugFile.createNewFile();
       FileOutputStream os = new FileOutputStream(debugFile);
-      os.write(message.data());
+      os.write(message.messageData());
       os.close();
    }
 
