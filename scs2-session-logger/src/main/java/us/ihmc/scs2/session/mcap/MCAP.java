@@ -824,12 +824,12 @@ public class MCAP
             buffer.position((int) _pos);
          }
 
+         int bufferStart = buffer.position();
          id = Short.toUnsignedInt(buffer.getShort());
          name = parseString(buffer);
          encoding = parseString(buffer);
          lengthData = Integer.toUnsignedLong(buffer.getInt());
-         offsetData = buffer.position();
-         buffer.position((int) (offsetData + lengthData)); // Skip the data
+         offsetData = _pos + buffer.position() - bufferStart;
       }
 
       @Override
