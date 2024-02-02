@@ -10,7 +10,9 @@ import java.nio.channels.FileChannel;
 
 public class MCAPBufferedFileChannelInput implements MCAPDataInput
 {
-   private static final int DEFAULT_BUFFER_SIZE = 8192;
+   static final int DEFAULT_BUFFER_SIZE = 8192;
+   // TODO Somehow I would have expected direct buffer to be faster, it wasn't the case on a 10GB file on my office desktop.
+   public static final boolean DEFAULT_USE_DIRECT_BUFFER = false;
 
    private long _pos;
    private final ByteBuffer readingBuffer;
@@ -18,18 +20,18 @@ public class MCAPBufferedFileChannelInput implements MCAPDataInput
 
    public MCAPBufferedFileChannelInput(FileChannel fileChannel)
    {
-      this(fileChannel, DEFAULT_BUFFER_SIZE);
+      this(fileChannel, DEFAULT_BUFFER_SIZE, DEFAULT_USE_DIRECT_BUFFER);
    }
 
-   public MCAPBufferedFileChannelInput(FileChannel fileChannel, int readingBufferSize)
+   public MCAPBufferedFileChannelInput(FileChannel fileChannel, int readingBufferSize, boolean useDirectBuffer)
    {
       this.fileChannel = fileChannel;
-      readingBuffer = ByteBuffer.allocate(readingBufferSize);
+      readingBuffer = useDirectBuffer ? ByteBuffer.allocateDirect(readingBufferSize) : ByteBuffer.allocate(readingBufferSize);
       readingBuffer.order(ByteOrder.LITTLE_ENDIAN);
       try
       {
          _pos = fileChannel.position();
-         fileChannel.read(readingBuffer);
+         fileChannel.read(readingBuffer, _pos);
          readingBuffer.flip();
       }
       catch (IOException e)
@@ -53,9 +55,8 @@ public class MCAPBufferedFileChannelInput implements MCAPDataInput
          }
 
          _pos = newPosition;
-         fileChannel.position(newPosition);
          readingBuffer.clear();
-         fileChannel.read(readingBuffer);
+         fileChannel.read(readingBuffer, _pos);
          readingBuffer.flip();
       }
       catch (IOException e)
@@ -215,15 +216,29 @@ public class MCAPBufferedFileChannelInput implements MCAPDataInput
    {
       try
       {
+         // The reading position in the file is gonna be _pos + readingBuffer.limit()
+         long fileReadingPosition = _pos + readingBuffer.limit();
          readingBuffer.compact();
-         int bytesRead = fileChannel.read(readingBuffer);
-         _pos += bytesRead;
+         int bytesRead = fileChannel.read(readingBuffer, fileReadingPosition);
          readingBuffer.flip();
+         _pos = fileReadingPosition + bytesRead - readingBuffer.limit();
       }
       catch (IOException e)
       {
          throw new RuntimeException(e);
       }
+   }
+
+   // For testing purpose
+   long _pos()
+   {
+      return _pos;
+   }
+
+   // For testing purpose
+   ByteBuffer getReadingBuffer()
+   {
+      return readingBuffer;
    }
 
    @Override

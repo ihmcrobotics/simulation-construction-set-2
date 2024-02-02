@@ -9,11 +9,14 @@ import us.ihmc.scs2.session.mcap.MCAP.Message;
 import us.ihmc.scs2.session.mcap.MCAP.Opcode;
 import us.ihmc.scs2.session.mcap.MCAP.Record;
 import us.ihmc.scs2.session.mcap.MCAP.Records;
+import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,15 +29,17 @@ import static us.ihmc.scs2.session.mcap.MCAPMessageManager.round;
 public class MCAPBufferedChunk
 {
    private static final double ALLOWABLE_CHUNK_MEMORY_RATIO = 0.05;
+   private final MCAP mcap;
    private final long desiredLogDT;
    private final int maxNumberOfChunksLoaded;
 
-   private final List<ChunkBundle> loadedChunkBundles = new ArrayList<>();
+   private final ConcurrentLinkedQueue<ChunkBundle> loadedChunkBundles = new ConcurrentLinkedQueue<>();
    private final ChunkBundle[] chunkBundles;
    private final ExecutorService executorService = Executors.newFixedThreadPool(4, ThreadTools.createNamedDaemonThreadFactory(getClass().getSimpleName()));
 
    public MCAPBufferedChunk(MCAP mcap, long desiredLogDT)
    {
+      this.mcap = mcap;
       this.desiredLogDT = desiredLogDT;
 
       int numberOfChunks = 0;
@@ -218,8 +223,15 @@ public class MCAPBufferedChunk
       {
          while (loadedChunkBundles.size() > maxNumberOfChunksLoaded - numberOfSpots)
          {
-            loadedChunkBundles.sort(Comparator.comparingLong(chunkBundle -> chunkBundle.lastLoadingRequestTime));
-            loadedChunkBundles.get(0).unloadChunk();
+            ChunkBundle oldestChunkBundle = null;
+            for (ChunkBundle chunkBundle : loadedChunkBundles)
+            {
+               if (oldestChunkBundle == null || chunkBundle.lastLoadingRequestTime < oldestChunkBundle.lastLoadingRequestTime)
+                  oldestChunkBundle = chunkBundle;
+            }
+            if (oldestChunkBundle == null)
+               throw new RuntimeException("Unexpected: no chunk bundle to unload");
+            oldestChunkBundle.unloadChunk();
          }
       }
 
@@ -311,7 +323,10 @@ public class MCAPBufferedChunk
       private void loadChunkNow() throws IOException
       {
          if (chunkRecords == null)
-            chunkRecords = ((Chunk) chunkIndex.chunk().body()).records();
+         {
+            ByteBuffer chunkBuffer = mcap.getDataInput().getByteBuffer(chunkIndex.chunkOffset(), (int) chunkIndex.chunkLength(), true);
+            chunkRecords = ((Chunk) new Record(MCAPDataInput.wrap(chunkBuffer), 0).body()).records();
+         }
 
          if (!loadedChunkBundles.contains(this))
             loadedChunkBundles.add(this);

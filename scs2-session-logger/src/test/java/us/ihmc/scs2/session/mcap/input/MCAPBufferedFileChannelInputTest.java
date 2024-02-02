@@ -40,7 +40,7 @@ public class MCAPBufferedFileChannelInputTest
       random.nextBytes(originalBytes);
 
       ByteBuffer buffer = ByteBuffer.wrap(originalBytes);
-      MCAPBufferedFileChannelInput input = new MCAPBufferedFileChannelInput(mockFileChannel(buffer), 1024);
+      MCAPBufferedFileChannelInput input = new MCAPBufferedFileChannelInput(mockFileChannel(buffer), 1024, false);
 
       for (int i = 0; i < ITERATIONS; i++)
       {
@@ -113,7 +113,7 @@ public class MCAPBufferedFileChannelInputTest
    }
 
    @Test
-   public void testGettingValues()
+   public void testGettingValues() throws IOException
    {// Create a ByteBuffer for testing
       ByteBuffer originalBuffer = ByteBuffer.allocate(24);
       originalBuffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -136,15 +136,26 @@ public class MCAPBufferedFileChannelInputTest
       }
 
       { // Test with the reading buffer that is smaller than the original buffer
-         MCAPBufferedFileChannelInput input = new MCAPBufferedFileChannelInput(mockFileChannel(duplicate(originalBuffer, false)), 8);
+         MCAPBufferedFileChannelInput input = new MCAPBufferedFileChannelInput(mockFileChannel(duplicate(originalBuffer, false)), 8, false);
 
          // Assert the values
          assertEquals(123456789L, input.getLong());
+         assertInputPositions(input, 8, 0, 8);
          assertEquals(987654321, input.getInt());
+         assertInputPositions(input, 12, 8, 4);
          assertEquals(9047L, input.getLong());
+         assertInputPositions(input, 20, 12, 8);
          assertEquals((short) 12345, input.getShort());
+         assertInputPositions(input, 22, 20, 2);
          assertEquals((byte) 127, input.getByte());
       }
+   }
+
+   private static void assertInputPositions(MCAPBufferedFileChannelInput input, long expectedPosition, long expected_pos, int expectedReadingBufferPosition)
+   {
+      assertEquals(expectedPosition, input.position());
+      assertEquals(expected_pos, input._pos());
+      assertEquals(expectedReadingBufferPosition, input.getReadingBuffer().position());
    }
 
    @Test
@@ -223,7 +234,7 @@ public class MCAPBufferedFileChannelInputTest
          {
             int remaining = (int) (content.limit() - position);
             int toRead = Math.min(dst.remaining(), remaining);
-            dst.put(0, content, (int) position, toRead);
+            dst.put(dst.position(), content, (int) position, toRead);
             dst.position(dst.position() + toRead);
             return toRead;
          }
