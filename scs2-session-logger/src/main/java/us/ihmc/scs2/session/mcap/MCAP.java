@@ -2,7 +2,8 @@ package us.ihmc.scs2.session.mcap;
 
 import gnu.trove.map.hash.TLongObjectHashMap;
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
-import us.ihmc.scs2.session.mcap.MCAPDataInput.Compression;
+import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
+import us.ihmc.scs2.session.mcap.input.MCAPDataInput.Compression;
 
 import java.io.IOException;
 import java.io.Serial;
@@ -102,6 +103,11 @@ public class MCAP
       while (!(lastRecord.op() == Opcode.FOOTER));
 
       footerMagic = new Magic(dataInput, currentPos);
+   }
+
+   public MCAPDataInput getDataInput()
+   {
+      return dataInput;
    }
 
    public Magic headerMagic()
