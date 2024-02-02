@@ -76,6 +76,8 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
    @FXML
    private FlowPane videoThumbnailPane;
    @FXML
+   private TitledPane consoleOutputTitledPane;
+   @FXML
    private MCAPConsoleLogOutputPaneController consoleOutputPaneController;
    private Stage stage;
    private SessionVisualizerTopics topics;
@@ -240,6 +242,7 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
       activeSessionProperty.addListener(activeSessionListener);
 
       thumbnailsTitledPane.expandedProperty().addListener((o, oldValue, newValue) -> JavaFXMissingTools.runLater(getClass(), stage::sizeToScene));
+      consoleOutputTitledPane.expandedProperty().addListener((o, oldValue, newValue) -> JavaFXMissingTools.runLater(getClass(), stage::sizeToScene));
 
       openSessionButton.setOnAction(e -> openLogFile());
 
@@ -291,6 +294,7 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
       thumbnailsTitledPane.setText(logHasVideos ? "Logged videos" : "No video");
       thumbnailsTitledPane.setExpanded(logHasVideos);
       thumbnailsTitledPane.setDisable(!logHasVideos);
+      // TODO add a listener to check if there are console logs, and if not, disable the console output pane.
 
       consoleOutputPaneController.startSession(session);
 

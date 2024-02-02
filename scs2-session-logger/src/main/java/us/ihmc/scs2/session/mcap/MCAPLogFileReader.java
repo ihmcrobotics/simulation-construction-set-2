@@ -147,6 +147,11 @@ public class MCAPLogFileReader
       return messageManager.getIndexFromTimestamp(currentTimestamp.getValue());
    }
 
+   public int getIndexFromTimestamp(long timestamp)
+   {
+      return messageManager.getIndexFromTimestamp(timestamp);
+   }
+
    public int getNumberOfEntries()
    {
       return messageManager.getNumberOfEntries();

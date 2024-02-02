@@ -413,11 +413,6 @@ public class MCAPLogSession extends Session
       return mcapLogFileReader;
    }
 
-   public long getRelativeTimestampAtIndex(int index)
-   {
-      return mcapLogFileReader.getRelativeTimestampAtIndex(index);
-   }
-
    public File getMCAPFile()
    {
       return mcapLogFileReader.getMcapFile();
