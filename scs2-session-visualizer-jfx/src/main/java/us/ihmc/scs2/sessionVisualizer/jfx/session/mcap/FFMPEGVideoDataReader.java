@@ -39,10 +39,10 @@ public class FFMPEGVideoDataReader
 
    public long readFrameAtTimestamp(long timestamp)
    {
-      // NOTE: instant passed in is in nanoseconds
+      // NOTE: timestamp passed in is in nanoseconds
       if (timestamp != currentTimestamp.get())
       {
-         // instant / 1000L converts a nanosecond instant to the video instant in time_base units
+         // timestamp / 1000L converts a nanosecond timestamp to the video timestamp in time_base units
          long clampedTime = Math.min(maxVideoTimestamp, Math.max(0, timestamp / 1000L));
          currentTimestamp.set(clampedTime);
          try

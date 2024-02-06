@@ -125,7 +125,7 @@ public class TimestampScrubberTest
    @Test
    public void testGoingThroughRobotTimestampsInOrder()
    {
-      // Go through the robot timestamps in order and see if we get the desired video instant
+      // Go through the robot timestamps in order and see if we get the desired video timestamp
       for (int i = 0; i < robotTimestamps.length - duplicatesAtEndOfFile; i++)
       {
          long currentVideoTimestamp = scrubber.getVideoTimestamp(robotTimestamps[i]);
@@ -146,7 +146,7 @@ public class TimestampScrubberTest
    @Test
    public void testGoingThroughRobotTimestampsEveryOther()
    {
-      // Go through the robot timestamps by +=2, so we skip every other frame and see if we get the desired video instant
+      // Go through the robot timestamps by +=2, so we skip every other frame and see if we get the desired video timestamp
       for (int i = 0; i < robotTimestamps.length - duplicatesAtEndOfFile; i += 2)
       {
          scrubber.getVideoTimestamp(robotTimestamps[i]);
@@ -157,8 +157,8 @@ public class TimestampScrubberTest
    @Test
    public void testGettingRandomTimestamp()
    {
-      // Test grabbing random robot timestamps and checking to make sure we get the correct video instant
-      // These robot timestamps need to be unique or the binary search will fail to get the correct video instant
+      // Test grabbing random robot timestamps and checking to make sure we get the correct video timestamp
+      // These robot timestamps need to be unique or the binary search will fail to get the correct video timestamp
       scrubber.getVideoTimestamp(robotTimestamps[26]);
       assertEquals(scrubber.getCurrentVideoTimestamp(), videoTimestamps[26]);
 

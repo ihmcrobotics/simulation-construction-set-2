@@ -87,7 +87,7 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
    private File defaultRobotModelFile = null;
 
    private static String getDate(String filename)
-   { // FIXME it seems that the timestamps in the MCAP file are epoch unix instant. Should use that.
+   { // FIXME it seems that the timestamps in the MCAP file are epoch unix timestamp. Should use that.
       String year = filename.substring(0, 4);
       String month = filename.substring(4, 6);
       String day = filename.substring(6, 8);

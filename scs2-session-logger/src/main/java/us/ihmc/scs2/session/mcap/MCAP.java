@@ -1056,7 +1056,7 @@ public class MCAP
             }
 
             @Override
-            public int offsetData()
+            public long offsetData()
             {
                return 0;
             }
@@ -1132,9 +1132,9 @@ public class MCAP
        *
        * @return the offset of the data portion of this message.
        */
-      public int offsetData()
+      public long offsetData()
       {
-         return (int) offsetData;
+         return offsetData;
       }
 
       /**

@@ -132,7 +132,6 @@ public class VideoViewer
          stage.setY(y);
          stage.setWidth(width);
          stage.setHeight(height);
-         stage.setAlwaysOnTop(true);
 
          stage.toFront();
          stage.show();
@@ -244,7 +243,6 @@ public class VideoViewer
       if (updateVideoView.get())
       {
          videoView.setImage(currentFrame);
-         videoView.setViewport(new Rectangle2D(0.0, 0, currentFrame.getWidth() - 0, currentFrame.getHeight() - 50));
          queryRobotTimestampLabel.setText(Long.toString(currentFrameData.queryRobotTimestamp));
          robotTimestampLabel.setText(Long.toString(currentFrameData.robotTimestamp));
          cameraCurrentPTSLabel.setText(Long.toString(currentFrameData.cameraCurrentPTS));
@@ -252,7 +250,7 @@ public class VideoViewer
 
          if (imageViewRootPane.get() != null)
          {
-            imageViewRootPane.get().setPadding(new Insets(0 * 16, 0 * 16, 0 * 16, 0 * 16));
+            imageViewRootPane.get().setPadding(new Insets(16, 16, 16, 16));
 
             if (reader.replacedRobotTimestampsContainsIndex(reader.getCurrentIndex()))
             {

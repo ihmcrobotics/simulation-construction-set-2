@@ -37,7 +37,7 @@ public class VideoDataReader
 
       if (!hasTimeBase)
       {
-         System.err.println("Video data is using timestamps instead of frame numbers. Falling back to seeking based on instant.");
+         System.err.println("Video data is using timestamps instead of frame numbers. Falling back to seeking based on timestamp.");
       }
 
       videoFile = new File(dataDirectory, camera.getVideoFileAsString());
