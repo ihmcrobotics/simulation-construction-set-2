@@ -9,6 +9,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import org.apache.commons.lang3.mutable.MutableLong;
 import us.ihmc.scs2.session.mcap.MCAPConsoleLogManager.MCAPConsoleLogItem;
@@ -17,6 +18,7 @@ import us.ihmc.scs2.session.mcap.MCAPLogFileReader;
 import us.ihmc.scs2.session.mcap.MCAPLogSession;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.scs2.simulation.SpyList;
 import us.ihmc.yoVariables.listener.YoVariableChangedListener;
@@ -27,10 +29,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 
 public class MCAPConsoleLogOutputPaneController
 {
+   private static final int MAX_UPDATES_PER_FRAME = 10;
+
    @FXML
    private Pane mainPane;
    @FXML
@@ -39,6 +44,24 @@ public class MCAPConsoleLogOutputPaneController
    private EventHandler<MouseEvent> goToLogEventMouseEventHandler;
    private Consumer<YoBufferPropertiesReadOnly> scrollLastLogItemListener;
    private MCAPLogSession session;
+
+   private final ConcurrentLinkedQueue<MCAPConsoleLogItemListCell> listCellsToUpdate = new ConcurrentLinkedQueue<>();
+
+   private final ObservedAnimationTimer observedAnimationTimer = new ObservedAnimationTimer()
+   {
+
+      @Override
+      public void handleImpl(long now)
+      {
+         MCAPConsoleLogItemListCell cell;
+         for (int i = 0; i < MAX_UPDATES_PER_FRAME; i++)
+         {
+            if ((cell = listCellsToUpdate.poll()) == null)
+               break;
+            cell.updateTextFill();
+         }
+      }
+   };
 
    public void initialize(SessionVisualizerToolkit toolkit)
    {
@@ -56,7 +79,19 @@ public class MCAPConsoleLogOutputPaneController
       sessionLogItems.addListener((change) ->
                                   {
                                      if (change.wasAdded())
-                                        JavaFXMissingTools.runLater(getClass(), () -> consoleOutputListView.getItems().setAll(sessionLogItems));
+                                     {
+                                        // Doing that outside the JavaFX thread to ensure we have the right size.
+                                        int newItemsSize = sessionLogItems.size();
+                                        JavaFXMissingTools.runLater(getClass(), () ->
+                                        {
+                                           // Log items only get added, so we can just add the new items.
+                                           // This manner is robust to concurrent modifications and missing an update.
+                                           for (int i = consoleOutputListView.getItems().size(); i < newItemsSize; i++)
+                                           {
+                                              consoleOutputListView.getItems().add(sessionLogItems.get(i));
+                                           }
+                                        });
+                                     }
                                   });
 
       consoleOutputListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -116,6 +151,7 @@ public class MCAPConsoleLogOutputPaneController
 
       consoleOutputListView.addEventFilter(MouseEvent.MOUSE_CLICKED, goToLogEventMouseEventHandler);
       session.addCurrentBufferPropertiesListener(scrollLastLogItemListener);
+      observedAnimationTimer.start();
    }
 
    public void stopSession()
@@ -127,9 +163,11 @@ public class MCAPConsoleLogOutputPaneController
       if (scrollLastLogItemListener != null)
          session.removeCurrentBufferPropertiesListener(scrollLastLogItemListener);
       scrollLastLogItemListener = null;
+      observedAnimationTimer.stop();
+      listCellsToUpdate.clear();
    }
 
-   private static class MCAPConsoleLogItemListCell extends javafx.scene.control.ListCell<MCAPConsoleLogItem>
+   private class MCAPConsoleLogItemListCell extends javafx.scene.control.ListCell<MCAPConsoleLogItem>
    {
       private final Color defaultColor = Color.BLACK;
       private final Map<MCAPLogLevel, Color> logLevelToColorMap = Map.of(MCAPLogLevel.UNKNOWN,
@@ -157,14 +195,12 @@ public class MCAPConsoleLogOutputPaneController
       private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS a z");
       private final ZoneId zoneId = ZoneId.systemDefault(); // Need to parameterize this.
       private final ListView<MCAPConsoleLogItem> owner;
-      private final MCAPLogSession session;
       private final YoLong currentTimestamp;
       private YoVariableChangedListener timestampListener;
 
       public MCAPConsoleLogItemListCell(ListView<MCAPConsoleLogItem> owner, MCAPLogSession session, YoLong currentTimestamp)
       {
          this.owner = owner;
-         this.session = session;
          this.currentTimestamp = currentTimestamp;
       }
 
@@ -191,8 +227,8 @@ public class MCAPConsoleLogOutputPaneController
             maxWidthProperty().bind(cellWidthProperty);
 
             setWrapText(true);
-            updateTextFill(item);
-            timestampListener = v -> updateTextFill(item);
+            updateTextFill();
+            timestampListener = v -> listCellsToUpdate.add(this);
             currentTimestamp.addListener(timestampListener);
             String dateTimeFormatted = dateTimeFormatter.format(item.instant().atZone(zoneId));
             setText("[%s] [%s]\n\t[%s]: %s".formatted(logLevelToStringMap.get(item.logLevel()), dateTimeFormatted, item.processName(), item.message()));
@@ -200,14 +236,31 @@ public class MCAPConsoleLogOutputPaneController
          }
       }
 
-      private void updateTextFill(MCAPConsoleLogItem item)
+      private Paint previousTextFill;
+
+      private void updateTextFill()
       {
+         MCAPConsoleLogItem item = getItem();
+
+         if (item == null)
+         {
+            previousTextFill = null;
+            return;
+         }
+
+         Paint newTextFill;
          if (item.logTime() > currentTimestamp.getValue())
-            setTextFill(futureColor);
+            newTextFill = futureColor;
          else if (logLevelToColorMap.containsKey(item.logLevel()))
-            setTextFill(logLevelToColorMap.get(item.logLevel()));
+            newTextFill = logLevelToColorMap.get(item.logLevel());
          else
-            setTextFill(logLevelToColorMap.get(MCAPLogLevel.UNKNOWN));
+            newTextFill = logLevelToColorMap.get(MCAPLogLevel.UNKNOWN);
+
+         if (previousTextFill != newTextFill)
+         {
+            setTextFill(newTextFill);
+            previousTextFill = newTextFill;
+         }
       }
    }
 }
