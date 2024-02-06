@@ -1,10 +1,15 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.session.mcap;
 
 import javafx.beans.binding.DoubleBinding;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
@@ -18,6 +23,7 @@ import us.ihmc.scs2.session.mcap.MCAPLogFileReader;
 import us.ihmc.scs2.session.mcap.MCAPLogSession;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.MenuTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 import us.ihmc.scs2.simulation.SpyList;
@@ -65,6 +71,31 @@ public class MCAPConsoleLogOutputPaneController
 
    public void initialize(SessionVisualizerToolkit toolkit)
    {
+      MenuTools.setupContextMenu(consoleOutputListView, mcapConsoleLogItemListView ->
+      {
+         MenuItem goToLogItem = new MenuItem("Go to Log Item (Double Click)");
+         goToLogItem.setOnAction(event ->
+                                 {
+                                    MCAPConsoleLogItem selectedLogItem = mcapConsoleLogItemListView.getSelectionModel().getSelectedItem();
+                                    if (selectedLogItem != null)
+                                       gotToLogItem(session, selectedLogItem);
+                                 });
+         return goToLogItem;
+      }, mcapConsoleLogItemListView ->
+                                 {
+                                    MenuItem copyLogItem = new MenuItem("Copy Log Item (Ctrl+C)");
+                                    copyLogItem.setOnAction(event -> copySelectedLogItemsToClipboard(mcapConsoleLogItemListView));
+                                    return copyLogItem;
+                                 });
+
+      consoleOutputListView.setOnKeyPressed(event ->
+                                            {
+                                               if (event.getCode().equals(KeyCode.C) && event.isControlDown())
+                                               {
+                                                  copySelectedLogItemsToClipboard(consoleOutputListView);
+                                                  event.consume();
+                                               }
+                                            });
    }
 
    public void startSession(MCAPLogSession session)
@@ -107,13 +138,12 @@ public class MCAPConsoleLogOutputPaneController
          if (!event.isStillSincePress())
             return;
 
-         int selectedIndex = consoleOutputListView.getSelectionModel().getSelectedIndex();
-         if (selectedIndex < 0)
+         MCAPConsoleLogItem selectedLogItem = consoleOutputListView.getSelectionModel().getSelectedItem();
+         if (selectedLogItem == null)
             return;
-         MCAPConsoleLogItem selectedLogItem = consoleOutputListView.getItems().get(selectedIndex);
          requestingLogTimestamp.setValue(selectedLogItem.logTime());
-         int logIndex = mcapLogFileReader.getIndexFromTimestamp(selectedLogItem.logTime());
-         session.submitLogPositionRequest(logIndex);
+
+         gotToLogItem(session, selectedLogItem);
       };
       scrollLastLogItemListener = new Consumer<>()
       {
@@ -154,6 +184,26 @@ public class MCAPConsoleLogOutputPaneController
       observedAnimationTimer.start();
    }
 
+   private static void gotToLogItem(MCAPLogSession session, MCAPConsoleLogItem selectedLogItem)
+   {
+      int logIndex = session.getMCAPLogFileReader().getIndexFromTimestamp(selectedLogItem.logTime());
+      session.submitLogPositionRequest(logIndex);
+   }
+
+   private static void copySelectedLogItemsToClipboard(ListView<MCAPConsoleLogItem> mcapConsoleLogItemListView)
+   {
+      ObservableList<MCAPConsoleLogItem> selectedItems = mcapConsoleLogItemListView.getSelectionModel().getSelectedItems();
+      StringBuilder logItemString = new StringBuilder();
+      for (MCAPConsoleLogItem logItem : selectedItems)
+      {
+         logItemString.append("[%s] [%s] [%s]: %s\n".formatted(logItem.logLevel(), logItem.instant(), logItem.processName(), logItem.message()));
+      }
+
+      ClipboardContent clipboardContent = new ClipboardContent();
+      clipboardContent.putString(logItemString.toString());
+      Clipboard.getSystemClipboard().setContent(clipboardContent);
+   }
+
    public void stopSession()
    {
       consoleOutputListView.getItems().clear();
@@ -184,6 +234,8 @@ public class MCAPConsoleLogOutputPaneController
       private final Color futureColor = Color.GRAY.deriveColor(0, 1, 1, 0.5);
       private final Map<MCAPLogLevel, String> logLevelToStringMap = Map.of(MCAPLogLevel.UNKNOWN,
                                                                            "  ???",
+                                                                           MCAPLogLevel.DEBUG,
+                                                                           "DEBUG",
                                                                            MCAPLogLevel.INFO,
                                                                            " INFO",
                                                                            MCAPLogLevel.WARNING,
@@ -231,7 +283,8 @@ public class MCAPConsoleLogOutputPaneController
             timestampListener = v -> listCellsToUpdate.add(this);
             currentTimestamp.addListener(timestampListener);
             String dateTimeFormatted = dateTimeFormatter.format(item.instant().atZone(zoneId));
-            setText("[%s] [%s]\n\t[%s]: %s".formatted(logLevelToStringMap.get(item.logLevel()), dateTimeFormatted, item.processName(), item.message()));
+            String logLevelString = logLevelToStringMap.get(item.logLevel() == null ? MCAPLogLevel.UNKNOWN : item.logLevel());
+            setText("[%s] [%s]\n\t[%s]: %s".formatted(logLevelString, dateTimeFormatted, item.processName(), item.message()));
             setGraphic(null);
          }
       }
