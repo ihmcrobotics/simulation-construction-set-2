@@ -261,7 +261,7 @@ public class MCAPFrameTransformManager
       if (!channelIds.contains(message.channelId()))
          return false;
 
-      cdr.initialize(message.messageBuffer(), 0, message.lengthData());
+      cdr.initialize(message.messageBuffer(), 0, message.dataLength());
 
       double rx, ry, rz, rw;
       double tx, ty, tz;
@@ -398,7 +398,7 @@ public class MCAPFrameTransformManager
          throw new IllegalArgumentException("The schema is not flat.");
 
       CDRDeserializer cdr = new CDRDeserializer();
-      cdr.initialize(message.messageBuffer(), 0, message.lengthData());
+      cdr.initialize(message.messageBuffer(), 0, message.dataLength());
 
       String parentFrameName = null;
       String childFrameName = null;

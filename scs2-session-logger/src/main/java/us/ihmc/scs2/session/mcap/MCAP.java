@@ -144,7 +144,7 @@ public class MCAP
       /**
        * Uncompressed size of the records field.
        */
-      private final long uncompressedSize;
+      private final long recordsUncompressedLength;
       /**
        * CRC32 checksum of uncompressed records field. A value of zero indicates that CRC validation
        * should not be performed.
@@ -159,35 +159,35 @@ public class MCAP
        * Offset position of the records in either in the {@code  ByteBuffer} or {@code FileChannel},
        * depending on how this chunk was created.
        */
-      private final long offsetRecords;
+      private final long recordsOffset;
       /**
        * Length of the records in bytes.
        */
-      private final long lengthRecords;
+      private final long recordsCompressedLength;
       /**
        * The decompressed records.
        */
       private WeakReference<Records> recordsRef;
 
-      public Chunk(MCAPDataInput dataInput, long elementPosition, int elementLength)
+      public Chunk(MCAPDataInput dataInput, long elementPosition, long elementLength)
       {
          this.dataInput = dataInput;
 
          dataInput.position(elementPosition);
          messageStartTime = checkPositiveLong(dataInput.getLong(), "messageStartTime");
          messageEndTime = checkPositiveLong(dataInput.getLong(), "messageEndTime");
-         uncompressedSize = checkPositiveLong(dataInput.getLong(), "uncompressedSize");
+         recordsUncompressedLength = checkPositiveLong(dataInput.getLong(), "uncompressedSize");
          uncompressedCrc32 = dataInput.getUnsignedInt();
          compression = dataInput.getString();
-         lengthRecords = checkPositiveLong(dataInput.getLong(), "lengthRecords");
-         offsetRecords = dataInput.position();
+         recordsCompressedLength = checkPositiveLong(dataInput.getLong(), "recordsLength");
+         recordsOffset = dataInput.position();
          checkLength(elementLength, getElementLength());
       }
 
       @Override
-      public int getElementLength()
+      public long getElementLength()
       {
-         return 3 * Long.BYTES + 2 * Integer.BYTES + compression.length() + Long.BYTES + (int) lengthRecords;
+         return 3 * Long.BYTES + 2 * Integer.BYTES + compression.length() + Long.BYTES + (int) recordsCompressedLength;
       }
 
       public long messageStartTime()
@@ -202,7 +202,7 @@ public class MCAP
 
       public long uncompressedSize()
       {
-         return uncompressedSize;
+         return recordsUncompressedLength;
       }
 
       /**
@@ -219,9 +219,9 @@ public class MCAP
          return compression;
       }
 
-      public long lenRecords()
+      public long recordsLength()
       {
-         return lengthRecords;
+         return recordsCompressedLength;
       }
 
       public Records records()
@@ -233,16 +233,16 @@ public class MCAP
 
          if (compression.equalsIgnoreCase(""))
          {
-            records = new Records(dataInput, offsetRecords, (int) lengthRecords);
+            records = new Records(dataInput, recordsOffset, (int) recordsCompressedLength);
          }
          else
          {
-            ByteBuffer decompressedBuffer = dataInput.getDecompressedByteBuffer(offsetRecords,
-                                                                                (int) lengthRecords,
-                                                                                (int) uncompressedSize,
+            ByteBuffer decompressedBuffer = dataInput.getDecompressedByteBuffer(recordsOffset,
+                                                                                (int) recordsCompressedLength,
+                                                                                (int) recordsUncompressedLength,
                                                                                 Compression.fromString(compression),
                                                                                 false);
-            records = new Records(MCAPDataInput.wrap(decompressedBuffer), 0, (int) uncompressedSize);
+            records = new Records(MCAPDataInput.wrap(decompressedBuffer), 0, (int) recordsUncompressedLength);
          }
 
          recordsRef = new WeakReference<>(records);
@@ -256,8 +256,8 @@ public class MCAP
          out += "\n\t-messageStartTime = " + messageStartTime;
          out += "\n\t-messageEndTime = " + messageEndTime;
          out += "\n\t-compression = " + compression;
-         out += "\n\t-compressedSize = " + lengthRecords;
-         out += "\n\t-uncompressedSize = " + uncompressedSize;
+         out += "\n\t-recordsCompressedLength = " + recordsCompressedLength;
+         out += "\n\t-recordsUncompressedLength = " + recordsUncompressedLength;
          out += "\n\t-uncompressedCrc32 = " + uncompressedCrc32;
          return out;
       }
@@ -267,7 +267,7 @@ public class MCAP
    {
       private final long dataSectionCrc32;
 
-      public DataEnd(MCAPDataInput dataInput, long elementPosition, int elementLength)
+      public DataEnd(MCAPDataInput dataInput, long elementPosition, long elementLength)
       {
          dataInput.position(elementPosition);
          dataSectionCrc32 = dataInput.getUnsignedInt();
@@ -275,7 +275,7 @@ public class MCAP
       }
 
       @Override
-      public int getElementLength()
+      public long getElementLength()
       {
          return Integer.BYTES;
       }
@@ -297,31 +297,34 @@ public class MCAP
 
    public static class Channel implements MCAPElement
    {
+      private final MCAPDataInput dataInput;
+      private final long elementLength;
       private final int id;
       private final int schemaId;
       private final String topic;
       private final String messageEncoding;
-      private final List<TupleStrStr> metadata;
-      private final int metadataLength;
+      private WeakReference<List<TupleStrStr>> metadataRef;
+      private final long metadataOffset;
+      private final long metadataLength;
 
-      public Channel(MCAPDataInput dataInput, long elementPosition, int elementLength)
+      public Channel(MCAPDataInput dataInput, long elementPosition, long elementLength)
       {
+         this.dataInput = dataInput;
+         this.elementLength = elementLength;
+
          dataInput.position(elementPosition);
          id = dataInput.getUnsignedShort();
          schemaId = dataInput.getUnsignedShort();
          topic = dataInput.getString();
          messageEncoding = dataInput.getString();
-         long start = dataInput.position();
-         metadata = parseList(dataInput, TupleStrStr::new); // TODO Should be able to postpone parsing this.
-         long end = dataInput.position();
-         metadataLength = (int) (end - start);
-         checkLength(elementLength, getElementLength());
+         metadataLength = dataInput.getUnsignedInt();
+         metadataOffset = dataInput.position();
       }
 
       @Override
-      public int getElementLength()
+      public long getElementLength()
       {
-         return 2 * Short.BYTES + 2 * Integer.BYTES + topic.length() + messageEncoding.length() + metadataLength;
+         return elementLength;
       }
 
       public int id()
@@ -346,6 +349,14 @@ public class MCAP
 
       public List<TupleStrStr> metadata()
       {
+         List<TupleStrStr> metadata = metadataRef == null ? null : metadataRef.get();
+
+         if (metadata == null)
+         {
+            metadata = parseList(dataInput, TupleStrStr::new, metadataOffset, metadataLength);
+            metadataRef = new WeakReference<>(metadata);
+         }
+
          return metadata;
       }
 
@@ -357,31 +368,35 @@ public class MCAP
          out += "\n\t-schemaId = " + schemaId;
          out += "\n\t-topic = " + topic;
          out += "\n\t-messageEncoding = " + messageEncoding;
-         out += "\n\t-metadata = [%s]".formatted(metadata.toString());
+         out += "\n\t-metadata = [%s]".formatted(metadata().toString());
          return out;
       }
    }
 
    public static class MessageIndex implements MCAPElement
    {
+      private final MCAPDataInput dataInput;
+      private final long elementLength;
       private final int channelId;
-      private final List<MessageIndexEntry> messageIndexEntries;
-      private final int messageIndexEntriesLength;
+      private WeakReference<List<MessageIndexEntry>> messageIndexEntriesRef;
+      private final long messageIndexEntriesOffset;
+      private final long messageIndexEntriesLength;
 
-      public MessageIndex(MCAPDataInput dataInput, long elementPosition, int elementLength)
+      public MessageIndex(MCAPDataInput dataInput, long elementPosition, long elementLength)
       {
+         this.dataInput = dataInput;
+         this.elementLength = elementLength;
+
          dataInput.position(elementPosition);
          channelId = dataInput.getUnsignedShort();
-         long start = dataInput.position();
-         messageIndexEntries = parseList(dataInput, MessageIndexEntry::new); // TODO Should be able to postpone parsing this.
-         messageIndexEntriesLength = (int) (dataInput.position() - start);
-         checkLength(elementLength, getElementLength());
+         messageIndexEntriesLength = dataInput.getUnsignedInt();
+         messageIndexEntriesOffset = dataInput.position();
       }
 
       @Override
-      public int getElementLength()
+      public long getElementLength()
       {
-         return Short.BYTES + messageIndexEntriesLength;
+         return elementLength;
       }
 
       public static class MessageIndexEntry implements MCAPElement
@@ -404,7 +419,7 @@ public class MCAP
          }
 
          @Override
-         public int getElementLength()
+         public long getElementLength()
          {
             return 2 * Long.BYTES;
          }
@@ -442,6 +457,14 @@ public class MCAP
 
       public List<MessageIndexEntry> messageIndexEntries()
       {
+         List<MessageIndexEntry> messageIndexEntries = messageIndexEntriesRef == null ? null : messageIndexEntriesRef.get();
+
+         if (messageIndexEntries == null)
+         {
+            messageIndexEntries = parseList(dataInput, MessageIndexEntry::new, messageIndexEntriesOffset, messageIndexEntriesLength);
+            messageIndexEntriesRef = new WeakReference<>(messageIndexEntries);
+         }
+
          return messageIndexEntries;
       }
 
@@ -456,6 +479,7 @@ public class MCAP
       {
          String out = getClass().getSimpleName() + ":";
          out += "\n\t-channelId = " + channelId;
+         List<MessageIndexEntry> messageIndexEntries = messageIndexEntries();
          out += "\n\t-messageIndexEntries = " + (messageIndexEntries == null ?
                "null" :
                "\n" + EuclidCoreIOTools.getCollectionString("\n", messageIndexEntries, e -> e.toString(indent + 1)));
@@ -465,6 +489,8 @@ public class MCAP
 
    public static class Statistics implements MCAPElement
    {
+      private final MCAPDataInput dataInput;
+      private final long elementLength;
       private final long messageCount;
       private final int schemaCount;
       private final long channelCount;
@@ -473,11 +499,15 @@ public class MCAP
       private final long chunkCount;
       private final long messageStartTime;
       private final long messageEndTime;
-      private final List<ChannelMessageCount> channelMessageCounts;
-      private final int channelMessageCountsLength;
+      private WeakReference<List<ChannelMessageCount>> channelMessageCountsRef;
+      private final long channelMessageCountsOffset;
+      private final long channelMessageCountsLength;
 
-      public Statistics(MCAPDataInput dataInput, long elementPosition, int elementLength)
+      public Statistics(MCAPDataInput dataInput, long elementPosition, long elementLength)
       {
+         this.dataInput = dataInput;
+         this.elementLength = elementLength;
+
          dataInput.position(elementPosition);
          messageCount = checkPositiveLong(dataInput.getLong(), "messageCount");
          schemaCount = dataInput.getUnsignedShort();
@@ -487,16 +517,14 @@ public class MCAP
          chunkCount = dataInput.getUnsignedInt();
          messageStartTime = checkPositiveLong(dataInput.getLong(), "messageStartTime");
          messageEndTime = checkPositiveLong(dataInput.getLong(), "messageEndTime");
-         long start = dataInput.position();
-         channelMessageCounts = parseList(dataInput, ChannelMessageCount::new); // TODO Should be able to postpone parsing this.
-         channelMessageCountsLength = (int) (dataInput.position() - start);
-         checkLength(elementLength, getElementLength());
+         channelMessageCountsLength = dataInput.getUnsignedInt();
+         channelMessageCountsOffset = dataInput.position();
       }
 
       @Override
-      public int getElementLength()
+      public long getElementLength()
       {
-         return 3 * Long.BYTES + 5 * Integer.BYTES + Short.BYTES + channelMessageCountsLength;
+         return elementLength;
       }
 
       public static class ChannelMessageCount implements MCAPElement
@@ -506,12 +534,13 @@ public class MCAP
 
          public ChannelMessageCount(MCAPDataInput dataInput, long elementPosition)
          {
+            dataInput.position(elementPosition);
             channelId = dataInput.getUnsignedShort();
             messageCount = dataInput.getLong();
          }
 
          @Override
-         public int getElementLength()
+         public long getElementLength()
          {
             return Short.BYTES + Long.BYTES;
          }
@@ -584,6 +613,14 @@ public class MCAP
 
       public List<ChannelMessageCount> channelMessageCounts()
       {
+         List<ChannelMessageCount> channelMessageCounts = channelMessageCountsRef == null ? null : channelMessageCountsRef.get();
+
+         if (channelMessageCounts == null)
+         {
+            channelMessageCounts = parseList(dataInput, ChannelMessageCount::new, channelMessageCountsOffset, channelMessageCountsLength);
+            channelMessageCountsRef = new WeakReference<>(channelMessageCounts);
+         }
+
          return channelMessageCounts;
       }
 
@@ -599,7 +636,7 @@ public class MCAP
          out += "\n\t-chunkCount = " + chunkCount;
          out += "\n\t-messageStartTime = " + messageStartTime;
          out += "\n\t-messageEndTime = " + messageEndTime;
-         out += "\n\t-channelMessageCounts = \n" + EuclidCoreIOTools.getCollectionString("\n", channelMessageCounts, e -> e.toString(1));
+         out += "\n\t-channelMessageCounts = \n" + EuclidCoreIOTools.getCollectionString("\n", channelMessageCounts(), e -> e.toString(1));
          return out;
       }
    }
@@ -607,8 +644,8 @@ public class MCAP
    public static class AttachmentIndex implements MCAPElement
    {
       private final MCAPDataInput dataInput;
-      private final long offsetAttachment;
-      private final long lengthAttachment;
+      private final long attachmentOffset;
+      private final long attachmentLength;
       private final long logTime;
       private final long createTime;
       private final long dataSize;
@@ -617,13 +654,13 @@ public class MCAP
 
       private WeakReference<Record> attachmentRef;
 
-      private AttachmentIndex(MCAPDataInput dataInput, long elementPosition, int elementLength)
+      private AttachmentIndex(MCAPDataInput dataInput, long elementPosition, long elementLength)
       {
          this.dataInput = dataInput;
 
          dataInput.position(elementPosition);
-         offsetAttachment = checkPositiveLong(dataInput.getLong(), "offsetAttachment");
-         lengthAttachment = checkPositiveLong(dataInput.getLong(), "lengthAttachment");
+         attachmentOffset = checkPositiveLong(dataInput.getLong(), "attachmentOffset");
+         attachmentLength = checkPositiveLong(dataInput.getLong(), "attachmentLength");
          logTime = checkPositiveLong(dataInput.getLong(), "logTime");
          createTime = checkPositiveLong(dataInput.getLong(), "createTime");
          dataSize = checkPositiveLong(dataInput.getLong(), "dataSize");
@@ -633,7 +670,7 @@ public class MCAP
       }
 
       @Override
-      public int getElementLength()
+      public long getElementLength()
       {
          return 5 * Long.BYTES + 2 * Integer.BYTES + name.length() + mediaType.length();
       }
@@ -644,21 +681,21 @@ public class MCAP
 
          if (attachment == null)
          {
-            attachment = new Record(dataInput, offsetAttachment);
+            attachment = new Record(dataInput, attachmentOffset);
             attachmentRef = new WeakReference<>(attachment);
          }
 
          return attachment;
       }
 
-      public long offsetAttachment()
+      public long attachmentOffset()
       {
-         return offsetAttachment;
+         return attachmentOffset;
       }
 
-      public long lengthAttachment()
+      public long attachmentLength()
       {
-         return lengthAttachment;
+         return attachmentLength;
       }
 
       public long logTime()
@@ -690,8 +727,8 @@ public class MCAP
       public String toString()
       {
          String out = getClass().getSimpleName() + ":";
-         out += "\n\t-ofsAttachment = " + offsetAttachment;
-         out += "\n\t-lenAttachment = " + lengthAttachment;
+         out += "\n\t-attachmentOffset = " + attachmentOffset;
+         out += "\n\t-attachmentLength = " + attachmentLength;
          out += "\n\t-logTime = " + logTime;
          out += "\n\t-createTime = " + createTime;
          out += "\n\t-dataSize = " + dataSize;
@@ -707,11 +744,11 @@ public class MCAP
       private final int id;
       private final String name;
       private final String encoding;
-      private final long lengthData;
-      private final long offsetData;
+      private final long dataLength;
+      private final long dataOffset;
       private WeakReference<ByteBuffer> dataRef;
 
-      public Schema(MCAPDataInput dataInput, long elementPosition, int elementLength)
+      public Schema(MCAPDataInput dataInput, long elementPosition, long elementLength)
       {
          this.dataInput = dataInput;
 
@@ -719,15 +756,15 @@ public class MCAP
          id = dataInput.getUnsignedShort();
          name = dataInput.getString();
          encoding = dataInput.getString();
-         lengthData = dataInput.getUnsignedInt();
-         offsetData = dataInput.position();
+         dataLength = dataInput.getUnsignedInt();
+         dataOffset = dataInput.position();
          checkLength(elementLength, getElementLength());
       }
 
       @Override
-      public int getElementLength()
+      public long getElementLength()
       {
-         return Short.BYTES + 3 * Integer.BYTES + name.length() + encoding.length() + (int) lengthData;
+         return Short.BYTES + 3 * Integer.BYTES + name.length() + encoding.length() + (int) dataLength;
       }
 
       public int id()
@@ -751,7 +788,7 @@ public class MCAP
 
          if (data == null)
          {
-            data = dataInput.getByteBuffer(offsetData, (int) lengthData, false);
+            data = dataInput.getByteBuffer(dataOffset, (int) dataLength, false);
             dataRef = new WeakReference<>(data);
          }
          return data;
@@ -764,7 +801,7 @@ public class MCAP
          out += "\n\t-id = " + id;
          out += "\n\t-name = " + name;
          out += "\n\t-encoding = " + encoding;
-         out += "\n\t-lengthData = " + lengthData;
+         out += "\n\t-dataLength = " + dataLength;
          out += "\n\t-data = " + Arrays.toString(data().array());
          return out;
       }
@@ -779,7 +816,7 @@ public class MCAP
 
       private WeakReference<Records> groupRef;
 
-      public SummaryOffset(MCAPDataInput dataInput, long elementPosition, int elementLength)
+      public SummaryOffset(MCAPDataInput dataInput, long elementPosition, long elementLength)
       {
          this.dataInput = dataInput;
 
@@ -791,7 +828,7 @@ public class MCAP
       }
 
       @Override
-      public int getElementLength()
+      public long getElementLength()
       {
          return Byte.BYTES + 2 * Long.BYTES;
       }
@@ -849,7 +886,7 @@ public class MCAP
       private final int crc32InputLength;
       private WeakReference<ByteBuffer> crc32InputRef;
 
-      private Attachment(MCAPDataInput dataInput, long elementPosition, int elementLength)
+      private Attachment(MCAPDataInput dataInput, long elementPosition, long elementLength)
       {
          this.dataInput = dataInput;
 
@@ -868,7 +905,7 @@ public class MCAP
       }
 
       @Override
-      public int getElementLength()
+      public long getElementLength()
       {
          return 3 * Long.BYTES + 3 * Integer.BYTES + name.length() + mediaType.length() + (int) lengthData;
       }
@@ -958,7 +995,7 @@ public class MCAP
       private final List<TupleStrStr> metadata;
       private final int metadataLength;
 
-      private Metadata(MCAPDataInput dataInput, long elementPosition, int elementLength)
+      private Metadata(MCAPDataInput dataInput, long elementPosition, long elementLength)
       {
          dataInput.position(elementPosition);
          name = dataInput.getString();
@@ -969,7 +1006,7 @@ public class MCAP
       }
 
       @Override
-      public int getElementLength()
+      public long getElementLength()
       {
          return Integer.BYTES + name.length() + metadataLength;
       }
@@ -999,7 +1036,7 @@ public class MCAP
       private final String profile;
       private final String library;
 
-      public Header(MCAPDataInput dataInput, long elementPosition, int elementLength)
+      public Header(MCAPDataInput dataInput, long elementPosition, long elementLength)
       {
          dataInput.position(elementPosition);
          profile = dataInput.getString();
@@ -1008,7 +1045,7 @@ public class MCAP
       }
 
       @Override
-      public int getElementLength()
+      public long getElementLength()
       {
          return 2 * Integer.BYTES + profile.length() + library.length();
       }
@@ -1040,8 +1077,8 @@ public class MCAP
       private long sequence;
       private long logTime;
       private long publishTime;
-      private long offsetData;
-      private int lengthData;
+      private long dataOffset;
+      private int dataLength;
       private WeakReference<ByteBuffer> messageBufferRef;
       private WeakReference<byte[]> messageDataRef;
 
@@ -1056,13 +1093,13 @@ public class MCAP
             }
 
             @Override
-            public long offsetData()
+            public long dataOffset()
             {
                return 0;
             }
 
             @Override
-            public int lengthData()
+            public int dataLength()
             {
                return data.length;
             }
@@ -1086,7 +1123,7 @@ public class MCAP
          dataInput = null;
       }
 
-      private Message(MCAPDataInput dataInput, long elementPosition, int elementLength)
+      private Message(MCAPDataInput dataInput, long elementPosition, long elementLength)
       {
          this.dataInput = dataInput;
 
@@ -1095,15 +1132,15 @@ public class MCAP
          sequence = dataInput.getUnsignedInt();
          logTime = checkPositiveLong(dataInput.getLong(), "logTime");
          publishTime = checkPositiveLong(dataInput.getLong(), "publishTime");
-         offsetData = dataInput.position();
-         lengthData = elementLength - (Short.BYTES + Integer.BYTES + 2 * Long.BYTES);
+         dataOffset = dataInput.position();
+         dataLength = (int) (elementLength - (Short.BYTES + Integer.BYTES + 2 * Long.BYTES));
          checkLength(elementLength, getElementLength());
       }
 
       @Override
-      public int getElementLength()
+      public long getElementLength()
       {
-         return lengthData + Short.BYTES + Integer.BYTES + 2 * Long.BYTES;
+         return dataLength + Short.BYTES + Integer.BYTES + 2 * Long.BYTES;
       }
 
       public int channelId()
@@ -1132,9 +1169,9 @@ public class MCAP
        *
        * @return the offset of the data portion of this message.
        */
-      public long offsetData()
+      public long dataOffset()
       {
-         return offsetData;
+         return dataOffset;
       }
 
       /**
@@ -1142,14 +1179,14 @@ public class MCAP
        *
        * @return the length of the data portion of this message.
        */
-      public int lengthData()
+      public int dataLength()
       {
-         return lengthData;
+         return dataLength;
       }
 
       /**
-       * Returns the buffer containing this message, the data AND the header. Use {@link #offsetData()}
-       * and {@link #lengthData()} to get the data portion.
+       * Returns the buffer containing this message, the data AND the header. Use {@link #dataOffset()}
+       * and {@link #dataLength()} to get the data portion.
        *
        * @return the buffer containing this message.
        */
@@ -1158,7 +1195,7 @@ public class MCAP
          ByteBuffer messageBuffer = messageBufferRef == null ? null : messageBufferRef.get();
          if (messageBuffer == null)
          {
-            messageBuffer = dataInput.getByteBuffer(offsetData, lengthData, false);
+            messageBuffer = dataInput.getByteBuffer(dataOffset, dataLength, false);
             messageBufferRef = new WeakReference<>(messageBuffer);
          }
          return messageBuffer;
@@ -1170,7 +1207,7 @@ public class MCAP
 
          if (messageData == null)
          {
-            messageData = dataInput.getBytes(offsetData, lengthData);
+            messageData = dataInput.getBytes(dataOffset, dataLength);
             messageDataRef = new WeakReference<>(messageData);
          }
          return messageData;
@@ -1196,12 +1233,13 @@ public class MCAP
 
       public TupleStrStr(MCAPDataInput dataInput, long elementPosition)
       {
+         dataInput.position(elementPosition);
          key = dataInput.getString();
          value = dataInput.getString();
       }
 
       @Override
-      public int getElementLength()
+      public long getElementLength()
       {
          return key.length() + value.length() + 2 * Integer.BYTES;
       }
@@ -1226,24 +1264,24 @@ public class MCAP
    public static class MetadataIndex implements MCAPElement
    {
       private final MCAPDataInput dataInput;
-      private final long offsetMetadata;
-      private final long lengthMetadata;
+      private final long metadataOffset;
+      private final long metadataLength;
       private final String name;
       private WeakReference<Record> metadataRef;
 
-      private MetadataIndex(MCAPDataInput dataInput, long elementPosition, int elementLength)
+      private MetadataIndex(MCAPDataInput dataInput, long elementPosition, long elementLength)
       {
          this.dataInput = dataInput;
 
          dataInput.position(elementPosition);
-         offsetMetadata = checkPositiveLong(dataInput.getLong(), "offsetMetadata");
-         lengthMetadata = checkPositiveLong(dataInput.getLong(), "lengthMetadata");
+         metadataOffset = checkPositiveLong(dataInput.getLong(), "metadataOffset");
+         metadataLength = checkPositiveLong(dataInput.getLong(), "metadataLength");
          name = dataInput.getString();
          checkLength(elementLength, getElementLength());
       }
 
       @Override
-      public int getElementLength()
+      public long getElementLength()
       {
          return 2 * Long.BYTES + Integer.BYTES + name.length();
       }
@@ -1254,20 +1292,20 @@ public class MCAP
 
          if (metadata == null)
          {
-            metadata = new Record(dataInput, offsetMetadata);
+            metadata = new Record(dataInput, metadataOffset);
             metadataRef = new WeakReference<>(metadata);
          }
          return metadata;
       }
 
-      public long offsetMetadata()
+      public long metadataOffset()
       {
-         return offsetMetadata;
+         return metadataOffset;
       }
 
-      public long lengthMetadata()
+      public long metadataLength()
       {
-         return lengthMetadata;
+         return metadataLength;
       }
 
       public String name()
@@ -1279,8 +1317,8 @@ public class MCAP
       public String toString()
       {
          String out = getClass().getSimpleName() + ": ";
-         out += "\n\t-offsetMetadata = " + offsetMetadata;
-         out += "\n\t-lengthMetadata = " + lengthMetadata;
+         out += "\n\t-metadataOffset = " + metadataOffset;
+         out += "\n\t-metadataLength = " + metadataLength;
          out += "\n\t-name = " + name;
          return out;
       }
@@ -1302,7 +1340,7 @@ public class MCAP
       }
 
       @Override
-      public int getElementLength()
+      public long getElementLength()
       {
          return MAGIC_SIZE;
       }
@@ -1329,7 +1367,7 @@ public class MCAP
 
    public static class Records extends ArrayList<Record>
    {
-      public Records(MCAPDataInput dataInput, long elementPosition, int elementLength)
+      public Records(MCAPDataInput dataInput, long elementPosition, long elementLength)
       {
          parseList(dataInput, Record::new, elementPosition, elementLength, this);
       }
@@ -1361,7 +1399,7 @@ public class MCAP
       private Records summaryOffsetSection;
       private Records summarySection;
 
-      public Footer(MCAPDataInput dataInput, long elementPosition, int elementLength)
+      public Footer(MCAPDataInput dataInput, long elementPosition, long elementLength)
       {
          this.dataInput = dataInput;
 
@@ -1373,7 +1411,7 @@ public class MCAP
       }
 
       @Override
-      public int getElementLength()
+      public long getElementLength()
       {
          return 2 * Long.BYTES + Integer.BYTES;
       }
@@ -1456,8 +1494,8 @@ public class MCAP
       private final MCAPDataInput dataInput;
 
       private final Opcode op;
-      private final long lengthBody;
-      private final long bodyPos;
+      private final long bodyLength;
+      private final long bodyOffset;
       private WeakReference<Object> bodyRef;
 
       public Record(MCAPDataInput dataInput)
@@ -1471,9 +1509,9 @@ public class MCAP
 
          dataInput.position(elementPosition);
          op = Opcode.byId(dataInput.getUnsignedByte());
-         lengthBody = checkPositiveLong(dataInput.getLong(), "lengthBody");
-         bodyPos = dataInput.position();
-         checkLength(getElementLength(), (int) (lengthBody + RECORD_HEADER_LENGTH));
+         bodyLength = checkPositiveLong(dataInput.getLong(), "bodyLength");
+         bodyOffset = dataInput.position();
+         checkLength(getElementLength(), (int) (bodyLength + RECORD_HEADER_LENGTH));
       }
 
       public Opcode op()
@@ -1481,9 +1519,9 @@ public class MCAP
          return op;
       }
 
-      public long lengthBody()
+      public long bodyLength()
       {
-         return lengthBody;
+         return bodyLength;
       }
 
       public Object body()
@@ -1494,27 +1532,27 @@ public class MCAP
          {
             if (op == null)
             {
-               body = dataInput.getBytes(bodyPos, (int) lengthBody);
+               body = dataInput.getBytes(bodyOffset, (int) bodyLength);
             }
             else
             {
                body = switch (op)
                {
-                  case MESSAGE -> new Message(dataInput, bodyPos, (int) lengthBody);
-                  case METADATA_INDEX -> new MetadataIndex(dataInput, bodyPos, (int) lengthBody);
-                  case CHUNK -> new Chunk(dataInput, bodyPos, (int) lengthBody);
-                  case SCHEMA -> new Schema(dataInput, bodyPos, (int) lengthBody);
-                  case CHUNK_INDEX -> new ChunkIndex(dataInput, bodyPos, (int) lengthBody);
-                  case DATA_END -> new DataEnd(dataInput, bodyPos, (int) lengthBody);
-                  case ATTACHMENT_INDEX -> new AttachmentIndex(dataInput, bodyPos, (int) lengthBody);
-                  case STATISTICS -> new Statistics(dataInput, bodyPos, (int) lengthBody);
-                  case MESSAGE_INDEX -> new MessageIndex(dataInput, bodyPos, (int) lengthBody);
-                  case CHANNEL -> new Channel(dataInput, bodyPos, (int) lengthBody);
-                  case METADATA -> new Metadata(dataInput, bodyPos, (int) lengthBody);
-                  case ATTACHMENT -> new Attachment(dataInput, bodyPos, (int) lengthBody);
-                  case HEADER -> new Header(dataInput, bodyPos, (int) lengthBody);
-                  case FOOTER -> new Footer(dataInput, bodyPos, (int) lengthBody);
-                  case SUMMARY_OFFSET -> new SummaryOffset(dataInput, bodyPos, (int) lengthBody);
+                  case MESSAGE -> new Message(dataInput, bodyOffset, bodyLength);
+                  case METADATA_INDEX -> new MetadataIndex(dataInput, bodyOffset, bodyLength);
+                  case CHUNK -> new Chunk(dataInput, bodyOffset, bodyLength);
+                  case SCHEMA -> new Schema(dataInput, bodyOffset, bodyLength);
+                  case CHUNK_INDEX -> new ChunkIndex(dataInput, bodyOffset, bodyLength);
+                  case DATA_END -> new DataEnd(dataInput, bodyOffset, bodyLength);
+                  case ATTACHMENT_INDEX -> new AttachmentIndex(dataInput, bodyOffset, bodyLength);
+                  case STATISTICS -> new Statistics(dataInput, bodyOffset, bodyLength);
+                  case MESSAGE_INDEX -> new MessageIndex(dataInput, bodyOffset, bodyLength);
+                  case CHANNEL -> new Channel(dataInput, bodyOffset, bodyLength);
+                  case METADATA -> new Metadata(dataInput, bodyOffset, bodyLength);
+                  case ATTACHMENT -> new Attachment(dataInput, bodyOffset, bodyLength);
+                  case HEADER -> new Header(dataInput, bodyOffset, bodyLength);
+                  case FOOTER -> new Footer(dataInput, bodyOffset, bodyLength);
+                  case SUMMARY_OFFSET -> new SummaryOffset(dataInput, bodyOffset, bodyLength);
                };
             }
 
@@ -1524,9 +1562,9 @@ public class MCAP
       }
 
       @Override
-      public int getElementLength()
+      public long getElementLength()
       {
-         return (int) (RECORD_HEADER_LENGTH + lengthBody);
+         return RECORD_HEADER_LENGTH + bodyLength;
       }
 
       @Override
@@ -1540,8 +1578,8 @@ public class MCAP
       {
          String out = getClass().getSimpleName() + ":";
          out += "\n\t-op = " + op;
-         out += "\n\t-lengthBody = " + lengthBody;
-         out += "\n\t-bodyPos = " + bodyPos;
+         out += "\n\t-bodyLength = " + bodyLength;
+         out += "\n\t-bodyOffset = " + bodyOffset;
          Object body = body();
          out += "\n\t-body = " + (body == null ? "null" : "\n" + ((MCAPElement) body).toString(indent + 2));
          return indent(out, indent);
@@ -1551,6 +1589,7 @@ public class MCAP
    public static class ChunkIndex implements MCAPElement
    {
       private final MCAPDataInput dataInput;
+      private final long elementLength;
       /**
        * Earliest message log_time in the chunk. Zero if the chunk has no messages.
        */
@@ -1576,7 +1615,7 @@ public class MCAP
        * Mapping from channel ID to the offset of the message index record for that channel after the
        * chunk, from the start of the file. An empty map indicates no message indexing is available.
        */
-      private final MessageIndexOffsets messageIndexOffsets;
+      private WeakReference<MessageIndexOffsets> messageIndexOffsetsRef;
       /**
        * Total length in bytes of the message index records after the chunk.
        */
@@ -1596,9 +1635,10 @@ public class MCAP
        */
       private final long uncompressedSize;
 
-      private ChunkIndex(MCAPDataInput dataInput, long elementPosition, int elementLength)
+      private ChunkIndex(MCAPDataInput dataInput, long elementPosition, long elementLength)
       {
          this.dataInput = dataInput;
+         this.elementLength = elementLength;
 
          dataInput.position(elementPosition);
          messageStartTime = checkPositiveLong(dataInput.getLong(), "messageStartTime");
@@ -1607,20 +1647,17 @@ public class MCAP
          chunkLength = checkPositiveLong(dataInput.getLong(), "chunkLength");
          messageIndexOffsetsLength = dataInput.getUnsignedInt();
          messageIndexOffsetsOffset = dataInput.position();
-         messageIndexOffsets = new MessageIndexOffsets(dataInput,
-                                                       messageIndexOffsetsOffset,
-                                                       (int) messageIndexOffsetsLength); // TODO Looks into postponing the loading of the messageIndexOffsets.
+         dataInput.skip(messageIndexOffsetsLength);
          messageIndexLength = checkPositiveLong(dataInput.getLong(), "messageIndexLength");
          compression = dataInput.getString();
          compressedSize = checkPositiveLong(dataInput.getLong(), "compressedSize");
          uncompressedSize = checkPositiveLong(dataInput.getLong(), "uncompressedSize");
-         checkLength(elementLength, getElementLength());
       }
 
       @Override
-      public int getElementLength()
+      public long getElementLength()
       {
-         return 7 * Long.BYTES + 2 * Integer.BYTES + messageIndexOffsets.getElementLength() + compression.length();
+         return elementLength;
       }
 
       public static class MessageIndexOffset implements MCAPElement
@@ -1642,7 +1679,7 @@ public class MCAP
          }
 
          @Override
-         public int getElementLength()
+         public long getElementLength()
          {
             return Short.BYTES + Long.BYTES;
          }
@@ -1676,14 +1713,16 @@ public class MCAP
       public static class MessageIndexOffsets implements MCAPElement
       {
          private final List<MessageIndexOffset> entries;
-         private final int entriesLength;
+         private final long elementLength;
 
-         public MessageIndexOffsets(MCAPDataInput dataInput, long elementPosition, int elementLength)
+         public MessageIndexOffsets(MCAPDataInput dataInput, long elementPosition, long elementLength)
          {
+            this.elementLength = elementLength;
+
             entries = new ArrayList<>();
 
             long currentPos = elementPosition;
-            int remaining = elementLength;
+            long remaining = elementLength;
 
             while (remaining > 0)
             {
@@ -1696,14 +1735,12 @@ public class MCAP
             if (remaining != 0)
                throw new IllegalArgumentException(
                      "Invalid element length. Expected: " + elementLength + ", remaining: " + remaining + ", entries: " + entries.size());
-
-            entriesLength = elementLength;
          }
 
          @Override
-         public int getElementLength()
+         public long getElementLength()
          {
-            return entriesLength;
+            return elementLength;
          }
 
          public List<MessageIndexOffset> entries()
@@ -1767,6 +1804,14 @@ public class MCAP
 
       public MessageIndexOffsets messageIndexOffsets()
       {
+         MessageIndexOffsets messageIndexOffsets = messageIndexOffsetsRef == null ? null : messageIndexOffsetsRef.get();
+
+         if (messageIndexOffsets == null)
+         {
+            messageIndexOffsets = new MessageIndexOffsets(dataInput, messageIndexOffsetsOffset, messageIndexOffsetsLength);
+            messageIndexOffsetsRef = new WeakReference<>(messageIndexOffsets);
+         }
+
          return messageIndexOffsets;
       }
 
@@ -1816,7 +1861,7 @@ public class MCAP
 
    public interface MCAPElement
    {
-      int getElementLength();
+      long getElementLength();
 
       default String toString(int indent)
       {
@@ -1824,9 +1869,9 @@ public class MCAP
       }
    }
 
-   public static int computeOffsetFooter(MCAPDataInput dataInput)
+   public static long computeOffsetFooter(MCAPDataInput dataInput)
    {
-      return (int) (((((dataInput.size() - 1) - 8) - 20) - 8));
+      return (((((dataInput.size() - 1L) - 8L) - 20L) - 8L));
    }
 
    public static <T extends MCAPElement> List<T> parseList(MCAPDataInput dataInput, MCAPDataReader<T> elementParser)
@@ -1892,7 +1937,7 @@ public class MCAP
       return value;
    }
 
-   private static void checkLength(int expectedLength, int actualLength)
+   private static void checkLength(long expectedLength, long actualLength)
    {
       if (actualLength != expectedLength)
          throw new IllegalArgumentException("Unexpected length: expected= " + expectedLength + ", actual= " + actualLength);

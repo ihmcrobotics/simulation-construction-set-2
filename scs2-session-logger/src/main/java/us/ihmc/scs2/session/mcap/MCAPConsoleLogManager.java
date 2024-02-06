@@ -125,7 +125,7 @@ public class MCAPConsoleLogManager
        */
       long logTime = MCAPMessageManager.round(message.logTime(), desiredLogDT);
       CDRDeserializer deserializer = new CDRDeserializer();
-      deserializer.initialize(message.messageBuffer(), 0, message.lengthData());
+      deserializer.initialize(message.messageBuffer(), 0, message.dataLength());
       Instant instant = Instant.ofEpochSecond(deserializer.read_uint32(), deserializer.read_uint32());
       MCAPLogLevel logLevel = MCAPLogLevel.values()[deserializer.read_uint8()];
       String logMessage = deserializer.read_string();

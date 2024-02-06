@@ -148,7 +148,7 @@ public final class YoMCAPMessage
       if (message.channelId() != channelId)
          throw new IllegalArgumentException("Expected channel ID: " + channelId + ", but received: " + message.channelId());
 
-      cdr.initialize(message.messageBuffer(), 0, message.lengthData());
+      cdr.initialize(message.messageBuffer(), 0, message.dataLength());
 
       try
       {

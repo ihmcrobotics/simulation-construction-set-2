@@ -55,7 +55,7 @@ public class MCAPBufferedChunk
          {
             Chunk chunk = (Chunk) record.body();
             numberOfChunks++;
-            long chunkSize = chunk.lenRecords();
+            long chunkSize = chunk.recordsLength();
             minChunkSize = Math.min(minChunkSize, chunkSize);
             maxChunkSize = Math.max(maxChunkSize, chunkSize);
             totalChunkSize += chunkSize;
