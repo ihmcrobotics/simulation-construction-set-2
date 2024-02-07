@@ -1,23 +1,22 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers.editor.searchTextField;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.controlsfx.control.textfield.AutoCompletionBinding.ISuggestionRequest;
-
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.Dragboard;
 import javafx.util.Callback;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
+import org.controlsfx.control.textfield.AutoCompletionBinding.ISuggestionRequest;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameManager;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameWrapper;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 
-public class ReferenceFrameSearchField extends PropertySearchField<Property<ReferenceFrame>>
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class ReferenceFrameSearchField extends PropertySearchField<Property<ReferenceFrameWrapper>>
 {
    private final ReferenceFrameManager referenceFrameManager;
 
@@ -39,7 +38,7 @@ public class ReferenceFrameSearchField extends PropertySearchField<Property<Refe
       if (text == null || text.isEmpty())
          return false;
 
-      ReferenceFrame referenceFrame = referenceFrameManager.getReferenceFrameFromUniqueName(text);
+      ReferenceFrameWrapper referenceFrame = referenceFrameManager.getReferenceFrameFromUniqueName(text);
       if (referenceFrame == null)
          referenceFrame = referenceFrameManager.getReferenceFrameFromFullname(text);
       return referenceFrame != null;
@@ -51,7 +50,7 @@ public class ReferenceFrameSearchField extends PropertySearchField<Property<Refe
       if (text == null)
          return referenceFrameManager.getUniqueShortName(referenceFrameManager.getWorldFrame());
 
-      ReferenceFrame referenceFrame = referenceFrameManager.getReferenceFrameFromFullname(text);
+      ReferenceFrameWrapper referenceFrame = referenceFrameManager.getReferenceFrameFromFullname(text);
       if (referenceFrame == null)
          return null;
 
@@ -74,19 +73,18 @@ public class ReferenceFrameSearchField extends PropertySearchField<Property<Refe
             return referenceFrameUniqueNames;
 
          String userTextLowerCase = userText.toLowerCase();
-         return referenceFrameUniqueNames.stream().filter(v -> v.toLowerCase().contains(userTextLowerCase))
-                                     .collect(Collectors.toList());
+         return referenceFrameUniqueNames.stream().filter(v -> v.toLowerCase().contains(userTextLowerCase)).collect(Collectors.toList());
       };
    }
 
    @Override
-   protected Property<ReferenceFrame> toSupplier(String text)
+   protected Property<ReferenceFrameWrapper> toSupplier(String text)
    {
-      ReferenceFrame referenceFrame = referenceFrameManager.getReferenceFrameFromUniqueName(text);
+      ReferenceFrameWrapper referenceFrame = referenceFrameManager.getReferenceFrameFromUniqueName(text);
       if (referenceFrame == null)
          return null;
       else
-         return new SimpleObjectProperty<ReferenceFrame>(referenceFrame);
+         return new SimpleObjectProperty<>(referenceFrame);
    }
 
    @Override

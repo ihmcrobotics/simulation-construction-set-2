@@ -1,10 +1,5 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.managers;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -27,26 +22,37 @@ import us.ihmc.scs2.simulation.robot.RobotRootFrame;
 import us.ihmc.yoVariables.euclid.referenceFrame.YoFramePoseUsingYawPitchRoll;
 import us.ihmc.yoVariables.variable.YoDouble;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class ReferenceFrameManager implements Manager
 {
    public static final String WORLD_FRAME = "worldFrame";
 
-   private final ReferenceFrame worldFrame = ReferenceFrameTools.constructARootFrame(WORLD_FRAME);
+   private final ReferenceFrameWrapper worldFrame = new ReferenceFrameWrapper(ReferenceFrameTools.constructARootFrame(WORLD_FRAME));
 
-   private final ObjectProperty<Map<String, ReferenceFrame>> uniqueNameToReferenceFrameMapProperty = new SimpleObjectProperty<>(this,
-                                                                                                                                "uniqueNameToReferenceFrameMap",
-                                                                                                                                null);
-   private final ObjectProperty<Map<ReferenceFrame, String>> referenceFrameToUniqueNameMapProperty = new SimpleObjectProperty<>(this,
-                                                                                                                                "referenceFrameToUniqueNameMap",
-                                                                                                                                null);
-   private final ObjectProperty<Map<String, ReferenceFrame>> uniqueShortNameToReferenceFrameMapProperty = new SimpleObjectProperty<>(this,
-                                                                                                                                     "uniqueShortNameToReferenceFrameMap",
-                                                                                                                                     null);
-   private final ObjectProperty<Map<ReferenceFrame, String>> referenceFrameToUniqueShortNameMapProperty = new SimpleObjectProperty<>(this,
-                                                                                                                                     "referenceFrameToUniqueShortNameMap",
-                                                                                                                                     null);
+   private final ObjectProperty<Map<String, ReferenceFrameWrapper>> uniqueNameToReferenceFrameMapProperty = new SimpleObjectProperty<>(this,
+                                                                                                                                       "uniqueNameToReferenceFrameMap",
+                                                                                                                                       null);
+   private final ObjectProperty<Map<ReferenceFrameWrapper, String>> referenceFrameToUniqueNameMapProperty = new SimpleObjectProperty<>(this,
+                                                                                                                                       "referenceFrameToUniqueNameMap",
+                                                                                                                                       null);
+   private final ObjectProperty<Map<String, ReferenceFrameWrapper>> uniqueShortNameToReferenceFrameMapProperty = new SimpleObjectProperty<>(this,
+                                                                                                                                            "uniqueShortNameToReferenceFrameMap",
+                                                                                                                                            null);
+   private final ObjectProperty<Map<ReferenceFrameWrapper, String>> referenceFrameToUniqueShortNameMapProperty = new SimpleObjectProperty<>(this,
+                                                                                                                                            "referenceFrameToUniqueShortNameMap",
+                                                                                                                                            null);
 
-   private final ObservableMap<String, ReferenceFrame> fullnameToReferenceFrameMap = FXCollections.observableMap(new ConcurrentHashMap<>());
+   private final ObservableMap<String, ReferenceFrameWrapper> fullnameToReferenceFrameMap = FXCollections.observableMap(new ConcurrentHashMap<>());
 
    private YoManager yoManager;
    private final BackgroundExecutorManager backgroundExecutorManager;
@@ -90,6 +96,7 @@ public class ReferenceFrameManager implements Manager
             try
             {
                // Adding some delay so if YoVariables are needed, they are first linked.
+               // TODO Shouldn't be needed
                Thread.sleep(100);
 
                if (hasFrameBeenRemoved(newFrame))
@@ -186,6 +193,7 @@ public class ReferenceFrameManager implements Manager
       if (sessionFrames.stream().anyMatch(sessionFrame ->
                                           {
                                              boolean isRobotFrame = sessionFrame instanceof RobotRootFrame;
+                                             // TODO Maybe we can created undefined frames and then update them when the robot is created.
                                              // If it's a robot frame and that the root has not been registered yet, we postpone.
                                              return isRobotFrame && getReferenceFrameFromFullname(sessionFrame.getNameId()) == null;
                                           }))
@@ -240,10 +248,10 @@ public class ReferenceFrameManager implements Manager
    {
       if (frame instanceof RobotRootFrame)
          return true;
-      return frame.getParent() == null ? false : isARobotFrame(frame.getParent());
+      return frame.getParent() != null && isARobotFrame(frame.getParent());
    }
 
-   private ReferenceFrame duplicateReferenceFrame(ReferenceFrame sessionFrame)
+   private ReferenceFrameWrapper duplicateReferenceFrame(ReferenceFrame sessionFrame)
    {
       if (sessionFrame == null || sessionFrame.isRootFrame())
          return null;
@@ -306,12 +314,11 @@ public class ReferenceFrameManager implements Manager
          YoFramePoseUsingYawPitchRoll offset = SharedMemoryTools.duplicate(sessionOffset, yoManager.getRootRegistry(), parentFrame);
          frame = new YoFixedMovingReferenceFrameUsingYawPitchRoll(frameName, offset, parentFrame);
          YoDouble[] variablesToLink = {offset.getYoX(), offset.getYoY(), offset.getYoZ(), offset.getYoYaw(), offset.getYoPitch(), offset.getYoRoll()};
-         LinkedYoDouble[] linkedVariables = new LinkedYoDouble[variablesToLink.length];
          AtomicBoolean haveVariableChanged = new AtomicBoolean(true);
 
          for (int i = 0; i < variablesToLink.length; i++)
          {
-            linkedVariables[i] = yoManager.getLinkedRootRegistry().linkYoVariable(variablesToLink[i], frame);
+            yoManager.getLinkedRootRegistry().linkYoVariable(variablesToLink[i], frame);
             variablesToLink[i].addListener(v -> haveVariableChanged.set(true));
          }
 
@@ -326,7 +333,8 @@ public class ReferenceFrameManager implements Manager
          LogTools.warn("Unhandled frame type: {}, {}.", sessionFrame.getNameId(), sessionFrame.getClass().getSimpleName());
          frame = null;
       }
-      return frame;
+
+      return new ReferenceFrameWrapper(frame);
    }
 
    public void refreshReferenceFramesNow()
@@ -393,12 +401,12 @@ public class ReferenceFrameManager implements Manager
       return namespace;
    }
 
-   public ReferenceFrame getWorldFrame()
+   public ReferenceFrameWrapper getWorldFrame()
    {
       return worldFrame;
    }
 
-   public Collection<ReferenceFrame> getReferenceFrames()
+   public Collection<ReferenceFrameWrapper> getReferenceFrames()
    {
       if (uniqueNameToReferenceFrameMapProperty.get() == null)
          return Collections.emptyList();
@@ -424,19 +432,19 @@ public class ReferenceFrameManager implements Manager
       return fullnameToReferenceFrameMap.keySet();
    }
 
-   public ReferenceFrame getReferenceFrameFromUniqueName(String uniqueName)
+   public ReferenceFrameWrapper getReferenceFrameFromUniqueName(String uniqueName)
    {
       if (uniqueNameToReferenceFrameMapProperty.get() == null)
          return null;
-      ReferenceFrame frame = uniqueNameToReferenceFrameMapProperty.get().get(uniqueName);
+      ReferenceFrameWrapper frame = uniqueNameToReferenceFrameMapProperty.get().get(uniqueName);
       if (frame == null)
          return uniqueShortNameToReferenceFrameMapProperty.get().get(uniqueName);
       return frame;
    }
 
-   public ReferenceFrame getReferenceFrameFromFullname(String fullname)
+   public ReferenceFrameWrapper getReferenceFrameFromFullname(String fullname)
    {
-      ReferenceFrame result = fullnameToReferenceFrameMap.get(fullname);
+      ReferenceFrameWrapper result = fullnameToReferenceFrameMap.get(fullname);
       if (result != null)
          return result;
 
@@ -448,37 +456,17 @@ public class ReferenceFrameManager implements Manager
       return null;
    }
 
-   public String getUniqueName(ReferenceFrame referenceFrame)
+   public String getUniqueName(ReferenceFrameWrapper referenceFrame)
    {
       if (referenceFrameToUniqueNameMapProperty.get() == null)
          return null;
       return referenceFrameToUniqueNameMapProperty.get().get(referenceFrame);
    }
 
-   public String getUniqueShortName(ReferenceFrame referenceFrame)
+   public String getUniqueShortName(ReferenceFrameWrapper referenceFrame)
    {
       if (referenceFrameToUniqueShortNameMapProperty.get() == null)
          return null;
       return referenceFrameToUniqueShortNameMapProperty.get().get(referenceFrame);
-   }
-
-   public Map<ReferenceFrame, String> getReferenceFrameToUniqueNameMap()
-   {
-      return referenceFrameToUniqueNameMapProperty.get();
-   }
-
-   public Map<String, ReferenceFrame> getUniqueNameToReferenceFrameMap()
-   {
-      return uniqueNameToReferenceFrameMapProperty.get();
-   }
-
-   public Map<String, ReferenceFrame> getUniqueShortNameToReferenceFrameMap()
-   {
-      return uniqueShortNameToReferenceFrameMapProperty.get();
-   }
-
-   public Map<String, ReferenceFrame> getFullnameToReferenceFrameMap()
-   {
-      return fullnameToReferenceFrameMap;
    }
 }

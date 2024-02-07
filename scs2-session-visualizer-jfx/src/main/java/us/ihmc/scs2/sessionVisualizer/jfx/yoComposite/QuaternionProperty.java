@@ -1,15 +1,15 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.yoComposite;
 
-import static us.ihmc.scs2.definition.yoComposite.YoQuaternionDefinition.YoQuaternion;
-import static us.ihmc.scs2.definition.yoComposite.YoQuaternionDefinition.YoQuaternionIdentifiers;
-
-import java.util.Objects;
-
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleDoubleProperty;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.referenceFrame.interfaces.FrameQuaternionReadOnly;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameWrapper;
+
+import java.util.Objects;
+
+import static us.ihmc.scs2.definition.yoComposite.YoQuaternionDefinition.YoQuaternion;
+import static us.ihmc.scs2.definition.yoComposite.YoQuaternionDefinition.YoQuaternionIdentifiers;
 
 public class QuaternionProperty extends Orientation3DProperty implements FrameQuaternionReadOnly
 {
@@ -23,7 +23,7 @@ public class QuaternionProperty extends Orientation3DProperty implements FrameQu
       super(YoQuaternion, YoQuaternionIdentifiers, x, y, z, s);
    }
 
-   public QuaternionProperty(ReferenceFrame referenceFrame, double x, double y, double z, double s)
+   public QuaternionProperty(ReferenceFrameWrapper referenceFrame, double x, double y, double z, double s)
    {
       super(YoQuaternion, YoQuaternionIdentifiers, referenceFrame, x, y, z, s);
    }
@@ -33,7 +33,7 @@ public class QuaternionProperty extends Orientation3DProperty implements FrameQu
       super(YoQuaternion, YoQuaternionIdentifiers, xyzsProperties);
    }
 
-   public QuaternionProperty(Property<ReferenceFrame> referenceFrameProperty, DoubleProperty[] xyzsProperties)
+   public QuaternionProperty(Property<ReferenceFrameWrapper> referenceFrameProperty, DoubleProperty[] xyzsProperties)
    {
       super(YoQuaternion, YoQuaternionIdentifiers, referenceFrameProperty, xyzsProperties);
    }
@@ -43,8 +43,11 @@ public class QuaternionProperty extends Orientation3DProperty implements FrameQu
       super(YoQuaternion, YoQuaternionIdentifiers, xProperty, yProperty, zProperty, sProperty);
    }
 
-   public QuaternionProperty(Property<ReferenceFrame> referenceFrameProperty, DoubleProperty xProperty, DoubleProperty yProperty,
-                                   DoubleProperty zProperty, DoubleProperty sProperty)
+   public QuaternionProperty(Property<ReferenceFrameWrapper> referenceFrameProperty,
+                             DoubleProperty xProperty,
+                             DoubleProperty yProperty,
+                             DoubleProperty zProperty,
+                             DoubleProperty sProperty)
    {
       super(YoQuaternion, YoQuaternionIdentifiers, referenceFrameProperty, xProperty, yProperty, zProperty, sProperty);
    }
@@ -100,7 +103,7 @@ public class QuaternionProperty extends Orientation3DProperty implements FrameQu
       setComponentValues(x, y, z, s);
    }
 
-   public void set(ReferenceFrame referenceFrame, double x, double y, double z, double s)
+   public void set(ReferenceFrameWrapper referenceFrame, double x, double y, double z, double s)
    {
       set(referenceFrame, x, y, z, s);
    }
@@ -110,7 +113,10 @@ public class QuaternionProperty extends Orientation3DProperty implements FrameQu
       setComponentValueProperties(xProperty, yProperty, zProperty, sProperty);
    }
 
-   public void set(Property<ReferenceFrame> referenceFrameProperty, DoubleProperty xProperty, DoubleProperty yProperty, DoubleProperty zProperty,
+   public void set(Property<ReferenceFrameWrapper> referenceFrameProperty,
+                   DoubleProperty xProperty,
+                   DoubleProperty yProperty,
+                   DoubleProperty zProperty,
                    DoubleProperty sProperty)
    {
       set(referenceFrameProperty, xProperty, yProperty, zProperty, sProperty);
