@@ -165,4 +165,10 @@ public class ReferenceFrameWrapper
       if (referenceFrame != null)
          referenceFrame.clearChildren();
    }
+
+   @Override
+   public String toString()
+   {
+      return "%s{name='%s', fullName='%s'}".formatted(getClass().getSimpleName(), name, fullName);
+   }
 }
