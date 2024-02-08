@@ -5,8 +5,6 @@ import javafx.beans.property.Property;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import us.ihmc.euclid.interfaces.Transformable;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.referenceFrame.interfaces.ReferenceFrameHolder;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.Vector2D;
 import us.ihmc.euclid.tuple2D.interfaces.Point2DReadOnly;
@@ -16,7 +14,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameWrapper;
 import java.util.Arrays;
 import java.util.stream.DoubleStream;
 
-public class CompositeProperty implements ReferenceFrameHolder
+public class CompositeProperty
 {
    protected final String type;
    protected final String[] componentIdentifiers;
@@ -125,8 +123,7 @@ public class CompositeProperty implements ReferenceFrameHolder
       return referenceFrameProperty;
    }
 
-   @Override
-   public final ReferenceFrame getReferenceFrame()
+   public final ReferenceFrameWrapper getReferenceFrame()
    {
       return referenceFrameProperty().getValue();
    }
@@ -161,20 +158,19 @@ public class CompositeProperty implements ReferenceFrameHolder
 
    public <T extends Transformable> T toWorld(T transformable)
    {
-      if (referenceFrameProperty() == null || getReferenceFrame() == null || getReferenceFrame().isRootFrame())
+      if (referenceFrameProperty() == null || getReferenceFrame() == null)
          return transformable;
 
-      getReferenceFrame().transformFromThisToDesiredFrame(getReferenceFrame().getRootFrame(), transformable);
-      return transformable;
+      return getReferenceFrame().transformToRootFrame(transformable);
    }
 
    @Override
    public final String toString()
    {
-      String description = "[" + type;
+      StringBuilder description = new StringBuilder("[" + type);
       for (int i = 0; i < componentIdentifiers.length; i++)
-         description += ", " + componentIdentifiers[i] + ": " + componentValueProperties[i];
-      description += ", frame: " + referenceFrameProperty + "]";
-      return description;
+         description.append(", ").append(componentIdentifiers[i]).append(": ").append(componentValueProperties[i]);
+      description.append(", frame: ").append(referenceFrameProperty).append("]");
+      return description.toString();
    }
 }

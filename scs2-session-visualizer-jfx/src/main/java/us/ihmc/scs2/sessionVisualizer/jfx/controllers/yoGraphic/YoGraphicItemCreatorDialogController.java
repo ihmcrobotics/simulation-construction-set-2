@@ -23,11 +23,11 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.apache.commons.lang3.StringUtils;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameManager;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameWrapper;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoRobotFXManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.*;
@@ -78,7 +78,7 @@ public class YoGraphicItemCreatorDialogController
    private final Map<Toggle, Class<? extends YoGraphicFXItem>> buttonToTypeMap = new LinkedHashMap<>();
    private final Map<Class<? extends YoGraphicFXItem>, String> typeToDefaultNameMap = new LinkedHashMap<>();
 
-   private ReferenceFrame worldFrame;
+   private ReferenceFrameWrapper worldFrame;
    private YoRobotFXManager robotFXManager;
    private ReferenceFrameManager referenceFrameManager;
    private ObservableList<RobotDefinition> sessionRobotDefinitions;

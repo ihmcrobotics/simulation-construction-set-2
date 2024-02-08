@@ -4,9 +4,9 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleDoubleProperty;
 import us.ihmc.euclid.interfaces.EuclidGeometry;
-import us.ihmc.euclid.referenceFrame.interfaces.FrameTuple2DReadOnly;
 import us.ihmc.euclid.tuple2D.Point2D;
 import us.ihmc.euclid.tuple2D.Vector2D;
+import us.ihmc.euclid.tuple2D.interfaces.Tuple2DReadOnly;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameWrapper;
 
 import java.util.Objects;
@@ -14,7 +14,7 @@ import java.util.Objects;
 import static us.ihmc.scs2.definition.yoComposite.YoTuple2DDefinition.YoTuple2D;
 import static us.ihmc.scs2.definition.yoComposite.YoTuple2DDefinition.YoTuple2DIdentifiers;
 
-public class Tuple2DProperty extends CompositeProperty implements FrameTuple2DReadOnly
+public class Tuple2DProperty extends CompositeProperty implements Tuple2DReadOnly
 {
    public Tuple2DProperty()
    {
@@ -84,7 +84,8 @@ public class Tuple2DProperty extends CompositeProperty implements FrameTuple2DRe
 
    public void set(ReferenceFrameWrapper referenceFrame, double x, double y)
    {
-      set(referenceFrame, x, y);
+      setReferenceFrame(referenceFrame);
+      setComponentValues(x, y);
    }
 
    public void set(DoubleProperty xProperty, DoubleProperty yProperty)
@@ -94,7 +95,8 @@ public class Tuple2DProperty extends CompositeProperty implements FrameTuple2DRe
 
    public void set(Property<ReferenceFrameWrapper> referenceFrameProperty, DoubleProperty xProperty, DoubleProperty yProperty)
    {
-      set(referenceFrameProperty, xProperty, yProperty);
+      setReferenceFrameProperty(referenceFrameProperty);
+      setComponentValueProperties(xProperty, yProperty);
    }
 
    @Override

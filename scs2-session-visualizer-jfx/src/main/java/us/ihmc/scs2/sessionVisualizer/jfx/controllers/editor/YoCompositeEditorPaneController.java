@@ -18,7 +18,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.scs2.definition.yoComposite.YoCompositeDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.editor.searchTextField.DoubleSearchField;
@@ -282,11 +281,11 @@ public class YoCompositeEditorPaneController
          yoCompositeTextField.initializeFieldFromComponents();
    }
 
-   public void setReferenceFrame(ReferenceFrame referenceFrame)
+   public void setReferenceFrame(ReferenceFrameWrapper referenceFrame)
    {
       if (yoReferenceFrameTextField == null)
          return;
-      referenceFrameSearchTextField.setText(referenceFrame.getNameId());
+      referenceFrameSearchTextField.setText(referenceFrame.getFullName());
    }
 
    public ObservableBooleanValue inputsValidityProperty()

@@ -48,13 +48,13 @@ public class ReferenceFrameSearchField extends PropertySearchField<Property<Refe
    protected String simplifyText(String text)
    {
       if (text == null)
-         return referenceFrameManager.getUniqueShortName(referenceFrameManager.getWorldFrame());
+         return referenceFrameManager.getWorldFrame().getUniqueShortName();
 
       ReferenceFrameWrapper referenceFrame = referenceFrameManager.getReferenceFrameFromFullname(text);
       if (referenceFrame == null)
          return null;
 
-      String uniqueName = referenceFrameManager.getUniqueShortName(referenceFrame);
+      String uniqueName = referenceFrame.getUniqueShortName();
       if (uniqueName != null && uniqueName.equals(text))
          return null;
 

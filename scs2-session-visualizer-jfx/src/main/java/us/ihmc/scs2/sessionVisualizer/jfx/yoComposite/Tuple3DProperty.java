@@ -4,9 +4,9 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleDoubleProperty;
 import us.ihmc.euclid.interfaces.EuclidGeometry;
-import us.ihmc.euclid.referenceFrame.interfaces.FrameTuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameWrapper;
 
 import java.util.Objects;
@@ -14,7 +14,7 @@ import java.util.Objects;
 import static us.ihmc.scs2.definition.yoComposite.YoTuple3DDefinition.YoTuple3D;
 import static us.ihmc.scs2.definition.yoComposite.YoTuple3DDefinition.YoTuple3DIdentifiers;
 
-public class Tuple3DProperty extends CompositeProperty implements FrameTuple3DReadOnly
+public class Tuple3DProperty extends CompositeProperty implements Tuple3DReadOnly
 {
    public Tuple3DProperty()
    {
@@ -94,7 +94,8 @@ public class Tuple3DProperty extends CompositeProperty implements FrameTuple3DRe
 
    public void set(ReferenceFrameWrapper referenceFrame, double x, double y, double z)
    {
-      set(referenceFrame, x, y, z);
+      setReferenceFrame(referenceFrame);
+      setComponentValues(x, y, z);
    }
 
    public void set(DoubleProperty xProperty, DoubleProperty yProperty, DoubleProperty zProperty)
@@ -104,7 +105,8 @@ public class Tuple3DProperty extends CompositeProperty implements FrameTuple3DRe
 
    public void set(Property<ReferenceFrameWrapper> referenceFrameProperty, DoubleProperty xProperty, DoubleProperty yProperty, DoubleProperty zProperty)
    {
-      set(referenceFrameProperty, xProperty, yProperty, zProperty);
+      setReferenceFrameProperty(referenceFrameProperty);
+      setComponentValueProperties(xProperty, yProperty, zProperty);
    }
 
    @Override

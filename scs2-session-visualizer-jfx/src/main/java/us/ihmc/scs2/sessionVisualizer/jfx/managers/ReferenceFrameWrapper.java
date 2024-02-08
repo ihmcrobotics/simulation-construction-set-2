@@ -1,14 +1,24 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.managers;
 
+import us.ihmc.euclid.interfaces.Transformable;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 public class ReferenceFrameWrapper
 {
    private static final RigidBodyTransformReadOnly IDENTITY = new RigidBodyTransform();
    private final String name;
-   private final String fullName;
+   private String fullName;
+   private List<String> namespace;
+   private String uniqueName;
+   private String uniqueShortName;
    private ReferenceFrame referenceFrame;
 
    public ReferenceFrameWrapper(String name, String fullName)
@@ -38,14 +48,58 @@ public class ReferenceFrameWrapper
       return fullName;
    }
 
+   public String getUniqueName()
+   {
+      return uniqueName;
+   }
+
+   public String getUniqueShortName()
+   {
+      if (uniqueShortName == null)
+      {
+         int firstSeparatorIndex = uniqueName.indexOf(".");
+         int lastSeparatorIndex = uniqueName.lastIndexOf(".");
+         if (firstSeparatorIndex != lastSeparatorIndex)
+            uniqueShortName = uniqueName.substring(0, firstSeparatorIndex) + "..." + uniqueName.substring(lastSeparatorIndex + 1);
+         else
+            uniqueShortName = uniqueName;
+      }
+
+      return uniqueShortName;
+   }
+
+   public List<String> getNamespace()
+   {
+      if (namespace == null)
+      {
+         namespace = Arrays.asList(fullName.split(ReferenceFrame.SEPARATOR));
+         namespace = namespace.subList(0, namespace.size() - 1);
+      }
+      return namespace;
+   }
+
    public ReferenceFrame getReferenceFrame()
    {
       return referenceFrame;
    }
 
+   public void setUniqueName(String uniqueName)
+   {
+      this.uniqueName = uniqueName;
+      uniqueShortName = null;
+   }
+
    public void setReferenceFrame(ReferenceFrame referenceFrame)
    {
+      if (!Objects.equals(name, referenceFrame.getName()))
+      {
+         throw new IllegalArgumentException(
+               "The name of the reference frame does not match the name of this wrapper: " + name + " vs " + referenceFrame.getName());
+      }
+
       this.referenceFrame = referenceFrame;
+      fullName = referenceFrame.getNameId();
+      namespace = null;
    }
 
    public boolean isDefined()
@@ -65,5 +119,50 @@ public class ReferenceFrameWrapper
          return IDENTITY;
       else
          return referenceFrame.getTransformToRoot();
+   }
+
+   public <T extends Transformable> T transformFromThisToDesiredFrame(ReferenceFrameWrapper desiredFrame, T transformable)
+   {
+      if (referenceFrame != null && desiredFrame.referenceFrame != null)
+         referenceFrame.transformFromThisToDesiredFrame(desiredFrame.referenceFrame, transformable);
+      return transformable;
+   }
+
+   public <T extends Transformable> T transformToRootFrame(T transformable)
+   {
+      if (referenceFrame != null && !referenceFrame.isRootFrame())
+         referenceFrame.transformFromThisToDesiredFrame(referenceFrame.getRootFrame(), transformable);
+      return transformable;
+   }
+
+   public List<ReferenceFrameWrapper> collectSubtree()
+   {
+      if (referenceFrame == null)
+         return List.of(this);
+      else
+         return collectSubtree(this, new ArrayList<>());
+   }
+
+   private static <T extends Collection<ReferenceFrameWrapper>> T collectSubtree(ReferenceFrameWrapper start, T collectionToPack)
+   {
+      collectionToPack.add(start);
+
+      if (start.referenceFrame != null)
+      {
+         for (int i = 0; i < start.referenceFrame.getNumberOfChildren(); i++)
+         {
+            ReferenceFrame child = start.referenceFrame.getChild(i);
+            if (child != null)
+               collectSubtree(new ReferenceFrameWrapper(child), collectionToPack);
+         }
+      }
+
+      return collectionToPack;
+   }
+
+   public void clearChildren()
+   {
+      if (referenceFrame != null)
+         referenceFrame.clearChildren();
    }
 }

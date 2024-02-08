@@ -3,7 +3,7 @@ package us.ihmc.scs2.sessionVisualizer.jfx.yoComposite;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleDoubleProperty;
-import us.ihmc.euclid.referenceFrame.interfaces.FrameQuaternionReadOnly;
+import us.ihmc.euclid.tuple4D.interfaces.QuaternionReadOnly;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameWrapper;
 
 import java.util.Objects;
@@ -11,7 +11,7 @@ import java.util.Objects;
 import static us.ihmc.scs2.definition.yoComposite.YoQuaternionDefinition.YoQuaternion;
 import static us.ihmc.scs2.definition.yoComposite.YoQuaternionDefinition.YoQuaternionIdentifiers;
 
-public class QuaternionProperty extends Orientation3DProperty implements FrameQuaternionReadOnly
+public class QuaternionProperty extends Orientation3DProperty implements QuaternionReadOnly
 {
    public QuaternionProperty()
    {
@@ -105,7 +105,8 @@ public class QuaternionProperty extends Orientation3DProperty implements FrameQu
 
    public void set(ReferenceFrameWrapper referenceFrame, double x, double y, double z, double s)
    {
-      set(referenceFrame, x, y, z, s);
+      setReferenceFrame(referenceFrame);
+      setComponentValues(x, y, z, s);
    }
 
    public void set(DoubleProperty xProperty, DoubleProperty yProperty, DoubleProperty zProperty, DoubleProperty sProperty)
@@ -119,7 +120,8 @@ public class QuaternionProperty extends Orientation3DProperty implements FrameQu
                    DoubleProperty zProperty,
                    DoubleProperty sProperty)
    {
-      set(referenceFrameProperty, xProperty, yProperty, zProperty, sProperty);
+      setReferenceFrameProperty(referenceFrameProperty);
+      setComponentValueProperties(xProperty, yProperty, zProperty, sProperty);
    }
 
    @Override
