@@ -222,8 +222,9 @@ public class CompositePropertyTools
       if (referenceFrame != null)
          return new SimpleObjectProperty<>(referenceFrame);
 
-      LogTools.warn("Could not retrieve the frame {} using world instead (fullname: {})", fieldShort, field);
-      return new SimpleObjectProperty<>(referenceFrameManager.getWorldFrame());
+      LogTools.warn("Could not retrieve the frame {}. Could be a robot frame that is yet to be loaded (fullname: {}).", fieldShort, field);
+      referenceFrame = referenceFrameManager.getReferenceFrameFromFullname(field, true);
+      return new SimpleObjectProperty<>(referenceFrame);
    }
 
    public static String toDoublePropertyName(DoubleProperty doubleProperty)

@@ -46,6 +46,8 @@ public class ReferenceFrameManager implements Manager
                                                                                                                                             null);
    private final ObservableMap<String, ReferenceFrameWrapper> fullnameToReferenceFrameMap = FXCollections.observableMap(new ConcurrentHashMap<>());
 
+   private final List<ReferenceFrameWrapper> undefinedFrames = new ArrayList<>();
+
    private YoManager yoManager;
    private final BackgroundExecutorManager backgroundExecutorManager;
    private List<Runnable> cleanupTasks = null;
@@ -143,6 +145,7 @@ public class ReferenceFrameManager implements Manager
       uniqueNameToReferenceFrameMapProperty.set(null);
       uniqueShortNameToReferenceFrameMapProperty.set(null);
       fullnameToReferenceFrameMap.clear();
+      undefinedFrames.clear();
    }
 
    @Override
@@ -196,11 +199,11 @@ public class ReferenceFrameManager implements Manager
       {
          // Remove only once it's been processed.
          ReferenceFrame sessionFrame = framesToRegister.peek();
-         ReferenceFrameWrapper frame;
+         ReferenceFrameWrapper newFrame;
 
          try
          {
-            frame = duplicateReferenceFrame(sessionFrame);
+            newFrame = duplicateReferenceFrame(sessionFrame);
          }
          catch (Exception e)
          {
@@ -209,12 +212,29 @@ public class ReferenceFrameManager implements Manager
                LogTools.error("Experienced problem setting up frame: {}.", sessionFrame.getNameId());
                e.printStackTrace();
             }
-            frame = null;
+            newFrame = null;
          }
 
-         if (frame != null)
+         if (newFrame != null)
          {
-            fullnameToReferenceFrameMap.put(frame.getFullName(), frame);
+            fullnameToReferenceFrameMap.put(newFrame.getFullName(), newFrame);
+            for (int i = undefinedFrames.size() - 1; i >= 0; i--)
+            {
+               ReferenceFrameWrapper undefinedFrame = undefinedFrames.get(i);
+
+               if (undefinedFrame.isDefined())
+               { // It's already updated, we can remove it.
+                  undefinedFrames.remove(i);
+               }
+               else if (newFrame.getFullName().endsWith(undefinedFrame.getFullName()))
+               {
+                  if (fullnameToReferenceFrameMap.get(undefinedFrame.getFullName()) == undefinedFrame)
+                     fullnameToReferenceFrameMap.remove(undefinedFrame.getFullName());
+
+                  undefinedFrames.remove(i);
+                  undefinedFrame.setReferenceFrame(newFrame.getReferenceFrame());
+               }
+            }
          }
          else if (isARobotFrame(sessionFrame))
          {
@@ -410,6 +430,11 @@ public class ReferenceFrameManager implements Manager
 
    public ReferenceFrameWrapper getReferenceFrameFromFullname(String fullname)
    {
+      return getReferenceFrameFromFullname(fullname, false);
+   }
+
+   public ReferenceFrameWrapper getReferenceFrameFromFullname(String fullname, boolean createUndefinedFrameIfNeeded)
+   {
       ReferenceFrameWrapper result = fullnameToReferenceFrameMap.get(fullname);
       if (result != null)
          return result;
@@ -417,8 +442,21 @@ public class ReferenceFrameManager implements Manager
       if (fullname.startsWith(ReferenceFrame.getWorldFrame().getName()))
       {
          fullname = fullname.replaceFirst(ReferenceFrame.getWorldFrame().getName(), WORLD_FRAME);
-         return fullnameToReferenceFrameMap.get(fullname);
+         result = fullnameToReferenceFrameMap.get(fullname);
       }
+
+      if (result != null)
+         return result;
+
+      if (createUndefinedFrameIfNeeded)
+      {
+         String name = fullname.substring(fullname.lastIndexOf(ReferenceFrame.SEPARATOR) + 1);
+         result = new ReferenceFrameWrapper(name, fullname);
+         fullnameToReferenceFrameMap.put(fullname, result);
+         backgroundExecutorManager.queueTaskToExecuteInBackground(this, () -> computeUniqueNameMaps(fullnameToReferenceFrameMap.values()));
+         return result;
+      }
+
       return null;
    }
 }
