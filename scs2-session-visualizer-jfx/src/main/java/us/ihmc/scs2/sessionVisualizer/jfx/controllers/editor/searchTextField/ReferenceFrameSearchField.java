@@ -64,10 +64,9 @@ public class ReferenceFrameSearchField extends PropertySearchField<Property<Refe
    @Override
    protected Callback<ISuggestionRequest, Collection<String>> createSuggestions()
    {
-      Collection<String> referenceFrameUniqueNames = referenceFrameManager.getReferenceFrameUniqueShortNames();
-
       return request ->
       {
+         Collection<String> referenceFrameUniqueNames = referenceFrameManager.getReferenceFrameUniqueShortNames();
          String userText = request.getUserText();
          if (userText.isEmpty())
             return referenceFrameUniqueNames;

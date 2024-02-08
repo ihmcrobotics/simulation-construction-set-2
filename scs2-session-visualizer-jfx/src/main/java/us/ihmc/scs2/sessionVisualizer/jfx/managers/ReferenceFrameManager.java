@@ -3,7 +3,6 @@ package us.ihmc.scs2.sessionVisualizer.jfx.managers;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import us.ihmc.euclid.referenceFrame.FixedReferenceFrame;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
@@ -29,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -73,12 +73,6 @@ public class ReferenceFrameManager implements Manager
       this.yoManager = yoManager;
       this.backgroundExecutorManager = backgroundExecutorManager;
 
-      fullnameToReferenceFrameMap.addListener((MapChangeListener.Change<? extends String, ? extends ReferenceFrameWrapper> change) ->
-                                              {
-                                                 if (change.wasAdded())
-                                                    LogTools.info("Added frame: {}", change.getValueAdded().getFullName());
-                                              });
-
       frameChangedListener = change ->
       {
          if (!change.wasAdded())
@@ -97,7 +91,6 @@ public class ReferenceFrameManager implements Manager
             try
             {
                // Adding some delay so if YoVariables are needed, they are first linked.
-               // TODO Shouldn't be needed
                Thread.sleep(100);
 
                if (hasFrameBeenRemoved(newFrame))
@@ -129,7 +122,7 @@ public class ReferenceFrameManager implements Manager
    @Override
    public void startSession(Session session)
    {
-      computeFullnameMap(worldFrame.collectSubtree());
+      refreshReferenceFramesNow();
       registerNewSessionFramesNow(ReferenceFrameTools.collectFramesInSubtree(session.getInertialFrame()));
       session.getInertialFrame().addListener(frameChangedListener);
       addCleanupTask(() -> session.getInertialFrame().removeListener(frameChangedListener));
@@ -187,7 +180,6 @@ public class ReferenceFrameManager implements Manager
       if (sessionFrames.stream().anyMatch(sessionFrame ->
                                           {
                                              boolean isRobotFrame = sessionFrame instanceof RobotRootFrame;
-                                             // TODO Maybe we can created undefined frames and then update them when the robot is created.
                                              // If it's a robot frame and that the root has not been registered yet, we postpone.
                                              return isRobotFrame && getReferenceFrameFromFullname(sessionFrame.getNameId()) == null;
                                           }))
@@ -233,30 +225,7 @@ public class ReferenceFrameManager implements Manager
          framesToRegister.poll();
       }
 
-      List<ReferenceFrameWrapper> allReferenceFrames = worldFrame.collectSubtree();
-      computeFullnameMap(allReferenceFrames);
-      computeUniqueNameMaps(allReferenceFrames);
-   }
-
-   private void updateUndefinedFrames(ReferenceFrameWrapper newFrame)
-   {
-      for (int i = undefinedFrames.size() - 1; i >= 0; i--)
-      {
-         ReferenceFrameWrapper undefinedFrame = undefinedFrames.get(i);
-
-         if (undefinedFrame.isDefined())
-         { // It's already updated, we can remove it.
-            undefinedFrames.remove(i);
-         }
-         else if (newFrame.getFullName().endsWith(undefinedFrame.getFullName()))
-         {
-            if (fullnameToReferenceFrameMap.get(undefinedFrame.getFullName()) == undefinedFrame)
-               fullnameToReferenceFrameMap.remove(undefinedFrame.getFullName());
-
-            undefinedFrames.remove(i);
-            undefinedFrame.setReferenceFrame(newFrame.getReferenceFrame());
-         }
-      }
+      refreshReferenceFramesNow();
    }
 
    private static boolean isARobotFrame(ReferenceFrame frame)
@@ -365,13 +334,14 @@ public class ReferenceFrameManager implements Manager
       Map<String, ReferenceFrameWrapper> newUniqueNameToReferenceFrameMap = new LinkedHashMap<>();
       Map<String, ReferenceFrameWrapper> newUniqueShortNameToReferenceFrameMap = new LinkedHashMap<>();
 
-      newMap.entrySet().forEach(e ->
-                                {
-                                   ReferenceFrameWrapper frame = e.getKey();
-                                   frame.setUniqueName(e.getValue());
-                                   newUniqueNameToReferenceFrameMap.put(frame.getUniqueName(), frame);
-                                   newUniqueShortNameToReferenceFrameMap.put(frame.getUniqueShortName(), frame);
-                                });
+      for (Entry<ReferenceFrameWrapper, String> entry : newMap.entrySet())
+      {
+         ReferenceFrameWrapper frame = entry.getKey();
+         String value = entry.getValue();
+         frame.setUniqueName(value);
+         newUniqueNameToReferenceFrameMap.put(frame.getUniqueName(), frame);
+         newUniqueShortNameToReferenceFrameMap.put(frame.getUniqueShortName(), frame);
+      }
 
       JavaFXMissingTools.runLaterIfNeeded(getClass(), () ->
       {
@@ -382,22 +352,14 @@ public class ReferenceFrameManager implements Manager
 
    private void computeFullnameMap(Collection<ReferenceFrameWrapper> allReferenceFrames)
    {
-      allReferenceFrames.forEach(newFrame ->
-                                 {
-                                    ReferenceFrameWrapper registeredFrame = fullnameToReferenceFrameMap.get(newFrame.getFullName());
-                                    if (registeredFrame != null)
-                                    {
-                                       if (registeredFrame.getReferenceFrame() != newFrame.getReferenceFrame())
-                                       { // TODO I wonder if we should add a check sometimes...
-                                          registeredFrame.setReferenceFrame(newFrame.getReferenceFrame());
-                                       }
-                                    }
-                                    else
-                                    {
-                                       fullnameToReferenceFrameMap.put(newFrame.getFullName(), newFrame);
-                                       updateUndefinedFrames(newFrame);
-                                    }
-                                 });
+      for (ReferenceFrameWrapper newFrame : allReferenceFrames)
+      {
+         ReferenceFrameWrapper registeredFrame = fullnameToReferenceFrameMap.get(newFrame.getFullName());
+         if (registeredFrame != null)
+            registeredFrame.setReferenceFrame(newFrame.getReferenceFrame());
+         else
+            fullnameToReferenceFrameMap.put(newFrame.getFullName(), newFrame);
+      }
    }
 
    public ReferenceFrameWrapper getWorldFrame()

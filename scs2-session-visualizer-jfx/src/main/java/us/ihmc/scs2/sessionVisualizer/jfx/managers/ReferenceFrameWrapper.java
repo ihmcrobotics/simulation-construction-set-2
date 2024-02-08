@@ -91,6 +91,9 @@ public class ReferenceFrameWrapper
 
    public void setReferenceFrame(ReferenceFrame referenceFrame)
    {
+      if (referenceFrame == this.referenceFrame)
+         return;
+
       if (!Objects.equals(name, referenceFrame.getName()))
       {
          throw new IllegalArgumentException(
