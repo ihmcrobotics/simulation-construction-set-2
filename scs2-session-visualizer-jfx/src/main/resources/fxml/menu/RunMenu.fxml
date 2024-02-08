@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import com.jfoenix.controls.JFXTextField?>
-<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.CheckMenuItem?>
 <?import javafx.scene.control.CustomMenuItem?>
@@ -10,100 +9,101 @@
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.layout.HBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 <?import java.lang.*?>
 <Menu fx:id="menu" text="Run" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="us.ihmc.scs2.sessionVisualizer.jfx.controllers.menu.RunMenuController">
     <items>
         <MenuItem onAction="#startSimulating" text="Run">
             <graphic>
-                <FontAwesomeIconView>
+                <FontIcon>
                     <styleClass>
                         <String fx:value="run-icon-view"/>
                         <String fx:value="menu-item-icon-view"/>
                     </styleClass>
-                </FontAwesomeIconView>
+                </FontIcon>
             </graphic>
         </MenuItem>
         <MenuItem onAction="#startPlayback" text="Playback">
             <graphic>
-                <FontAwesomeIconView>
+                <FontIcon>
                     <styleClass>
                         <String fx:value="playback-icon-view"/>
                         <String fx:value="menu-item-icon-view"/>
                     </styleClass>
-                </FontAwesomeIconView>
+                </FontIcon>
             </graphic>
         </MenuItem>
         <MenuItem onAction="#pause" text="Pause">
             <graphic>
-                <FontAwesomeIconView>
+                <FontIcon>
                     <styleClass>
                         <String fx:value="pause-icon-view"/>
                         <String fx:value="menu-item-icon-view"/>
                     </styleClass>
-                </FontAwesomeIconView>
+                </FontIcon>
             </graphic>
         </MenuItem>
         <SeparatorMenuItem/>
         <MenuItem onAction="#gotoInPoint" text="Goto In Point">
             <graphic>
-                <FontAwesomeIconView>
+                <FontIcon>
                     <styleClass>
                         <String fx:value="goto-inpoint-icon-view"/>
                         <String fx:value="menu-item-icon-view"/>
                     </styleClass>
-                </FontAwesomeIconView>
+                </FontIcon>
             </graphic>
         </MenuItem>
         <MenuItem onAction="#gotoOutPoint" text="Goto Out Point">
             <graphic>
-                <FontAwesomeIconView>
+                <FontIcon>
                     <styleClass>
                         <String fx:value="goto-outpoint-icon-view"/>
                         <String fx:value="menu-item-icon-view"/>
                     </styleClass>
-                </FontAwesomeIconView>
+                </FontIcon>
             </graphic>
         </MenuItem>
         <MenuItem onAction="#setInPoint" text="Set In Point">
             <graphic>
-                <FontAwesomeIconView>
+                <FontIcon>
                     <styleClass>
                         <String fx:value="set-inpoint-icon-view"/>
                         <String fx:value="menu-item-icon-view"/>
                     </styleClass>
-                </FontAwesomeIconView>
+                </FontIcon>
             </graphic>
         </MenuItem>
         <MenuItem onAction="#setOutPoint" text="Set Out Point">
             <graphic>
-                <FontAwesomeIconView>
+                <FontIcon>
                     <styleClass>
                         <String fx:value="set-outpoint-icon-view"/>
                         <String fx:value="menu-item-icon-view"/>
                     </styleClass>
-                </FontAwesomeIconView>
+                </FontIcon>
             </graphic>
         </MenuItem>
         <SeparatorMenuItem/>
         <MenuItem onAction="#stepBack" text="Step Backward">
             <graphic>
-                <FontAwesomeIconView>
+                <FontIcon>
                     <styleClass>
                         <String fx:value="step-backward-icon-view"/>
                         <String fx:value="menu-item-icon-view"/>
                     </styleClass>
-                </FontAwesomeIconView>
+                </FontIcon>
             </graphic>
         </MenuItem>
         <MenuItem onAction="#stepForward" text="Step Forward">
             <graphic>
-                <FontAwesomeIconView>
+                <FontIcon>
                     <styleClass>
                         <String fx:value="step-forward-icon-view"/>
                         <String fx:value="menu-item-icon-view"/>
                     </styleClass>
-                </FontAwesomeIconView>
+                </FontIcon>
             </graphic>
         </MenuItem>
         <SeparatorMenuItem/>
@@ -112,12 +112,12 @@
             <content>
                 <HBox alignment="CENTER" spacing="8.0">
                     <children>
-                        <FontAwesomeIconView>
+                        <FontIcon>
                             <styleClass>
                                 <String fx:value="playback-realtime-rate-icon-view"/>
                                 <String fx:value="menu-item-icon-view"/>
                             </styleClass>
-                        </FontAwesomeIconView>
+                        </FontIcon>
                         <Label graphicTextGap="0.0" text="Playback real-time rate:" textFill="#000000fc"/>
                         <JFXTextField fx:id="playbackRealTimeRateTextField" prefWidth="50.0"/>
                     </children>
@@ -131,12 +131,12 @@
             <content>
                 <HBox alignment="CENTER" spacing="8.0">
                     <children>
-                        <FontAwesomeIconView>
+                        <FontIcon>
                             <styleClass>
                                 <String fx:value="playback-realtime-rate-icon-view"/>
                                 <String fx:value="menu-item-icon-view"/>
                             </styleClass>
-                        </FontAwesomeIconView>
+                        </FontIcon>
                         <Label graphicTextGap="0.0" text="Run max duration (seconds):" textFill="#000000fc"/>
                         <JFXTextField fx:id="runMaxDurationTextField" prefWidth="50.0"/>
                     </children>
@@ -148,6 +148,6 @@
         </CustomMenuItem>
     </items>
     <graphic>
-        <FontAwesomeIconView glyphName="WRENCH"/>
+        <FontIcon iconLiteral="fa-wrench"/>
     </graphic>
 </Menu>
