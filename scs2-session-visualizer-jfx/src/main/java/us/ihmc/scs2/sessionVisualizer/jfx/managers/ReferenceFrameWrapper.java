@@ -4,6 +4,7 @@ import us.ihmc.euclid.interfaces.Transformable;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.transform.RigidBodyTransform;
 import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.WeakList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,6 +21,7 @@ public class ReferenceFrameWrapper
    private String uniqueName;
    private String uniqueShortName;
    private ReferenceFrame referenceFrame;
+   private final WeakList<Runnable> changeListeners = new WeakList<>();
 
    public ReferenceFrameWrapper(String name, String fullName)
    {
@@ -103,6 +105,7 @@ public class ReferenceFrameWrapper
       this.referenceFrame = referenceFrame;
       fullName = referenceFrame.getNameId();
       namespace = null;
+      changeListeners.forEach(Runnable::run);
    }
 
    public boolean isDefined()
@@ -167,6 +170,16 @@ public class ReferenceFrameWrapper
    {
       if (referenceFrame != null)
          referenceFrame.clearChildren();
+   }
+
+   public void addChangeListener(Runnable listener)
+   {
+      changeListeners.add(listener);
+   }
+
+   public void removeChangeListener(Runnable listener)
+   {
+      changeListeners.remove(listener);
    }
 
    @Override
