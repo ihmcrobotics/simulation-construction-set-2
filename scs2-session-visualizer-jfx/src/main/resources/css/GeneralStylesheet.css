@@ -183,6 +183,11 @@
     -fx-icon-code: "fa-tachometer";
 }
 
+.run-max-duration-icon-view {
+    -fx-fill: black;
+    -fx-icon-code: "fa-flag";
+}
+
 .start-remote-session-icon-view {
     -fx-fill: black;
     -glyph-name: WIFI;
