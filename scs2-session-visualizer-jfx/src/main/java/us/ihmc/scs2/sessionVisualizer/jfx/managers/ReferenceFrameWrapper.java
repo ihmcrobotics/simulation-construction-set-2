@@ -12,6 +12,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Wrapper around a {@link ReferenceFrame} to provide the ability to have undefined reference frames and other minor utilities.
+ */
 public class ReferenceFrameWrapper
 {
    private static final RigidBodyTransformReadOnly IDENTITY = new RigidBodyTransform();
