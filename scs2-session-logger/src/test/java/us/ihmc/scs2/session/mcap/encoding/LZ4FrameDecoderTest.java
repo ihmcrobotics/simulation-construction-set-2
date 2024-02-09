@@ -1,8 +1,7 @@
-package us.ihmc.scs2.session.mcap;
+package us.ihmc.scs2.session.mcap.encoding;
 
 import gnu.trove.list.array.TByteArrayList;
 import org.junit.jupiter.api.Test;
-import us.ihmc.scs2.session.mcap.encoding.LZ4FrameDecoder;
 
 import java.util.Scanner;
 

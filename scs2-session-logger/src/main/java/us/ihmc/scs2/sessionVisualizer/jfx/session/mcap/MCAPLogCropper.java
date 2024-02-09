@@ -1,14 +1,13 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.session.mcap;
 
-import us.ihmc.scs2.session.mcap.MCAP;
-import us.ihmc.scs2.session.mcap.MCAP.Magic;
-import us.ihmc.scs2.session.mcap.MCAP.Opcode;
-import us.ihmc.scs2.session.mcap.MCAP.Record;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
+import us.ihmc.scs2.session.mcap.specs.MCAP;
+import us.ihmc.scs2.session.mcap.specs.records.Magic;
+import us.ihmc.scs2.session.mcap.specs.records.Record;
+import us.ihmc.scs2.session.mcap.specs.records.Chunk;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.EnumSet;
 
 public class MCAPLogCropper
 {
@@ -42,13 +41,6 @@ public class MCAPLogCropper
       this.outputFormat = outputFormat;
    }
 
-   private final EnumSet<Opcode> opcodesToAlwaysExport = EnumSet.of(Opcode.HEADER,
-                                                                    Opcode.FOOTER,
-                                                                    Opcode.SCHEMA,
-                                                                    Opcode.CHANNEL,
-                                                                    Opcode.METADATA,
-                                                                    Opcode.METADATA_INDEX);
-
    public void crop(FileOutputStream outputStream) throws IOException
    {
       MCAPDataOutput dataOutput = MCAPDataOutput.wrap(outputStream.getChannel());
@@ -56,9 +48,22 @@ public class MCAPLogCropper
 
       for (Record record : mcap.records())
       {
-         if (opcodesToAlwaysExport.contains(record.op()))
+         switch (record.op())
          {
-            record.write(dataOutput, true);
+            case HEADER:
+            case FOOTER:
+            case SCHEMA:
+            case CHANNEL:
+            case METADATA:
+            case METADATA_INDEX:
+            {
+               record.write(dataOutput, true);
+               break;
+            }
+            case CHUNK:
+            {
+               Chunk chunk = (Chunk) record.body();
+            }
          }
       }
       dataOutput.putBytes(Magic.MAGIC_BYTES); // footer magic

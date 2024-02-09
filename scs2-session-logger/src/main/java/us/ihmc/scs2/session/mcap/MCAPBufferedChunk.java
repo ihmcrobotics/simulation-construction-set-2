@@ -3,13 +3,15 @@ package us.ihmc.scs2.session.mcap;
 import gnu.trove.map.hash.TLongObjectHashMap;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
-import us.ihmc.scs2.session.mcap.MCAP.Chunk;
-import us.ihmc.scs2.session.mcap.MCAP.ChunkIndex;
-import us.ihmc.scs2.session.mcap.MCAP.Message;
-import us.ihmc.scs2.session.mcap.MCAP.Opcode;
-import us.ihmc.scs2.session.mcap.MCAP.Record;
-import us.ihmc.scs2.session.mcap.MCAP.Records;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
+import us.ihmc.scs2.session.mcap.specs.MCAP;
+import us.ihmc.scs2.session.mcap.specs.records.Chunk;
+import us.ihmc.scs2.session.mcap.specs.records.ChunkIndex;
+import us.ihmc.scs2.session.mcap.specs.records.Message;
+import us.ihmc.scs2.session.mcap.specs.records.Opcode;
+import us.ihmc.scs2.session.mcap.specs.records.Record;
+import us.ihmc.scs2.session.mcap.specs.records.RecordDataInputBacked;
+import us.ihmc.scs2.session.mcap.specs.records.Records;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -325,7 +327,7 @@ public class MCAPBufferedChunk
          if (chunkRecords == null)
          {
             ByteBuffer chunkBuffer = mcap.getDataInput().getByteBuffer(chunkIndex.chunkOffset(), (int) chunkIndex.chunkLength(), true);
-            chunkRecords = ((Chunk) new Record(MCAPDataInput.wrap(chunkBuffer), 0).body()).records();
+            chunkRecords = ((Chunk) new RecordDataInputBacked(MCAPDataInput.wrap(chunkBuffer), 0).body()).records();
          }
 
          if (!loadedChunkBundles.contains(this))
