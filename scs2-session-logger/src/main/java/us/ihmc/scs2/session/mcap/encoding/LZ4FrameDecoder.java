@@ -1,4 +1,4 @@
-package us.ihmc.scs2.session.mcap;
+package us.ihmc.scs2.session.mcap.encoding;
 
 import net.jpountz.lz4.LZ4Exception;
 import net.jpountz.lz4.LZ4Factory;

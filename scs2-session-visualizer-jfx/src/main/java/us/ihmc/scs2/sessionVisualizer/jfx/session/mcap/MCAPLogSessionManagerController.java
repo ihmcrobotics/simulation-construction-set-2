@@ -7,17 +7,23 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TitledPane;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.Pane;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
@@ -36,12 +42,15 @@ import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.BackgroundExecutorManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.SessionControlsController;
+import us.ihmc.scs2.sessionVisualizer.jfx.session.log.LogSessionManagerController;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.log.LogSessionManagerController.TimeStringBinding;
+import us.ihmc.scs2.sessionVisualizer.jfx.session.mcap.MCAPLogCropper.OutputFormat;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.PositiveIntegerValueFilter;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -60,11 +69,23 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
    @FXML
    private AnchorPane mainPane;
    @FXML
+   private ProgressIndicator loadingSpinner;
+   @FXML
    private Button openSessionButton, endSessionButton;
    @FXML
    private Label sessionNameLabel, dateLabel, logPathLabel;
    @FXML
+   private Pane cropControlsContainer;
+   @FXML
+   private ToggleButton showTrimsButton;
+   @FXML
+   private Button startTrimToCurrentButton, endTrimToCurrentButton, resetTrimsButton, cropAndExportButton;
+   @FXML
+   private ComboBox<OutputFormat> outputFormatComboBox; // FIXME
+   @FXML
    private JFXTrimSlider logPositionSlider;
+   @FXML
+   private Pane cropProgressMonitorPane; // FIXME
    @FXML
    private JFXTextField currentModelFilePathTextField;
    @FXML
@@ -85,18 +106,6 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
    private BackgroundExecutorManager backgroundExecutorManager;
 
    private File defaultRobotModelFile = null;
-
-   private static String getDate(String filename)
-   { // FIXME it seems that the timestamps in the MCAP file are epoch unix timestamp. Should use that.
-      String year = filename.substring(0, 4);
-      String month = filename.substring(4, 6);
-      String day = filename.substring(6, 8);
-      String hour = filename.substring(9, 11);
-      String minute = filename.substring(11, 13);
-      String second = filename.substring(13, 15);
-
-      return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second;
-   }
 
    @Override
    public void initialize(SessionVisualizerToolkit toolkit)
@@ -244,6 +253,24 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
       thumbnailsTitledPane.expandedProperty().addListener((o, oldValue, newValue) -> JavaFXMissingTools.runLater(getClass(), stage::sizeToScene));
       consoleOutputTitledPane.expandedProperty().addListener((o, oldValue, newValue) -> JavaFXMissingTools.runLater(getClass(), stage::sizeToScene));
 
+      logPositionSlider.showTrimProperty().bind(showTrimsButton.selectedProperty());
+      logPositionSlider.showTrimProperty().addListener((o, oldValue, newValue) ->
+                                                       {
+                                                          if (newValue)
+                                                             resetTrims();
+                                                       });
+      startTrimToCurrentButton.disableProperty().bind(showTrimsButton.selectedProperty().not());
+      endTrimToCurrentButton.disableProperty().bind(showTrimsButton.selectedProperty().not());
+      resetTrimsButton.disableProperty().bind(showTrimsButton.selectedProperty().not());
+      outputFormatComboBox.disableProperty().bind(showTrimsButton.selectedProperty().not());
+      cropAndExportButton.disableProperty().bind(showTrimsButton.selectedProperty().not());
+      cropProgressMonitorPane.getChildren().addListener((ListChangeListener<Node>) c ->
+      {
+         c.getList().forEach(node -> JavaFXMissingTools.setAnchorConstraints(node, 0.0));
+         stage.sizeToScene();
+      });
+
+      loadingSpinner.visibleProperty().addListener((o, oldValue, newValue) -> openSessionButton.setDisable(newValue));
       openSessionButton.setOnAction(e -> openLogFile());
 
       endSessionButton.setOnAction(e ->
@@ -279,7 +306,7 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
       MCAPLogFileReader mcapLogFileReader = session.getMCAPLogFileReader();
 
       sessionNameLabel.setText(session.getSessionName());
-      dateLabel.setText(getDate(logFile.getName()));
+      dateLabel.setText(LogSessionManagerController.parseTimestamp(logFile.getName()));
       logPathLabel.setText(logFile.getAbsolutePath());
       endSessionButton.setDisable(false);
       logPositionSlider.setDisable(false);
@@ -309,6 +336,8 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
       logPathLabel.setText("N/D");
       endSessionButton.setDisable(true);
       logPositionSlider.setDisable(true);
+      showTrimsButton.setSelected(false);
+      cropControlsContainer.setDisable(true);
       multiVideoViewerObjectProperty.set(null);
       consoleOutputPaneController.stopSession();
    }
@@ -324,6 +353,7 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
          return;
 
       unloadSession();
+      setIsLoading(true);
 
       backgroundExecutorManager.executeInBackground(() ->
                                                     {
@@ -340,14 +370,45 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
                                                        catch (Exception ex)
                                                        {
                                                           ex.printStackTrace();
+                                                          setIsLoading(false);
                                                        }
                                                     });
+   }
+
+   public void setIsLoading(boolean isLoading)
+   {
+      loadingSpinner.setVisible(isLoading);
+   }
+
+   @FXML
+   public void resetTrims()
+   {
+      logPositionSlider.setTrimStartValue(0.0);
+      logPositionSlider.setTrimEndValue(logPositionSlider.getMax());
+   }
+
+   @FXML
+   public void snapStartTrimToCurrent()
+   {
+      logPositionSlider.setTrimStartValue(logPositionSlider.getValue());
+   }
+
+   @FXML
+   public void snapEndTrimToCurrent()
+   {
+      logPositionSlider.setTrimEndValue(logPositionSlider.getValue());
+   }
+
+   @FXML
+   public void cropAndExport() throws IOException
+   {
+
    }
 
    @Override
    public void notifySessionLoaded()
    {
-      // TODO Auto-generated method stub
+      setIsLoading(false);
    }
 
    @Override

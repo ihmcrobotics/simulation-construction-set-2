@@ -2,6 +2,7 @@ package us.ihmc.scs2.session.mcap;
 
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.scs2.session.mcap.MCAP.Schema;
+import us.ihmc.scs2.session.mcap.encoding.CDRDeserializer;
 
 import java.util.ArrayList;
 import java.util.Arrays;

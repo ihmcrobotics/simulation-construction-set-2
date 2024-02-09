@@ -1,7 +1,7 @@
 package us.ihmc.scs2.session.mcap.input;
 
 import com.github.luben.zstd.ZstdDecompressCtx;
-import us.ihmc.scs2.session.mcap.LZ4FrameDecoder;
+import us.ihmc.scs2.session.mcap.encoding.LZ4FrameDecoder;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

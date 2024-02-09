@@ -1,10 +1,12 @@
 package us.ihmc.scs2.session.mcap;
 
-import gnu.trove.map.hash.TLongObjectHashMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput.Compression;
+import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -46,19 +48,19 @@ public class MCAP
       SUMMARY_OFFSET(14),
       DATA_END(15);
 
-      private final long id;
+      private final int id;
 
-      Opcode(long id)
+      Opcode(int id)
       {
          this.id = id;
       }
 
-      public long id()
+      public int id()
       {
          return id;
       }
 
-      private static final TLongObjectHashMap<Opcode> byId = new TLongObjectHashMap<>(15);
+      private static final TIntObjectHashMap<Opcode> byId = new TIntObjectHashMap<>(15);
 
       static
       {
@@ -66,7 +68,7 @@ public class MCAP
             byId.put(e.id(), e);
       }
 
-      public static Opcode byId(long id)
+      public static Opcode byId(int id)
       {
          return byId.get(id);
       }
@@ -1512,6 +1514,14 @@ public class MCAP
          bodyLength = checkPositiveLong(dataInput.getLong(), "bodyLength");
          bodyOffset = dataInput.position();
          checkLength(getElementLength(), (int) (bodyLength + RECORD_HEADER_LENGTH));
+      }
+
+      public void write(MCAPDataOutput dataOutput, boolean writeBody) throws IOException
+      {
+         dataOutput.putUnsignedByte(op.id());
+         dataOutput.putLong(bodyLength);
+         if (writeBody)
+            dataOutput.putBytes(dataInput.getBytes(bodyOffset, (int) bodyLength));
       }
 
       public Opcode op()

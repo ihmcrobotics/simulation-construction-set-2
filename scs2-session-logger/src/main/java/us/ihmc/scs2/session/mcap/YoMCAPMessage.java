@@ -2,6 +2,7 @@ package us.ihmc.scs2.session.mcap;
 
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.session.mcap.MCAPSchema.MCAPSchemaField;
+import us.ihmc.scs2.session.mcap.encoding.CDRDeserializer;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoBoolean;
 import us.ihmc.yoVariables.variable.YoDouble;

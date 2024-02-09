@@ -14,6 +14,7 @@ import us.ihmc.scs2.session.mcap.MCAP.Opcode;
 import us.ihmc.scs2.session.mcap.MCAP.Record;
 import us.ihmc.scs2.session.mcap.MCAPBufferedChunk.ChunkBundle;
 import us.ihmc.scs2.session.mcap.MCAPSchema.MCAPSchemaField;
+import us.ihmc.scs2.session.mcap.encoding.CDRDeserializer;
 import us.ihmc.yoVariables.euclid.YoPoint3D;
 import us.ihmc.yoVariables.euclid.YoPose3D;
 import us.ihmc.yoVariables.euclid.YoQuaternion;

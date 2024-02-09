@@ -7,6 +7,7 @@ import us.ihmc.scs2.session.mcap.MCAP.Opcode;
 import us.ihmc.scs2.session.mcap.MCAP.Record;
 import us.ihmc.scs2.session.mcap.MCAP.Schema;
 import us.ihmc.scs2.session.mcap.MCAPBufferedChunk.ChunkBundle;
+import us.ihmc.scs2.session.mcap.encoding.CDRDeserializer;
 import us.ihmc.scs2.simulation.SpyList;
 
 import java.io.IOException;
