@@ -13,6 +13,7 @@ public class FFMPEGVideoDataReader
    private final FFmpegFrameGrabber frameGrabber;
    private Frame currentFrame = null;
    private final long maxVideoTimestamp;
+   private final AtomicLong playbackOffset = new AtomicLong();
 
    private final AtomicLong currentTimestamp = new AtomicLong(-1);
 
@@ -37,16 +38,21 @@ public class FFMPEGVideoDataReader
       return currentFrame;
    }
 
-   public long readFrameAtTimestamp(long timestamp)
+   /**
+    * reads the frame in the video at timestamp + playbackOffset
+    *
+    * @param timestamp nanosecond timestamp to specify time from start of video
+    */
+   public void readFrameAtTimestamp(long timestamp)
    {
       // NOTE: timestamp passed in is in nanoseconds
       if (timestamp != currentTimestamp.get())
       {
          // timestamp / 1000L converts a nanosecond timestamp to the video timestamp in time_base units
-         long clampedTime = Math.min(maxVideoTimestamp, Math.max(0, timestamp / 1000L));
-         currentTimestamp.set(clampedTime);
+         currentTimestamp.set(Math.min(maxVideoTimestamp, Math.max(0, (timestamp / 1000L))));
          try
          {
+            long clampedTime = Math.min(maxVideoTimestamp, Math.max(0, currentTimestamp.get() + playbackOffset.get()));
             frameGrabber.setVideoTimestamp(clampedTime);
             currentFrame = frameGrabber.grabFrame();
          }
@@ -55,12 +61,40 @@ public class FFMPEGVideoDataReader
             throw new RuntimeException(e);
          }
       }
-      return currentTimestamp.get();
+   }
+
+   public void readCurrentFrame()
+   {
+      try
+      {
+         long clampedTime = Math.min(maxVideoTimestamp, Math.max(0, currentTimestamp.get() + playbackOffset.get()));
+         frameGrabber.setVideoTimestamp(clampedTime);
+         currentFrame = frameGrabber.grabFrame();
+      }
+      catch (FrameGrabber.Exception e)
+      {
+         throw new RuntimeException(e);
+      }
    }
 
    public long getVideoLengthInSeconds()
    {
       return maxVideoTimestamp / 1000000;
+   }
+
+   public void setPlaybackOffset(long offset)
+   {
+      this.playbackOffset.set(offset);
+   }
+
+   public long getPlaybackOffset()
+   {
+      return this.playbackOffset.get();
+   }
+
+   public long getCurrentTimestamp()
+   {
+      return currentTimestamp.get();
    }
 
    public void shutdown()
