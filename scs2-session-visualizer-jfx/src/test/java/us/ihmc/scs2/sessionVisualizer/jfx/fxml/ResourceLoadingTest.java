@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.image.Image;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import us.ihmc.log.LogTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 
@@ -50,8 +51,10 @@ public class ResourceLoadingTest
    @Test
    public void testFXMLLoading() throws Throwable
    {
+      LogTools.info("Test FXML loading: Start.");
       Throwable t = JavaFXMissingTools.runAndWait(ResourceLoadingTest.class, () ->
       {
+         LogTools.info("Fired up JavaFX thread.");
          try
          {
             List<URL> fxmlResources = findResources("fxml", path -> path.getFileName().toString().endsWith(".fxml"));
@@ -78,6 +81,7 @@ public class ResourceLoadingTest
             return e;
          }
       });
+      LogTools.info("Test FXML loading: End.");
 
       if (t != null)
       {
