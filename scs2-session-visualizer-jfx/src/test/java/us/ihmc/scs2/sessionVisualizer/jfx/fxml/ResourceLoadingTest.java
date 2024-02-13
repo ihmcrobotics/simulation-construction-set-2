@@ -1,13 +1,11 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.fxml;
 
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.image.Image;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import us.ihmc.log.LogTools;
+import org.testfx.api.FxToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -23,6 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,29 +31,13 @@ public class ResourceLoadingTest
    private static final boolean VERBOSE = true;
    public static final ClassLoader CLASS_LOADER = SessionVisualizerIOTools.class.getClassLoader();
 
-   @BeforeAll
-   public static void startJavaFXThread()
-   {
-      try
-      {
-         Platform.startup(() ->
-                          {
-                          });
-      }
-      catch (Exception e)
-      {
-         // The toolkit may have been started already
-      }
-   }
-
-   // Sanity check: verify all the FXML files are loadable 
+   // Sanity check: verify all the FXML files are loadable
+   @Tag("javafx-headless")
    @Test
    public void testFXMLLoading() throws Throwable
    {
-      LogTools.info("Test FXML loading: Start.");
-      Throwable t = JavaFXMissingTools.runAndWait(ResourceLoadingTest.class, () ->
+      Callable<Throwable> testToRun = () ->
       {
-         LogTools.info("Fired up JavaFX thread.");
          try
          {
             List<URL> fxmlResources = findResources("fxml", path -> path.getFileName().toString().endsWith(".fxml"));
@@ -80,8 +63,10 @@ public class ResourceLoadingTest
          {
             return e;
          }
-      });
-      LogTools.info("Test FXML loading: End.");
+      };
+      if (!FxToolkit.isFXApplicationThreadRunning())
+         FxToolkit.registerPrimaryStage();
+      Throwable t = FxToolkit.setupFixture(testToRun);
 
       if (t != null)
       {
