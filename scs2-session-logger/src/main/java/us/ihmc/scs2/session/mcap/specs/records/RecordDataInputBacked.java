@@ -43,19 +43,8 @@ public class RecordDataInputBacked implements Record
    }
 
    @Override
-   public long bodyOffset()
-   {
-      return bodyOffset;
-   }
-
-   @Override
-   public long bodyLength()
-   {
-      return bodyLength;
-   }
-
-   @Override
-   public Object body()
+   @SuppressWarnings("unchecked")
+   public <T> T body()
    {
       Object body = bodyRef == null ? null : bodyRef.get();
 
@@ -70,14 +59,14 @@ public class RecordDataInputBacked implements Record
             body = switch (op)
             {
                case MESSAGE -> Message.load(dataInput, bodyOffset, bodyLength);
-               case METADATA_INDEX -> new MetadataIndex(dataInput, bodyOffset, bodyLength);
+               case METADATA_INDEX -> new MetadataIndexDataInputBacked(dataInput, bodyOffset, bodyLength);
                case CHUNK -> Chunk.load(dataInput, bodyOffset, bodyLength);
                case SCHEMA -> Schema.load(dataInput, bodyOffset, bodyLength);
                case CHUNK_INDEX -> ChunkIndex.load(dataInput, bodyOffset, bodyLength);
                case DATA_END -> new DataEnd(dataInput, bodyOffset, bodyLength);
                case ATTACHMENT_INDEX -> AttachmentIndex.load(dataInput, bodyOffset, bodyLength);
                case STATISTICS -> Statistics.load(dataInput, bodyOffset, bodyLength);
-               case MESSAGE_INDEX -> new MessageIndex(dataInput, bodyOffset, bodyLength);
+               case MESSAGE_INDEX -> new MessageIndexDataInputBacked(dataInput, bodyOffset, bodyLength);
                case CHANNEL -> Channel.load(dataInput, bodyOffset, bodyLength);
                case METADATA -> new Metadata(dataInput, bodyOffset, bodyLength);
                case ATTACHMENT -> Attachment.load(dataInput, bodyOffset, bodyLength);
@@ -89,7 +78,7 @@ public class RecordDataInputBacked implements Record
 
          bodyRef = new WeakReference<>(body);
       }
-      return body;
+      return (T) body;
    }
 
    @Override

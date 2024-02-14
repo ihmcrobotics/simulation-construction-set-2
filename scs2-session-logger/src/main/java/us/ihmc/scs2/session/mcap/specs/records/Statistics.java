@@ -2,6 +2,7 @@ package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
+import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.util.List;
 
@@ -29,6 +30,20 @@ public interface Statistics extends MCAPElement
    long messageEndTime();
 
    List<ChannelMessageCount> channelMessageCounts();
+
+   @Override
+   default void write(MCAPDataOutput dataOutput)
+   {
+      dataOutput.putLong(messageCount());
+      dataOutput.putUnsignedShort(schemaCount());
+      dataOutput.putUnsignedInt(channelCount());
+      dataOutput.putUnsignedInt(attachmentCount());
+      dataOutput.putUnsignedInt(metadataCount());
+      dataOutput.putUnsignedInt(chunkCount());
+      dataOutput.putLong(messageStartTime());
+      dataOutput.putLong(messageEndTime());
+      dataOutput.putCollection(channelMessageCounts());
+   }
 
    @Override
    default String toString(int indent)

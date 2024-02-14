@@ -21,6 +21,51 @@ public class Records extends ArrayList<Record>
       return records;
    }
 
+   public Records crop(long startTimestamp, long endTimestamp)
+   {
+      Records croppedRecords = new Records();
+
+      for (Record record : this)
+      {
+         switch (record.op())
+         {
+            case HEADER:
+            case FOOTER:
+            case SCHEMA:
+            case CHANNEL:
+            case METADATA:
+            case METADATA_INDEX:
+            {
+               croppedRecords.add(record);
+               break;
+            }
+            case MESSAGE:
+            {
+               Message message = record.body();
+               if (message.logTime() >= startTimestamp && message.logTime() <= endTimestamp)
+                  croppedRecords.add(record);
+               break;
+            }
+            case ATTACHMENT:
+            {
+               Attachment attachment = record.body();
+               if (attachment.logTime() >= startTimestamp && attachment.logTime() <= endTimestamp)
+                  croppedRecords.add(record);
+               break;
+            }
+            default:
+               throw new IllegalArgumentException("Unexpected value: " + record.op());
+         }
+      }
+      return croppedRecords;
+   }
+
+   public long getElementLength()
+   {
+      // TODO Improve this by keeping track of modifications to the records.
+      return stream().mapToLong(Record::getElementLength).sum();
+   }
+
    @Override
    public String toString()
    {

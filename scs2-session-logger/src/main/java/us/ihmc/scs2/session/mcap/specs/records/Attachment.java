@@ -1,6 +1,7 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
+import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.nio.ByteBuffer;
 
@@ -32,6 +33,18 @@ public interface Attachment extends MCAPElement
     * should not be performed.
     */
    long crc32();
+
+   @Override
+   default void write(MCAPDataOutput dataOutput)
+   {
+      dataOutput.putLong(logTime());
+      dataOutput.putLong(createTime());
+      dataOutput.putString(name());
+      dataOutput.putString(mediaType());
+      dataOutput.putLong(dataLength());
+      dataOutput.putByteBuffer(data());
+      dataOutput.putUnsignedInt(crc32());
+   }
 
    @Override
    default String toString(int indent)

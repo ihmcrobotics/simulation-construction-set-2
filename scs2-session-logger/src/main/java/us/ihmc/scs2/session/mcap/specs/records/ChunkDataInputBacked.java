@@ -1,7 +1,7 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
-import us.ihmc.scs2.session.mcap.input.MCAPDataInput.Compression;
+import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 import us.ihmc.scs2.session.mcap.specs.MCAP;
 
 import java.lang.ref.WeakReference;
@@ -10,6 +10,7 @@ import java.nio.ByteBuffer;
 class ChunkDataInputBacked implements Chunk
 {
    private final MCAPDataInput dataInput;
+   private final long elementLength;
    /**
     * Earliest message log_time in the chunk. Zero if the chunk has no messages.
     */
@@ -26,12 +27,12 @@ class ChunkDataInputBacked implements Chunk
     * CRC32 checksum of uncompressed records field. A value of zero indicates that CRC validation
     * should not be performed.
     */
-   private final long uncompressedCrc32;
+   private final long uncompressedCRC32;
    /**
     * compression algorithm. i.e. zstd, lz4, "". An empty string indicates no compression. Refer to
     * well-known compression formats.
     */
-   private final String compression;
+   private final Compression compression;
    /**
     * Offset position of the records in either in the {@code  ByteBuffer} or {@code FileChannel},
     * depending on how this chunk was created.
@@ -49,22 +50,23 @@ class ChunkDataInputBacked implements Chunk
    ChunkDataInputBacked(MCAPDataInput dataInput, long elementPosition, long elementLength)
    {
       this.dataInput = dataInput;
+      this.elementLength = elementLength;
 
       dataInput.position(elementPosition);
       messageStartTime = MCAP.checkPositiveLong(dataInput.getLong(), "messageStartTime");
       messageEndTime = MCAP.checkPositiveLong(dataInput.getLong(), "messageEndTime");
-      recordsUncompressedLength = MCAP.checkPositiveLong(dataInput.getLong(), "uncompressedSize");
-      uncompressedCrc32 = dataInput.getUnsignedInt();
-      compression = dataInput.getString();
-      recordsCompressedLength = MCAP.checkPositiveLong(dataInput.getLong(), "recordsLength");
+      recordsUncompressedLength = MCAP.checkPositiveLong(dataInput.getLong(), "recordsUncompressedLength");
+      uncompressedCRC32 = dataInput.getUnsignedInt();
+      compression = Compression.fromString(dataInput.getString());
+      recordsCompressedLength = MCAP.checkPositiveLong(dataInput.getLong(), "recordsCompressedLength");
       recordsOffset = dataInput.position();
-      MCAP.checkLength(elementLength, getElementLength());
+      MCAP.checkLength(getElementLength(), 4 * Long.BYTES + Integer.BYTES + compression.getLength() + recordsCompressedLength);
    }
 
    @Override
    public long getElementLength()
    {
-      return 3 * Long.BYTES + 2 * Integer.BYTES + compression.length() + Long.BYTES + (int) recordsCompressedLength;
+      return elementLength;
    }
 
    @Override
@@ -80,7 +82,7 @@ class ChunkDataInputBacked implements Chunk
    }
 
    @Override
-   public long uncompressedSize()
+   public long recordsUncompressedLength()
    {
       return recordsUncompressedLength;
    }
@@ -90,25 +92,24 @@ class ChunkDataInputBacked implements Chunk
     * should not be performed.
     */
    @Override
-   public long uncompressedCrc32()
+   public long uncompressedCRC32()
    {
-      return uncompressedCrc32;
+      return uncompressedCRC32;
    }
 
    @Override
-   public String compression()
+   public Compression compression()
    {
       return compression;
    }
 
-   @Override
    public long recordsOffset()
    {
       return recordsOffset;
    }
 
    @Override
-   public long recordsLength()
+   public long recordsCompressedLength()
    {
       return recordsCompressedLength;
    }
@@ -121,7 +122,7 @@ class ChunkDataInputBacked implements Chunk
       if (records != null)
          return records;
 
-      if (compression.equalsIgnoreCase(""))
+      if (compression == Compression.NONE)
       {
          records = Records.load(dataInput, recordsOffset, (int) recordsCompressedLength);
       }
@@ -130,13 +131,25 @@ class ChunkDataInputBacked implements Chunk
          ByteBuffer decompressedBuffer = dataInput.getDecompressedByteBuffer(recordsOffset,
                                                                              (int) recordsCompressedLength,
                                                                              (int) recordsUncompressedLength,
-                                                                             Compression.fromString(compression),
+                                                                             compression,
                                                                              false);
          records = Records.load(MCAPDataInput.wrap(decompressedBuffer), 0, (int) recordsUncompressedLength);
       }
 
       recordsRef = new WeakReference<>(records);
       return records;
+   }
+
+   @Override
+   public void write(MCAPDataOutput dataOutput)
+   {
+      dataOutput.putLong(messageStartTime);
+      dataOutput.putLong(messageEndTime);
+      dataOutput.putLong(recordsUncompressedLength);
+      dataOutput.putUnsignedInt(uncompressedCRC32);
+      dataOutput.putString(compression.getName());
+      dataOutput.putLong(recordsCompressedLength);
+      dataOutput.putByteBuffer(dataInput.getByteBuffer(recordsOffset, (int) recordsCompressedLength, false));
    }
 
    @Override

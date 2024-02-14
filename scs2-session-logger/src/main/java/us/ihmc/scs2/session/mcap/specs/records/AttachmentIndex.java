@@ -1,6 +1,7 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
+import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 public interface AttachmentIndex extends MCAPElement
 {
@@ -24,6 +25,18 @@ public interface AttachmentIndex extends MCAPElement
    String name();
 
    String mediaType();
+
+   @Override
+   default void write(MCAPDataOutput dataOutput)
+   {
+      dataOutput.putLong(attachmentOffset());
+      dataOutput.putLong(attachmentLength());
+      dataOutput.putLong(logTime());
+      dataOutput.putLong(createTime());
+      dataOutput.putLong(dataSize());
+      dataOutput.putString(name());
+      dataOutput.putString(mediaType());
+   }
 
    @Override
    default String toString(int indent)

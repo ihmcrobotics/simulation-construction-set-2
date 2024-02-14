@@ -1,6 +1,7 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
+import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 public class ChannelMessageCount implements MCAPElement
 {
@@ -34,6 +35,13 @@ public class ChannelMessageCount implements MCAPElement
    public long messageCount()
    {
       return messageCount;
+   }
+
+   @Override
+   public void write(MCAPDataOutput dataOutput)
+   {
+      dataOutput.putUnsignedShort(channelId);
+      dataOutput.putLong(messageCount);
    }
 
    @Override

@@ -1,6 +1,7 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
+import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 public class StringPair implements MCAPElement
 {
@@ -34,6 +35,13 @@ public class StringPair implements MCAPElement
    public String value()
    {
       return value;
+   }
+
+   @Override
+   public void write(MCAPDataOutput dataOutput)
+   {
+      dataOutput.putString(key);
+      dataOutput.putString(value);
    }
 
    @Override

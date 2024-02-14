@@ -2,6 +2,7 @@ package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
+import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,15 +10,18 @@ import java.util.List;
 public class MessageIndexOffsets implements MCAPElement
 {
    private final List<MessageIndexOffset> entries = new ArrayList<>();
-   private long elementLength;
+   private long elementLength = 0;
+
+   public MessageIndexOffsets()
+   {
+   }
 
    public MessageIndexOffsets(MCAPDataInput dataInput, long elementPosition, long elementLength)
    {
-      long currentPos = elementPosition;
 
       while (this.elementLength < elementLength)
       {
-         currentPos = elementPosition + this.elementLength;
+         long currentPos = elementPosition + this.elementLength;
          add(new MessageIndexOffset(dataInput, currentPos));
       }
 
@@ -43,6 +47,12 @@ public class MessageIndexOffsets implements MCAPElement
    }
 
    @Override
+   public void write(MCAPDataOutput dataOutput)
+   {
+      dataOutput.putCollection(entries);
+   }
+
+   @Override
    public String toString()
    {
       return toString(0);
@@ -52,7 +62,7 @@ public class MessageIndexOffsets implements MCAPElement
    public String toString(int indent)
    {
       String out = getClass().getSimpleName() + ":";
-      out += "\n\t-entries = " + (entries == null ? "null" : "\n" + EuclidCoreIOTools.getCollectionString("\n", entries, e -> e.toString(indent + 1)));
+      out += "\n\t-entries = " + "\n" + EuclidCoreIOTools.getCollectionString("\n", entries, e -> e.toString(indent + 1));
       return MCAPElement.indent(out, indent);
    }
 }

@@ -2,6 +2,7 @@ package us.ihmc.scs2.session.mcap.input;
 
 import com.github.luben.zstd.ZstdDecompressCtx;
 import us.ihmc.scs2.session.mcap.encoding.LZ4FrameDecoder;
+import us.ihmc.scs2.session.mcap.specs.records.Compression;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

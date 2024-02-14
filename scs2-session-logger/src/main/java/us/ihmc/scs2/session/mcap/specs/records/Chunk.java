@@ -22,30 +22,24 @@ public interface Chunk extends MCAPElement
    /**
     * Uncompressed size of the records field.
     */
-   long uncompressedSize();
+   long recordsUncompressedLength();
 
    /**
     * CRC-32 checksum of uncompressed `records` field. A value of zero indicates that CRC validation
     * should not be performed.
     */
-   long uncompressedCrc32();
+   long uncompressedCRC32();
 
    /**
     * compression algorithm. i.e. zstd, lz4, "". An empty string indicates no compression. Refer to
     * well-known compression formats.
     */
-   String compression();
-
-   /**
-    * Offset position of the records in either in the {@code  ByteBuffer} or {@code FileChannel},
-    * depending on how this chunk was created.
-    */
-   long recordsOffset();
+   Compression compression();
 
    /**
     * Length of the records in bytes.
     */
-   long recordsLength();
+   long recordsCompressedLength();
 
    /**
     * The decompressed records.
@@ -59,9 +53,9 @@ public interface Chunk extends MCAPElement
       out += "\n\t-messageStartTime = " + messageStartTime();
       out += "\n\t-messageEndTime = " + messageEndTime();
       out += "\n\t-compression = " + compression();
-      out += "\n\t-recordsCompressedLength = " + recordsLength();
-      out += "\n\t-recordsUncompressedLength = " + uncompressedSize();
-      out += "\n\t-uncompressedCrc32 = " + uncompressedCrc32();
+      out += "\n\t-recordsCompressedLength = " + recordsCompressedLength();
+      out += "\n\t-recordsUncompressedLength = " + recordsUncompressedLength();
+      out += "\n\t-uncompressedCrc32 = " + uncompressedCRC32();
       return MCAPElement.indent(out, indent);
    }
 }

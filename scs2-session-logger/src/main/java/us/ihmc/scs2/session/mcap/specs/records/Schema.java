@@ -1,6 +1,7 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
+import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -27,6 +28,16 @@ public interface Schema extends MCAPElement
    long dataLength();
 
    ByteBuffer data();
+
+   @Override
+   default void write(MCAPDataOutput dataOutput)
+   {
+      dataOutput.putUnsignedShort(id());
+      dataOutput.putString(name());
+      dataOutput.putString(encoding());
+      dataOutput.putUnsignedInt(dataLength());
+      dataOutput.putByteBuffer(data());
+   }
 
    @Override
    default String toString(int indent)

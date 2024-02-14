@@ -4,39 +4,34 @@ import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 import us.ihmc.scs2.session.mcap.specs.MCAP;
 
-public class MessageIndexOffset implements MCAPElement
+public class MessageIndexEntry implements MCAPElement
 {
    /**
-    * Channel ID.
+    * Time at which the message was recorded.
     */
-   private final int channelId;
+   private final long logTime;
+
    /**
-    * Offset of the message index record for that channel after the chunk, from the start of the file.
+    * Offset is relative to the start of the uncompressed chunk data.
     */
    private final long offset;
 
-   public MessageIndexOffset(MCAPDataInput dataInput, long elementPosition)
+   public MessageIndexEntry(MCAPDataInput dataInput, long elementPosition)
    {
       dataInput.position(elementPosition);
-      channelId = dataInput.getUnsignedShort();
+      logTime = MCAP.checkPositiveLong(dataInput.getLong(), "logTime");
       offset = MCAP.checkPositiveLong(dataInput.getLong(), "offset");
-   }
-
-   public MessageIndexOffset(int channelId, long offset)
-   {
-      this.channelId = channelId;
-      this.offset = offset;
    }
 
    @Override
    public long getElementLength()
    {
-      return Short.BYTES + Long.BYTES;
+      return 2 * Long.BYTES;
    }
 
-   public int channelId()
+   public long logTime()
    {
-      return channelId;
+      return logTime;
    }
 
    public long offset()
@@ -53,7 +48,7 @@ public class MessageIndexOffset implements MCAPElement
    @Override
    public void write(MCAPDataOutput dataOutput)
    {
-      dataOutput.putUnsignedShort(channelId);
+      dataOutput.putLong(logTime);
       dataOutput.putLong(offset);
    }
 
@@ -61,7 +56,7 @@ public class MessageIndexOffset implements MCAPElement
    public String toString(int indent)
    {
       String out = getClass().getSimpleName() + ":";
-      out += "\n\t-channelId = " + channelId;
+      out += "\n\t-logTime = " + logTime;
       out += "\n\t-offset = " + offset;
       return MCAPElement.indent(out, indent);
    }

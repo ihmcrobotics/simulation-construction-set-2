@@ -1,69 +1,35 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
-import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
-import us.ihmc.scs2.session.mcap.specs.MCAP;
+import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
-import java.lang.ref.WeakReference;
-
-public class MetadataIndex implements MCAPElement
+public interface MetadataIndex extends MCAPElement
 {
-   private final MCAPDataInput dataInput;
-   private final long metadataOffset;
-   private final long metadataLength;
-   private final String name;
-   private WeakReference<Record> metadataRef;
+   @Override
+   long getElementLength();
 
-   MetadataIndex(MCAPDataInput dataInput, long elementPosition, long elementLength)
+   Record metadata();
+
+   long metadataOffset();
+
+   long metadataLength();
+
+   String name();
+
+   @Override
+   default void write(MCAPDataOutput dataOutput)
    {
-      this.dataInput = dataInput;
-
-      dataInput.position(elementPosition);
-      metadataOffset = MCAP.checkPositiveLong(dataInput.getLong(), "metadataOffset");
-      metadataLength = MCAP.checkPositiveLong(dataInput.getLong(), "metadataLength");
-      name = dataInput.getString();
-      MCAP.checkLength(elementLength, getElementLength());
+      dataOutput.putLong(metadataOffset());
+      dataOutput.putLong(metadataLength());
+      dataOutput.putString(name());
    }
 
    @Override
-   public long getElementLength()
-   {
-      return 2 * Long.BYTES + Integer.BYTES + name.length();
-   }
-
-   public Record metadata()
-   {
-      Record metadata = metadataRef == null ? null : metadataRef.get();
-
-      if (metadata == null)
-      {
-         metadata = new RecordDataInputBacked(dataInput, metadataOffset);
-         metadataRef = new WeakReference<>(metadata);
-      }
-      return metadata;
-   }
-
-   public long metadataOffset()
-   {
-      return metadataOffset;
-   }
-
-   public long metadataLength()
-   {
-      return metadataLength;
-   }
-
-   public String name()
-   {
-      return name;
-   }
-
-   @Override
-   public String toString()
+   default String toString(int indent)
    {
       String out = getClass().getSimpleName() + ": ";
-      out += "\n\t-metadataOffset = " + metadataOffset;
-      out += "\n\t-metadataLength = " + metadataLength;
-      out += "\n\t-name = " + name;
-      return out;
+      out += "\n\t-metadataOffset = " + metadataOffset();
+      out += "\n\t-metadataLength = " + metadataLength();
+      out += "\n\t-name = " + name();
+      return MCAPElement.indent(out, indent);
    }
 }

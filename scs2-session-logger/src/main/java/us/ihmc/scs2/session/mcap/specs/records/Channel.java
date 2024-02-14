@@ -1,6 +1,7 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
+import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.util.List;
 
@@ -20,6 +21,16 @@ public interface Channel extends MCAPElement
    String messageEncoding();
 
    List<StringPair> metadata();
+
+   @Override
+   default void write(MCAPDataOutput dataOutput)
+   {
+      dataOutput.putInt(id());
+      dataOutput.putInt(schemaId());
+      dataOutput.putString(topic());
+      dataOutput.putString(messageEncoding());
+      dataOutput.putCollection(metadata());
+   }
 
    @Override
    default String toString(int indent)

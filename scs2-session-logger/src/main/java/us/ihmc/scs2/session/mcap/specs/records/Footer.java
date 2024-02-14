@@ -1,6 +1,7 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
+import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import static us.ihmc.scs2.session.mcap.specs.records.MCAPElement.indent;
 
@@ -24,6 +25,14 @@ public interface Footer extends MCAPElement
    long ofsSummaryOffsetSection();
 
    long summaryCrc32();
+
+   @Override
+   default void write(MCAPDataOutput dataOutput)
+   {
+      dataOutput.putLong(ofsSummarySection());
+      dataOutput.putLong(ofsSummaryOffsetSection());
+      dataOutput.putUnsignedInt(summaryCrc32());
+   }
 
    @Override
    default String toString(int indent)

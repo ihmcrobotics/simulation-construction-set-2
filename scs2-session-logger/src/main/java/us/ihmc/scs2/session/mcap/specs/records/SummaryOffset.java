@@ -1,6 +1,7 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
+import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 public interface SummaryOffset extends MCAPElement
 {
@@ -16,6 +17,14 @@ public interface SummaryOffset extends MCAPElement
    long groupOffset();
 
    long groupLength();
+
+   @Override
+   default void write(MCAPDataOutput dataOutput)
+   {
+      dataOutput.putUnsignedByte(groupOpcode().id());
+      dataOutput.putLong(groupOffset());
+      dataOutput.putLong(groupLength());
+   }
 
    @Override
    default String toString(int indent)

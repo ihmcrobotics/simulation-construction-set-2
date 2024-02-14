@@ -1,6 +1,7 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
+import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.nio.ByteBuffer;
 
@@ -26,6 +27,17 @@ public interface Message extends MCAPElement
    ByteBuffer messageBuffer();
 
    byte[] messageData();
+
+   @Override
+   default void write(MCAPDataOutput dataOutput)
+   {
+      dataOutput.putUnsignedShort(channelId());
+      dataOutput.putUnsignedInt(sequence());
+      dataOutput.putLong(logTime());
+      dataOutput.putLong(publishTime());
+      dataOutput.putUnsignedInt(dataLength());
+      dataOutput.putByteBuffer(messageBuffer());
+   }
 
    @Override
    default long getElementLength()

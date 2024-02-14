@@ -9,12 +9,12 @@ import java.nio.ByteBuffer;
 class MessageDataInputBacked implements Message
 {
    private final MCAPDataInput dataInput;
-   private int channelId;
-   private long sequence;
-   private long logTime;
-   private long publishTime;
-   private long dataOffset;
-   private int dataLength;
+   private final int channelId;
+   private final long sequence;
+   private final long logTime;
+   private final long publishTime;
+   private final long dataOffset;
+   private final int dataLength;
    private WeakReference<ByteBuffer> messageBufferRef;
    private WeakReference<byte[]> messageDataRef;
 

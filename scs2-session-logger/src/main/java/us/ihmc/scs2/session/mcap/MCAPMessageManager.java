@@ -6,6 +6,7 @@ import us.ihmc.scs2.session.mcap.specs.MCAP;
 import us.ihmc.scs2.session.mcap.specs.records.ChunkIndex;
 import us.ihmc.scs2.session.mcap.specs.records.Message;
 import us.ihmc.scs2.session.mcap.specs.records.MessageIndex;
+import us.ihmc.scs2.session.mcap.specs.records.MessageIndexEntry;
 import us.ihmc.scs2.session.mcap.specs.records.Opcode;
 import us.ihmc.scs2.session.mcap.specs.records.Record;
 
@@ -88,7 +89,7 @@ public class MCAPMessageManager
          else if (record.op() == Opcode.MESSAGE_INDEX)
          {
             MessageIndex messageIndex = (MessageIndex) record.body();
-            for (MessageIndex.MessageIndexEntry mcapEntry : messageIndex.messageIndexEntries())
+            for (MessageIndexEntry mcapEntry : messageIndex.messageIndexEntries())
             {
                long timestamp = round(mcapEntry.logTime(), desiredLogDT);
                if (allMessageTimestamps.isEmpty() || timestamp > allMessageTimestamps.get(allMessageTimestamps.size() - 1))

@@ -2,6 +2,7 @@ package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
+import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 import us.ihmc.scs2.session.mcap.specs.MCAP;
 
 import java.util.List;
@@ -36,6 +37,13 @@ public class Metadata implements MCAPElement
    public List<StringPair> metadata()
    {
       return metadata;
+   }
+
+   @Override
+   public void write(MCAPDataOutput dataOutput)
+   {
+      dataOutput.putString(name);
+      dataOutput.putCollection(metadata);
    }
 
    @Override

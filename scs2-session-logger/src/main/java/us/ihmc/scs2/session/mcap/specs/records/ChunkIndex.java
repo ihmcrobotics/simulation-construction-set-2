@@ -1,6 +1,7 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
+import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import static us.ihmc.scs2.session.mcap.specs.records.MCAPElement.indent;
 
@@ -27,11 +28,27 @@ public interface ChunkIndex extends MCAPElement
 
    long messageIndexLength();
 
-   String compression();
+   Compression compression();
 
-   long compressedSize();
+   long recordsCompressedLength();
 
-   long uncompressedSize();
+   long recordsUncompressedLength();
+
+   @Override
+   default void write(MCAPDataOutput dataOutput)
+   {
+      dataOutput.putLong(messageStartTime());
+      dataOutput.putLong(messageEndTime());
+      dataOutput.putLong(chunkOffset());
+      dataOutput.putLong(chunkLength());
+      dataOutput.putUnsignedInt(messageIndexOffsetsLength());
+      if (messageIndexOffsets() != null)
+         messageIndexOffsets().write(dataOutput);
+      dataOutput.putLong(messageIndexLength());
+      dataOutput.putString(compression().getName());
+      dataOutput.putLong(recordsCompressedLength());
+      dataOutput.putLong(recordsUncompressedLength());
+   }
 
    @Override
    default String toString(int indent)
@@ -45,8 +62,8 @@ public interface ChunkIndex extends MCAPElement
       out += "\n\t-messageIndexOffsets = " + (messageIndexOffsets() == null ? "null" : "\n" + messageIndexOffsets().toString(indent + 1));
       out += "\n\t-messageIndexLength = " + messageIndexLength();
       out += "\n\t-compression = " + compression();
-      out += "\n\t-compressedSize = " + compressedSize();
-      out += "\n\t-uncompressedSize = " + uncompressedSize();
+      out += "\n\t-compressedSize = " + recordsCompressedLength();
+      out += "\n\t-uncompressedSize = " + recordsUncompressedLength();
       return indent(out, indent);
    }
 }

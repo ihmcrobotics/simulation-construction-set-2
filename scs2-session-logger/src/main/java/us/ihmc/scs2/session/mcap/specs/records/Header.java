@@ -1,6 +1,7 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
+import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 import us.ihmc.scs2.session.mcap.specs.MCAP;
 
 public class Header implements MCAPElement
@@ -36,6 +37,13 @@ public class Header implements MCAPElement
    public String library()
    {
       return library;
+   }
+
+   @Override
+   public void write(MCAPDataOutput dataOutput)
+   {
+      dataOutput.putString(profile);
+      dataOutput.putString(library);
    }
 
    @Override

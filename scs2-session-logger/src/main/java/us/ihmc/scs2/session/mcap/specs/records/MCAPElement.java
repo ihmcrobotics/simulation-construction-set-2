@@ -1,5 +1,7 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
+import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
+
 public interface MCAPElement
 {
    static String indent(String stringToIndent, int indent)
@@ -9,6 +11,8 @@ public interface MCAPElement
       String indentStr = "\t".repeat(indent);
       return indentStr + stringToIndent.replace("\n", "\n" + indentStr);
    }
+
+   void write(MCAPDataOutput dataOutput);
 
    long getElementLength();
 

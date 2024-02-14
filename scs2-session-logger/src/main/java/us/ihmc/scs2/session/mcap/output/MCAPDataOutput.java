@@ -1,7 +1,10 @@
 package us.ihmc.scs2.session.mcap.output;
 
+import us.ihmc.scs2.session.mcap.specs.records.MCAPElement;
+
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Collection;
 
 public interface MCAPDataOutput
 {
@@ -43,6 +46,12 @@ public interface MCAPDataOutput
    }
 
    void putByteBuffer(ByteBuffer byteBuffer);
+
+   default <T extends MCAPElement> void putCollection(Collection<T> collection)
+   {
+      putUnsignedInt(collection.stream().mapToLong(MCAPElement::getElementLength).sum());
+      collection.forEach(element -> element.write(this));
+   }
 
    void close();
 

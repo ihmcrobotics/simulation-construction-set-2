@@ -43,16 +43,16 @@ class ChunkIndexDataInputBacked implements ChunkIndex
     * The compression used within the chunk. Refer to well-known compression formats. This field should
     * match the the value in the corresponding Chunk record.
     */
-   private final String compression;
+   private final Compression compression;
    /**
     * The size of the chunk records field.
     */
-   private final long compressedSize;
+   private final long recordsCompressedLength;
    /**
     * The uncompressed size of the chunk records field. This field should match the value in the
     * corresponding Chunk record.
     */
-   private final long uncompressedSize;
+   private final long recordsUncompressedLength;
 
    ChunkIndexDataInputBacked(MCAPDataInput dataInput, long elementPosition, long elementLength)
    {
@@ -68,9 +68,9 @@ class ChunkIndexDataInputBacked implements ChunkIndex
       messageIndexOffsetsOffset = dataInput.position();
       dataInput.skip(messageIndexOffsetsLength);
       messageIndexLength = MCAP.checkPositiveLong(dataInput.getLong(), "messageIndexLength");
-      compression = dataInput.getString();
-      compressedSize = MCAP.checkPositiveLong(dataInput.getLong(), "compressedSize");
-      uncompressedSize = MCAP.checkPositiveLong(dataInput.getLong(), "uncompressedSize");
+      compression = Compression.fromString(dataInput.getString());
+      recordsCompressedLength = MCAP.checkPositiveLong(dataInput.getLong(), "compressedSize");
+      recordsUncompressedLength = MCAP.checkPositiveLong(dataInput.getLong(), "uncompressedSize");
    }
 
    @Override
@@ -145,21 +145,21 @@ class ChunkIndexDataInputBacked implements ChunkIndex
    }
 
    @Override
-   public String compression()
+   public Compression compression()
    {
       return compression;
    }
 
    @Override
-   public long compressedSize()
+   public long recordsCompressedLength()
    {
-      return compressedSize;
+      return recordsCompressedLength;
    }
 
    @Override
-   public long uncompressedSize()
+   public long recordsUncompressedLength()
    {
-      return uncompressedSize;
+      return recordsUncompressedLength;
    }
 
    @Override
