@@ -21,6 +21,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizer;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerControls;
 import us.ihmc.scs2.simulation.SimulationSession;
 import us.ihmc.scs2.simulation.SimulationSessionControls;
+import us.ihmc.scs2.simulation.bullet.physicsEngine.BulletPhysicsEngine;
 import us.ihmc.scs2.simulation.physicsEngine.PhysicsEngineFactory;
 import us.ihmc.yoVariables.registry.YoRegistry;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -203,6 +204,13 @@ public class SimulationRewindabilityTester extends RobotDefinition
    public void testImpulseBasedPhysicsEngineRewindability()
    {
       PhysicsEngineFactory physicsEngineFactoryToTest = SimulationConstructionSet2.impulseBasedPhysicsEngineFactory();
+      assertRewindability(physicsEngineFactoryToTest);
+   }
+
+   @Test
+   public void testBulletPhysicsEngineRewindability()
+   {
+      PhysicsEngineFactory physicsEngineFactoryToTest = BulletPhysicsEngine::new;
       assertRewindability(physicsEngineFactoryToTest);
    }
 
