@@ -62,22 +62,21 @@ public class SimFloatingRootJoint extends SimSixDoFJoint implements SimJointBasi
                                                   updatingYPR.setFalse();
                                                }
                                             });
-
-      jointYawPitchRoll.attachVariableChangedListener(v ->
-                                                      {
-                                                         if (updatingYPR.booleanValue())
-                                                            return;
-
-                                                         updatingQuat.setTrue();
-                                                         try
-                                                         {
-                                                            jointQuaternion.set(jointYawPitchRoll);
-                                                         }
-                                                         finally
-                                                         {
-                                                            updatingQuat.setFalse();
-                                                         }
-                                                      });
+      // FIXME: Edge case: When rewinding, it's screw up the jointQuaternion. Need to find a way to prevent this.
+      //      jointYawPitchRoll.attachVariableChangedListener(v ->
+      //                                                      {
+      //                                                         if (updatingYPR.booleanValue())
+      //                                                            return;
+      //                                                         updatingQuat.setTrue();
+      //                                                         try
+      //                                                         {
+      //                                                            jointQuaternion.set(jointYawPitchRoll);
+      //                                                         }
+      //                                                         finally
+      //                                                         {
+      //                                                            updatingQuat.setFalse();
+      //                                                         }
+      //                                                      });
 
       jointLinearVelocity = new YoFrameVector3D("qd" + varName + "world_", beforeJointFrame, registry);
       YoFixedFrameTwist jointTwist = getJointTwist();
@@ -95,15 +94,16 @@ public class SimFloatingRootJoint extends SimSixDoFJoint implements SimJointBasi
                                                                   updatingLinVel.setFalse();
                                                                });
 
-      jointLinearVelocity.attachVariableChangedListener(v ->
-                                                        {
-                                                           if (updatingLinVel.booleanValue())
-                                                              return;
-                                                           updatingTwist.setTrue();
-                                                           jointQuaternion.inverseTransform((Tuple3DReadOnly) jointLinearVelocity,
-                                                                                            (Tuple3DBasics) jointTwist.getLinearPart());
-                                                           updatingTwist.setFalse();
-                                                        });
+      // FIXME: Edge case: When rewinding, it's screw up the jointTwist. Need to find a way to prevent this.
+      //      jointLinearVelocity.attachVariableChangedListener(v ->
+      //                                                        {
+      //                                                           if (updatingLinVel.booleanValue())
+      //                                                              return;
+      //                                                           updatingTwist.setTrue();
+      //                                                           jointQuaternion.inverseTransform((Tuple3DReadOnly) jointLinearVelocity,
+      //                                                                                            (Tuple3DBasics) jointTwist.getLinearPart());
+      //                                                           updatingTwist.setFalse();
+      //                                                        });
 
       jointLinearAcceleration = new YoFrameVector3D("qdd" + varName + "world_", beforeJointFrame, registry);
       YoFixedFrameSpatialAcceleration jointSpatialAcceleration = getJointAcceleration();
@@ -123,18 +123,18 @@ public class SimFloatingRootJoint extends SimSixDoFJoint implements SimJointBasi
                                                                                 jointQuaternion.transform((Tuple3DBasics) jointLinearAcceleration);
                                                                                 updatingLinAcc.setFalse();
                                                                              });
-
-      jointLinearAcceleration.attachVariableChangedListener(v ->
-                                                            {
-                                                               if (updatingLinAcc.booleanValue())
-                                                                  return;
-                                                               updatingSpAcc.setTrue();
-                                                               jointQuaternion.inverseTransform((Tuple3DReadOnly) jointLinearAcceleration,
-                                                                                                (Tuple3DBasics) jointSpatialAcceleration.getLinearPart());
-                                                               jointSpatialAcceleration.addCrossToLinearPart(jointTwist.getLinearPart(),
-                                                                                                             jointTwist.getAngularPart());
-                                                               updatingSpAcc.setFalse();
-                                                            });
+      // FIXME: Edge case: When rewinding, it's screw up the jointSpatialAcceleration. Need to find a way to prevent this.
+      //      jointLinearAcceleration.attachVariableChangedListener(v ->
+      //                                                            {
+      //                                                               if (updatingLinAcc.booleanValue())
+      //                                                                  return;
+      //                                                               updatingSpAcc.setTrue();
+      //                                                               jointQuaternion.inverseTransform((Tuple3DReadOnly) jointLinearAcceleration,
+      //                                                                                                (Tuple3DBasics) jointSpatialAcceleration.getLinearPart());
+      //                                                               jointSpatialAcceleration.addCrossToLinearPart(jointTwist.getLinearPart(),
+      //                                                                                                             jointTwist.getAngularPart());
+      //                                                               updatingSpAcc.setFalse();
+      //                                                            });
    }
 
    @Override
