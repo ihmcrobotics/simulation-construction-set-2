@@ -81,8 +81,8 @@ public class SimpleRevoluteTwinsRobotTest
       assertEquals(0, joint.getActuatedJointIndex());
       EuclidCoreTestTools.assertEquals(Axis3D.Y, joint.getAxis(), 0.0);
 
-      assertEquals("jointA", joint.getJointNameA());
-      assertEquals("jointB", joint.getJointNameB());
+      assertEquals("jointA", joint.getJointA().getName());
+      assertEquals("jointB", joint.getJointB().getName());
 
       EuclidCoreTestTools.assertEquals(new YawPitchRollTransformDefinition(new Point3D(0.1, 0, 0.2)), joint.getTransformAToPredecessor(), 0.0);
       EuclidCoreTestTools.assertEquals(new YawPitchRollTransformDefinition(new Point3D(0.0, 0, 0.2)), joint.getTransformBToA(), 0.0);

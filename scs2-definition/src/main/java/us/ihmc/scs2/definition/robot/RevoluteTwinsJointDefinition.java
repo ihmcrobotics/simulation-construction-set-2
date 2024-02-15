@@ -12,8 +12,8 @@ import java.util.Objects;
 
 public class RevoluteTwinsJointDefinition extends OneDoFJointDefinition
 {
-   private String jointNameA;
-   private String jointNameB;
+   private RevoluteJointDefinition jointADefinition, jointBDefinition;
+   
    private YawPitchRollTransformDefinition transformAToPredecessor = new YawPitchRollTransformDefinition();
    private YawPitchRollTransformDefinition transformBToA = new YawPitchRollTransformDefinition();
    private RigidBodyDefinition bodyAB = new RigidBodyDefinition();
@@ -37,23 +37,7 @@ public class RevoluteTwinsJointDefinition extends OneDoFJointDefinition
       this(name);
       setAxis(axis);
    }
-
-   public void setJointNameA(String jointNameA)
-   {
-      this.jointNameA = jointNameA;
-   }
-
-   public void setJointNameB(String jointNameB)
-   {
-      this.jointNameB = jointNameB;
-   }
-
-   public void setJointNames(String jointNameA, String jointNameB)
-   {
-      this.jointNameA = jointNameA;
-      this.jointNameB = jointNameB;
-   }
-
+   
    public void setTransformAToPredecessor(YawPitchRollTransformDefinition transformAToPredecessor)
    {
       this.transformAToPredecessor = transformAToPredecessor;
@@ -106,14 +90,14 @@ public class RevoluteTwinsJointDefinition extends OneDoFJointDefinition
       this.constraintOffset = constraintOffset;
    }
 
-   public String getJointNameA()
+   public RevoluteJointDefinition getJointA()
    {
-      return jointNameA;
+      return jointADefinition;
    }
 
-   public String getJointNameB()
+   public RevoluteJointDefinition getJointB()
    {
-      return jointNameB;
+      return jointBDefinition;
    }
 
    public YawPitchRollTransformDefinition getTransformAToPredecessor()
@@ -149,10 +133,10 @@ public class RevoluteTwinsJointDefinition extends OneDoFJointDefinition
    @Override
    public RevoluteTwinsJoint toJoint(RigidBodyBasics predecessor)
    {
-      return new RevoluteTwinsJoint(getName(),
+      RevoluteTwinsJoint joint = new RevoluteTwinsJoint(getName(),
                                     predecessor,
-                                    jointNameA,
-                                    jointNameB,
+                                    jointADefinition.getName(),
+                                    jointBDefinition.getName(),
                                     bodyAB.getName(),
                                     transformAToPredecessor,
                                     transformBToA,
@@ -163,14 +147,30 @@ public class RevoluteTwinsJointDefinition extends OneDoFJointDefinition
                                     constraintRatio,
                                     constraintOffset,
                                     getAxis());
+      
+      setPositionLimits(getPositionLowerLimit(), getPositionUpperLimit());
+      setVelocityLimits(getVelocityLowerLimit(), getVelocityUpperLimit());
+      setEffortLimits(getEffortLowerLimit(), getEffortUpperLimit());
+      setDamping(getDamping());
+      
+      joint.getJointA().setJointLimits(jointADefinition.getPositionLowerLimit(), jointADefinition.getPositionUpperLimit());
+      joint.getJointA().setVelocityLimits(jointADefinition.getVelocityLowerLimit(), jointADefinition.getVelocityUpperLimit());
+      joint.getJointA().setEffortLimits(jointADefinition.getEffortLowerLimit(), jointADefinition.getEffortUpperLimit());
+      
+      joint.getJointB().setJointLimits(jointBDefinition.getPositionLowerLimit(), jointBDefinition.getPositionUpperLimit());
+      joint.getJointB().setVelocityLimits(jointBDefinition.getVelocityLowerLimit(), jointBDefinition.getVelocityUpperLimit());
+      joint.getJointB().setEffortLimits(jointBDefinition.getEffortLowerLimit(), jointBDefinition.getEffortUpperLimit());
+
+      
+      return joint;
    }
 
    @Override
    public RevoluteTwinsJointDefinition copy()
    {
       RevoluteTwinsJointDefinition clone = new RevoluteTwinsJointDefinition(getName(), getAxis());
-      clone.jointNameA = jointNameA;
-      clone.jointNameB = jointNameB;
+      clone.jointADefinition = jointADefinition.copy();
+      clone.jointBDefinition = jointBDefinition.copy();
       clone.transformAToPredecessor.set(transformAToPredecessor);
       clone.transformBToA.set(transformBToA);
       clone.bodyAB = bodyAB.copy();
@@ -184,8 +184,8 @@ public class RevoluteTwinsJointDefinition extends OneDoFJointDefinition
    public int hashCode()
    {
       long bits = super.hashCode();
-      bits = EuclidHashCodeTools.addToHashCode(bits, jointNameA);
-      bits = EuclidHashCodeTools.addToHashCode(bits, jointNameB);
+      bits = EuclidHashCodeTools.addToHashCode(bits, jointADefinition);
+      bits = EuclidHashCodeTools.addToHashCode(bits, jointBDefinition);
       bits = EuclidHashCodeTools.addToHashCode(bits, transformAToPredecessor);
       bits = EuclidHashCodeTools.addToHashCode(bits, transformBToA);
       bits = EuclidHashCodeTools.addToHashCode(bits, bodyAB);
@@ -205,9 +205,9 @@ public class RevoluteTwinsJointDefinition extends OneDoFJointDefinition
 
       RevoluteTwinsJointDefinition other = (RevoluteTwinsJointDefinition) object;
 
-      if (!Objects.equals(jointNameA, other.jointNameA))
+      if (!Objects.equals(jointADefinition, other.jointADefinition))
          return false;
-      if (!Objects.equals(jointNameB, other.jointNameB))
+      if (!Objects.equals(jointBDefinition, other.jointBDefinition))
          return false;
       if (!Objects.equals(transformAToPredecessor, other.transformAToPredecessor))
          return false;
@@ -222,5 +222,15 @@ public class RevoluteTwinsJointDefinition extends OneDoFJointDefinition
       if (!EuclidCoreTools.equals(constraintOffset, other.constraintOffset))
          return false;
       return true;
+   }
+
+   public void setJointA(RevoluteJointDefinition jointADefinition)
+   {
+      this.jointADefinition = jointADefinition;
+   }
+   
+   public void setJointB(RevoluteJointDefinition jointBDefinition)
+   {
+      this.jointBDefinition = jointBDefinition;
    }
 }

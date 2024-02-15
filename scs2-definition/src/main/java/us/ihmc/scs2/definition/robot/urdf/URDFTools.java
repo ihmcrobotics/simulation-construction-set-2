@@ -1064,8 +1064,9 @@ public class URDFTools
       double constraintRatio = parseDouble(constrainedJoint.getMimic().getMultiplier(), Double.NaN);
       double constraintOffset = parseDouble(constrainedJoint.getMimic().getOffset(), Double.NaN);
 
-      definition.setJointNameA(urdfJointA.getName());
-      definition.setJointNameB(urdfJointB.getName());
+      definition.setJointA(toRevoluteJointDefinition(urdfJointA, false, parserProperties));
+      definition.setJointB(toRevoluteJointDefinition(urdfJointB, false, parserProperties));
+      
       definition.setBodyAB(toRigidBodyDefinition(urdfLinkAB, parserProperties));
       definition.setTransformAToPredecessor(parseRigidBodyTransform(urdfJointA.getOrigin(), parserProperties));
       definition.setTransformBToA(parseRigidBodyTransform(urdfJointB.getOrigin(), parserProperties));
@@ -1073,6 +1074,7 @@ public class URDFTools
       definition.setConstraintRatio(constraintRatio);
       definition.setConstraintOffset(constraintOffset);
 
+      
       return definition;
    }
 
