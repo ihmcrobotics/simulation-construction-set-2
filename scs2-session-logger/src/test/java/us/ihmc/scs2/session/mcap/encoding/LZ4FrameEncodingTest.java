@@ -3,7 +3,6 @@ package us.ihmc.scs2.session.mcap.encoding;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class LZ4FrameEncodingTest
 {
    @Test
-   public void testEncodeDecode() throws IOException
+   public void testEncodeDecode()
    {
       Random random = new Random(23423L);
 
@@ -23,11 +22,9 @@ public class LZ4FrameEncodingTest
          // Gonna have to use a ByteArrayOutputStream to comply with the API
          ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
-         LZ4FrameOutputStream lz4Compressor = new LZ4FrameOutputStream(byteArrayOutputStream);
-         lz4Compressor.write(originalData);
-         lz4Compressor.close();
+         LZ4FrameEncoder lz4Compressor = new LZ4FrameEncoder();
 
-         byte[] compressedData = byteArrayOutputStream.toByteArray();
+         byte[] compressedData = lz4Compressor.encode(originalData, null);
 
          LZ4FrameDecoder lz4Decoder = new LZ4FrameDecoder();
          byte[] decompressedData = lz4Decoder.decode(compressedData, null);

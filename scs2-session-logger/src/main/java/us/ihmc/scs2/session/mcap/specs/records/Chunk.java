@@ -53,7 +53,6 @@ public interface Chunk extends MCAPElement
       out += "\n\t-messageStartTime = " + messageStartTime();
       out += "\n\t-messageEndTime = " + messageEndTime();
       out += "\n\t-compression = " + compression();
-      out += "\n\t-recordsCompressedLength = " + recordsCompressedLength();
       out += "\n\t-recordsUncompressedLength = " + recordsUncompressedLength();
       out += "\n\t-uncompressedCrc32 = " + uncompressedCRC32();
       return MCAPElement.indent(out, indent);

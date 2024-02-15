@@ -1,5 +1,6 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
+import us.ihmc.scs2.session.mcap.output.MCAPByteBufferDataOutput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 public class MutableChunk implements Chunk
@@ -9,7 +10,6 @@ public class MutableChunk implements Chunk
    private long recordsUncompressedLength;
    private long uncompressedCrc32;
    private Compression compression;
-   private long recordsOffset;
    private long recordsCompressedLength;
 
    private Records records;
@@ -40,33 +40,10 @@ public class MutableChunk implements Chunk
       this.compression = compression;
    }
 
-   public void setRecordsOffset(long recordsOffset)
-   {
-      this.recordsOffset = recordsOffset;
-   }
-
-   public void setRecordsCompressedLength(long recordsCompressedLength)
-   {
-      elementLength = -1L;
-      this.recordsCompressedLength = recordsCompressedLength;
-   }
-
    public void setRecords(Records records)
    {
       elementLength = -1L;
       this.records = records;
-   }
-
-   private void updateElementLength()
-   {
-      if (elementLength != -1L)
-         return;
-
-      // TODO: Implement this method
-      if (records != null)
-         elementLength = 0L;
-      else
-         elementLength = -1L;
    }
 
    @Override
@@ -125,8 +102,11 @@ public class MutableChunk implements Chunk
       dataOutput.putLong(recordsUncompressedLength);
       dataOutput.putLong(uncompressedCrc32);
       dataOutput.putString(compression.getName());
-      dataOutput.putLong(recordsOffset);
-      dataOutput.putCollection(records);
+      MCAPByteBufferDataOutput recordsBuffer = new MCAPByteBufferDataOutput((int) recordsUncompressedLength, 2);
+      records.forEach(element -> element.write(recordsBuffer));
+      recordsBuffer.close();
+
+      recordsBuffer.putUnsignedInt(records.stream().mapToLong(MCAPElement::getElementLength).sum());
    }
 
    @Override
