@@ -1,10 +1,13 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
+import gnu.trove.map.hash.TIntObjectHashMap;
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.specs.MCAP;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static us.ihmc.scs2.session.mcap.specs.records.MCAPElement.indent;
 
@@ -80,5 +83,52 @@ public class Records extends ArrayList<Record>
       String out = getClass().getSimpleName() + "[\n";
       out += EuclidCoreIOTools.getCollectionString("\n", this, r -> r.toString(indent + 1));
       return indent(out, indent);
+   }
+
+   public List<MessageIndex> generateMessageIndexList()
+   {
+      TIntObjectHashMap<MutableMessageIndex> messageIndexMap = new TIntObjectHashMap<>();
+      long messageIndexOffset = 0;
+
+      for (Record record : this)
+      {
+         if (record.op() == Opcode.MESSAGE)
+         {
+            Message message = record.body();
+            int channelId = message.channelId();
+
+            MutableMessageIndex messageIndex = messageIndexMap.get(channelId);
+
+            if (messageIndex == null)
+            {
+               messageIndex = new MutableMessageIndex();
+               messageIndexMap.put(channelId, messageIndex);
+            }
+
+            MessageIndexEntry messageIndexEntry = new MessageIndexEntry(message.logTime(), messageIndexOffset);
+            messageIndex.addMessageIndexEntry(messageIndexEntry);
+         }
+         messageIndexOffset += record.getElementLength();
+      }
+
+      return Arrays.asList(messageIndexMap.values(new MutableMessageIndex[messageIndexMap.size()]));
+   }
+
+   public static List<MessageIndexOffset> generateMessageIndexOffsets(long offset, List<? extends Record> messageIndexRecordList)
+   {
+      List<MessageIndexOffset> messageIndexOffsets = new ArrayList<>();
+
+      long messageIndexOffset = offset;
+
+      for (Record messageIndexRecord : messageIndexRecordList)
+      {
+         if (messageIndexRecord.op() != Opcode.MESSAGE_INDEX)
+            throw new IllegalArgumentException("Expected a message index record, but got: " + messageIndexRecord.op());
+         messageIndexOffset += messageIndexRecord.getElementLength();
+         MessageIndex messageIndex = messageIndexRecord.body();
+         messageIndexOffsets.add(new MessageIndexOffset(messageIndex.channelId(), messageIndexOffset));
+      }
+
+      return messageIndexOffsets;
    }
 }

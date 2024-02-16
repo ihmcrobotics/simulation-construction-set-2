@@ -25,12 +25,6 @@ public class MetadataIndexDataInputBacked implements MetadataIndex
    }
 
    @Override
-   public long getElementLength()
-   {
-      return 2 * Long.BYTES + Integer.BYTES + name.length();
-   }
-
-   @Override
    public Record metadata()
    {
       Record metadata = metadataRef == null ? null : metadataRef.get();

@@ -1,11 +1,22 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
+import us.ihmc.commons.MathTools;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 
 /**
  * Chunk records each contain a batch of Schema, Channel, and Message records.
  * The batch of records contained in a chunk may be compressed or uncompressed.
  * All messages in the chunk must reference channels recorded earlier in the file (in a previous chunk or earlier in the current chunk).
+ *
+ * <p>
+ * MCAP files can have Schema, Channel, and Message records written directly to the data section, or they can be written into Chunk records to facilitate
+ * indexing and compression.
+ * For MCAPs that include Chunk Index records in the summary section, all Message records should be written into Chunk records.
+ * Why?
+ * The presence of Chunk Index records in the summary section indicates to readers that the MCAP is indexed, and they can use those records to look up messages
+ * by log time or topic.
+ * However, Message records outside of chunks cannot be indexed, and may not be found by readers using the index.
+ * </p>
  */
 public interface Chunk extends MCAPElement
 {
@@ -61,5 +72,23 @@ public interface Chunk extends MCAPElement
       out += "\n\t-recordsUncompressedLength = " + recordsUncompressedLength();
       out += "\n\t-uncompressedCrc32 = " + uncompressedCRC32();
       return MCAPElement.indent(out, indent);
+   }
+
+   default Chunk crop(long startTimestamp, long endTimestamp)
+   {
+      long croppedStartTime = MathTools.clamp(messageStartTime(), startTimestamp, endTimestamp);
+      long croppedEndTime = MathTools.clamp(messageEndTime(), startTimestamp, endTimestamp);
+      Records croppedRecords = records().crop(croppedStartTime, croppedEndTime);
+      // There may be no records when testing a chunk that is before the start timestamp.
+      // We still want to test it in case there stuff like schemas, channels, and other time-insensitive data.
+      if (croppedRecords.isEmpty())
+         return null;
+
+      MutableChunk croppedChunk = new MutableChunk();
+      croppedChunk.setMessageStartTime(croppedStartTime);
+      croppedChunk.setMessageEndTime(croppedEndTime);
+      croppedChunk.setRecords(croppedRecords);
+      croppedChunk.setCompression(compression());
+      return croppedChunk;
    }
 }

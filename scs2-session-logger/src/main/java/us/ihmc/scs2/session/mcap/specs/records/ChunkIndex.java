@@ -1,7 +1,10 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
+import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
+
+import java.util.List;
 
 import static us.ihmc.scs2.session.mcap.specs.records.MCAPElement.indent;
 
@@ -47,7 +50,7 @@ public interface ChunkIndex extends MCAPElement
     * Mapping from channel ID to the offset of the message index record for that channel after the
     * chunk, from the start of the file. An empty map indicates no message indexing is available.
     */
-   MessageIndexOffsets messageIndexOffsets();
+   List<MessageIndexOffset> messageIndexOffsets();
 
    /**
     * Total length in bytes of the message index records after the chunk.
@@ -79,9 +82,8 @@ public interface ChunkIndex extends MCAPElement
       dataOutput.putLong(messageEndTime());
       dataOutput.putLong(chunkOffset());
       dataOutput.putLong(chunkLength());
-      dataOutput.putUnsignedInt(messageIndexOffsetsLength());
       if (messageIndexOffsets() != null)
-         messageIndexOffsets().write(dataOutput);
+         dataOutput.putCollection(messageIndexOffsets());
       dataOutput.putLong(messageIndexLength());
       dataOutput.putString(compression().getName());
       dataOutput.putLong(recordsCompressedLength());
@@ -97,7 +99,10 @@ public interface ChunkIndex extends MCAPElement
       out += "\n\t-chunkOffset = " + chunkOffset();
       out += "\n\t-chunkLength = " + chunkLength();
       out += "\n\t-messageIndexOffsetsLength = " + messageIndexOffsetsLength();
-      out += "\n\t-messageIndexOffsets = " + (messageIndexOffsets() == null ? "null" : "\n" + messageIndexOffsets().toString(indent + 1));
+      List<MessageIndexOffset> messageIndexOffsets = messageIndexOffsets();
+      out += "\n\t-messageIndexOffsets = " + (messageIndexOffsets == null ?
+            "null" :
+            "\n" + EuclidCoreIOTools.getCollectionString("\n", messageIndexOffsets, e -> e.toString(indent + 1)));
       out += "\n\t-messageIndexLength = " + messageIndexLength();
       out += "\n\t-compression = " + compression();
       out += "\n\t-compressedSize = " + recordsCompressedLength();

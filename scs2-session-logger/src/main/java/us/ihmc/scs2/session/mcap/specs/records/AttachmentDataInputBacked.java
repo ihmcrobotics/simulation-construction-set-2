@@ -83,7 +83,6 @@ class AttachmentDataInputBacked implements Attachment
       return mediaType;
    }
 
-   @Override
    public long dataOffset()
    {
       return dataOffset;

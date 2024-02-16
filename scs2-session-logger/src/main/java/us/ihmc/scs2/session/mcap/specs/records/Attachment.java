@@ -18,23 +18,27 @@ public interface Attachment extends MCAPElement
 
    ByteBuffer crc32Input();
 
+   /** Time at which the attachment was recorded. */
    long logTime();
 
+   /** Time at which the attachment was created. If not available, must be set to zero. */
    long createTime();
 
+   /** Name of the attachment, e.g "scene1.jpg". */
    String name();
 
+   /** <a href="https://en.wikipedia.org/wiki/Media_type">Media type</a> of the attachment (e.g "text/plain"). */
    String mediaType();
 
-   long dataOffset();
-
+   /** Size in bytes of the attachment data. */
    long dataLength();
 
+   /** Attachment data. */
    ByteBuffer data();
 
    /**
-    * CRC-32 checksum of the preceding fields in the record. A value of zero indicates that CRC validation
-    * should not be performed.
+    * CRC-32 checksum of the preceding fields in the record.
+    * A value of zero indicates that CRC validation should not be performed.
     */
    long crc32();
 
@@ -58,7 +62,6 @@ public interface Attachment extends MCAPElement
       out += "\n\t-createTime = " + createTime();
       out += "\n\t-name = " + name();
       out += "\n\t-mediaType = " + mediaType();
-      out += "\n\t-dataOffset = " + dataOffset();
       out += "\n\t-dataLength = " + dataLength();
       out += "\n\t-data = " + data();
       out += "\n\t-crc32 = " + crc32();

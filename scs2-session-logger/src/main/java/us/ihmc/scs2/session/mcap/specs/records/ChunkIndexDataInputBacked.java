@@ -4,6 +4,7 @@ import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.specs.MCAP;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 
 class ChunkIndexDataInputBacked implements ChunkIndex
 {
@@ -15,7 +16,7 @@ class ChunkIndexDataInputBacked implements ChunkIndex
    private final long chunkLength;
    private final long messageIndexOffsetsOffset;
    private final long messageIndexOffsetsLength;
-   private WeakReference<MessageIndexOffsets> messageIndexOffsetsRef;
+   private WeakReference<List<MessageIndexOffset>> messageIndexOffsetsRef;
    private final long messageIndexLength;
    private final Compression compression;
    private final long recordsCompressedLength;
@@ -92,13 +93,13 @@ class ChunkIndexDataInputBacked implements ChunkIndex
    }
 
    @Override
-   public MessageIndexOffsets messageIndexOffsets()
+   public List<MessageIndexOffset> messageIndexOffsets()
    {
-      MessageIndexOffsets messageIndexOffsets = messageIndexOffsetsRef == null ? null : messageIndexOffsetsRef.get();
+      List<MessageIndexOffset> messageIndexOffsets = messageIndexOffsetsRef == null ? null : messageIndexOffsetsRef.get();
 
       if (messageIndexOffsets == null)
       {
-         messageIndexOffsets = new MessageIndexOffsets(dataInput, messageIndexOffsetsOffset, messageIndexOffsetsLength);
+         messageIndexOffsets = MCAP.parseList(dataInput, MessageIndexOffset::new, messageIndexOffsetsOffset, messageIndexOffsetsLength);
          messageIndexOffsetsRef = new WeakReference<>(messageIndexOffsets);
       }
 

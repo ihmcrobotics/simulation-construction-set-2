@@ -12,7 +12,7 @@ class AttachmentIndexDataInputBacked implements AttachmentIndex
    private final long attachmentLength;
    private final long logTime;
    private final long createTime;
-   private final long dataSize;
+   private final long dataLength;
    private final String name;
    private final String mediaType;
 
@@ -27,16 +27,10 @@ class AttachmentIndexDataInputBacked implements AttachmentIndex
       attachmentLength = MCAP.checkPositiveLong(dataInput.getLong(), "attachmentLength");
       logTime = MCAP.checkPositiveLong(dataInput.getLong(), "logTime");
       createTime = MCAP.checkPositiveLong(dataInput.getLong(), "createTime");
-      dataSize = MCAP.checkPositiveLong(dataInput.getLong(), "dataSize");
+      dataLength = MCAP.checkPositiveLong(dataInput.getLong(), "dataSize");
       name = dataInput.getString();
       mediaType = dataInput.getString();
       MCAP.checkLength(elementLength, getElementLength());
-   }
-
-   @Override
-   public long getElementLength()
-   {
-      return 5 * Long.BYTES + 2 * Integer.BYTES + name.length() + mediaType.length();
    }
 
    @Override
@@ -78,9 +72,9 @@ class AttachmentIndexDataInputBacked implements AttachmentIndex
    }
 
    @Override
-   public long dataSize()
+   public long dataLength()
    {
-      return dataSize;
+      return dataLength;
    }
 
    @Override

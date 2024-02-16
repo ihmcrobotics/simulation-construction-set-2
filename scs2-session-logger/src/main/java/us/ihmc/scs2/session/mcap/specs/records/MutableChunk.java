@@ -6,6 +6,7 @@ import us.ihmc.scs2.session.mcap.output.MCAPByteBufferDataOutput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 public class MutableChunk implements Chunk
 {
@@ -17,6 +18,7 @@ public class MutableChunk implements Chunk
    private long recordsCompressedLength = -1L;
 
    private Records records;
+   private ByteBuffer recordsCompressedData;
 
    public void setMessageStartTime(long messageStartTime)
    {
@@ -51,7 +53,8 @@ public class MutableChunk implements Chunk
    {
       this.records = records;
       recordsUncompressedLength = records.getElementLength();
-      recordsCompressedLength = compression == Compression.NONE ? recordsUncompressedLength : -1L;
+      recordsCompressedData = null;
+      recordsCompressedLength = -1L;
    }
 
    @Override
@@ -99,10 +102,47 @@ public class MutableChunk implements Chunk
    @Override
    public long getElementLength()
    {
-      if (recordsCompressedLength == -1)
-         throw new IllegalStateException("The compressed length has not been set yet.");
-
+      getRecordsCompressedBuffer(); // Make sure the compressed data is available.
       return 4 * Long.BYTES + Integer.BYTES + compression.getLength() + recordsCompressedLength;
+   }
+
+   public ByteBuffer getRecordsCompressedBuffer()
+   {
+      if (recordsCompressedData != null)
+         return recordsCompressedData;
+
+      Objects.requireNonNull(compression, "The compression has not been set yet.");
+      Objects.requireNonNull(records, "The records have not been set yet.");
+
+      MCAPByteBufferDataOutput recordsOutput = new MCAPByteBufferDataOutput((int) recordsUncompressedLength, 2, compression == Compression.ZSTD);
+      records.forEach(element -> element.write(recordsOutput));
+      recordsOutput.close();
+
+      recordsCompressedData = switch (compression)
+      {
+         case NONE:
+         {
+            recordsCompressedLength = recordsUncompressedLength;
+            yield recordsOutput.getBuffer();
+         }
+         case LZ4:
+         {
+            LZ4FrameEncoder lz4FrameEncoder = new LZ4FrameEncoder();
+            ByteBuffer compressedBuffer = lz4FrameEncoder.encode(recordsOutput.getBuffer(), null);
+            recordsCompressedLength = compressedBuffer.remaining();
+            yield compressedBuffer;
+         }
+         case ZSTD:
+         {
+            try (ZstdCompressCtx zstdCompressCtx = new ZstdCompressCtx())
+            {
+               ByteBuffer compressedBuffer = zstdCompressCtx.compress(recordsOutput.getBuffer());
+               recordsCompressedLength = compressedBuffer.remaining();
+               yield compressedBuffer;
+            }
+         }
+      };
+      return recordsCompressedData;
    }
 
    @Override
@@ -111,48 +151,10 @@ public class MutableChunk implements Chunk
       dataOutput.putLong(messageStartTime);
       dataOutput.putLong(messageEndTime);
       dataOutput.putLong(recordsUncompressedLength);
-      dataOutput.putLong(uncompressedCrc32);
+      dataOutput.putUnsignedInt(uncompressedCrc32);
       dataOutput.putString(compression.getName());
-      MCAPByteBufferDataOutput recordsOutput = new MCAPByteBufferDataOutput((int) recordsUncompressedLength, 2, compression == Compression.ZSTD);
-      records.forEach(element -> element.write(recordsOutput));
-      recordsOutput.close();
-
-      switch (compression)
-      {
-         case NONE:
-         {
-            recordsCompressedLength = recordsUncompressedLength;
-            dataOutput.putUnsignedInt(recordsCompressedLength);
-            dataOutput.putByteBuffer(recordsOutput.getBuffer());
-            break;
-         }
-         case LZ4:
-         {
-            LZ4FrameEncoder lz4FrameEncoder = new LZ4FrameEncoder();
-            ByteBuffer compressedBuffer = lz4FrameEncoder.encode(recordsOutput.getBuffer(), null);
-            recordsCompressedLength = compressedBuffer.remaining();
-            dataOutput.putUnsignedInt(recordsCompressedLength);
-            dataOutput.putByteBuffer(compressedBuffer);
-            break;
-         }
-         case ZSTD:
-         {
-            try (ZstdCompressCtx zstdCompressCtx = new ZstdCompressCtx())
-            {
-               ByteBuffer compressedBuffer = zstdCompressCtx.compress(recordsOutput.getBuffer());
-               recordsCompressedLength = compressedBuffer.remaining();
-               dataOutput.putUnsignedInt(recordsCompressedLength);
-               dataOutput.putByteBuffer(compressedBuffer);
-            }
-            break;
-         }
-         default:
-         {
-            throw new UnsupportedOperationException("Compression " + compression + " is not supported yet.");
-         }
-      }
-
-      recordsOutput.putUnsignedInt(records.stream().mapToLong(MCAPElement::getElementLength).sum());
+      dataOutput.putLong(recordsCompressedLength);
+      dataOutput.putByteBuffer(getRecordsCompressedBuffer());
    }
 
    @Override

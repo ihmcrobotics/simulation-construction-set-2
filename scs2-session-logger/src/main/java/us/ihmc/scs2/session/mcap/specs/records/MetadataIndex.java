@@ -8,7 +8,10 @@ import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 public interface MetadataIndex extends MCAPElement
 {
    @Override
-   long getElementLength();
+   default long getElementLength()
+   {
+      return 2 * Long.BYTES + Integer.BYTES + name().length();
+   }
 
    Record metadata();
 

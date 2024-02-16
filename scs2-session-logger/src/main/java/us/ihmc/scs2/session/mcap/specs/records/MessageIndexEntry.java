@@ -16,6 +16,16 @@ public class MessageIndexEntry implements MCAPElement
     */
    private final long offset;
 
+   /**
+    * @param logTime time at which the message was recorded.
+    * @param offset  offset is relative to the start of the uncompressed chunk data.
+    */
+   public MessageIndexEntry(long logTime, long offset)
+   {
+      this.logTime = MCAP.checkPositiveLong(logTime, "logTime");
+      this.offset = MCAP.checkPositiveLong(offset, "offset");
+   }
+
    public MessageIndexEntry(MCAPDataInput dataInput, long elementPosition)
    {
       dataInput.position(elementPosition);

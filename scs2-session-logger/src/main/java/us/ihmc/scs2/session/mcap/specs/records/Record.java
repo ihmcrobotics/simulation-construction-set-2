@@ -3,6 +3,8 @@ package us.ihmc.scs2.session.mcap.specs.records;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
+import java.util.List;
+
 /**
  * MCAP files may contain a variety of records.
  * Records are identified by a single-byte opcode.
@@ -45,4 +47,38 @@ public interface Record extends MCAPElement
    }
 
    void write(MCAPDataOutput dataOutput, boolean writeBody);
+
+   default Record generateMetadataIndexRecord(long metadataOffset)
+   {
+      if (op() != Opcode.METADATA)
+         throw new UnsupportedOperationException("Cannot generate a metadata index record from a non-metadata record");
+
+      MutableMetadataIndex metadataIndex = new MutableMetadataIndex();
+      metadataIndex.setMetadataOffset(metadataOffset);
+      metadataIndex.setMetadata(this);
+      return new MutableRecord(metadataIndex);
+   }
+
+   default Record generateAttachmentIndexRecord(long attachmentOffset)
+   {
+      if (op() != Opcode.ATTACHMENT)
+         throw new UnsupportedOperationException("Cannot generate an attachment index record from a non-attachment record");
+
+      MutableAttachmentIndex attachmentIndex = new MutableAttachmentIndex();
+      attachmentIndex.setAttachmentOffset(attachmentOffset);
+      attachmentIndex.setAttachment(this);
+      return new MutableRecord(attachmentIndex);
+   }
+
+   default Record generateChunkIndexRecord(long chunkOffset, List<? extends Record> messageIndexRecordList)
+   {
+      if (op() != Opcode.CHUNK)
+         throw new UnsupportedOperationException("Cannot generate a chunk index record from a non-chunk record");
+
+      MutableChunkIndex chunkIndex = new MutableChunkIndex();
+      chunkIndex.setChunkOffset(chunkOffset);
+      chunkIndex.setChunk(this);
+      chunkIndex.setMessageIndexOffsets(Records.generateMessageIndexOffsets(chunkOffset + chunkIndex.getElementLength(), messageIndexRecordList));
+      return new MutableRecord(chunkIndex);
+   }
 }

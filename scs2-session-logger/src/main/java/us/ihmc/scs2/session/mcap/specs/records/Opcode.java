@@ -2,6 +2,8 @@ package us.ihmc.scs2.session.mcap.specs.records;
 
 import gnu.trove.map.hash.TIntObjectHashMap;
 
+import java.util.Map;
+
 public enum Opcode
 {
    /**
@@ -135,5 +137,26 @@ public enum Opcode
    public static Opcode byId(int id)
    {
       return byId.get(id);
+   }
+
+   private static final Map<Class<?>, Opcode> byBodyType = Map.ofEntries(Map.entry(Header.class, HEADER),
+                                                                         Map.entry(Footer.class, FOOTER),
+                                                                         Map.entry(Schema.class, SCHEMA),
+                                                                         Map.entry(Channel.class, CHANNEL),
+                                                                         Map.entry(Message.class, MESSAGE),
+                                                                         Map.entry(Chunk.class, CHUNK),
+                                                                         Map.entry(MessageIndex.class, MESSAGE_INDEX),
+                                                                         Map.entry(ChunkIndex.class, CHUNK_INDEX),
+                                                                         Map.entry(Attachment.class, ATTACHMENT),
+                                                                         Map.entry(AttachmentIndex.class, ATTACHMENT_INDEX),
+                                                                         Map.entry(Statistics.class, STATISTICS),
+                                                                         Map.entry(Metadata.class, METADATA),
+                                                                         Map.entry(MetadataIndex.class, METADATA_INDEX),
+                                                                         Map.entry(SummaryOffset.class, SUMMARY_OFFSET),
+                                                                         Map.entry(DataEnd.class, DATA_END));
+
+   public static Opcode byBodyType(Class<?> bodyType)
+   {
+      return byBodyType.get(bodyType);
    }
 }

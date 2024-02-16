@@ -9,6 +9,16 @@ public class MutableRecord implements Record
    private Opcode op;
    private Object body;
 
+   public MutableRecord()
+   {
+   }
+
+   public MutableRecord(Object body)
+   {
+      this.op = body == null ? null : Opcode.byBodyType(body.getClass());
+      this.body = body;
+   }
+
    public void setOp(Opcode op)
    {
       this.op = op;

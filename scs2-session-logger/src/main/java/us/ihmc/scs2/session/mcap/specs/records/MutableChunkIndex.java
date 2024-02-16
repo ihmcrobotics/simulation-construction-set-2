@@ -1,5 +1,7 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class MutableChunkIndex implements ChunkIndex
@@ -10,34 +12,11 @@ public class MutableChunkIndex implements ChunkIndex
    private long chunkOffset;
    private long chunkLength;
    private long messageIndexOffsetsLength;
-   private MessageIndexOffsets messageIndexOffsets;
+   private List<MessageIndexOffset> messageIndexOffsets;
    private long messageIndexLength;
    private Compression compression;
    private long recordsCompressedLength;
    private long recordsUncompressedLength;
-
-   public void set(Record chunk)
-   {
-      this.chunk = chunk;
-      Chunk body = chunk.body();
-      messageStartTime = body.messageStartTime();
-      messageEndTime = body.messageEndTime();
-      chunkLength = chunk.getElementLength();
-      messageIndexOffsets = createMessageIndexOffsets(body.records());
-   }
-
-   private MessageIndexOffsets createMessageIndexOffsets(Records records)
-   {
-      MessageIndexOffsets messageIndexOffsets = new MessageIndexOffsets();
-      for (Record record : records)
-      {
-         if (record.body() instanceof MessageIndexOffset)
-         {
-            messageIndexOffsets.add((MessageIndexOffset) record.body());
-         }
-      }
-      return messageIndexOffsets;
-   }
 
    @Override
    public Record chunk()
@@ -48,6 +27,16 @@ public class MutableChunkIndex implements ChunkIndex
    public void setChunk(Record chunk)
    {
       this.chunk = chunk;
+      Chunk body = chunk.body();
+      messageStartTime = body.messageStartTime();
+      messageEndTime = body.messageEndTime();
+      chunkLength = chunk.getElementLength();
+      // Resets the message index offsets, they have to be set manually.
+      messageIndexOffsets = new ArrayList<>();
+      messageIndexOffsetsLength = 0L;
+      compression = body.compression();
+      recordsCompressedLength = body.recordsCompressedLength();
+      recordsUncompressedLength = body.recordsUncompressedLength();
    }
 
    @Override
@@ -106,14 +95,15 @@ public class MutableChunkIndex implements ChunkIndex
    }
 
    @Override
-   public MessageIndexOffsets messageIndexOffsets()
+   public List<MessageIndexOffset> messageIndexOffsets()
    {
       return messageIndexOffsets;
    }
 
-   public void setMessageIndexOffsets(MessageIndexOffsets messageIndexOffsets)
+   public void setMessageIndexOffsets(List<MessageIndexOffset> messageIndexOffsets)
    {
       this.messageIndexOffsets = messageIndexOffsets;
+      messageIndexOffsetsLength = messageIndexOffsets.stream().mapToLong(MessageIndexOffset::getElementLength).sum();
    }
 
    @Override
@@ -165,6 +155,12 @@ public class MutableChunkIndex implements ChunkIndex
    {
       Objects.requireNonNull(messageIndexOffsets, "The message index offsets must be set before calling this method.");
       Objects.requireNonNull(compression, "The compression must be set before calling this method.");
-      return 7 * Long.BYTES + 2 * Integer.BYTES + messageIndexOffsets.getElementLength() + compression.getLength();
+      return 7 * Long.BYTES + 2 * Integer.BYTES + messageIndexOffsetsLength + compression.getLength();
+   }
+
+   @Override
+   public String toString()
+   {
+      return toString(0);
    }
 }
