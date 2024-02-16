@@ -1,19 +1,22 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
+import com.github.luben.zstd.ZstdCompressCtx;
+import us.ihmc.scs2.session.mcap.encoding.LZ4FrameEncoder;
 import us.ihmc.scs2.session.mcap.output.MCAPByteBufferDataOutput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
+
+import java.nio.ByteBuffer;
 
 public class MutableChunk implements Chunk
 {
    private long messageStartTime;
    private long messageEndTime;
-   private long recordsUncompressedLength;
+   private long recordsUncompressedLength = -1L;
    private long uncompressedCrc32;
-   private Compression compression;
-   private long recordsCompressedLength;
+   private Compression compression = Compression.LZ4;
+   private long recordsCompressedLength = -1L;
 
    private Records records;
-   private long elementLength = -1L;
 
    public void setMessageStartTime(long messageStartTime)
    {
@@ -38,12 +41,17 @@ public class MutableChunk implements Chunk
    public void setCompression(Compression compression)
    {
       this.compression = compression;
+      if (compression == Compression.NONE)
+         recordsCompressedLength = recordsUncompressedLength;
+      else
+         recordsCompressedLength = -1L;
    }
 
    public void setRecords(Records records)
    {
-      elementLength = -1L;
       this.records = records;
+      recordsUncompressedLength = records.getElementLength();
+      recordsCompressedLength = compression == Compression.NONE ? recordsUncompressedLength : -1L;
    }
 
    @Override
@@ -91,7 +99,10 @@ public class MutableChunk implements Chunk
    @Override
    public long getElementLength()
    {
-      return elementLength;
+      if (recordsCompressedLength == -1)
+         throw new IllegalStateException("The compressed length has not been set yet.");
+
+      return 4 * Long.BYTES + Integer.BYTES + compression.getLength() + recordsCompressedLength;
    }
 
    @Override
@@ -102,11 +113,46 @@ public class MutableChunk implements Chunk
       dataOutput.putLong(recordsUncompressedLength);
       dataOutput.putLong(uncompressedCrc32);
       dataOutput.putString(compression.getName());
-      MCAPByteBufferDataOutput recordsBuffer = new MCAPByteBufferDataOutput((int) recordsUncompressedLength, 2);
-      records.forEach(element -> element.write(recordsBuffer));
-      recordsBuffer.close();
+      MCAPByteBufferDataOutput recordsOutput = new MCAPByteBufferDataOutput((int) recordsUncompressedLength, 2, compression == Compression.ZSTD);
+      records.forEach(element -> element.write(recordsOutput));
+      recordsOutput.close();
 
-      recordsBuffer.putUnsignedInt(records.stream().mapToLong(MCAPElement::getElementLength).sum());
+      switch (compression)
+      {
+         case NONE:
+         {
+            recordsCompressedLength = recordsUncompressedLength;
+            dataOutput.putUnsignedInt(recordsCompressedLength);
+            dataOutput.putByteBuffer(recordsOutput.getBuffer());
+            break;
+         }
+         case LZ4:
+         {
+            LZ4FrameEncoder lz4FrameEncoder = new LZ4FrameEncoder();
+            ByteBuffer compressedBuffer = lz4FrameEncoder.encode(recordsOutput.getBuffer(), null);
+            recordsCompressedLength = compressedBuffer.remaining();
+            dataOutput.putUnsignedInt(recordsCompressedLength);
+            dataOutput.putByteBuffer(compressedBuffer);
+            break;
+         }
+         case ZSTD:
+         {
+            try (ZstdCompressCtx zstdCompressCtx = new ZstdCompressCtx())
+            {
+               ByteBuffer compressedBuffer = zstdCompressCtx.compress(recordsOutput.getBuffer());
+               recordsCompressedLength = compressedBuffer.remaining();
+               dataOutput.putUnsignedInt(recordsCompressedLength);
+               dataOutput.putByteBuffer(compressedBuffer);
+            }
+            break;
+         }
+         default:
+         {
+            throw new UnsupportedOperationException("Compression " + compression + " is not supported yet.");
+         }
+      }
+
+      recordsOutput.putUnsignedInt(records.stream().mapToLong(MCAPElement::getElementLength).sum());
    }
 
    @Override

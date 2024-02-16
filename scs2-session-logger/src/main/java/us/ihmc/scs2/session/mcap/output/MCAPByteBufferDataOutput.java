@@ -6,19 +6,27 @@ public class MCAPByteBufferDataOutput implements MCAPDataOutput
 {
    private static final int DEFAULT_INITIAL_CAPACITY = 8192;
    private static final int DEFAULT_GROWTH_FACTOR = 2;
+   private static final boolean DEFAULT_DIRECT_BUFFER = false;
 
    private ByteBuffer buffer;
-   private int growthFactor;
+   private final int growthFactor;
+   private final boolean directBuffer;
 
    public MCAPByteBufferDataOutput()
    {
-      this(DEFAULT_INITIAL_CAPACITY, DEFAULT_GROWTH_FACTOR);
+      this(DEFAULT_INITIAL_CAPACITY, DEFAULT_GROWTH_FACTOR, DEFAULT_DIRECT_BUFFER);
    }
 
-   public MCAPByteBufferDataOutput(int initialCapacity, int growthFactor)
+   public MCAPByteBufferDataOutput(int initialCapacity, int growthFactor, boolean directBuffer)
    {
       this.growthFactor = growthFactor;
-      buffer = ByteBuffer.allocate(initialCapacity);
+      this.directBuffer = directBuffer;
+      buffer = newBuffer(initialCapacity);
+   }
+
+   private ByteBuffer newBuffer(int capacity)
+   {
+      return directBuffer ? ByteBuffer.allocateDirect(capacity) : ByteBuffer.allocate(capacity);
    }
 
    @Override
@@ -74,7 +82,7 @@ public class MCAPByteBufferDataOutput implements MCAPDataOutput
       if (buffer.remaining() < bytesToWrite)
       {
          int newCapacity = Math.max(buffer.capacity() * growthFactor, buffer.position() + bytesToWrite);
-         ByteBuffer newBuffer = ByteBuffer.allocate(newCapacity);
+         ByteBuffer newBuffer = newBuffer(newCapacity);
          buffer.flip();
          newBuffer.put(buffer);
          buffer = newBuffer;
