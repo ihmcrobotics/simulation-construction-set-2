@@ -26,6 +26,19 @@ public class MCAPBufferedFileChannelOutput implements MCAPDataOutput
    }
 
    @Override
+   public long position()
+   {
+      try
+      {
+         return fileChannel.position() + writingBuffer.position();
+      }
+      catch (IOException e)
+      {
+         throw new RuntimeException(e);
+      }
+   }
+
+   @Override
    public void putLong(long value)
    {
       if (writingBuffer.remaining() < Long.BYTES)

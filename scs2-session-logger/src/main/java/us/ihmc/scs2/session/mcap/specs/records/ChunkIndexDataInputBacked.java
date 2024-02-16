@@ -9,49 +9,16 @@ class ChunkIndexDataInputBacked implements ChunkIndex
 {
    private final MCAPDataInput dataInput;
    private final long elementLength;
-   /**
-    * Earliest message log_time in the chunk. Zero if the chunk has no messages.
-    */
    private final long messageStartTime;
-   /**
-    * Latest message log_time in the chunk. Zero if the chunk has no messages.
-    */
    private final long messageEndTime;
-   /**
-    * Offset to the chunk record from the start of the file.
-    */
    private final long chunkOffset;
-   /**
-    * Byte length of the chunk record, including opcode and length prefix.
-    */
    private final long chunkLength;
    private final long messageIndexOffsetsOffset;
-   /**
-    * Total length in bytes of the message index records after the chunk.
-    */
    private final long messageIndexOffsetsLength;
-   /**
-    * Mapping from channel ID to the offset of the message index record for that channel after the
-    * chunk, from the start of the file. An empty map indicates no message indexing is available.
-    */
    private WeakReference<MessageIndexOffsets> messageIndexOffsetsRef;
-   /**
-    * Total length in bytes of the message index records after the chunk.
-    */
    private final long messageIndexLength;
-   /**
-    * The compression used within the chunk. Refer to well-known compression formats. This field should
-    * match the the value in the corresponding Chunk record.
-    */
    private final Compression compression;
-   /**
-    * The size of the chunk records field.
-    */
    private final long recordsCompressedLength;
-   /**
-    * The uncompressed size of the chunk records field. This field should match the value in the
-    * corresponding Chunk record.
-    */
    private final long recordsUncompressedLength;
 
    ChunkIndexDataInputBacked(MCAPDataInput dataInput, long elementPosition, long elementLength)

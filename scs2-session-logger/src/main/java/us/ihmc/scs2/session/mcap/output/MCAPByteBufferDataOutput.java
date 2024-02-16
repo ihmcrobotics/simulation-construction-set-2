@@ -30,6 +30,12 @@ public class MCAPByteBufferDataOutput implements MCAPDataOutput
    }
 
    @Override
+   public long position()
+   {
+      return buffer.position();
+   }
+
+   @Override
    public void putLong(long value)
    {
       ensureCapacity(Long.BYTES);

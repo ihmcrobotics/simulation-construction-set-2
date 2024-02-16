@@ -2,6 +2,9 @@ package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
+/**
+ * A metadata index record contains the location of a metadata record within the file.
+ */
 public interface MetadataIndex extends MCAPElement
 {
    @Override

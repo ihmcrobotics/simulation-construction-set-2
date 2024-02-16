@@ -3,6 +3,10 @@ package us.ihmc.scs2.session.mcap.specs.records;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
+/**
+ * An Attachment Index record contains the location of an attachment in the file.
+ * An Attachment Index record exists for every Attachment record in the file.
+ */
 public interface AttachmentIndex extends MCAPElement
 {
    static AttachmentIndex load(MCAPDataInput dataInput, long elementPosition, long elementLength)

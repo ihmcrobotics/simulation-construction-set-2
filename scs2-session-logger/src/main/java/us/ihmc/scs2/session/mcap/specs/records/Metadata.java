@@ -7,6 +7,7 @@ import us.ihmc.scs2.session.mcap.specs.MCAP;
 
 import java.util.List;
 
+/** A metadata record contains arbitrary user data in key-value pairs. */
 public class Metadata implements MCAPElement
 {
    private final String name;

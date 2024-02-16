@@ -6,6 +6,10 @@ import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.util.List;
 
+/**
+ * A Statistics record contains summary information about the recorded data.
+ * The statistics record is optional, but the file should contain at most one.
+ */
 public interface Statistics extends MCAPElement
 {
    static Statistics load(MCAPDataInput dataInput, long elementPosition, long elementLength)

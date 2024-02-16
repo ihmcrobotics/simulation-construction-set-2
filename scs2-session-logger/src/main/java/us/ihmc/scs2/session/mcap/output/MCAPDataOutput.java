@@ -8,6 +8,8 @@ import java.util.Collection;
 
 public interface MCAPDataOutput
 {
+   long position();
+   
    void putLong(long value);
 
    void putInt(int value);

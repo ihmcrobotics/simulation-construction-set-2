@@ -2,6 +2,11 @@ package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 
+/**
+ * Chunk records each contain a batch of Schema, Channel, and Message records.
+ * The batch of records contained in a chunk may be compressed or uncompressed.
+ * All messages in the chunk must reference channels recorded earlier in the file (in a previous chunk or earlier in the current chunk).
+ */
 public interface Chunk extends MCAPElement
 {
    static Chunk load(MCAPDataInput dataInput, long elementPosition, long elementLength)

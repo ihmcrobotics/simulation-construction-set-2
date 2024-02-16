@@ -5,6 +5,12 @@ import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.util.List;
 
+/**
+ * Channel records define encoded streams of messages on topics.
+ * Channel records are uniquely identified within a file by their channel ID.
+ * A Channel record must occur at least once in the file prior to any message referring to its channel ID.
+ * Any two channel records sharing a common ID must be identical.
+ */
 public interface Channel extends MCAPElement
 {
    static Channel load(MCAPDataInput dataInput, long elementPosition, long elementLength)

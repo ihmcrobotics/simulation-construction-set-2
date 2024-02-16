@@ -9,6 +9,7 @@ import us.ihmc.scs2.session.mcap.specs.records.ChunkIndex;
 import us.ihmc.scs2.session.mcap.specs.records.Magic;
 import us.ihmc.scs2.session.mcap.specs.records.Message;
 import us.ihmc.scs2.session.mcap.specs.records.MutableChunk;
+import us.ihmc.scs2.session.mcap.specs.records.MutableChunkIndex;
 import us.ihmc.scs2.session.mcap.specs.records.MutableRecord;
 import us.ihmc.scs2.session.mcap.specs.records.Opcode;
 import us.ihmc.scs2.session.mcap.specs.records.Record;
@@ -98,7 +99,12 @@ public class MCAPLogCropper
                   MutableRecord croppedRecord = new MutableRecord();
                   croppedRecord.setOp(Opcode.CHUNK);
                   croppedRecord.setBody(croppedChunk);
+                  long chunkOffset = dataOutput.position();
                   croppedRecord.write(dataOutput, true);
+
+                  MutableChunkIndex croppedChunkIndex = new MutableChunkIndex();
+                  croppedChunkIndex.setChunkOffset(chunkOffset);
+                  croppedChunkIndex.setChunk(croppedRecord);
                }
             }
             case MESSAGE:

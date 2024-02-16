@@ -5,6 +5,7 @@ import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import static us.ihmc.scs2.session.mcap.specs.records.MCAPElement.indent;
 
+/** Footer records contain end-of-file information. MCAP files must end with a Footer record. */
 public interface Footer extends MCAPElement
 {
    static Footer load(MCAPDataInput dataInput, long elementPosition, long elementLength)

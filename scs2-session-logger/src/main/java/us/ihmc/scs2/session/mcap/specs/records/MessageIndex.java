@@ -5,6 +5,11 @@ import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.util.List;
 
+/**
+ * MessageIndex records allow readers to locate individual records within a chunk by timestamp.
+ * A sequence of Message Index records occurs immediately after each chunk.
+ * Exactly one Message Index record must exist in the sequence for every channel on which a message occurs inside the chunk.
+ */
 public interface MessageIndex extends MCAPElement
 {
    int channelId();

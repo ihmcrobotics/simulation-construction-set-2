@@ -3,6 +3,10 @@ package us.ihmc.scs2.session.mcap.specs.records;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
+/**
+ * A Summary Offset record contains the location of records within the summary section.
+ * Each Summary Offset record corresponds to a group of summary records with the same opcode.
+ */
 public interface SummaryOffset extends MCAPElement
 {
    static SummaryOffset load(MCAPDataInput dataInput, long elementPosition, long elementLength)

@@ -6,6 +6,12 @@ import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+/**
+ * A Schema record defines an individual schema.
+ * Schema records are uniquely identified within a file by their schema ID.
+ * A Schema record must occur at least once in the file prior to any Channel referring to its ID.
+ * Any two schema records sharing a common ID must be identical.
+ */
 public interface Schema extends MCAPElement
 {
    static Schema load(MCAPDataInput dataInput, long elementPosition, long elementLength)

@@ -4,6 +4,9 @@ import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 import us.ihmc.scs2.session.mcap.specs.MCAP;
 
+/**
+ * A Data End record indicates the end of the data section.
+ */
 public class DataEnd implements MCAPElement
 {
    private final long dataSectionCRC32;

@@ -5,6 +5,10 @@ import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.nio.ByteBuffer;
 
+/**
+ * Attachment records contain auxiliary artifacts such as text, core dumps, calibration data, or other arbitrary data.
+ * Attachment records must not appear within a chunk.
+ */
 public interface Attachment extends MCAPElement
 {
    static Attachment load(MCAPDataInput dataInput, long elementPosition, long elementLength)

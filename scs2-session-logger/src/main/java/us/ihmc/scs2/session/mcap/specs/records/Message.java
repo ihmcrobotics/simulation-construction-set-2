@@ -5,6 +5,10 @@ import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.nio.ByteBuffer;
 
+/**
+ * Message records encode a single timestamped message on a channel.
+ * The message encoding and schema must match that of the Channel record corresponding to the message's channel ID.
+ */
 public interface Message extends MCAPElement
 {
    static Message load(MCAPDataInput dataInput, long elementPosition, long elementLength)

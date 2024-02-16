@@ -4,6 +4,7 @@ import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 import us.ihmc.scs2.session.mcap.specs.MCAP;
 
+/** Header is the first record in an MCAP file. */
 public class Header implements MCAPElement
 {
    private final String profile;
