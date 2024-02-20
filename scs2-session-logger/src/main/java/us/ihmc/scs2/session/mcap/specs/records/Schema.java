@@ -11,6 +11,8 @@ import java.util.Arrays;
  * Schema records are uniquely identified within a file by their schema ID.
  * A Schema record must occur at least once in the file prior to any Channel referring to its ID.
  * Any two schema records sharing a common ID must be identical.
+ *
+ * @see <a href="https://mcap.dev/spec#schema-op0x03">MCAP Schema</a>
  */
 public interface Schema extends MCAPElement
 {

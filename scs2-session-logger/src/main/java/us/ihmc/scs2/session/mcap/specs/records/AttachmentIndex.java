@@ -6,6 +6,8 @@ import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 /**
  * An Attachment Index record contains the location of an attachment in the file.
  * An Attachment Index record exists for every Attachment record in the file.
+ *
+ * @see <a href="https://mcap.dev/spec#attachment-index-op0x0a">MCAP Attachment Index</a>
  */
 public interface AttachmentIndex extends MCAPElement
 {

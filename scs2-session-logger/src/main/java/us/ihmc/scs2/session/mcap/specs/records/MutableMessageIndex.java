@@ -1,5 +1,6 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MutableMessageIndex implements MessageIndex
@@ -21,6 +22,8 @@ public class MutableMessageIndex implements MessageIndex
 
    public void addMessageIndexEntry(MessageIndexEntry messageIndexEntry)
    {
+      if (messageIndexEntries == null)
+         messageIndexEntries = new ArrayList<>();
       messageIndexEntries.add(messageIndexEntry);
       messageIndexEntriesLength += messageIndexEntry.getElementLength();
    }

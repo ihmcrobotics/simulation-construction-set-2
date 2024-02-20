@@ -10,6 +10,8 @@ import java.util.List;
  * Channel records are uniquely identified within a file by their channel ID.
  * A Channel record must occur at least once in the file prior to any message referring to its channel ID.
  * Any two channel records sharing a common ID must be identical.
+ *
+ * @see <a href="https://mcap.dev/spec#channel-op0x04">MCAP Channel</a>
  */
 public interface Channel extends MCAPElement
 {

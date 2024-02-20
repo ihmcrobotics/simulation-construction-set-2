@@ -11,6 +11,8 @@ import static us.ihmc.scs2.session.mcap.specs.records.MCAPElement.indent;
 /**
  * ChunkIndex records contain the location of a Chunk record and its associated MessageIndex records.
  * A ChunkIndex record exists for every Chunk in the file.
+ *
+ * @see <a href="https://mcap.dev/spec#chunk-index-op0x08">MCAP Chunk Index</a>
  */
 public interface ChunkIndex extends MCAPElement
 {

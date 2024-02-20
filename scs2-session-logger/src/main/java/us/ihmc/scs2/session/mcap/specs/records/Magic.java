@@ -5,6 +5,9 @@ import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.util.Arrays;
 
+/**
+ * @see <a href="https://mcap.dev/spec#magic">MCAP Magic</a>
+ */
 public class Magic
 {
    public static final int MAGIC_SIZE = 8;

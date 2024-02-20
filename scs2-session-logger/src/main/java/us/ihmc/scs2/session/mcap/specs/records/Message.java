@@ -8,6 +8,8 @@ import java.nio.ByteBuffer;
 /**
  * Message records encode a single timestamped message on a channel.
  * The message encoding and schema must match that of the Channel record corresponding to the message's channel ID.
+ *
+ * @see <a href="https://mcap.dev/spec#message-op0x05">MCAP Message</a>
  */
 public interface Message extends MCAPElement
 {

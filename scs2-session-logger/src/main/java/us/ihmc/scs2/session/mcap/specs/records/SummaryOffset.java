@@ -6,6 +6,8 @@ import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 /**
  * A Summary Offset record contains the location of records within the summary section.
  * Each Summary Offset record corresponds to a group of summary records with the same opcode.
+ *
+ * @see <a href="https://mcap.dev/spec#summary-offset-op0x0e">MCAP Summary Offset</a>
  */
 public interface SummaryOffset extends MCAPElement
 {

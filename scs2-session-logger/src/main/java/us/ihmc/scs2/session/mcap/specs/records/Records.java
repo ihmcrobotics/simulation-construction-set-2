@@ -11,6 +11,9 @@ import java.util.List;
 
 import static us.ihmc.scs2.session.mcap.specs.records.MCAPElement.indent;
 
+/**
+ * @see <a href="https://mcap.dev/spec#records">MCAP Records</a>
+ */
 public class Records extends ArrayList<Record>
 {
    public Records()

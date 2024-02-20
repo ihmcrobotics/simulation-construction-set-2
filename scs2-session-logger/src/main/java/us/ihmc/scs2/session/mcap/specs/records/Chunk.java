@@ -17,6 +17,8 @@ import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
  * by log time or topic.
  * However, Message records outside of chunks cannot be indexed, and may not be found by readers using the index.
  * </p>
+ *
+ * @see <a href="https://mcap.dev/spec#chunk-op0x06">MCAP Chunk</a>
  */
 public interface Chunk extends MCAPElement
 {

@@ -2,8 +2,6 @@ package us.ihmc.scs2.session.mcap.specs.records;
 
 import gnu.trove.map.hash.TIntObjectHashMap;
 
-import java.util.Map;
-
 public enum Opcode
 {
    /**
@@ -139,24 +137,40 @@ public enum Opcode
       return byId.get(id);
    }
 
-   private static final Map<Class<?>, Opcode> byBodyType = Map.ofEntries(Map.entry(Header.class, HEADER),
-                                                                         Map.entry(Footer.class, FOOTER),
-                                                                         Map.entry(Schema.class, SCHEMA),
-                                                                         Map.entry(Channel.class, CHANNEL),
-                                                                         Map.entry(Message.class, MESSAGE),
-                                                                         Map.entry(Chunk.class, CHUNK),
-                                                                         Map.entry(MessageIndex.class, MESSAGE_INDEX),
-                                                                         Map.entry(ChunkIndex.class, CHUNK_INDEX),
-                                                                         Map.entry(Attachment.class, ATTACHMENT),
-                                                                         Map.entry(AttachmentIndex.class, ATTACHMENT_INDEX),
-                                                                         Map.entry(Statistics.class, STATISTICS),
-                                                                         Map.entry(Metadata.class, METADATA),
-                                                                         Map.entry(MetadataIndex.class, METADATA_INDEX),
-                                                                         Map.entry(SummaryOffset.class, SUMMARY_OFFSET),
-                                                                         Map.entry(DataEnd.class, DATA_END));
-
    public static Opcode byBodyType(Class<?> bodyType)
    {
-      return byBodyType.get(bodyType);
+      if (bodyType == null)
+         return null;
+      if (Header.class.isAssignableFrom(bodyType))
+         return HEADER;
+      if (Footer.class.isAssignableFrom(bodyType))
+         return FOOTER;
+      if (Schema.class.isAssignableFrom(bodyType))
+         return SCHEMA;
+      if (Channel.class.isAssignableFrom(bodyType))
+         return CHANNEL;
+      if (Message.class.isAssignableFrom(bodyType))
+         return MESSAGE;
+      if (Chunk.class.isAssignableFrom(bodyType))
+         return CHUNK;
+      if (MessageIndex.class.isAssignableFrom(bodyType))
+         return MESSAGE_INDEX;
+      if (ChunkIndex.class.isAssignableFrom(bodyType))
+         return CHUNK_INDEX;
+      if (Attachment.class.isAssignableFrom(bodyType))
+         return ATTACHMENT;
+      if (AttachmentIndex.class.isAssignableFrom(bodyType))
+         return ATTACHMENT_INDEX;
+      if (Statistics.class.isAssignableFrom(bodyType))
+         return STATISTICS;
+      if (Metadata.class.isAssignableFrom(bodyType))
+         return METADATA;
+      if (MetadataIndex.class.isAssignableFrom(bodyType))
+         return METADATA_INDEX;
+      if (SummaryOffset.class.isAssignableFrom(bodyType))
+         return SUMMARY_OFFSET;
+      if (DataEnd.class.isAssignableFrom(bodyType))
+         return DATA_END;
+      throw new IllegalArgumentException("Unsupported body type: " + bodyType);
    }
 }

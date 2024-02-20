@@ -4,6 +4,8 @@ import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 /**
  * A metadata index record contains the location of a metadata record within the file.
+ *
+ * @see <a href="https://mcap.dev/spec#metadata-index-op0x0d">MCAP Metadata Index</a>
  */
 public interface MetadataIndex extends MCAPElement
 {

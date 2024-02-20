@@ -8,6 +8,8 @@ import java.nio.ByteBuffer;
 /**
  * Attachment records contain auxiliary artifacts such as text, core dumps, calibration data, or other arbitrary data.
  * Attachment records must not appear within a chunk.
+ *
+ * @see <a href="https://mcap.dev/spec#attachment-op0x09">MCAP Attachment</a>
  */
 public interface Attachment extends MCAPElement
 {

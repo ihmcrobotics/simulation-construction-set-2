@@ -9,6 +9,8 @@ import java.util.List;
  * MessageIndex records allow readers to locate individual records within a chunk by timestamp.
  * A sequence of Message Index records occurs immediately after each chunk.
  * Exactly one Message Index record must exist in the sequence for every channel on which a message occurs inside the chunk.
+ *
+ * @see <a href="https://mcap.dev/spec#message-index-op0x07">MCAP Message Index</a>
  */
 public interface MessageIndex extends MCAPElement
 {

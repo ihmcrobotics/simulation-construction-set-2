@@ -6,6 +6,8 @@ import us.ihmc.scs2.session.mcap.specs.MCAP;
 
 /**
  * A Data End record indicates the end of the data section.
+ *
+ * @see <a href="https://mcap.dev/spec#data-end-op0x0f">MCAP Data End</a>
  */
 public class DataEnd implements MCAPElement
 {

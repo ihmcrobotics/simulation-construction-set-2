@@ -11,6 +11,8 @@ import java.util.List;
  * Record opcodes in the range 0x01-0x7F are reserved for future MCAP format usage.
  * 0x80-0xFF are reserved for application extensions and user proposals.
  * 0x00 is not a valid opcode.
+ *
+ * @see <a href="https://mcap.dev/spec#records">MCAP Records</a>
  */
 public interface Record extends MCAPElement
 {

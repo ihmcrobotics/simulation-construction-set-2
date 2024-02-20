@@ -9,6 +9,8 @@ import java.util.List;
 /**
  * A Statistics record contains summary information about the recorded data.
  * The statistics record is optional, but the file should contain at most one.
+ *
+ * @see <a href="https://mcap.dev/spec#statistics-op0x0b">MCAP Statistics</a>
  */
 public interface Statistics extends MCAPElement
 {
