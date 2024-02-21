@@ -6,7 +6,6 @@ import us.ihmc.yoVariables.variable.YoVariable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 public class YoComposite implements Comparable<YoComposite>
 {
@@ -83,19 +82,10 @@ public class YoComposite implements Comparable<YoComposite>
       Map<YoComposite, String> yoCompositeToUniqueNameMap = YoCompositeTools.computeUniqueNames(yoComposites,
                                                                                                 yoComposite -> yoComposite.getNamespace().getSubNames(),
                                                                                                 YoComposite::getName);
-      for (Entry<YoComposite, String> e : yoCompositeToUniqueNameMap.entrySet())
-      {
-         YoComposite composite = e.getKey();
-         String uniqueName = e.getValue();
-         composite.uniqueName = uniqueName;
-
-         // Compute unique short name
-         int firstSeparatorIndex = uniqueName.indexOf(".");
-         int lastSeparatorIndex = uniqueName.lastIndexOf(".");
-         if (firstSeparatorIndex != lastSeparatorIndex)
-            composite.uniqueShortName = uniqueName.substring(0, firstSeparatorIndex) + "..." + uniqueName.substring(lastSeparatorIndex + 1);
-         else
-            composite.uniqueShortName = uniqueName;
-      }
+      yoCompositeToUniqueNameMap.forEach((yoComposite, uniqueName) -> yoComposite.uniqueName = uniqueName);
+      Map<YoComposite, String> yoCompositeToUniqueShortNameMap = YoCompositeTools.computeUniqueShortNames(yoComposites,
+                                                                                                          YoComposite::getName,
+                                                                                                          YoComposite::getUniqueName);
+      yoCompositeToUniqueShortNameMap.forEach((yoComposite, uniqueShortName) -> yoComposite.uniqueShortName = uniqueShortName);
    }
 }
