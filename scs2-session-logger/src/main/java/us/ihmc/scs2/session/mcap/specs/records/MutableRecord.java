@@ -82,4 +82,10 @@ public class MutableRecord implements Record
    {
       return toString(0);
    }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      return object instanceof Record other && Record.super.equals(other);
+   }
 }

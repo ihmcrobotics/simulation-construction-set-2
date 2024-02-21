@@ -67,4 +67,10 @@ public class SummaryOffsetDataInputBacked implements SummaryOffset
    {
       return toString(0);
    }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      return object instanceof SummaryOffset other && SummaryOffset.super.equals(other);
+   }
 }

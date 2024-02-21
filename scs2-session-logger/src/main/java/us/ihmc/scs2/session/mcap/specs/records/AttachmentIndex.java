@@ -3,6 +3,8 @@ package us.ihmc.scs2.session.mcap.specs.records;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
+import java.util.Objects;
+
 /**
  * An Attachment Index record contains the location of an attachment in the file.
  * An Attachment Index record exists for every Attachment record in the file.
@@ -69,5 +71,31 @@ public interface AttachmentIndex extends MCAPElement
       out += "\n\t-name = " + name();
       out += "\n\t-mediaType = " + mediaType();
       return MCAPElement.indent(out, indent);
+   }
+
+   @Override
+   default boolean equals(MCAPElement mcapElement)
+   {
+      if (mcapElement == this)
+         return true;
+
+      if (mcapElement instanceof AttachmentIndex other)
+      {
+         if (attachmentOffset() != other.attachmentOffset())
+            return false;
+         if (attachmentLength() != other.attachmentLength())
+            return false;
+         if (logTime() != other.logTime())
+            return false;
+         if (createTime() != other.createTime())
+            return false;
+         if (dataLength() != other.dataLength())
+            return false;
+         if (!Objects.equals(name(), other.name()))
+            return false;
+         return Objects.equals(mediaType(), other.mediaType());
+      }
+
+      return false;
    }
 }

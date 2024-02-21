@@ -4,6 +4,7 @@ import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * MessageIndex records allow readers to locate individual records within a chunk by timestamp.
@@ -35,5 +36,21 @@ public interface MessageIndex extends MCAPElement
             "null" :
             "\n" + EuclidCoreIOTools.getCollectionString("\n", messageIndexEntries, e -> e.toString(indent + 1)));
       return MCAPElement.indent(out, indent);
+   }
+
+   @Override
+   default boolean equals(MCAPElement mcapElement)
+   {
+      if (mcapElement == this)
+         return true;
+
+      if (mcapElement instanceof MessageIndex other)
+      {
+         if (channelId() != other.channelId())
+            return false;
+         return Objects.equals(messageIndexEntries(), other.messageIndexEntries());
+      }
+
+      return false;
    }
 }

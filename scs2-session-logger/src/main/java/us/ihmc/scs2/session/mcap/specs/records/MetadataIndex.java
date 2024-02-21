@@ -2,6 +2,8 @@ package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
+import java.util.Objects;
+
 /**
  * A metadata index record contains the location of a metadata record within the file.
  *
@@ -39,5 +41,25 @@ public interface MetadataIndex extends MCAPElement
       out += "\n\t-metadataLength = " + metadataLength();
       out += "\n\t-name = " + name();
       return MCAPElement.indent(out, indent);
+   }
+
+   @Override
+   default boolean equals(MCAPElement mcapElement)
+   {
+      if (mcapElement == this)
+         return true;
+
+      if (mcapElement instanceof MetadataIndex other)
+      {
+         if (metadataOffset() != other.metadataOffset())
+            return false;
+         if (metadataLength() != other.metadataLength())
+            return false;
+         if (!Objects.equals(name(), other.name()))
+            return false;
+         return Objects.equals(metadata(), other.metadata());
+      }
+
+      return false;
    }
 }

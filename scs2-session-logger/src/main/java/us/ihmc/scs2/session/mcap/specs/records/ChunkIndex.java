@@ -5,6 +5,7 @@ import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.util.List;
+import java.util.Objects;
 
 import static us.ihmc.scs2.session.mcap.specs.records.MCAPElement.indent;
 
@@ -110,5 +111,37 @@ public interface ChunkIndex extends MCAPElement
       out += "\n\t-compressedSize = " + recordsCompressedLength();
       out += "\n\t-uncompressedSize = " + recordsUncompressedLength();
       return indent(out, indent);
+   }
+
+   @Override
+   default boolean equals(MCAPElement mcapElement)
+   {
+      if (mcapElement == this)
+         return true;
+
+      if (mcapElement instanceof ChunkIndex other)
+      {
+         if (messageStartTime() != other.messageStartTime())
+            return false;
+         if (messageEndTime() != other.messageEndTime())
+            return false;
+         if (chunkOffset() != other.chunkOffset())
+            return false;
+         if (chunkLength() != other.chunkLength())
+            return false;
+         if (messageIndexOffsetsLength() != other.messageIndexOffsetsLength())
+            return false;
+         if (!Objects.equals(messageIndexOffsets(), other.messageIndexOffsets()))
+            return false;
+         if (messageIndexLength() != other.messageIndexLength())
+            return false;
+         if (compression() != other.compression())
+            return false;
+         if (recordsCompressedLength() != other.recordsCompressedLength())
+            return false;
+         return recordsUncompressedLength() == other.recordsUncompressedLength();
+      }
+
+      return false;
    }
 }

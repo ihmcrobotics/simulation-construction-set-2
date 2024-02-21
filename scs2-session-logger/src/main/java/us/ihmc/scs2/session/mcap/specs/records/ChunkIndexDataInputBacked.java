@@ -135,4 +135,10 @@ class ChunkIndexDataInputBacked implements ChunkIndex
    {
       return toString(0);
    }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      return object instanceof ChunkIndex other && ChunkIndex.super.equals(other);
+   }
 }

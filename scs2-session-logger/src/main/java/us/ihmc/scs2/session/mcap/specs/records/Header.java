@@ -4,6 +4,8 @@ import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 import us.ihmc.scs2.session.mcap.specs.MCAP;
 
+import java.util.Objects;
+
 /**
  * Header is the first record in an MCAP file.
  *
@@ -58,5 +60,27 @@ public class Header implements MCAPElement
       out += "\n\t-profile = " + profile;
       out += "\n\t-library = " + library;
       return out;
+   }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      return object instanceof Header other && equals(other);
+   }
+
+   @Override
+   public boolean equals(MCAPElement mcapElement)
+   {
+      if (mcapElement == this)
+         return true;
+
+      if (mcapElement instanceof Header other)
+      {
+         if (!Objects.equals(profile(), other.profile()))
+            return false;
+         return Objects.equals(library(), other.library());
+      }
+
+      return false;
    }
 }

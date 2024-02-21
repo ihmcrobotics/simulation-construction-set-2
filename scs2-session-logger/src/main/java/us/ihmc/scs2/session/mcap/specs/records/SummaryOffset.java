@@ -41,4 +41,22 @@ public interface SummaryOffset extends MCAPElement
       out += "\n\t-groupLength = " + groupLength();
       return MCAPElement.indent(out, indent);
    }
+
+   @Override
+   default boolean equals(MCAPElement mcapElement)
+   {
+      if (mcapElement == this)
+         return true;
+
+      if (mcapElement instanceof SummaryOffset other)
+      {
+         if (groupOpcode() != other.groupOpcode())
+            return false;
+         if (groupOffset() != other.groupOffset())
+            return false;
+         return groupLength() == other.groupLength();
+      }
+
+      return false;
+   }
 }

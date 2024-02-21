@@ -97,12 +97,14 @@ public class MCAPLogCropper
                   croppedMessageIndexRecords.forEach(r -> r.write(dataOutput, true));
                   croppedChunkIndexRecord.write(dataOutput, true);
                }
+               break;
             }
             case MESSAGE:
             {
                Message message = record.body();
                if (message.logTime() >= startTimestamp && message.logTime() <= endTimestamp)
                   record.write(dataOutput, true);
+               break;
             }
             case ATTACHMENT:
             {
@@ -113,6 +115,7 @@ public class MCAPLogCropper
                   record.write(dataOutput, true);
                   record.generateAttachmentIndexRecord(attachmentOffset).write(dataOutput, true);
                }
+               break;
             }
             case METADATA:
             {
@@ -120,6 +123,7 @@ public class MCAPLogCropper
                record.write(dataOutput, true);
                record.generateMetadataIndexRecord(metadataOffset).write(dataOutput, true);
             }
+            break;
          }
       }
       dataOutput.putBytes(Magic.MAGIC_BYTES); // footer magic

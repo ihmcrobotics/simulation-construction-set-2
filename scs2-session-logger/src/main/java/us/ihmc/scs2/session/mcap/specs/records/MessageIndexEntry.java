@@ -58,16 +58,32 @@ public class MessageIndexEntry implements MCAPElement
    @Override
    public void write(MCAPDataOutput dataOutput)
    {
-      dataOutput.putLong(logTime);
-      dataOutput.putLong(offset);
+      dataOutput.putLong(logTime());
+      dataOutput.putLong(offset());
    }
 
    @Override
    public String toString(int indent)
    {
       String out = getClass().getSimpleName() + ":";
-      out += "\n\t-logTime = " + logTime;
-      out += "\n\t-offset = " + offset;
+      out += "\n\t-logTime = " + logTime();
+      out += "\n\t-offset = " + offset();
       return MCAPElement.indent(out, indent);
+   }
+
+   @Override
+   public boolean equals(MCAPElement mcapElement)
+   {
+      if (mcapElement == this)
+         return true;
+
+      if (mcapElement instanceof MessageIndexEntry other)
+      {
+         if (logTime() != other.logTime())
+            return false;
+         return offset() == other.offset();
+      }
+
+      return false;
    }
 }

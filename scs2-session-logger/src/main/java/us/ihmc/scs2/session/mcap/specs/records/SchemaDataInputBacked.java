@@ -71,4 +71,10 @@ public class SchemaDataInputBacked implements Schema
    {
       return toString(0);
    }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      return object instanceof Schema schema && Schema.super.equals(schema);
+   }
 }

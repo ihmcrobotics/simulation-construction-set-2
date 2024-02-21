@@ -48,4 +48,22 @@ public interface Footer extends MCAPElement
       out += "\n\t-summaryCrc32 = " + summaryCrc32();
       return indent(out, indent);
    }
+
+   @Override
+   default boolean equals(MCAPElement mcapElement)
+   {
+      if (mcapElement == this)
+         return true;
+
+      if (mcapElement instanceof Footer other)
+      {
+         if (ofsSummarySection() != other.ofsSummarySection())
+            return false;
+         if (ofsSummaryOffsetSection() != other.ofsSummaryOffsetSection())
+            return false;
+         return summaryCrc32() == other.summaryCrc32();
+      }
+
+      return false;
+   }
 }

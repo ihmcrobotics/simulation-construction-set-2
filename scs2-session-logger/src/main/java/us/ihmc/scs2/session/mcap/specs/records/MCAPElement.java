@@ -20,4 +20,6 @@ public interface MCAPElement
    {
       return indent(toString(), indent);
    }
+
+   boolean equals(MCAPElement mcapElement);
 }

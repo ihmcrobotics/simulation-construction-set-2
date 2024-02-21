@@ -4,6 +4,7 @@ import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * MCAP files may contain a variety of records.
@@ -82,5 +83,21 @@ public interface Record extends MCAPElement
       chunkIndex.setChunk(this);
       chunkIndex.setMessageIndexOffsets(Records.generateMessageIndexOffsets(chunkOffset + chunkIndex.getElementLength(), messageIndexRecordList));
       return new MutableRecord(chunkIndex);
+   }
+
+   @Override
+   default boolean equals(MCAPElement mcapElement)
+   {
+      if (mcapElement == this)
+         return true;
+
+      if (mcapElement instanceof Record other)
+      {
+         if (op() != other.op())
+            return false;
+         return Objects.equals(body(), other.body());
+      }
+
+      return false;
    }
 }

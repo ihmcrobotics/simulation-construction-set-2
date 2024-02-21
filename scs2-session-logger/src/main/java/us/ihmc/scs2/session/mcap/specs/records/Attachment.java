@@ -4,6 +4,7 @@ import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.nio.ByteBuffer;
+import java.util.Objects;
 
 /**
  * Attachment records contain auxiliary artifacts such as text, core dumps, calibration data, or other arbitrary data.
@@ -68,5 +69,31 @@ public interface Attachment extends MCAPElement
       out += "\n\t-data = " + data();
       out += "\n\t-crc32 = " + crc32();
       return MCAPElement.indent(out, indent);
+   }
+
+   @Override
+   default boolean equals(MCAPElement mcapElement)
+   {
+      if (mcapElement == this)
+         return true;
+
+      if (mcapElement instanceof Attachment other)
+      {
+         if (logTime() != other.logTime())
+            return false;
+         if (createTime() != other.createTime())
+            return false;
+         if (!Objects.equals(name(), other.name()))
+            return false;
+         if (!Objects.equals(mediaType(), other.mediaType()))
+            return false;
+         if (dataLength() != other.dataLength())
+            return false;
+         if (!data().equals(other.data()))
+            return false;
+         return crc32() == other.crc32();
+      }
+
+      return false;
    }
 }

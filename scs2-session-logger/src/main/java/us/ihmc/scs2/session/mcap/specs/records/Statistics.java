@@ -5,6 +5,7 @@ import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A Statistics record contains summary information about the recorded data.
@@ -65,5 +66,35 @@ public interface Statistics extends MCAPElement
       out += "\n\t-messageEndTime = " + messageEndTime();
       out += "\n\t-channelMessageCounts = \n" + EuclidCoreIOTools.getCollectionString("\n", channelMessageCounts(), e -> e.toString(1));
       return out;
+   }
+
+   @Override
+   default boolean equals(MCAPElement mcapElement)
+   {
+      if (mcapElement == this)
+         return true;
+
+      if (mcapElement instanceof Statistics other)
+      {
+         if (messageCount() != other.messageCount())
+            return false;
+         if (schemaCount() != other.schemaCount())
+            return false;
+         if (channelCount() != other.channelCount())
+            return false;
+         if (attachmentCount() != other.attachmentCount())
+            return false;
+         if (metadataCount() != other.metadataCount())
+            return false;
+         if (chunkCount() != other.chunkCount())
+            return false;
+         if (messageStartTime() != other.messageStartTime())
+            return false;
+         if (messageEndTime() != other.messageEndTime())
+            return false;
+         return Objects.equals(channelMessageCounts(), other.channelMessageCounts());
+      }
+
+      return false;
    }
 }

@@ -50,4 +50,22 @@ public class DataEnd implements MCAPElement
    {
       return getClass().getSimpleName() + ":\n\t-dataSectionCrc32 = " + dataSectionCRC32;
    }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      return object instanceof DataEnd other && equals(other);
+   }
+
+   @Override
+   public boolean equals(MCAPElement mcapElement)
+   {
+      if (mcapElement == this)
+         return true;
+
+      if (mcapElement instanceof DataEnd other)
+         return dataSectionCRC32() == other.dataSectionCRC32();
+
+      return false;
+   }
 }

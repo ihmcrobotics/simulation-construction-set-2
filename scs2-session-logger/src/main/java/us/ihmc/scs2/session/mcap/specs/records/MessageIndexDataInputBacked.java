@@ -57,4 +57,10 @@ public class MessageIndexDataInputBacked implements MessageIndex
    {
       return toString(0);
    }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      return object instanceof MessageIndex other && MessageIndex.super.equals(other);
+   }
 }

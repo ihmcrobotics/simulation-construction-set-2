@@ -13,29 +13,54 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MCAPLogCropperTest
 {
    @Test
    public void testNoCropMCAPDemoFile() throws IOException
    {
-      URL demoMCAPURL = new URL("https://github.com/foxglove/mcap/raw/main/testdata/mcap/demo.mcap");
-      File demoMCAPFile = downloadFile(demoMCAPURL);
+      File demoMCAPFile;
+      // Check if the demo file is already downloaded, allowing for faster local testing
+      Path localFileVersion = Paths.get(System.getProperty("user.home"), "Downloads", "demo.mcap");
+      if (Files.exists(localFileVersion))
+      {
+         demoMCAPFile = localFileVersion.toFile();
+      }
+      else
+      {
+         URL demoMCAPURL = new URL("https://github.com/foxglove/mcap/raw/main/testdata/mcap/demo.mcap");
+         demoMCAPFile = downloadFile(demoMCAPURL);
+      }
 
-      MCAP mcap = new MCAP(new FileInputStream(demoMCAPFile).getChannel());
-      MCAPLogCropper mcapLogCropper = new MCAPLogCropper(mcap);
+      MCAP originalMCAP = new MCAP(new FileInputStream(demoMCAPFile).getChannel());
+      MCAPLogCropper mcapLogCropper = new MCAPLogCropper(originalMCAP);
       mcapLogCropper.setStartTimestamp(0);
       mcapLogCropper.setEndTimestamp(Long.MAX_VALUE);
       mcapLogCropper.setOutputFormat(OutputFormat.MCAP);
       File croppedDemoMCAPFile = createTempMCAPFile("croppedDemo");
       mcapLogCropper.crop(new FileOutputStream(croppedDemoMCAPFile));
 
-      // Now let's compare the original and the cropped files
-      FileInputStream originalFileInputStream = new FileInputStream(demoMCAPFile);
-      FileInputStream croppedFileInputStream = new FileInputStream(croppedDemoMCAPFile);
+      // Let's compare the original and the cropped files by loading them into memory and comparing their content
+      MCAP croppedMCAP = new MCAP(new FileInputStream(croppedDemoMCAPFile).getChannel());
 
-      try
+      if (originalMCAP.records().size() != croppedMCAP.records().size())
+      {
+         fail("Original and cropped MCAPs have different number of records");
+      }
+
+      for (int i = 0; i < originalMCAP.records().size(); i++)
+      {
+         assertEquals(originalMCAP.records().get(i), croppedMCAP.records().get(i));
+      }
+
+      // Now let's compare the original and the cropped files
+      try (FileInputStream originalFileInputStream = new FileInputStream(demoMCAPFile);
+           FileInputStream croppedFileInputStream = new FileInputStream(croppedDemoMCAPFile))
       {
          byte[] originalBuffer = new byte[1024];
          byte[] croppedBuffer = new byte[1024];
@@ -64,11 +89,6 @@ public class MCAPLogCropperTest
                }
             }
          }
-      }
-      finally
-      {
-         originalFileInputStream.close();
-         croppedFileInputStream.close();
       }
    }
 

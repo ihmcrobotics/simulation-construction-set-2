@@ -5,6 +5,7 @@ import us.ihmc.scs2.session.mcap.specs.MCAP;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
+import java.util.Objects;
 
 class ChannelDataInputBacked implements Channel
 {
@@ -80,5 +81,29 @@ class ChannelDataInputBacked implements Channel
    public String toString()
    {
       return toString(0);
+   }
+
+   @Override
+   public boolean equals(MCAPElement mcapElement)
+   {
+      if (this == mcapElement)
+         return true;
+
+      if (mcapElement instanceof Channel other)
+      {
+         if (id() != other.id())
+            return false;
+         if (schemaId() != other.schemaId())
+            return false;
+         if (!Objects.equals(topic(), other.topic()))
+            return false;
+         if (!Objects.equals(messageEncoding(), other.messageEncoding()))
+            return false;
+         if (!Objects.equals(metadata(), other.metadata()))
+            return false;
+         return true;
+      }
+
+      return false;
    }
 }

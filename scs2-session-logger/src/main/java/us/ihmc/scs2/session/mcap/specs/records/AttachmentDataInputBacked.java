@@ -118,4 +118,10 @@ class AttachmentDataInputBacked implements Attachment
    {
       return toString(0);
    }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      return object instanceof Attachment attachment && Attachment.super.equals(attachment);
+   }
 }

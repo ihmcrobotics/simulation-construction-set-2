@@ -107,4 +107,10 @@ public class FooterDataInputBacked implements Footer
    {
       return toString(0);
    }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      return object instanceof Footer other && Footer.super.equals(other);
+   }
 }

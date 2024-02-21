@@ -58,4 +58,26 @@ public class ChannelMessageCount implements MCAPElement
       out += "\n\t-messageCount = " + messageCount;
       return MCAPElement.indent(out, indent);
    }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      return object instanceof ChannelMessageCount other && equals(other);
+   }
+
+   @Override
+   public boolean equals(MCAPElement mcapElement)
+   {
+      if (mcapElement == this)
+         return true;
+
+      if (mcapElement instanceof ChannelMessageCount other)
+      {
+         if (channelId() != other.channelId())
+            return false;
+         return messageCount() == other.messageCount();
+      }
+
+      return false;
+   }
 }

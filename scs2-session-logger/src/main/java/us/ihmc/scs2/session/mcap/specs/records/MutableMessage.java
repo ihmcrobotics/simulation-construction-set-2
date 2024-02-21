@@ -107,4 +107,10 @@ public class MutableMessage implements Message
    {
       return toString(0);
    }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      return object instanceof Message other && Message.super.equals(other);
+   }
 }

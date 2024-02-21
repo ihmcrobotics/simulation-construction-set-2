@@ -61,8 +61,29 @@ public class MessageIndexOffset implements MCAPElement
    public String toString(int indent)
    {
       String out = getClass().getSimpleName() + ":";
-      out += "\n\t-channelId = " + channelId;
-      out += "\n\t-offset = " + offset;
+      out += "\n\t-channelId = " + channelId();
+      out += "\n\t-offset = " + offset();
       return MCAPElement.indent(out, indent);
+   }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      return object instanceof MessageIndexOffset other && equals(other);
+   }
+
+   @Override
+   public boolean equals(MCAPElement mcapElement)
+   {
+      if (mcapElement == this)
+         return true;
+
+      if (mcapElement instanceof MessageIndexOffset other)
+      {
+         if (channelId() != other.channelId())
+            return false;
+         return offset() == other.offset();
+      }
+      return false;
    }
 }

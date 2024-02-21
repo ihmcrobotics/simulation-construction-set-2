@@ -157,4 +157,10 @@ class ChunkDataInputBacked implements Chunk
    {
       return toString(0);
    }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      return object instanceof Chunk other && Chunk.super.equals(other);
+   }
 }

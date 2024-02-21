@@ -3,6 +3,8 @@ package us.ihmc.scs2.session.mcap.specs.records;
 import us.ihmc.commons.MathTools;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 
+import java.util.Objects;
+
 /**
  * Chunk records each contain a batch of Schema, Channel, and Message records.
  * The batch of records contained in a chunk may be compressed or uncompressed.
@@ -74,6 +76,32 @@ public interface Chunk extends MCAPElement
       out += "\n\t-recordsUncompressedLength = " + recordsUncompressedLength();
       out += "\n\t-uncompressedCrc32 = " + uncompressedCRC32();
       return MCAPElement.indent(out, indent);
+   }
+
+   @Override
+   default boolean equals(MCAPElement mcapElement)
+   {
+      if (mcapElement == this)
+         return true;
+
+      if (mcapElement instanceof Chunk other)
+      {
+         if (messageStartTime() != other.messageStartTime())
+            return false;
+         if (messageEndTime() != other.messageEndTime())
+            return false;
+         if (recordsUncompressedLength() != other.recordsUncompressedLength())
+            return false;
+         if (uncompressedCRC32() != other.uncompressedCRC32())
+            return false;
+         if (compression() != other.compression())
+            return false;
+         if (recordsCompressedLength() != other.recordsCompressedLength())
+            return false;
+         return Objects.equals(records(), other.records());
+      }
+
+      return false;
    }
 
    default Chunk crop(long startTimestamp, long endTimestamp)

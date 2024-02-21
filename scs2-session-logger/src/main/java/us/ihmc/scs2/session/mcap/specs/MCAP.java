@@ -1,5 +1,6 @@
 package us.ihmc.scs2.session.mcap.specs;
 
+import us.ihmc.log.LogTools;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.specs.records.FooterDataInputBacked;
 import us.ihmc.scs2.session.mcap.specs.records.MCAPElement;
@@ -42,15 +43,35 @@ public class MCAP
       records = new ArrayList<>();
       Record lastRecord;
 
-      do
+      try
       {
-         lastRecord = new RecordDataInputBacked(dataInput, currentPos);
-         if (lastRecord.getElementLength() < 0)
-            throw new IllegalArgumentException("Invalid record length: " + lastRecord.getElementLength());
-         currentPos += lastRecord.getElementLength();
-         records.add(lastRecord);
+         do
+         {
+            lastRecord = new RecordDataInputBacked(dataInput, currentPos);
+            if (lastRecord.getElementLength() < 0)
+               throw new IllegalArgumentException("Invalid record length: " + lastRecord.getElementLength());
+            currentPos += lastRecord.getElementLength();
+            records.add(lastRecord);
+         }
+         while (!(lastRecord.op() == Opcode.FOOTER));
       }
-      while (!(lastRecord.op() == Opcode.FOOTER));
+      catch (IllegalArgumentException e)
+      {
+         try
+         {
+
+            LogTools.info("Loaded records:\n");
+            for (Record record : records)
+            {
+               System.out.println(record);
+            }
+         }
+         catch (Exception e2)
+         {
+            throw e;
+         }
+         throw e;
+      }
 
       Magic.readMagic(dataInput, currentPos);
    }

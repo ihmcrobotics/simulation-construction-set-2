@@ -4,6 +4,7 @@ import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Channel records define encoded streams of messages on topics.
@@ -50,5 +51,27 @@ public interface Channel extends MCAPElement
       out += "\n\t-messageEncoding = " + messageEncoding();
       out += "\n\t-metadata = [%s]".formatted(metadata().toString());
       return MCAPElement.indent(out, indent);
+   }
+
+   @Override
+   default boolean equals(MCAPElement mcapElement)
+   {
+      if (mcapElement == this)
+         return true;
+
+      if (mcapElement instanceof Channel other)
+      {
+         if (id() != other.id())
+            return false;
+         if (schemaId() != other.schemaId())
+            return false;
+         if (!Objects.equals(topic(), other.topic()))
+            return false;
+         if (!Objects.equals(messageEncoding(), other.messageEncoding()))
+            return false;
+         return Objects.equals(metadata(), other.metadata());
+      }
+
+      return false;
    }
 }

@@ -121,4 +121,10 @@ class MessageDataInputBacked implements Message
       //         out += "\n\t-data = " + data;
       return out;
    }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      return object instanceof Message other && Message.super.equals(other);
+   }
 }

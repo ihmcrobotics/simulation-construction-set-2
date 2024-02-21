@@ -94,4 +94,10 @@ class AttachmentIndexDataInputBacked implements AttachmentIndex
    {
       return toString(0);
    }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      return object instanceof AttachmentIndex other && AttachmentIndex.super.equals(other);
+   }
 }

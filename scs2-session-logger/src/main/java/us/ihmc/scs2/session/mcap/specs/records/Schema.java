@@ -5,6 +5,7 @@ import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * A Schema record defines an individual schema.
@@ -57,5 +58,27 @@ public interface Schema extends MCAPElement
       out += "\n\t-dataLength = " + dataLength();
       out += "\n\t-data = " + Arrays.toString(data().array());
       return MCAPElement.indent(out, indent);
+   }
+
+   @Override
+   default boolean equals(MCAPElement mcapElement)
+   {
+      if (mcapElement == this)
+         return true;
+
+      if (mcapElement instanceof Schema other)
+      {
+         if (id() != other.id())
+            return false;
+         if (!Objects.equals(name(), other.name()))
+            return false;
+         if (!Objects.equals(encoding(), other.encoding()))
+            return false;
+         if (dataLength() != other.dataLength())
+            return false;
+         return Arrays.equals(data().array(), other.data().array());
+      }
+
+      return false;
    }
 }

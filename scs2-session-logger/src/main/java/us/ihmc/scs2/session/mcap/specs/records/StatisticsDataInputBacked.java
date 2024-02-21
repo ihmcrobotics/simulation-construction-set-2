@@ -113,4 +113,10 @@ public class StatisticsDataInputBacked implements Statistics
    {
       return toString(0);
    }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      return object instanceof Statistics other && Statistics.super.equals(other);
+   }
 }

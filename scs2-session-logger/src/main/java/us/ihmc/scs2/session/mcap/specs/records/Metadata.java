@@ -6,6 +6,7 @@ import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 import us.ihmc.scs2.session.mcap.specs.MCAP;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A metadata record contains arbitrary user data in key-value pairs.
@@ -55,8 +56,30 @@ public class Metadata implements MCAPElement
    public String toString()
    {
       String out = getClass().getSimpleName() + ": ";
-      out += "\n\t-name = " + name;
-      out += "\n\t-metadata = " + EuclidCoreIOTools.getCollectionString(", ", metadata, e -> e.key());
+      out += "\n\t-name = " + name();
+      out += "\n\t-metadata = " + EuclidCoreIOTools.getCollectionString(", ", metadata(), e -> e.key());
       return out;
+   }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      return object instanceof Metadata other && equals(other);
+   }
+
+   @Override
+   public boolean equals(MCAPElement mcapElement)
+   {
+      if (mcapElement == this)
+         return true;
+
+      if (mcapElement instanceof Metadata other)
+      {
+         if (!name().equals(other.name()))
+            return false;
+         return Objects.equals(metadata(), other.metadata());
+      }
+
+      return false;
    }
 }
