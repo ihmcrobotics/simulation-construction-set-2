@@ -4,7 +4,9 @@ import org.apache.commons.io.FilenameUtils;
 import org.junit.jupiter.api.Test;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.session.mcap.MCAPLogCropper.OutputFormat;
+import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 import us.ihmc.scs2.session.mcap.specs.MCAP;
+import us.ihmc.scs2.session.mcap.specs.records.Magic;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,20 +24,37 @@ import static org.junit.jupiter.api.Assertions.*;
 public class MCAPLogCropperTest
 {
    @Test
-   public void testNoCropMCAPDemoFile() throws IOException
+   public void testSimpleCloningMCAP() throws IOException
    {
-      File demoMCAPFile;
-      // Check if the demo file is already downloaded, allowing for faster local testing
-      Path localFileVersion = Paths.get(System.getProperty("user.home"), "Downloads", "demo.mcap");
-      if (Files.exists(localFileVersion))
+      File demoMCAPFile = getDemoMCAPFile();
+      MCAP originalMCAP = new MCAP(new FileInputStream(demoMCAPFile).getChannel());
+      File clonedDemoMCAPFile = createTempMCAPFile("clonedDemo");
+      MCAPDataOutput dataOutput = MCAPDataOutput.wrap(new FileOutputStream(clonedDemoMCAPFile).getChannel());
+      dataOutput.putBytes(Magic.MAGIC_BYTES); // header magic
+      originalMCAP.records().forEach(record -> record.write(dataOutput));
+      dataOutput.putBytes(Magic.MAGIC_BYTES); // footer magic
+      dataOutput.close();
+
+      // Let's compare the original and the cloned files by loading them into memory and comparing their content
+      MCAP clonedMCAP = new MCAP(new FileInputStream(clonedDemoMCAPFile).getChannel());
+
+      if (originalMCAP.records().size() != clonedMCAP.records().size())
       {
-         demoMCAPFile = localFileVersion.toFile();
+         fail("Original and cloned MCAPs have different number of records");
       }
-      else
+
+      for (int i = 0; i < originalMCAP.records().size(); i++)
       {
-         URL demoMCAPURL = new URL("https://github.com/foxglove/mcap/raw/main/testdata/mcap/demo.mcap");
-         demoMCAPFile = downloadFile(demoMCAPURL);
+         assertEquals(originalMCAP.records().get(i), clonedMCAP.records().get(i), "Record " + i + " is different");
       }
+
+      assertFileEquals(demoMCAPFile, clonedDemoMCAPFile);
+   }
+
+   @Test
+   public void testNotActuallyCroppingMCAPDemoFile() throws IOException
+   {
+      File demoMCAPFile = getDemoMCAPFile();
 
       MCAP originalMCAP = new MCAP(new FileInputStream(demoMCAPFile).getChannel());
       MCAPLogCropper mcapLogCropper = new MCAPLogCropper(originalMCAP);
@@ -59,37 +78,64 @@ public class MCAPLogCropperTest
       }
 
       // Now let's compare the original and the cropped files
-      try (FileInputStream originalFileInputStream = new FileInputStream(demoMCAPFile);
-           FileInputStream croppedFileInputStream = new FileInputStream(croppedDemoMCAPFile))
+      assertFileEquals(demoMCAPFile, croppedDemoMCAPFile);
+   }
+
+   /**
+    * Compares the content of two files. This is a simple byte-to-byte comparison.
+    *
+    * @param expected The expected file.
+    * @param actual   The actual file.
+    */
+   private static void assertFileEquals(File expected, File actual) throws IOException
+   {
+      try (FileInputStream expectedFileInputStream = new FileInputStream(expected); FileInputStream actualFileInputStream = new FileInputStream(actual))
       {
-         byte[] originalBuffer = new byte[1024];
-         byte[] croppedBuffer = new byte[1024];
+         byte[] expectedBuffer = new byte[1024];
+         byte[] actualBuffer = new byte[1024];
 
-         int originalRead = 0;
-         int croppedRead = 0;
+         int expectedRead = 0;
+         int actualRead = 0;
 
-         while ((originalRead = originalFileInputStream.read(originalBuffer)) != -1)
+         while ((expectedRead = expectedFileInputStream.read(expectedBuffer)) != -1)
          {
-            croppedRead = croppedFileInputStream.read(croppedBuffer);
-            if (croppedRead == -1)
+            actualRead = actualFileInputStream.read(actualBuffer);
+            if (actualRead == -1)
             {
-               throw new IOException("Cropped file is shorter than the original file");
+               fail("Actual file is shorter than the expected file");
             }
 
-            if (originalRead != croppedRead)
+            if (expectedRead != actualRead)
             {
-               throw new IOException("Original and cropped files have different lengths");
+               fail("Files have different lengths");
             }
 
-            for (int i = 0; i < originalRead; i++)
+            for (int i = 0; i < expectedRead; i++)
             {
-               if (originalBuffer[i] != croppedBuffer[i])
+               if (expectedBuffer[i] != actualBuffer[i])
                {
-                  throw new IOException("Original and cropped files are different");
+                  fail("Files are different");
                }
             }
          }
       }
+   }
+
+   private static File getDemoMCAPFile() throws IOException
+   {
+      File demoMCAPFile;
+      // Check if the demo file is already downloaded, allowing for faster local testing
+      Path localFileVersion = Paths.get(System.getProperty("user.home"), "Downloads", "demo.mcap");
+      if (Files.exists(localFileVersion))
+      {
+         demoMCAPFile = localFileVersion.toFile();
+      }
+      else
+      {
+         URL demoMCAPURL = new URL("https://github.com/foxglove/mcap/raw/main/testdata/mcap/demo.mcap");
+         demoMCAPFile = downloadFile(demoMCAPURL);
+      }
+      return demoMCAPFile;
    }
 
    private static File downloadFile(URL url) throws IOException

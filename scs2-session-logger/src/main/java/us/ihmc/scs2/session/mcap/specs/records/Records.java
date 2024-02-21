@@ -7,6 +7,7 @@ import us.ihmc.scs2.session.mcap.specs.MCAP;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import static us.ihmc.scs2.session.mcap.specs.records.MCAPElement.indent;
@@ -88,6 +89,29 @@ public class Records extends ArrayList<Record>
       return indent(out, indent);
    }
 
+   @Override
+   public boolean equals(Object object)
+   {
+      if (object == this)
+         return true;
+
+      if (object instanceof Records other)
+      {
+         if (size() != other.size())
+            return false;
+         for (int i = 0; i < size(); i++)
+         {
+            Record record = get(i);
+            Record otherRecord = other.get(i);
+            if (!record.equals(otherRecord))
+               return false;
+         }
+         return true;
+      }
+
+      return false;
+   }
+
    public List<MessageIndex> generateMessageIndexList()
    {
       TIntObjectHashMap<MutableMessageIndex> messageIndexMap = new TIntObjectHashMap<>();
@@ -105,6 +129,7 @@ public class Records extends ArrayList<Record>
             if (messageIndex == null)
             {
                messageIndex = new MutableMessageIndex();
+               messageIndex.setChannelId(channelId);
                messageIndexMap.put(channelId, messageIndex);
             }
 
@@ -114,7 +139,9 @@ public class Records extends ArrayList<Record>
          messageIndexOffset += record.getElementLength();
       }
 
-      return Arrays.asList(messageIndexMap.values(new MutableMessageIndex[messageIndexMap.size()]));
+      List<MessageIndex> messageIndices = Arrays.asList(messageIndexMap.values(new MutableMessageIndex[messageIndexMap.size()]));
+      messageIndices.sort(Comparator.comparingInt(MessageIndex::channelId));
+      return messageIndices;
    }
 
    public static List<MessageIndexOffset> generateMessageIndexOffsets(long offset, List<? extends Record> messageIndexRecordList)

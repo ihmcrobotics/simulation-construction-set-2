@@ -94,6 +94,18 @@ public class RecordDataInputBacked implements Record
    }
 
    @Override
+   public String toString(int indent)
+   {
+      String out = getClass().getSimpleName() + ":";
+      out += "\n\t-op = " + op();
+      out += "\n\t-bodyLength = " + bodyLength;
+      out += "\n\t-bodyOffset = " + bodyOffset;
+      Object body = body();
+      out += "\n\t-body = " + (body == null ? "null" : "\n" + ((MCAPElement) body).toString(indent + 2));
+      return MCAPElement.indent(out, indent);
+   }
+
+   @Override
    public boolean equals(Object object)
    {
       return object instanceof Record other && Record.super.equals(other);

@@ -72,6 +72,12 @@ public class MessageIndexEntry implements MCAPElement
    }
 
    @Override
+   public boolean equals(Object object)
+   {
+      return object instanceof MessageIndexEntry other && equals(other);
+   }
+
+   @Override
    public boolean equals(MCAPElement mcapElement)
    {
       if (mcapElement == this)
