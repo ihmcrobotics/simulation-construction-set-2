@@ -116,7 +116,7 @@ public class FFMPEGVideoViewer
 
             videoWindowProperty.set(stage);
             stage.getIcons().add(SessionVisualizerIOTools.LOG_SESSION_IMAGE);
-            stage.setTitle(reader.toString());
+            stage.setTitle(this.reader.toString());
             owner.setOnHiding(e2 -> stage.close());
             Scene scene = new Scene(anchorPane);
             stage.setScene(scene);
@@ -140,8 +140,8 @@ public class FFMPEGVideoViewer
 
       offsetSpinner.valueProperty().addListener((observable, oldValue, newValue) ->
                                                 {
-                                                   reader.setPlaybackOffset(Math.round(newValue * 1000000L));
-                                                   reader.readCurrentFrame();
+                                                   this.reader.setPlaybackOffset(Math.round(newValue * 1000000000.0));
+                                                   this.reader.readCurrentFrame();
                                                 });
    }
 
