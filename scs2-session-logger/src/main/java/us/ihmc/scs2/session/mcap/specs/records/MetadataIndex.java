@@ -1,5 +1,6 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
+import us.ihmc.scs2.session.mcap.encoding.MCAPCRC32Helper;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.util.Objects;
@@ -31,6 +32,17 @@ public interface MetadataIndex extends MCAPElement
       dataOutput.putLong(metadataOffset());
       dataOutput.putLong(metadataLength());
       dataOutput.putString(name());
+   }
+
+   @Override
+   default MCAPCRC32Helper updateCRC(MCAPCRC32Helper crc32)
+   {
+      if (crc32 == null)
+         crc32 = new MCAPCRC32Helper();
+      crc32.addLong(metadataOffset());
+      crc32.addLong(metadataLength());
+      crc32.addString(name());
+      return crc32;
    }
 
    @Override

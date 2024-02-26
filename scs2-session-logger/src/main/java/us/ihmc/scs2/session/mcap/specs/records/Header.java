@@ -1,5 +1,6 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
+import us.ihmc.scs2.session.mcap.encoding.MCAPCRC32Helper;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 import us.ihmc.scs2.session.mcap.specs.MCAP;
@@ -51,6 +52,16 @@ public class Header implements MCAPElement
    {
       dataOutput.putString(profile);
       dataOutput.putString(library);
+   }
+
+   @Override
+   public MCAPCRC32Helper updateCRC(MCAPCRC32Helper crc32)
+   {
+      if (crc32 == null)
+         crc32 = new MCAPCRC32Helper();
+      crc32.addString(profile);
+      crc32.addString(library);
+      return crc32;
    }
 
    @Override

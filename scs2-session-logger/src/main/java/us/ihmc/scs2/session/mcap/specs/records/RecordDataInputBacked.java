@@ -1,5 +1,6 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
+import us.ihmc.scs2.session.mcap.encoding.MCAPCRC32Helper;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 import us.ihmc.scs2.session.mcap.specs.MCAP;
@@ -34,6 +35,17 @@ public class RecordDataInputBacked implements Record
       dataOutput.putLong(bodyLength);
       if (writeBody)
          dataOutput.putBytes(dataInput.getBytes(bodyOffset, (int) bodyLength));
+   }
+
+   @Override
+   public MCAPCRC32Helper updateCRC(MCAPCRC32Helper crc32)
+   {
+      if (crc32 == null)
+         crc32 = new MCAPCRC32Helper();
+      crc32.addUnsignedByte(op.id());
+      crc32.addLong(bodyLength);
+      crc32.addBytes(dataInput.getBytes(bodyOffset, (int) bodyLength));
+      return crc32;
    }
 
    @Override

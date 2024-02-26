@@ -1,5 +1,6 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
+import us.ihmc.scs2.session.mcap.encoding.MCAPCRC32Helper;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
@@ -37,6 +38,17 @@ public interface Footer extends MCAPElement
       dataOutput.putLong(ofsSummarySection());
       dataOutput.putLong(ofsSummaryOffsetSection());
       dataOutput.putUnsignedInt(summaryCrc32());
+   }
+
+   @Override
+   default MCAPCRC32Helper updateCRC(MCAPCRC32Helper crc32)
+   {
+      if (crc32 == null)
+         crc32 = new MCAPCRC32Helper();
+      crc32.addLong(ofsSummarySection());
+      crc32.addLong(ofsSummaryOffsetSection());
+      crc32.addUnsignedInt(summaryCrc32());
+      return crc32;
    }
 
    @Override

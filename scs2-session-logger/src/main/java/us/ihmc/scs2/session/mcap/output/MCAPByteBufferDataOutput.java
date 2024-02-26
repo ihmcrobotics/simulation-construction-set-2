@@ -1,6 +1,7 @@
 package us.ihmc.scs2.session.mcap.output;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class MCAPByteBufferDataOutput implements MCAPDataOutput
 {
@@ -26,7 +27,9 @@ public class MCAPByteBufferDataOutput implements MCAPDataOutput
 
    private ByteBuffer newBuffer(int capacity)
    {
-      return directBuffer ? ByteBuffer.allocateDirect(capacity) : ByteBuffer.allocate(capacity);
+      ByteBuffer newBuffer = directBuffer ? ByteBuffer.allocateDirect(capacity) : ByteBuffer.allocate(capacity);
+      newBuffer.order(ByteOrder.LITTLE_ENDIAN);
+      return newBuffer;
    }
 
    @Override

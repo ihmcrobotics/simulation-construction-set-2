@@ -1,5 +1,6 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
+import us.ihmc.scs2.session.mcap.encoding.MCAPCRC32Helper;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 import us.ihmc.scs2.session.mcap.specs.MCAP;
@@ -55,6 +56,16 @@ public class MessageIndexOffset implements MCAPElement
    {
       dataOutput.putUnsignedShort(channelId);
       dataOutput.putLong(offset);
+   }
+
+   @Override
+   public MCAPCRC32Helper updateCRC(MCAPCRC32Helper crc32)
+   {
+      if (crc32 == null)
+         crc32 = new MCAPCRC32Helper();
+      crc32.addUnsignedShort(channelId);
+      crc32.addLong(offset);
+      return crc32;
    }
 
    @Override

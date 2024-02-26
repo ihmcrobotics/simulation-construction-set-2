@@ -1,5 +1,6 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
+import us.ihmc.scs2.session.mcap.encoding.MCAPCRC32Helper;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 import us.ihmc.scs2.session.mcap.specs.MCAP;
@@ -7,7 +8,7 @@ import us.ihmc.scs2.session.mcap.specs.MCAP;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 
-class ChunkDataInputBacked implements Chunk
+public class ChunkDataInputBacked implements Chunk
 {
    private final MCAPDataInput dataInput;
    private final long elementLength;
@@ -115,6 +116,18 @@ class ChunkDataInputBacked implements Chunk
    }
 
    @Override
+   public ByteBuffer getRecordsCompressedBuffer(boolean directBuffer)
+   {
+      return dataInput.getByteBuffer(recordsOffset, (int) recordsCompressedLength, directBuffer);
+   }
+
+   @Override
+   public ByteBuffer getRecordsUncompressedBuffer(boolean directBuffer)
+   {
+      return dataInput.getDecompressedByteBuffer(recordsOffset, (int) recordsCompressedLength, (int) recordsUncompressedLength, compression, directBuffer);
+   }
+
+   @Override
    public Records records()
    {
       Records records = recordsRef == null ? null : recordsRef.get();
@@ -128,12 +141,7 @@ class ChunkDataInputBacked implements Chunk
       }
       else
       {
-         ByteBuffer decompressedBuffer = dataInput.getDecompressedByteBuffer(recordsOffset,
-                                                                             (int) recordsCompressedLength,
-                                                                             (int) recordsUncompressedLength,
-                                                                             compression,
-                                                                             false);
-         records = Records.load(MCAPDataInput.wrap(decompressedBuffer), 0, (int) recordsUncompressedLength);
+         records = Records.load(MCAPDataInput.wrap(getRecordsUncompressedBuffer()), 0, (int) recordsUncompressedLength);
       }
 
       recordsRef = new WeakReference<>(records);
@@ -150,6 +158,21 @@ class ChunkDataInputBacked implements Chunk
       dataOutput.putString(compression.getName());
       dataOutput.putLong(recordsCompressedLength);
       dataOutput.putByteBuffer(dataInput.getByteBuffer(recordsOffset, (int) recordsCompressedLength, false));
+   }
+
+   @Override
+   public MCAPCRC32Helper updateCRC(MCAPCRC32Helper crc32)
+   {
+      if (crc32 == null)
+         crc32 = new MCAPCRC32Helper();
+      crc32.addLong(messageStartTime);
+      crc32.addLong(messageEndTime);
+      crc32.addLong(recordsUncompressedLength);
+      crc32.addUnsignedInt(uncompressedCRC32);
+      crc32.addString(compression.getName());
+      crc32.addLong(recordsCompressedLength);
+      crc32.addByteBuffer(dataInput.getByteBuffer(recordsOffset, (int) recordsCompressedLength, false));
+      return crc32;
    }
 
    @Override

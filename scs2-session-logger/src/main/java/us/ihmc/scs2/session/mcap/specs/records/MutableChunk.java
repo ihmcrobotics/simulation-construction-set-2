@@ -2,10 +2,12 @@ package us.ihmc.scs2.session.mcap.specs.records;
 
 import com.github.luben.zstd.ZstdCompressCtx;
 import us.ihmc.scs2.session.mcap.encoding.LZ4FrameEncoder;
+import us.ihmc.scs2.session.mcap.encoding.MCAPCRC32Helper;
 import us.ihmc.scs2.session.mcap.output.MCAPByteBufferDataOutput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Objects;
 
 public class MutableChunk implements Chunk
@@ -13,7 +15,7 @@ public class MutableChunk implements Chunk
    private long messageStartTime;
    private long messageEndTime;
    private long recordsUncompressedLength = -1L;
-   private long uncompressedCrc32;
+   private long uncompressedCRC32;
    private Compression compression = Compression.LZ4;
    private long recordsCompressedLength = -1L;
 
@@ -35,9 +37,9 @@ public class MutableChunk implements Chunk
       this.recordsUncompressedLength = recordsUncompressedLength;
    }
 
-   public void setUncompressedCrc32(long uncompressedCrc32)
+   public void setUncompressedCRC32(long uncompressedCRC32)
    {
-      this.uncompressedCrc32 = uncompressedCrc32;
+      this.uncompressedCRC32 = uncompressedCRC32;
    }
 
    public void setCompression(Compression compression)
@@ -78,7 +80,7 @@ public class MutableChunk implements Chunk
    @Override
    public long uncompressedCRC32()
    {
-      return uncompressedCrc32;
+      return uncompressedCRC32;
    }
 
    @Override
@@ -90,6 +92,7 @@ public class MutableChunk implements Chunk
    @Override
    public long recordsCompressedLength()
    {
+      getRecordsCompressedBuffer(); // Make sure the compressed data is available.
       return recordsCompressedLength;
    }
 
@@ -106,7 +109,8 @@ public class MutableChunk implements Chunk
       return 4 * Long.BYTES + Integer.BYTES + compression.getLength() + recordsCompressedLength;
    }
 
-   public ByteBuffer getRecordsCompressedBuffer()
+   @Override
+   public ByteBuffer getRecordsCompressedBuffer(boolean directBuffer)
    {
       if (recordsCompressedData != null)
          return recordsCompressedData;
@@ -114,21 +118,19 @@ public class MutableChunk implements Chunk
       Objects.requireNonNull(compression, "The compression has not been set yet.");
       Objects.requireNonNull(records, "The records have not been set yet.");
 
-      MCAPByteBufferDataOutput recordsOutput = new MCAPByteBufferDataOutput((int) recordsUncompressedLength, 2, compression == Compression.ZSTD);
-      records.forEach(element -> element.write(recordsOutput));
-      recordsOutput.close();
+      ByteBuffer uncompressedBuffer = getRecordsUncompressedBuffer(compression == Compression.ZSTD);
 
       recordsCompressedData = switch (compression)
       {
          case NONE:
          {
             recordsCompressedLength = recordsUncompressedLength;
-            yield recordsOutput.getBuffer();
+            yield uncompressedBuffer;
          }
          case LZ4:
          {
             LZ4FrameEncoder lz4FrameEncoder = new LZ4FrameEncoder();
-            ByteBuffer compressedBuffer = lz4FrameEncoder.encode(recordsOutput.getBuffer(), null);
+            ByteBuffer compressedBuffer = lz4FrameEncoder.encode(uncompressedBuffer, null);
             recordsCompressedLength = compressedBuffer.remaining();
             yield compressedBuffer;
          }
@@ -136,13 +138,23 @@ public class MutableChunk implements Chunk
          {
             try (ZstdCompressCtx zstdCompressCtx = new ZstdCompressCtx())
             {
-               ByteBuffer compressedBuffer = zstdCompressCtx.compress(recordsOutput.getBuffer());
+               ByteBuffer compressedBuffer = zstdCompressCtx.compress(uncompressedBuffer);
                recordsCompressedLength = compressedBuffer.remaining();
                yield compressedBuffer;
             }
          }
       };
+      recordsCompressedData.order(ByteOrder.LITTLE_ENDIAN);
       return recordsCompressedData;
+   }
+
+   @Override
+   public ByteBuffer getRecordsUncompressedBuffer(boolean directBuffer)
+   {
+      MCAPByteBufferDataOutput recordsOutput = new MCAPByteBufferDataOutput((int) recordsUncompressedLength, 2, directBuffer);
+      records.forEach(element -> element.write(recordsOutput));
+      recordsOutput.close();
+      return recordsOutput.getBuffer();
    }
 
    @Override
@@ -151,10 +163,25 @@ public class MutableChunk implements Chunk
       dataOutput.putLong(messageStartTime);
       dataOutput.putLong(messageEndTime);
       dataOutput.putLong(recordsUncompressedLength);
-      dataOutput.putUnsignedInt(uncompressedCrc32);
+      dataOutput.putUnsignedInt(uncompressedCRC32);
       dataOutput.putString(compression.getName());
       dataOutput.putLong(recordsCompressedLength);
       dataOutput.putByteBuffer(getRecordsCompressedBuffer());
+   }
+
+   @Override
+   public MCAPCRC32Helper updateCRC(MCAPCRC32Helper crc32)
+   {
+      if (crc32 == null)
+         crc32 = new MCAPCRC32Helper();
+      crc32.addLong(messageStartTime);
+      crc32.addLong(messageEndTime);
+      crc32.addLong(recordsUncompressedLength);
+      crc32.addUnsignedInt(uncompressedCRC32);
+      crc32.addString(compression.getName());
+      crc32.addLong(recordsCompressedLength);
+      crc32.addByteBuffer(getRecordsCompressedBuffer());
+      return crc32;
    }
 
    @Override

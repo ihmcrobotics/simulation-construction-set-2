@@ -6,6 +6,7 @@ import us.ihmc.log.LogTools;
 import us.ihmc.scs2.session.mcap.MCAPLogCropper.OutputFormat;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 import us.ihmc.scs2.session.mcap.specs.MCAP;
+import us.ihmc.scs2.session.mcap.specs.records.Chunk;
 import us.ihmc.scs2.session.mcap.specs.records.Magic;
 
 import java.io.File;
@@ -57,6 +58,7 @@ public class MCAPLogCropperTest
       File demoMCAPFile = getDemoMCAPFile();
 
       MCAP originalMCAP = new MCAP(new FileInputStream(demoMCAPFile).getChannel());
+      MCAPLogFileReader.exportChunkToFile(MCAPLogFileReader.SCS2_MCAP_DEBUG_HOME, ((Chunk) originalMCAP.records().get(1).body()), null);
       MCAPLogCropper mcapLogCropper = new MCAPLogCropper(originalMCAP);
       mcapLogCropper.setStartTimestamp(0);
       mcapLogCropper.setEndTimestamp(Long.MAX_VALUE);
@@ -150,7 +152,7 @@ public class MCAPLogCropperTest
       return file;
    }
 
-   private static File createTempMCAPFile(String name) throws IOException
+   public static File createTempMCAPFile(String name) throws IOException
    {
       File file = File.createTempFile(name, ".mcap");
       LogTools.info("Created temporary file: " + file.getAbsolutePath());

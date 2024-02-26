@@ -1,6 +1,7 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
+import us.ihmc.scs2.session.mcap.encoding.MCAPCRC32Helper;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
@@ -50,6 +51,23 @@ public interface Statistics extends MCAPElement
       dataOutput.putLong(messageStartTime());
       dataOutput.putLong(messageEndTime());
       dataOutput.putCollection(channelMessageCounts());
+   }
+
+   @Override
+   default MCAPCRC32Helper updateCRC(MCAPCRC32Helper crc32)
+   {
+      if (crc32 == null)
+         crc32 = new MCAPCRC32Helper();
+      crc32.addLong(messageCount());
+      crc32.addUnsignedShort(schemaCount());
+      crc32.addUnsignedInt(channelCount());
+      crc32.addUnsignedInt(attachmentCount());
+      crc32.addUnsignedInt(metadataCount());
+      crc32.addUnsignedInt(chunkCount());
+      crc32.addLong(messageStartTime());
+      crc32.addLong(messageEndTime());
+      crc32.addCollection(channelMessageCounts());
+      return crc32;
    }
 
    @Override

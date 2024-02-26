@@ -6,7 +6,7 @@ import us.ihmc.scs2.session.mcap.specs.MCAP;
 import java.lang.ref.WeakReference;
 import java.util.List;
 
-class ChunkIndexDataInputBacked implements ChunkIndex
+public class ChunkIndexDataInputBacked implements ChunkIndex
 {
    private final MCAPDataInput dataInput;
    private final long elementLength;

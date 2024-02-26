@@ -1,5 +1,6 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
+import us.ihmc.scs2.session.mcap.encoding.MCAPCRC32Helper;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 public interface MCAPElement
@@ -13,6 +14,8 @@ public interface MCAPElement
    }
 
    void write(MCAPDataOutput dataOutput);
+
+   MCAPCRC32Helper updateCRC(MCAPCRC32Helper crc32);
 
    long getElementLength();
 
