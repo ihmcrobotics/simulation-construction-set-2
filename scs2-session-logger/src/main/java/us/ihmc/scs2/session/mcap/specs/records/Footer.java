@@ -3,77 +3,201 @@ package us.ihmc.scs2.session.mcap.specs.records;
 import us.ihmc.scs2.session.mcap.encoding.MCAPCRC32Helper;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
+import us.ihmc.scs2.session.mcap.specs.MCAP;
 
-import static us.ihmc.scs2.session.mcap.specs.records.MCAPElement.indent;
+import java.util.Collection;
 
 /**
  * Footer records contain end-of-file information. MCAP files must end with a Footer record.
  *
  * @see <a href="https://mcap.dev/spec#footer-op0x02">MCAP Footer</a>
  */
-public interface Footer extends MCAPElement
+public class Footer implements MCAPElement
 {
-   static Footer load(MCAPDataInput dataInput, long elementPosition, long elementLength)
+   public static final int ELEMENT_LENGTH = 2 * Long.BYTES + Integer.BYTES;
+   private final MCAPDataInput dataInput;
+   /**
+    * Position in the file of the first record of the summary section.
+    * <p>
+    * The summary section contains schema, channel, chunk index, attachment index, metadata index, and statistics records.
+    * It is not delimited by an encapsulating record as the rest, instead, the summary section simply starts right after the {@link DataEnd} record.
+    * Note that the records in the summary section must be grouped by {@link Opcode}.
+    * </p>
+    */
+   private final long summarySectionOffset;
+   /**
+    * The summary section is followed directly by summary offset records.
+    * <p>
+    * There is one summary offset record per {@link Opcode} in the summary section.
+    * The summary offset records are used to quickly locate the start of each group.
+    */
+   private final long summaryOffsetSectionOffset;
+   private final long summaryCRC32;
+   private Records summarySection;
+   private Records summaryOffsetSection;
+
+   public Footer(MCAPDataInput dataInput, long elementPosition, long elementLength)
    {
-      return new FooterDataInputBacked(dataInput, elementPosition, elementLength);
+      this.dataInput = dataInput;
+
+      dataInput.position(elementPosition);
+      summarySectionOffset = MCAP.checkPositiveLong(dataInput.getLong(), "ofsSummarySection");
+      summaryOffsetSectionOffset = MCAP.checkPositiveLong(dataInput.getLong(), "ofsSummaryOffsetSection");
+      summaryCRC32 = dataInput.getUnsignedInt();
+      MCAP.checkLength(elementLength, getElementLength());
    }
 
-   Records summarySection();
+   public Footer(long summarySectionOffset, Collection<? extends Record> summaryRecords, Collection<? extends Record> summaryOffsetRecords)
+   {
+      this.summarySection = new Records(summaryRecords);
+      this.summaryOffsetSection = new Records(summaryOffsetRecords);
 
-   Records summaryOffsetSection();
+      this.summarySectionOffset = summarySectionOffset;
+      this.summaryOffsetSectionOffset = summarySectionOffset + summarySection.getElementLength();
+      MCAPCRC32Helper crc32 = new MCAPCRC32Helper();
+      summarySection.forEach(record -> record.updateCRC(crc32));
+      summaryOffsetSection.forEach(record -> record.updateCRC(crc32));
+      crc32.addLong(summarySectionOffset);
+      crc32.addLong(summaryOffsetSectionOffset);
+      this.summaryCRC32 = crc32.getValue();
 
-   Integer ofsSummaryCrc32Input();
+      this.dataInput = null;
+   }
 
-   byte[] summaryCrc32Input();
-
-   long ofsSummarySection();
-
-   long ofsSummaryOffsetSection();
-
-   long summaryCrc32();
+   public static long computeOffsetFooter(MCAPDataInput dataInput)
+   {
+      // Offset to the beginning of the footer.
+      return dataInput.size() - Record.RECORD_HEADER_LENGTH - ELEMENT_LENGTH - Magic.MAGIC_SIZE;
+   }
 
    @Override
-   default void write(MCAPDataOutput dataOutput)
+   public long getElementLength()
    {
-      dataOutput.putLong(ofsSummarySection());
+      return ELEMENT_LENGTH;
+   }
+
+   public Records summarySection()
+   {
+      if (summarySection == null && summarySectionOffset != 0)
+         summarySection = Records.load(dataInput, summarySectionOffset, summarySectionLength());
+      return summarySection;
+   }
+
+   private long summarySectionLength()
+   {
+      long summarySectionEnd = summaryOffsetSectionOffset != 0 ? summaryOffsetSectionOffset : computeOffsetFooter(dataInput);
+      return summarySectionEnd - summarySectionOffset;
+   }
+
+   public Records summaryOffsetSection()
+   {
+      if (summaryOffsetSection == null && summaryOffsetSectionOffset != 0)
+         summaryOffsetSection = Records.load(dataInput, summaryOffsetSectionOffset, summaryOffsetSectionLength());
+      return summaryOffsetSection;
+   }
+
+   private long summaryOffsetSectionLength()
+   {
+      return computeOffsetFooter(dataInput) - summaryOffsetSectionOffset;
+   }
+
+   private byte[] summaryCRC32Input;
+
+   public byte[] summaryCRC32Input()
+   {
+      if (summaryCRC32Input == null)
+      {
+         long length = dataInput.size() - summaryCRC32StartOffset() - Magic.MAGIC_SIZE - Integer.BYTES;
+         summaryCRC32Input = dataInput.getBytes(summaryCRC32StartOffset(), (int) length);
+      }
+      return summaryCRC32Input;
+   }
+
+   /**
+    * Offset to the first record of the summary section or to the footer if there is no summary section.
+    * <p>
+    * It is used to compute the CRC.
+    * </p>
+    */
+   public long summaryCRC32StartOffset()
+   {
+      return summarySectionOffset() != 0 ? summarySectionOffset() : computeOffsetFooter(dataInput);
+   }
+
+   public long summarySectionOffset()
+   {
+      return summarySectionOffset;
+   }
+
+   public long ofsSummaryOffsetSection()
+   {
+      return summaryOffsetSectionOffset;
+   }
+
+   /**
+    * A CRC-32 of all bytes from the start of the Summary section up through and including the end of
+    * the previous field (summary_offset_start) in the footer record. A value of 0 indicates the CRC-32
+    * is not available.
+    */
+   public long summaryCRC32()
+   {
+      return summaryCRC32;
+   }
+
+   @Override
+   public void write(MCAPDataOutput dataOutput)
+   {
+      dataOutput.putLong(summarySectionOffset());
       dataOutput.putLong(ofsSummaryOffsetSection());
-      dataOutput.putUnsignedInt(summaryCrc32());
+      dataOutput.putUnsignedInt(summaryCRC32());
    }
 
    @Override
-   default MCAPCRC32Helper updateCRC(MCAPCRC32Helper crc32)
+   public MCAPCRC32Helper updateCRC(MCAPCRC32Helper crc32)
    {
       if (crc32 == null)
          crc32 = new MCAPCRC32Helper();
-      crc32.addLong(ofsSummarySection());
+      crc32.addLong(summarySectionOffset());
       crc32.addLong(ofsSummaryOffsetSection());
-      crc32.addUnsignedInt(summaryCrc32());
+      crc32.addUnsignedInt(summaryCRC32());
       return crc32;
    }
 
    @Override
-   default String toString(int indent)
+   public String toString()
    {
-      String out = getClass().getSimpleName() + ":";
-      out += "\n\t-ofsSummarySection = " + ofsSummarySection();
-      out += "\n\t-ofsSummaryOffsetSection = " + ofsSummaryOffsetSection();
-      out += "\n\t-summaryCrc32 = " + summaryCrc32();
-      return indent(out, indent);
+      return toString(0);
    }
 
    @Override
-   default boolean equals(MCAPElement mcapElement)
+   public String toString(int indent)
+   {
+      String out = getClass().getSimpleName() + ":";
+      out += "\n\t-ofsSummarySection = " + summarySectionOffset();
+      out += "\n\t-ofsSummaryOffsetSection = " + ofsSummaryOffsetSection();
+      out += "\n\t-summaryCrc32 = " + summaryCRC32();
+      return MCAPElement.indent(out, indent);
+   }
+
+   @Override
+   public boolean equals(Object object)
+   {
+      return object instanceof Footer other && equals(other);
+   }
+
+   @Override
+   public boolean equals(MCAPElement mcapElement)
    {
       if (mcapElement == this)
          return true;
 
       if (mcapElement instanceof Footer other)
       {
-         if (ofsSummarySection() != other.ofsSummarySection())
+         if (summarySectionOffset() != other.summarySectionOffset())
             return false;
          if (ofsSummaryOffsetSection() != other.ofsSummaryOffsetSection())
             return false;
-         return summaryCrc32() == other.summaryCrc32();
+         return summaryCRC32() == other.summaryCRC32();
       }
 
       return false;

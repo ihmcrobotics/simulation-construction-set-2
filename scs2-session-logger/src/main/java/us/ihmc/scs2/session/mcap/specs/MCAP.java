@@ -2,7 +2,7 @@ package us.ihmc.scs2.session.mcap.specs;
 
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
-import us.ihmc.scs2.session.mcap.specs.records.FooterDataInputBacked;
+import us.ihmc.scs2.session.mcap.specs.records.Footer;
 import us.ihmc.scs2.session.mcap.specs.records.MCAPElement;
 import us.ihmc.scs2.session.mcap.specs.records.Magic;
 import us.ihmc.scs2.session.mcap.specs.records.Opcode;
@@ -90,7 +90,7 @@ public class MCAP
    {
       if (footer == null)
       {
-         footer = new RecordDataInputBacked(dataInput, FooterDataInputBacked.computeOffsetFooter(dataInput));
+         footer = new RecordDataInputBacked(dataInput, Footer.computeOffsetFooter(dataInput));
       }
       return footer;
    }

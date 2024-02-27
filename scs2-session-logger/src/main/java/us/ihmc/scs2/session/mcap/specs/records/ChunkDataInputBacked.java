@@ -47,6 +47,7 @@ public class ChunkDataInputBacked implements Chunk
     * The decompressed records.
     */
    private WeakReference<Records> recordsRef;
+   private WeakReference<ByteBuffer> recordsUncompressedBufferRef;
 
    ChunkDataInputBacked(MCAPDataInput dataInput, long elementPosition, long elementLength)
    {
@@ -124,7 +125,19 @@ public class ChunkDataInputBacked implements Chunk
    @Override
    public ByteBuffer getRecordsUncompressedBuffer(boolean directBuffer)
    {
-      return dataInput.getDecompressedByteBuffer(recordsOffset, (int) recordsCompressedLength, (int) recordsUncompressedLength, compression, directBuffer);
+      ByteBuffer recordsUncompressedBuffer = recordsUncompressedBufferRef == null ? null : recordsUncompressedBufferRef.get();
+
+      if (recordsUncompressedBuffer == null)
+      {
+         recordsUncompressedBuffer = dataInput.getDecompressedByteBuffer(recordsOffset,
+                                                                         (int) recordsCompressedLength,
+                                                                         (int) recordsUncompressedLength,
+                                                                         compression,
+                                                                         directBuffer);
+         recordsUncompressedBufferRef = new WeakReference<>(recordsUncompressedBuffer);
+      }
+
+      return recordsUncompressedBuffer;
    }
 
    @Override

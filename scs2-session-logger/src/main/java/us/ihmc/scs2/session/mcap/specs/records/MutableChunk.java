@@ -112,8 +112,8 @@ public class MutableChunk implements Chunk
    @Override
    public ByteBuffer getRecordsCompressedBuffer(boolean directBuffer)
    {
-      if (recordsCompressedData != null)
-         return recordsCompressedData;
+      //      if (recordsCompressedData != null)
+      //         return recordsCompressedData;
 
       Objects.requireNonNull(compression, "The compression has not been set yet.");
       Objects.requireNonNull(records, "The records have not been set yet.");

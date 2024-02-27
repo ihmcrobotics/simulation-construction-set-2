@@ -1,6 +1,7 @@
 package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.commons.MathTools;
+import us.ihmc.euclid.tools.EuclidCoreIOTools;
 import us.ihmc.scs2.session.mcap.encoding.MCAPCRC32Helper;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 
@@ -91,7 +92,7 @@ public interface Chunk extends MCAPElement
       out += "\n\t-compression = " + compression();
       out += "\n\t-recordsUncompressedLength = " + recordsUncompressedLength();
       out += "\n\t-uncompressedCrc32 = " + uncompressedCRC32();
-      //      out += "\n\t-records = " + (records() == null ? "null" : "\n" + EuclidCoreIOTools.getCollectionString("\n", records(), e -> e.toString(indent + 1)));
+      out += "\n\t-records = " + (records() == null ? "null" : "\n" + EuclidCoreIOTools.getCollectionString("\n", records(), e -> e.toString(indent + 1)));
       return MCAPElement.indent(out, indent);
    }
 

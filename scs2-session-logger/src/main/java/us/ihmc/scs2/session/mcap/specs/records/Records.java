@@ -7,6 +7,7 @@ import us.ihmc.scs2.session.mcap.specs.MCAP;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
@@ -19,6 +20,11 @@ public class Records extends ArrayList<Record>
 {
    public Records()
    {
+   }
+
+   public Records(Collection<? extends Record> collection)
+   {
+      super(collection);
    }
 
    public static Records load(MCAPDataInput dataInput, long elementPosition, long elementLength)
@@ -154,9 +160,9 @@ public class Records extends ArrayList<Record>
       {
          if (messageIndexRecord.op() != Opcode.MESSAGE_INDEX)
             throw new IllegalArgumentException("Expected a message index record, but got: " + messageIndexRecord.op());
-         messageIndexOffset += messageIndexRecord.getElementLength();
          MessageIndex messageIndex = messageIndexRecord.body();
          messageIndexOffsets.add(new MessageIndexOffset(messageIndex.channelId(), messageIndexOffset));
+         messageIndexOffset += messageIndexRecord.getElementLength();
       }
 
       return messageIndexOffsets;

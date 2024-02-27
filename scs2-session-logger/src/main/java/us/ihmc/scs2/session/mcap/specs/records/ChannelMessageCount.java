@@ -6,14 +6,20 @@ import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 
 public class ChannelMessageCount implements MCAPElement
 {
+   public static final long ELEMENT_LENGTH = Short.BYTES + Long.BYTES;
    private final int channelId;
-   private final long messageCount;
+   private long messageCount;
 
    public ChannelMessageCount(MCAPDataInput dataInput, long elementPosition)
    {
       dataInput.position(elementPosition);
       channelId = dataInput.getUnsignedShort();
       messageCount = dataInput.getLong();
+   }
+
+   public ChannelMessageCount(int channelId)
+   {
+      this(channelId, 0);
    }
 
    public ChannelMessageCount(int channelId, long messageCount)
@@ -25,12 +31,22 @@ public class ChannelMessageCount implements MCAPElement
    @Override
    public long getElementLength()
    {
-      return Short.BYTES + Long.BYTES;
+      return ELEMENT_LENGTH;
    }
 
    public int channelId()
    {
       return channelId;
+   }
+
+   public void incrementMessageCount()
+   {
+      messageCount++;
+   }
+
+   public void setMessageCount(long messageCount)
+   {
+      this.messageCount = messageCount;
    }
 
    public long messageCount()

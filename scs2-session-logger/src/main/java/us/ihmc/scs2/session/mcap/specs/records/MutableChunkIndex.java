@@ -155,7 +155,7 @@ public class MutableChunkIndex implements ChunkIndex
    {
       Objects.requireNonNull(messageIndexOffsets, "The message index offsets must be set before calling this method.");
       Objects.requireNonNull(compression, "The compression must be set before calling this method.");
-      return 7 * Long.BYTES + 2 * Integer.BYTES + messageIndexOffsetsLength + compression.getLength();
+      return 7 * Long.BYTES + Integer.BYTES + messageIndexOffsetsLength + compression.getLength();
    }
 
    @Override

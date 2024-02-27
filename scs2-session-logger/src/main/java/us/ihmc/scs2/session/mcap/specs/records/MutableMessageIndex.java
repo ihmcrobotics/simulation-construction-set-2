@@ -7,7 +7,7 @@ public class MutableMessageIndex implements MessageIndex
 {
    private int channelId;
    private List<MessageIndexEntry> messageIndexEntries;
-   private long messageIndexEntriesLength = -1L;
+   private long messageIndexEntriesLength = 0;
 
    public void setChannelId(int channelId)
    {

@@ -83,8 +83,8 @@ public class RecordDataInputBacked implements Record
                case METADATA -> new Metadata(dataInput, bodyOffset, bodyLength);
                case ATTACHMENT -> Attachment.load(dataInput, bodyOffset, bodyLength);
                case HEADER -> new Header(dataInput, bodyOffset, bodyLength);
-               case FOOTER -> Footer.load(dataInput, bodyOffset, bodyLength);
-               case SUMMARY_OFFSET -> SummaryOffset.load(dataInput, bodyOffset, bodyLength);
+               case FOOTER -> (Footer) new Footer(dataInput, bodyOffset, bodyLength);
+               case SUMMARY_OFFSET -> (SummaryOffset) new SummaryOffset(dataInput, bodyOffset, bodyLength);
             };
          }
 

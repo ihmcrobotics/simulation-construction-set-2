@@ -171,6 +171,7 @@ public class MCAPBufferedFileChannelInput implements MCAPDataInput
          ByteBuffer buffer = direct ? ByteBuffer.allocateDirect(length) : ByteBuffer.allocate(length);
          buffer.order(ByteOrder.LITTLE_ENDIAN);
          fileChannel.read(buffer, offset);
+         buffer.flip();
          return buffer;
       }
       catch (IOException e)

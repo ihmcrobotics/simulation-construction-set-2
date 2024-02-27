@@ -81,7 +81,8 @@ public interface Record extends MCAPElement
       MutableChunkIndex chunkIndex = new MutableChunkIndex();
       chunkIndex.setChunkOffset(chunkOffset);
       chunkIndex.setChunk(this);
-      chunkIndex.setMessageIndexOffsets(Records.generateMessageIndexOffsets(chunkOffset + chunkIndex.getElementLength(), messageIndexRecordList));
+      chunkIndex.setMessageIndexOffsets(Records.generateMessageIndexOffsets(chunkOffset + getElementLength(), messageIndexRecordList));
+      chunkIndex.setMessageIndexLength(messageIndexRecordList.stream().mapToLong(Record::getElementLength).sum());
       return new MutableRecord(chunkIndex);
    }
 
