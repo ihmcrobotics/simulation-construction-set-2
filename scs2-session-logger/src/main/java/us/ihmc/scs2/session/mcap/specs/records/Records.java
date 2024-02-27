@@ -2,6 +2,7 @@ package us.ihmc.scs2.session.mcap.specs.records;
 
 import gnu.trove.map.hash.TIntObjectHashMap;
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
+import us.ihmc.scs2.session.mcap.encoding.MCAPCRC32Helper;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 import us.ihmc.scs2.session.mcap.specs.MCAP;
 
@@ -32,6 +33,17 @@ public class Records extends ArrayList<Record>
       Records records = new Records();
       MCAP.parseList(dataInput, RecordDataInputBacked::new, elementPosition, elementLength, records);
       return records;
+   }
+
+   public MCAPCRC32Helper updateCRC(MCAPCRC32Helper crc32)
+   {
+      if (crc32 == null)
+         crc32 = new MCAPCRC32Helper();
+
+      for (Record record : this)
+         record.updateCRC(crc32);
+
+      return crc32;
    }
 
    public Records crop(long startTimestamp, long endTimestamp)

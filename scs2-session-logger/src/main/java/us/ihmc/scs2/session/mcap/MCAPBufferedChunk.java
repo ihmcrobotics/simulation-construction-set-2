@@ -356,15 +356,15 @@ public class MCAPBufferedChunk
 
          try
          {
+            if (bundledMessages == null)
+               bundledMessages = new TLongObjectHashMap<>();
+
             for (Record record : chunkRecords)
             {
                if (record.op() != Opcode.MESSAGE)
                   continue;
 
-               if (bundledMessages == null)
-                  bundledMessages = new TLongObjectHashMap<>();
-
-               Message message = (Message) record.body();
+               Message message = record.body();
                List<Message> messages = bundledMessages.get(round(message.logTime(), desiredLogDT));
                if (messages == null)
                {

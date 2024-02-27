@@ -2,7 +2,6 @@ package us.ihmc.scs2.session.mcap.specs.records;
 
 import us.ihmc.commons.MathTools;
 import us.ihmc.euclid.tools.EuclidCoreIOTools;
-import us.ihmc.scs2.session.mcap.encoding.MCAPCRC32Helper;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
 
 import java.nio.ByteBuffer;
@@ -137,9 +136,6 @@ public interface Chunk extends MCAPElement
       croppedChunk.setMessageEndTime(croppedEndTime);
       croppedChunk.setRecords(croppedRecords);
       croppedChunk.setCompression(compression());
-      MCAPCRC32Helper crc32 = new MCAPCRC32Helper();
-      croppedRecords.forEach(element -> element.updateCRC(crc32));
-      croppedChunk.setUncompressedCRC32(crc32.getValue());
 
       return croppedChunk;
    }

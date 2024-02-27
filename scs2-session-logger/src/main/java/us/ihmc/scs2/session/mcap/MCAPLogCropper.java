@@ -60,6 +60,10 @@ public class MCAPLogCropper
       MCAPDataOutput dataOutput = MCAPDataOutput.wrap(outputStream.getChannel());
       dataOutput.putBytes(Magic.MAGIC_BYTES); // header magic
 
+      // Used to store the records from one chunk to the next.
+      // Some chunks may not have any message left after cropping, so we'll move the schemas and channels to the next chunk when that happens.
+      List<Record> recordsForNextChunk = null;
+
       // Creating groups in the following order. There will be right after DATA_END
       Map<Integer, Record> schemas = new LinkedHashMap<>(); // Schemas in a map to avoid duplicates
       Map<String, Record> channels = new LinkedHashMap<>(); // Channels in a map to avoid duplicates
@@ -186,12 +190,21 @@ public class MCAPLogCropper
                   continue;
 
                MutableRecord croppedChunkRecord = new MutableRecord(croppedChunk);
-               List<MutableRecord> croppedMessageIndexRecords = croppedChunk.records().generateMessageIndexList().stream().map(MutableRecord::new).toList();
-               chunkIndices.add(croppedChunkRecord.generateChunkIndexRecord(chunkOffset, croppedMessageIndexRecords));
 
-               // Update statistics
-               statistics.incrementChunkCount();
-               statistics.updateMessageTimes(croppedChunk.messageStartTime(), croppedChunk.messageEndTime());
+               if (croppedChunk.records().stream().noneMatch(r -> r.op() == Opcode.MESSAGE))
+               {
+                  if (recordsForNextChunk != null)
+                     recordsForNextChunk.addAll(croppedChunk.records());
+                  else
+                     recordsForNextChunk = new ArrayList<>(croppedChunk.records());
+                  continue; // We don't want to write a chunk with no message. The schemas and channels will be moved to the next chunk.
+               }
+
+               if (recordsForNextChunk != null)
+               {
+                  croppedChunk.records().addAll(0, recordsForNextChunk);
+                  recordsForNextChunk = null;
+               }
 
                for (Record insideCroppedChunkRecord : croppedChunk.records())
                {
@@ -220,6 +233,11 @@ public class MCAPLogCropper
                   }
                }
 
+               List<MutableRecord> croppedMessageIndexRecords = croppedChunk.records().generateMessageIndexList().stream().map(MutableRecord::new).toList();
+               chunkIndices.add(croppedChunkRecord.generateChunkIndexRecord(chunkOffset, croppedMessageIndexRecords));
+               // Update statistics
+               statistics.incrementChunkCount();
+               statistics.updateMessageTimes(croppedChunk.messageStartTime(), croppedChunk.messageEndTime());
                croppedChunkRecord.write(dataOutput, true);
                croppedMessageIndexRecords.forEach(r -> r.write(dataOutput, true));
                break;

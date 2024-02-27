@@ -427,7 +427,12 @@ public class MCAPLogFileReader
       return consoleLogManager;
    }
 
-   public File getMcapFile()
+   public MCAP getMCAP()
+   {
+      return mcap;
+   }
+
+   public File getMCAPFile()
    {
       return mcapFile;
    }

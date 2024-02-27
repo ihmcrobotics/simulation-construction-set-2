@@ -35,6 +35,7 @@ import us.ihmc.log.LogTools;
 import us.ihmc.messager.TopicListener;
 import us.ihmc.messager.javafx.JavaFXMessager;
 import us.ihmc.scs2.session.SessionRobotDefinitionListChange;
+import us.ihmc.scs2.session.mcap.MCAPLogCropper;
 import us.ihmc.scs2.session.mcap.MCAPLogCropper.OutputFormat;
 import us.ihmc.scs2.session.mcap.MCAPLogFileReader;
 import us.ihmc.scs2.session.mcap.MCAPLogSession;
@@ -50,6 +51,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.tools.PositiveIntegerValueFilter;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -285,6 +287,7 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
       {
          openSessionButton.setDisable(m);
          endSessionButton.setDisable(m);
+         cropControlsContainer.setDisable(m);
          logPositionSlider.setDisable(m);
       });
 
@@ -313,6 +316,7 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
       logPositionSlider.setValue(0.0);
       logPositionSlider.setMin(0.0);
       logPositionSlider.setMax(mcapLogFileReader.getNumberOfEntries() - 1);
+      cropControlsContainer.setDisable(false);
       FFMPEGMultiVideoDataReader multiReader = new FFMPEGMultiVideoDataReader(logFile.getParentFile(), backgroundExecutorManager);
       multiReader.readVideoFrameNow(mcapLogFileReader.getCurrentRelativeTimestamp());
       mcapLogFileReader.getCurrentTimestamp().addListener(v -> multiReader.readVideoFrameInBackground(mcapLogFileReader.getCurrentRelativeTimestamp()));
@@ -402,7 +406,40 @@ public class MCAPLogSessionManagerController implements SessionControlsControlle
    @FXML
    public void cropAndExport() throws IOException
    {
+      MCAPLogFileReader mcapLogFileReader = activeSessionProperty.get().getMCAPLogFileReader();
+      MCAPLogCropper cropper = new MCAPLogCropper(mcapLogFileReader.getMCAP());
+      long startTimestamp = mcapLogFileReader.getTimestampAtIndex((int) logPositionSlider.getTrimStartValue());
+      long endTimestamp = mcapLogFileReader.getTimestampAtIndex((int) logPositionSlider.getTrimEndValue());
+      cropper.setStartTimestamp(startTimestamp);
+      cropper.setEndTimestamp(endTimestamp);
+      cropper.setOutputFormat(outputFormatComboBox.getValue());
+      FileChooser fileChooser = new FileChooser();
+      fileChooser.setInitialDirectory(SessionVisualizerIOTools.getDefaultFilePath(LOG_FILE_KEY));
+      fileChooser.getExtensionFilters().add(new ExtensionFilter("MCAP Log file", "*.mcap"));
+      fileChooser.setTitle("Choose MCAP log file");
+      File result = fileChooser.showSaveDialog(stage);
+      if (result == null)
+         return;
 
+      backgroundExecutorManager.executeInBackground(() ->
+                                                    {
+                                                       setIsLoading(true);
+                                                       messager.submitMessage(topics.getDisableUserControls(), true);
+
+                                                       try (FileOutputStream os = new FileOutputStream(result))
+                                                       {
+                                                          cropper.crop(os);
+                                                       }
+                                                       catch (IOException e)
+                                                       {
+                                                          e.printStackTrace();
+                                                       }
+                                                       finally
+                                                       {
+                                                          messager.submitMessage(topics.getDisableUserControls(), false);
+                                                          setIsLoading(false);
+                                                       }
+                                                    });
    }
 
    @Override
