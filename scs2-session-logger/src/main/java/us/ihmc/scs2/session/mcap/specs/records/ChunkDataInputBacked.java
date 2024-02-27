@@ -7,6 +7,7 @@ import us.ihmc.scs2.session.mcap.specs.MCAP;
 
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class ChunkDataInputBacked implements Chunk
 {
@@ -137,7 +138,7 @@ public class ChunkDataInputBacked implements Chunk
          recordsUncompressedBufferRef = new WeakReference<>(recordsUncompressedBuffer);
       }
 
-      return recordsUncompressedBuffer;
+      return recordsUncompressedBuffer.duplicate().order(ByteOrder.LITTLE_ENDIAN);
    }
 
    @Override

@@ -6,6 +6,7 @@ import us.ihmc.log.LogTools;
 import us.ihmc.scs2.session.mcap.MCAPLogCropper.OutputFormat;
 import us.ihmc.scs2.session.mcap.encoding.MCAPCRC32Helper;
 import us.ihmc.scs2.session.mcap.input.MCAPDataInput;
+import us.ihmc.scs2.session.mcap.output.MCAPByteBufferDataOutput;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 import us.ihmc.scs2.session.mcap.specs.MCAP;
 import us.ihmc.scs2.session.mcap.specs.records.Chunk;
@@ -20,6 +21,7 @@ import us.ihmc.scs2.session.mcap.specs.records.Opcode;
 import us.ihmc.scs2.session.mcap.specs.records.Record;
 import us.ihmc.scs2.session.mcap.specs.records.Records;
 import us.ihmc.scs2.session.mcap.specs.records.Schema;
+import us.ihmc.scs2.session.mcap.specs.records.SummaryOffset;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -131,6 +133,11 @@ public class MCAPLogCropperTest
       assertChannelsEqual(originalMCAP.records(), croppedMCAP.records());
       assertAttachmentsEqual(originalMCAP.records(), croppedMCAP.records());
       assertMetadatasEqual(originalMCAP.records(), croppedMCAP.records());
+
+      validateChunkIndices(originalMCAP);
+      validateMessageIndices(originalMCAP.records());
+      validateFooter(originalMCAP);
+
       validateChunkIndices(croppedMCAP);
       validateMessageIndices(croppedMCAP.records());
       validateFooter(croppedMCAP);
@@ -307,18 +314,57 @@ public class MCAPLogCropperTest
 
    private void validateFooter(MCAP mcap)
    {
-      List<Footer> footers = mcap.records().stream().filter(r -> r.op() == Opcode.FOOTER).map(r -> (Footer) r.body()).toList();
-      assertEquals(1, footers.size(), "Expected one footer, but found " + footers.size());
+      List<Record> footerRecords = mcap.records().stream().filter(r -> r.op() == Opcode.FOOTER).toList();
+      assertEquals(1, footerRecords.size(), "Expected one footer, but found " + footerRecords.size());
 
-      Footer footer = footers.get(0);
+      Record footerRecord = footerRecords.get(0);
+      Footer footer = footerRecord.body();
       Records summarySection = footer.summarySection();
       Records summaryOffsetSection = footer.summaryOffsetSection();
 
+      // Computing the CRC in different ways to validate the footer
       MCAPCRC32Helper crc32 = new MCAPCRC32Helper();
+      summarySection.forEach(record -> record.updateCRC(crc32));
+      summaryOffsetSection.forEach(record -> record.updateCRC(crc32));
+      crc32.addUnsignedByte(footerRecord.op().id());
+      crc32.addLong(footerRecord.bodyLength());
+      crc32.addLong(footer.summarySectionOffset());
+      crc32.addLong(footer.summaryOffsetSectionOffset());
+      assertEquals(crc32.getValue(), footer.summaryCRC32(), "Footer has different summary CRC32");
+
+      MCAPByteBufferDataOutput dataOutput = new MCAPByteBufferDataOutput();
+      summarySection.forEach(record -> record.write(dataOutput));
+      summaryOffsetSection.forEach(record -> record.write(dataOutput));
+      dataOutput.putUnsignedByte(footerRecord.op().id());
+      dataOutput.putLong(footerRecord.bodyLength());
+      dataOutput.putLong(footer.summarySectionOffset());
+      dataOutput.putLong(footer.summaryOffsetSectionOffset());
+      dataOutput.close();
+      byte[] expectedSummaryCRC32Input = new byte[dataOutput.getBuffer().remaining()];
+      dataOutput.getBuffer().get(expectedSummaryCRC32Input);
+
+      assertArrayEquals(expectedSummaryCRC32Input, footer.summaryCRC32Input(), "Footer has different summary CRC32 input");
+      assertEquals(footer.summarySectionLength() + footer.summaryOffsetSectionLength() + Record.RECORD_HEADER_LENGTH + 2 * Long.BYTES,
+                   footer.summaryCRC32Input().length,
+                   "Footer has different summary CRC32 input length");
+      crc32.reset();
       crc32.addBytes(footer.summaryCRC32Input());
       assertEquals(crc32.getValue(), footer.summaryCRC32(), "Footer has different summary CRC32");
 
-      // TODO to be continued...
+      assertTrue(summarySection.stream()
+                               .allMatch(r -> r.op() == Opcode.SCHEMA || r.op() == Opcode.CHANNEL || r.op() == Opcode.CHUNK_INDEX
+                                              || r.op() == Opcode.ATTACHMENT_INDEX || r.op() == Opcode.METADATA_INDEX || r.op() == Opcode.STATISTICS),
+                 "Summary section contains a record that is not a schema, channel, chunk index, attachment index, metadata index, or statistics");
+
+      assertTrue(summaryOffsetSection.stream().allMatch(r -> r.op() == Opcode.SUMMARY_OFFSET),
+                 "Summary offset section contains a record that is not a summary offset");
+
+      for (Record summaryOffsetRecord : summaryOffsetSection)
+      {
+         SummaryOffset summaryOffset = summaryOffsetRecord.body();
+         Records group = summaryOffset.group();
+         assertTrue(group.stream().allMatch(r -> r.op() == summaryOffset.groupOpcode()), "Group contains a record that is not of the expected type");
+      }
    }
 
    private static File getDemoMCAPFile() throws IOException
@@ -354,7 +400,7 @@ public class MCAPLogCropperTest
    {
       File file = File.createTempFile(name, ".mcap");
       LogTools.info("Created temporary file: " + file.getAbsolutePath());
-      //      file.deleteOnExit();
+      file.deleteOnExit();
       return file;
    }
 }

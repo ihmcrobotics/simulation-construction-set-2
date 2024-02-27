@@ -41,8 +41,8 @@ public class Footer implements MCAPElement
       this.dataInput = dataInput;
 
       dataInput.position(elementPosition);
-      summarySectionOffset = MCAP.checkPositiveLong(dataInput.getLong(), "ofsSummarySection");
-      summaryOffsetSectionOffset = MCAP.checkPositiveLong(dataInput.getLong(), "ofsSummaryOffsetSection");
+      summarySectionOffset = MCAP.checkPositiveLong(dataInput.getLong(), "summarySectionOffset");
+      summaryOffsetSectionOffset = MCAP.checkPositiveLong(dataInput.getLong(), "summaryOffsetSectionOffset");
       summaryCRC32 = dataInput.getUnsignedInt();
       MCAP.checkLength(elementLength, getElementLength());
    }
@@ -54,9 +54,12 @@ public class Footer implements MCAPElement
 
       this.summarySectionOffset = summarySectionOffset;
       this.summaryOffsetSectionOffset = summarySectionOffset + summarySection.getElementLength();
+
       MCAPCRC32Helper crc32 = new MCAPCRC32Helper();
       summarySection.forEach(record -> record.updateCRC(crc32));
       summaryOffsetSection.forEach(record -> record.updateCRC(crc32));
+      crc32.addUnsignedByte(Opcode.FOOTER.id());
+      crc32.addLong(ELEMENT_LENGTH);
       crc32.addLong(summarySectionOffset);
       crc32.addLong(summaryOffsetSectionOffset);
       this.summaryCRC32 = crc32.getValue();
@@ -83,7 +86,7 @@ public class Footer implements MCAPElement
       return summarySection;
    }
 
-   private long summarySectionLength()
+   public long summarySectionLength()
    {
       long summarySectionEnd = summaryOffsetSectionOffset != 0 ? summaryOffsetSectionOffset : computeOffsetFooter(dataInput);
       return summarySectionEnd - summarySectionOffset;
@@ -96,7 +99,7 @@ public class Footer implements MCAPElement
       return summaryOffsetSection;
    }
 
-   private long summaryOffsetSectionLength()
+   public long summaryOffsetSectionLength()
    {
       return computeOffsetFooter(dataInput) - summaryOffsetSectionOffset;
    }
@@ -107,8 +110,9 @@ public class Footer implements MCAPElement
    {
       if (summaryCRC32Input == null)
       {
-         long length = dataInput.size() - summaryCRC32StartOffset() - Magic.MAGIC_SIZE - Integer.BYTES;
-         summaryCRC32Input = dataInput.getBytes(summaryCRC32StartOffset(), (int) length);
+         long offset = summaryCRC32StartOffset();
+         long length = dataInput.size() - offset - Magic.MAGIC_SIZE - Integer.BYTES;
+         summaryCRC32Input = dataInput.getBytes(offset, (int) length);
       }
       return summaryCRC32Input;
    }
@@ -121,7 +125,7 @@ public class Footer implements MCAPElement
     */
    public long summaryCRC32StartOffset()
    {
-      return summarySectionOffset() != 0 ? summarySectionOffset() : computeOffsetFooter(dataInput);
+      return summarySectionOffset != 0 ? summarySectionOffset : computeOffsetFooter(dataInput);
    }
 
    public long summarySectionOffset()
@@ -129,7 +133,7 @@ public class Footer implements MCAPElement
       return summarySectionOffset;
    }
 
-   public long ofsSummaryOffsetSection()
+   public long summaryOffsetSectionOffset()
    {
       return summaryOffsetSectionOffset;
    }
@@ -148,7 +152,7 @@ public class Footer implements MCAPElement
    public void write(MCAPDataOutput dataOutput)
    {
       dataOutput.putLong(summarySectionOffset());
-      dataOutput.putLong(ofsSummaryOffsetSection());
+      dataOutput.putLong(summaryOffsetSectionOffset());
       dataOutput.putUnsignedInt(summaryCRC32());
    }
 
@@ -158,7 +162,7 @@ public class Footer implements MCAPElement
       if (crc32 == null)
          crc32 = new MCAPCRC32Helper();
       crc32.addLong(summarySectionOffset());
-      crc32.addLong(ofsSummaryOffsetSection());
+      crc32.addLong(summaryOffsetSectionOffset());
       crc32.addUnsignedInt(summaryCRC32());
       return crc32;
    }
@@ -174,7 +178,7 @@ public class Footer implements MCAPElement
    {
       String out = getClass().getSimpleName() + ":";
       out += "\n\t-ofsSummarySection = " + summarySectionOffset();
-      out += "\n\t-ofsSummaryOffsetSection = " + ofsSummaryOffsetSection();
+      out += "\n\t-ofsSummaryOffsetSection = " + summaryOffsetSectionOffset();
       out += "\n\t-summaryCrc32 = " + summaryCRC32();
       return MCAPElement.indent(out, indent);
    }
@@ -195,7 +199,7 @@ public class Footer implements MCAPElement
       {
          if (summarySectionOffset() != other.summarySectionOffset())
             return false;
-         if (ofsSummaryOffsetSection() != other.ofsSummaryOffsetSection())
+         if (summaryOffsetSectionOffset() != other.summaryOffsetSectionOffset())
             return false;
          return summaryCRC32() == other.summaryCRC32();
       }

@@ -55,6 +55,12 @@ public class RecordDataInputBacked implements Record
    }
 
    @Override
+   public long bodyLength()
+   {
+      return bodyLength;
+   }
+
+   @Override
    @SuppressWarnings("unchecked")
    public <T> T body()
    {

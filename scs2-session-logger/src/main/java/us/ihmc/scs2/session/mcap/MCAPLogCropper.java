@@ -63,8 +63,10 @@ public class MCAPLogCropper
       // Creating groups in the following order. There will be right after DATA_END
       Map<Integer, Record> schemas = new LinkedHashMap<>(); // Schemas in a map to avoid duplicates
       Map<String, Record> channels = new LinkedHashMap<>(); // Channels in a map to avoid duplicates
-      MutableStatistics statistics = new MutableStatistics(); // Following the demo.mcap file, the statistics go before the chunk indices
       List<Record> chunkIndices = new ArrayList<>();
+      List<Record> attachmentIndices = new ArrayList<>();
+      List<Record> metadataIndices = new ArrayList<>();
+      MutableStatistics statistics = new MutableStatistics();
 
       for (Record record : mcap.records())
       {
@@ -95,17 +97,23 @@ public class MCAPLogCropper
                long channelOffset = dataOutput.position();
                List<Record> channelList = new ArrayList<>(channels.values());
                channelList.forEach(r -> r.write(dataOutput));
+               long chunkIndexOffset = dataOutput.position();
+               chunkIndices.forEach(r -> r.write(dataOutput));
+               long attachmentIndexOffset = dataOutput.position();
+               attachmentIndices.forEach(r -> r.write(dataOutput));
+               long metadataIndexOffset = dataOutput.position();
+               metadataIndices.forEach(r -> r.write(dataOutput));
                long statisticsOffset = dataOutput.position();
                MutableRecord statisticsRecord = new MutableRecord(statistics);
                statisticsRecord.write(dataOutput);
-               long chunkIndexOffset = dataOutput.position();
-               chunkIndices.forEach(r -> r.write(dataOutput));
 
                List<Record> summarySectionRecords = new ArrayList<>();
                summarySectionRecords.addAll(schemaList);
                summarySectionRecords.addAll(channelList);
-               summarySectionRecords.add(statisticsRecord);
                summarySectionRecords.addAll(chunkIndices);
+               summarySectionRecords.addAll(attachmentIndices);
+               summarySectionRecords.addAll(metadataIndices);
+               summarySectionRecords.add(statisticsRecord);
 
                List<Record> summaryOffsetSectionRecords = new ArrayList<>();
                if (!schemas.isEmpty())
@@ -120,14 +128,26 @@ public class MCAPLogCropper
                   summaryOffsetSectionRecords.add(summaryOffset);
                   summaryOffset.write(dataOutput);
                }
-               {
-                  MutableRecord summaryOffset = new MutableRecord(new SummaryOffset(statisticsOffset, Collections.singletonList(statisticsRecord)));
-                  summaryOffsetSectionRecords.add(summaryOffset);
-                  summaryOffset.write(dataOutput);
-               }
                if (!chunkIndices.isEmpty())
                {
                   MutableRecord summaryOffset = new MutableRecord(new SummaryOffset(chunkIndexOffset, chunkIndices));
+                  summaryOffsetSectionRecords.add(summaryOffset);
+                  summaryOffset.write(dataOutput);
+               }
+               if (!attachmentIndices.isEmpty())
+               {
+                  MutableRecord summaryOffset = new MutableRecord(new SummaryOffset(attachmentIndexOffset, attachmentIndices));
+                  summaryOffsetSectionRecords.add(summaryOffset);
+                  summaryOffset.write(dataOutput);
+               }
+               if (!metadataIndices.isEmpty())
+               {
+                  MutableRecord summaryOffset = new MutableRecord(new SummaryOffset(metadataIndexOffset, metadataIndices));
+                  summaryOffsetSectionRecords.add(summaryOffset);
+                  summaryOffset.write(dataOutput);
+               }
+               {
+                  MutableRecord summaryOffset = new MutableRecord(new SummaryOffset(statisticsOffset, Collections.singletonList(statisticsRecord)));
                   summaryOffsetSectionRecords.add(summaryOffset);
                   summaryOffset.write(dataOutput);
                }
@@ -183,11 +203,6 @@ public class MCAPLogCropper
                         statistics.incrementChannelMessageCount(((Message) insideCroppedChunkRecord.body()).channelId());
                         break;
                      }
-                     case METADATA, ATTACHMENT:
-                     {
-                        statistics.incrementCount(insideCroppedChunkRecord.op());
-                        break;
-                     }
                      case SCHEMA:
                      {
                         Schema schema = insideCroppedChunkRecord.body();
@@ -209,13 +224,6 @@ public class MCAPLogCropper
                croppedMessageIndexRecords.forEach(r -> r.write(dataOutput, true));
                break;
             }
-            case MESSAGE:
-            {
-               Message message = record.body();
-               if (message.logTime() >= startTimestamp && message.logTime() <= endTimestamp)
-                  record.write(dataOutput, true);
-               break;
-            }
             case ATTACHMENT:
             {
                Attachment attachment = record.body();
@@ -223,7 +231,8 @@ public class MCAPLogCropper
                {
                   long attachmentOffset = dataOutput.position();
                   record.write(dataOutput, true);
-                  record.generateAttachmentIndexRecord(attachmentOffset).write(dataOutput, true);
+                  attachmentIndices.add(record.generateAttachmentIndexRecord(attachmentOffset));
+                  statistics.incrementCount(record.op());
                }
                break;
             }
@@ -231,7 +240,8 @@ public class MCAPLogCropper
             {
                long metadataOffset = dataOutput.position();
                record.write(dataOutput, true);
-               record.generateMetadataIndexRecord(metadataOffset).write(dataOutput, true);
+               metadataIndices.add(record.generateMetadataIndexRecord(metadataOffset));
+               statistics.incrementCount(record.op());
             }
             break;
          }

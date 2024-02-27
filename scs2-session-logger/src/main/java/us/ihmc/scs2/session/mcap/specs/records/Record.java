@@ -31,6 +31,8 @@ public interface Record extends MCAPElement
 
    Opcode op();
 
+   long bodyLength();
+
    <T> T body();
 
    @Override
