@@ -437,12 +437,18 @@ public class SessionVisualizerIOTools
       if (hasExtension && !SystemUtils.IS_OS_WINDOWS)
          fileChooser.setInitialFileName(extensions.get(0));
 
-      if (owner == null)
+      boolean usePhantomStage = owner == null;
+      if (usePhantomStage)
       {
          owner = getPhantomStage();
       }
 
       File result = fileChooser.showSaveDialog(owner);
+
+      if (usePhantomStage)
+      {
+         getPhantomStage().hide();
+      }
 
       if (result == null)
          return null;
@@ -520,7 +526,8 @@ public class SessionVisualizerIOTools
    {
       FileChooser fileChooser = fileChooser(title, extensionFilter, pathKey);
 
-      if (owner == null)
+      boolean usePhantomStage = owner == null;
+      if (usePhantomStage)
       {
          owner = getPhantomStage();
       }
@@ -528,6 +535,12 @@ public class SessionVisualizerIOTools
       File result = fileChooser.showOpenDialog(owner);
       if (result != null)
          setDefaultFilePath(pathKey, result);
+
+      if (usePhantomStage)
+      {
+         getPhantomStage().hide();
+      }
+
       return result;
    }
 

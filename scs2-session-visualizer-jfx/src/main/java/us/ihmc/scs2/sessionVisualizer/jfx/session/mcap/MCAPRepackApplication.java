@@ -233,7 +233,6 @@ public class MCAPRepackApplication
          {
             progressBar.stepTo(100);
             ThreadTools.sleep(200);
-            progressBar.close();
 
             LogTools.info("Repacking done.");
          }
