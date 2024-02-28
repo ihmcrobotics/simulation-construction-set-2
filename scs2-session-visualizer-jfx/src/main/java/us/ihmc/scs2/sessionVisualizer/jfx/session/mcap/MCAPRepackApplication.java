@@ -26,6 +26,13 @@ import java.io.FileOutputStream;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
+/**
+ * Standalone application to repack an MCAP file.
+ * <p>
+ * Repacking an MCAP file consists in rebuilding the some of the MCAP records only reusing the minimum data from the original file.
+ * This can be useful to recover a MCAP file with corrupted timestamps or index references.
+ * </p>
+ */
 public class MCAPRepackApplication
 {
 
@@ -37,8 +44,10 @@ public class MCAPRepackApplication
       String outputFileName = "outputFileName";
       String override = "override";
 
-      SimpleJSAP jsap = new SimpleJSAP("SCS2 Session Visualizer",
-                                       "Visualizes a robot log file, or live data from a compatible source.",
+      SimpleJSAP jsap = new SimpleJSAP("MCAP Repack Application",
+                                       "This application repacks an MCAP file:"
+                                       + " it rebuilds the some of the MCAP records only reusing the minimum data from the original file."
+                                       + " This can be useful to recover a MCAP file with corrupted timestamps or index references.",
                                        new Parameter[] {new FlaggedOption(chunkMinDurationMilliseconds,
                                                                           JSAP.INTEGER_PARSER,
                                                                           "50",
@@ -59,14 +68,14 @@ public class MCAPRepackApplication
                                                                           JSAP.NOT_REQUIRED,
                                                                           'i',
                                                                           "input",
-                                                                          "Input file to repack."),
+                                                                          "Input file to repack. If not provided a file chooser will be opened."),
                                                         new FlaggedOption(outputFileName,
                                                                           JSAP.STRING_PARSER,
                                                                           null,
                                                                           JSAP.NOT_REQUIRED,
                                                                           'o',
                                                                           "output",
-                                                                          "Output file repacked."),
+                                                                          "Output file repacked. If not provided a file chooser will be opened."),
                                                         new FlaggedOption(override,
                                                                           JSAP.BOOLEAN_PARSER,
                                                                           "false",
