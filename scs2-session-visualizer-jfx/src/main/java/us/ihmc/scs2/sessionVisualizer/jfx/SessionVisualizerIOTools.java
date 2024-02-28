@@ -530,35 +530,32 @@ public class SessionVisualizerIOTools
       if (usePhantomStage)
       {
          owner = getPhantomStage();
+         getPhantomStage().show();
       }
 
       File result = fileChooser.showOpenDialog(owner);
       if (result != null)
          setDefaultFilePath(pathKey, result);
 
-      if (usePhantomStage)
-      {
-         getPhantomStage().hide();
-      }
-
       return result;
    }
 
-   private static Window phantomStage = null;
+   private static Stage phantomStage = null;
 
-   private static Window getPhantomStage()
+   private static Stage getPhantomStage()
    {
-      if (phantomStage != null)
-         return phantomStage;
-      Stage stage = new Stage();
-      addSCSIconToWindow(stage);
-      stage.initStyle(StageStyle.UNDECORATED);
-      stage.setX(stage.getX() - 0.5 * stage.getWidth());
-      stage.setY(stage.getY() - 0.5 * stage.getHeight());
-      stage.setWidth(0);
-      stage.setHeight(0);
-      stage.show();
-      phantomStage = stage;
+      if (phantomStage == null)
+      {
+         Stage stage = new Stage();
+         addSCSIconToWindow(stage);
+         stage.initStyle(StageStyle.UNDECORATED);
+         stage.setX(stage.getX() - 0.5 * stage.getWidth());
+         stage.setY(stage.getY() - 0.5 * stage.getHeight());
+         stage.setWidth(0);
+         stage.setHeight(0);
+         stage.show();
+         phantomStage = stage;
+      }
       return phantomStage;
    }
 
