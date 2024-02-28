@@ -1,5 +1,6 @@
 package us.ihmc.scs2.session.mcap;
 
+import us.ihmc.scs2.session.log.ProgressConsumer;
 import us.ihmc.scs2.session.mcap.output.MCAPDataOutput;
 import us.ihmc.scs2.session.mcap.specs.MCAP;
 import us.ihmc.scs2.session.mcap.specs.records.Chunk;
@@ -27,12 +28,12 @@ public class MCAPLogRepacker
 
    }
 
-   public void repack(MCAP mcap, FileOutputStream outputStream)
+   public void repack(MCAP mcap, FileOutputStream outputStream, ProgressConsumer progressConsumer)
    {
-      repack(mcap, 0, Long.MAX_VALUE, outputStream);
+      repack(mcap, 0, Long.MAX_VALUE, outputStream, progressConsumer);
    }
 
-   public void repack(MCAP mcap, long chunkMinDuration, long chunkMaxDuration, FileOutputStream outputStream)
+   public void repack(MCAP mcap, long chunkMinDuration, long chunkMaxDuration, FileOutputStream outputStream, ProgressConsumer progressConsumer)
    {
       MCAPDataOutput dataOutput = MCAPDataOutput.wrap(outputStream.getChannel());
       dataOutput.putBytes(Magic.MAGIC_BYTES); // header magic
@@ -40,8 +41,13 @@ public class MCAPLogRepacker
       List<Record> recordsForNextChunk = null;
       MCAPSummaryBuilder summaryBuilder = new MCAPSummaryBuilder();
 
-      for (Record record : mcap.records())
+      for (int i = 0; i < mcap.records().size(); i++)
       {
+         Record record = mcap.records().get(i);
+
+         if (progressConsumer != null)
+            progressConsumer.progress((double) i / (mcap.records().size() - 1));
+
          switch (record.op())
          {
             case CHUNK_INDEX:

@@ -10,6 +10,7 @@ import javafx.scene.layout.Region;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import org.apache.commons.lang3.SystemUtils;
 import us.ihmc.commons.nio.FileTools;
@@ -435,6 +436,12 @@ public class SessionVisualizerIOTools
       FileChooser fileChooser = fileChooser(title, extensionFilter, pathKey);
       if (hasExtension && !SystemUtils.IS_OS_WINDOWS)
          fileChooser.setInitialFileName(extensions.get(0));
+
+      if (owner == null)
+      {
+         owner = getPhantomStage();
+      }
+
       File result = fileChooser.showSaveDialog(owner);
 
       if (result == null)
@@ -512,10 +519,30 @@ public class SessionVisualizerIOTools
    public static File showOpenDialog(Window owner, String title, ExtensionFilter extensionFilter, String pathKey)
    {
       FileChooser fileChooser = fileChooser(title, extensionFilter, pathKey);
+
+      if (owner == null)
+      {
+         owner = getPhantomStage();
+      }
+
       File result = fileChooser.showOpenDialog(owner);
       if (result != null)
          setDefaultFilePath(pathKey, result);
       return result;
+   }
+
+   private static Window phantomStage = null;
+
+   private static Window getPhantomStage()
+   {
+      if (phantomStage != null)
+         return phantomStage;
+      Stage stage = new Stage();
+      addSCSIconToWindow(stage);
+      stage.initStyle(StageStyle.UNDECORATED);
+      stage.show();
+      phantomStage = stage;
+      return phantomStage;
    }
 
    private static FileChooser fileChooser(String title, ExtensionFilter extensionFilter, String pathKey)
