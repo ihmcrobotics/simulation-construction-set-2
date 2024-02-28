@@ -9,9 +9,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 import org.jetbrains.annotations.NotNull;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
@@ -41,22 +39,12 @@ public class MCAPRepackApplication
    public static void main(String[] args) throws JSAPException
    {
       Options options = new Options();
-      Option chunkMin = new Option("l", "chunkMin", true, "Minimum duration of a chunk in milliseconds.");
-      chunkMin.setArgName("chunkMinDuration");
-      chunkMin.setType(Number.class);
-      options.addOption(chunkMin);
-      Option chunkMax = new Option("m", "chunkMax", true, "Maximum duration of a chunk in milliseconds.");
-      chunkMax.setArgName("chunkMaxDuration");
-      chunkMax.setType(Number.class);
-      options.addOption(chunkMax);
-      Option input = new Option("i", "input", true, "Input file to repack. If not provided a file chooser will be opened.");
-      input.setArgName("inputFileName");
-      options.addOption(input);
-      Option output = new Option("o", "output", true, "Output file repacked. If not provided a file chooser will be opened.");
-      output.setArgName("outputFileName");
-      options.addOption(output);
-      options.addOption(new Option("f", "force", false, "If true, the output file will be overwritten if it already exists."));
-      options.addOption(new Option("h", "help", false, "Print this message."));
+      options.addOption("l", "chunkMin", true, "[Optional] Minimum duration of a chunk in milliseconds.");
+      options.addOption("m", "chunkMax", true, "[Optional] Maximum duration of a chunk in milliseconds.");
+      options.addOption("i", "input", true, "[Optional] Input file to repack. If not provided a file chooser will be opened.");
+      options.addOption("o", "output", true, "[Optional] Output file repacked. If not provided a file chooser will be opened.");
+      options.addOption("f", "force", false, "If present, the output file will be overwritten if it already exists.");
+      options.addOption("h", "help", false, "Print this message.");
 
       int minDuration;
       int maxDuration;
@@ -92,9 +80,9 @@ public class MCAPRepackApplication
 
          // Continue with your logic...
       }
-      catch (ParseException exp)
+      catch (Exception e)
       {
-         System.err.println("Parsing failed, use option -h to see usage. Reason: " + exp.getMessage());
+         System.err.println("Parsing failed, use option -h to see usage. Reason: " + e.getMessage());
          System.exit(0);
          return;
       }
