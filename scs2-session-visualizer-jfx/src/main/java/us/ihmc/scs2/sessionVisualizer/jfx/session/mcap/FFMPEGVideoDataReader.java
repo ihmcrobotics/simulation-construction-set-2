@@ -12,18 +12,10 @@ public class FFMPEGVideoDataReader
    private final File videoFile;
    private final FFmpegFrameGrabber frameGrabber;
    private Frame currentFrame = null;
-   /**
-    * Stores the max video duration in nanoseconds
-    */
    private final long maxVideoTimestamp;
-   /**
-    * Stores the current nanosecond playback offset from start of video
-    */
-   private final AtomicLong playbackOffset = new AtomicLong(0);
-   /**
-    * Stores the current nanosecond timestamp for video playback. Note that this stores the timestamp independent of the playback offset.
-    */
-   private final AtomicLong currentTimestamp = new AtomicLong(0);
+   private final AtomicLong playbackOffset = new AtomicLong();
+
+   private final AtomicLong currentTimestamp = new AtomicLong(-1);
 
    public FFMPEGVideoDataReader(File file)
    {
@@ -32,14 +24,13 @@ public class FFMPEGVideoDataReader
       try
       {
          frameGrabber.start();
-         currentFrame = frameGrabber.grabFrame();
       }
-      catch (FrameGrabber.Exception e)
+      catch (FFmpegFrameGrabber.Exception e)
       {
          throw new RuntimeException(e);
       }
 
-      maxVideoTimestamp = frameGrabber.getLengthInTime() * 1000;
+      maxVideoTimestamp = frameGrabber.getLengthInTime();
    }
 
    public Frame getCurrentFrame()
@@ -54,21 +45,15 @@ public class FFMPEGVideoDataReader
     */
    public void readFrameAtTimestamp(long timestamp)
    {
-      if (currentTimestamp.get() != timestamp)
-      {
-         // clamp video timestamp to be between 0 and maxVideoTimestamp
-         currentTimestamp.set(Math.min(maxVideoTimestamp, Math.max(0, (timestamp))));
-      }
-
-      // clamp video timestamp + offset to be within bounds
-      long clampedTime = Math.min(maxVideoTimestamp, Math.max(0, currentTimestamp.get() + playbackOffset.get()));
-
       // NOTE: timestamp passed in is in nanoseconds
-      if (clampedTime != frameGrabber.getTimestamp())
+      if (timestamp != currentTimestamp.get())
       {
+         // timestamp / 1000L converts a nanosecond timestamp to the video timestamp in time_base units
+         currentTimestamp.set(Math.min(maxVideoTimestamp, Math.max(0, (timestamp / 1000L))));
          try
          {
-            frameGrabber.setVideoTimestamp(convertNanosecondToVideoTimestamp(clampedTime));
+            long clampedTime = Math.min(maxVideoTimestamp, Math.max(0, currentTimestamp.get() + playbackOffset.get()));
+            frameGrabber.setVideoTimestamp(clampedTime);
             currentFrame = frameGrabber.grabFrame();
          }
          catch (FrameGrabber.Exception e)
@@ -80,19 +65,23 @@ public class FFMPEGVideoDataReader
 
    public void readCurrentFrame()
    {
-      readFrameAtTimestamp(this.currentTimestamp.get());
+      try
+      {
+         long clampedTime = Math.min(maxVideoTimestamp, Math.max(0, currentTimestamp.get() + playbackOffset.get()));
+         frameGrabber.setVideoTimestamp(clampedTime);
+         currentFrame = frameGrabber.grabFrame();
+      }
+      catch (FrameGrabber.Exception e)
+      {
+         throw new RuntimeException(e);
+      }
    }
 
    public long getVideoLengthInSeconds()
    {
-      return maxVideoTimestamp / 1000000000L;
+      return maxVideoTimestamp / 1000000;
    }
 
-   /**
-    * Sets the video playback offset referenced from start of the video.
-    *
-    * @param offset Nanosecond offset for starting video playback
-    */
    public void setPlaybackOffset(long offset)
    {
       this.playbackOffset.set(offset);
@@ -119,10 +108,5 @@ public class FFMPEGVideoDataReader
       {
          throw new RuntimeException(e);
       }
-   }
-
-   private long convertNanosecondToVideoTimestamp(long nanosecondTimestamp)
-   {
-      return nanosecondTimestamp / 1000L;
    }
 }
