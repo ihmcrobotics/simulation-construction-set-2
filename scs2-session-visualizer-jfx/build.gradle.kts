@@ -64,7 +64,7 @@ mainDependencies {
    api("com.google.code.gson:gson:2.10.1")
 
    api("me.tongfei:progressbar:0.10.0")
-
+   api("commons-cli:commons-cli:1.6.0")
 }
 
 testDependencies {

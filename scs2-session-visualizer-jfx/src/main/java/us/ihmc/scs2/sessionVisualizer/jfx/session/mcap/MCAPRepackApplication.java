@@ -1,15 +1,17 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.session.mcap;
 
-import com.martiansoftware.jsap.FlaggedOption;
-import com.martiansoftware.jsap.JSAP;
 import com.martiansoftware.jsap.JSAPException;
-import com.martiansoftware.jsap.JSAPResult;
-import com.martiansoftware.jsap.Parameter;
-import com.martiansoftware.jsap.SimpleJSAP;
 import javafx.application.Platform;
 import javafx.stage.FileChooser;
 import me.tongfei.progressbar.ProgressBar;
 import me.tongfei.progressbar.ProgressBarStyle;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.jetbrains.annotations.NotNull;
 import us.ihmc.commons.thread.ThreadTools;
 import us.ihmc.log.LogTools;
@@ -38,71 +40,70 @@ public class MCAPRepackApplication
 
    public static void main(String[] args) throws JSAPException
    {
-      String chunkMinDurationMilliseconds = "chunkMinDurationMilliseconds";
-      String chunkMaxDurationMilliseconds = "chunkMaxDurationMilliseconds";
-      String inputFileName = "inputFileName";
-      String outputFileName = "outputFileName";
-      String override = "override";
+      Options options = new Options();
+      Option chunkMin = new Option("l", "chunkMin", true, "Minimum duration of a chunk in milliseconds.");
+      chunkMin.setArgName("chunkMinDuration");
+      chunkMin.setType(Number.class);
+      options.addOption(chunkMin);
+      Option chunkMax = new Option("m", "chunkMax", true, "Maximum duration of a chunk in milliseconds.");
+      chunkMax.setArgName("chunkMaxDuration");
+      chunkMax.setType(Number.class);
+      options.addOption(chunkMax);
+      Option input = new Option("i", "input", true, "Input file to repack. If not provided a file chooser will be opened.");
+      input.setArgName("inputFileName");
+      options.addOption(input);
+      Option output = new Option("o", "output", true, "Output file repacked. If not provided a file chooser will be opened.");
+      output.setArgName("outputFileName");
+      options.addOption(output);
+      options.addOption(new Option("f", "force", false, "If true, the output file will be overwritten if it already exists."));
+      options.addOption(new Option("h", "help", false, "Print this message."));
 
-      SimpleJSAP jsap = new SimpleJSAP("MCAP Repack Application",
-                                       "This application repacks an MCAP file:"
-                                       + " it rebuilds the some of the MCAP records only reusing the minimum data from the original file."
-                                       + " This can be useful to recover a MCAP file with corrupted timestamps or index references.",
-                                       new Parameter[] {new FlaggedOption(chunkMinDurationMilliseconds,
-                                                                          JSAP.INTEGER_PARSER,
-                                                                          "50",
-                                                                          JSAP.NOT_REQUIRED,
-                                                                          'l',
-                                                                          "chunkMin",
-                                                                          "Minimum duration of a chunk in milliseconds."),
-                                                        new FlaggedOption(chunkMaxDurationMilliseconds,
-                                                                          JSAP.INTEGER_PARSER,
-                                                                          "500",
-                                                                          JSAP.NOT_REQUIRED,
-                                                                          'h',
-                                                                          "chunkMax",
-                                                                          "Maximum duration of a chunk in milliseconds."),
-                                                        new FlaggedOption(inputFileName,
-                                                                          JSAP.STRING_PARSER,
-                                                                          null,
-                                                                          JSAP.NOT_REQUIRED,
-                                                                          'i',
-                                                                          "input",
-                                                                          "Input file to repack. If not provided a file chooser will be opened."),
-                                                        new FlaggedOption(outputFileName,
-                                                                          JSAP.STRING_PARSER,
-                                                                          null,
-                                                                          JSAP.NOT_REQUIRED,
-                                                                          'o',
-                                                                          "output",
-                                                                          "Output file repacked. If not provided a file chooser will be opened."),
-                                                        new FlaggedOption(override,
-                                                                          JSAP.BOOLEAN_PARSER,
-                                                                          "false",
-                                                                          JSAP.NOT_REQUIRED,
-                                                                          'f',
-                                                                          "force",
-                                                                          "If true, the output file will be overwritten if it already exists.")});
-      JSAPResult config = jsap.parse(args);
+      int minDuration;
+      int maxDuration;
+      String inputFileName;
+      String outputFileName;
+      boolean isOverride;
 
-      if (jsap.messagePrinted())
+      // Create a parser
+      CommandLineParser parser = new DefaultParser();
+      try
       {
-         System.out.println(jsap.getUsage());
-         System.out.println(jsap.getHelp());
+         // Parse the command line arguments
+         CommandLine line = parser.parse(options, args);
+
+         if (line.hasOption("help"))
+         {
+            HelpFormatter formatter = new HelpFormatter();
+            String header = "MCAP Repack Application: This application repacks an MCAP file."
+                            + " It rebuilds some of the MCAP records only reusing the minimum data from the original file."
+                            + " This can be useful to recover a MCAP file with corrupted timestamps or index references.";
+            String footer = "Please report issues at https://github.com/ihmcrobotics/simulation-construction-set-2/issues.";
+            formatter.printHelp("MCAPRepackApplication", header, options, footer, true);
+            System.exit(0);
+            return;
+         }
+
+         // Access parsed arguments
+         minDuration = Integer.parseInt(line.getOptionValue("chunkMin", "50"));
+         maxDuration = Integer.parseInt(line.getOptionValue("chunkMax", "500"));
+         inputFileName = line.getOptionValue("input");
+         outputFileName = line.getOptionValue("output");
+         isOverride = line.hasOption("force");
+
+         // Continue with your logic...
+      }
+      catch (ParseException exp)
+      {
+         System.err.println("Parsing failed, use option -h to see usage. Reason: " + exp.getMessage());
+         System.exit(0);
          return;
       }
 
-      int minDuration = config.getInt(chunkMinDurationMilliseconds);
-      int maxDuration = config.getInt(chunkMaxDurationMilliseconds);
-      String input = config.getString(inputFileName);
-      String output = config.getString(outputFileName);
-      boolean force = config.getBoolean(override);
-
       File inputFile = null;
 
-      if (input != null)
+      if (inputFileName != null)
       {
-         inputFile = new File(input);
+         inputFile = new File(inputFileName);
          if (!inputFile.exists())
          {
             System.err.println("Cannot find input file: " + inputFile.getAbsolutePath());
@@ -136,12 +137,12 @@ public class MCAPRepackApplication
 
       File outputFile = null;
 
-      if (output != null)
+      if (outputFileName != null)
       {
-         outputFile = new File(output);
+         outputFile = new File(outputFileName);
          if (outputFile.exists())
          {
-            if (force)
+            if (isOverride)
             {
                outputFile.delete();
             }
