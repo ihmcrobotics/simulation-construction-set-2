@@ -27,7 +27,7 @@ public class MCAPLogRepackerTest
       MCAPLogFileReader.exportChunkToFile(MCAPLogFileReader.SCS2_MCAP_DEBUG_HOME, originalMCAP.records().get(1).body(), null);
       MCAPLogRepacker mcapLogRepacker = new MCAPLogRepacker();
       File repackedDemoMCAPFile = createTempMCAPFile("repackedDemo");
-      mcapLogRepacker.repack(originalMCAP, new FileOutputStream(repackedDemoMCAPFile));
+      mcapLogRepacker.repack(originalMCAP, new FileOutputStream(repackedDemoMCAPFile), null);
 
       // Let's compare the original and the repacked files by loading them into memory and comparing their content
       MCAP repackedMCAP = new MCAP(new FileInputStream(repackedDemoMCAPFile).getChannel());
