@@ -1066,7 +1066,7 @@ public class URDFTools
 
       definition.setJointA(toRevoluteJointDefinition(urdfJointA, false, parserProperties));
       definition.setJointB(toRevoluteJointDefinition(urdfJointB, false, parserProperties));
-      
+
       definition.setBodyAB(toRigidBodyDefinition(urdfLinkAB, parserProperties));
       definition.setTransformAToPredecessor(parseRigidBodyTransform(urdfJointA.getOrigin(), parserProperties));
       definition.setTransformBToA(parseRigidBodyTransform(urdfJointB.getOrigin(), parserProperties));
@@ -1074,7 +1074,6 @@ public class URDFTools
       definition.setConstraintRatio(constraintRatio);
       definition.setConstraintOffset(constraintOffset);
 
-      
       return definition;
    }
 

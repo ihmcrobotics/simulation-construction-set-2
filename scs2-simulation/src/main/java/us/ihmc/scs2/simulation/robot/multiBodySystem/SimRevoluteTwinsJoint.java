@@ -41,23 +41,21 @@ public class SimRevoluteTwinsJoint extends YoRevoluteTwinsJoint implements SimOn
            definition.getConstraintRatio(),
            definition.getConstraintOffset(),
            definition.getAxis());
-      
+
       setJointLimits(definition.getPositionLowerLimit(), definition.getPositionUpperLimit());
       setVelocityLimits(definition.getVelocityLowerLimit(), definition.getVelocityUpperLimit());
       setEffortLimits(definition.getEffortLowerLimit(), definition.getEffortUpperLimit());
       setDamping(definition.getDamping());
-      
+
       var jointADefinition = definition.getJointA();
       getJointA().setJointLimits(jointADefinition.getPositionLowerLimit(), jointADefinition.getPositionUpperLimit());
       getJointA().setVelocityLimits(jointADefinition.getVelocityLowerLimit(), jointADefinition.getVelocityUpperLimit());
       getJointA().setEffortLimits(jointADefinition.getEffortLowerLimit(), jointADefinition.getEffortUpperLimit());
-      
+
       var jointBDefinition = definition.getJointB();
       getJointB().setJointLimits(jointBDefinition.getPositionLowerLimit(), jointBDefinition.getPositionUpperLimit());
       getJointB().setVelocityLimits(jointBDefinition.getVelocityLowerLimit(), jointBDefinition.getVelocityUpperLimit());
       getJointB().setEffortLimits(jointBDefinition.getEffortLowerLimit(), jointBDefinition.getEffortUpperLimit());
-
-      
    }
 
    public SimRevoluteTwinsJoint(String name,

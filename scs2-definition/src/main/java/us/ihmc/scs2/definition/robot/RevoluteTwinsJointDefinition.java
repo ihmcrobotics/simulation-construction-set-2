@@ -13,7 +13,7 @@ import java.util.Objects;
 public class RevoluteTwinsJointDefinition extends OneDoFJointDefinition
 {
    private RevoluteJointDefinition jointADefinition, jointBDefinition;
-   
+
    private YawPitchRollTransformDefinition transformAToPredecessor = new YawPitchRollTransformDefinition();
    private YawPitchRollTransformDefinition transformBToA = new YawPitchRollTransformDefinition();
    private RigidBodyDefinition bodyAB = new RigidBodyDefinition();
@@ -37,7 +37,7 @@ public class RevoluteTwinsJointDefinition extends OneDoFJointDefinition
       this(name);
       setAxis(axis);
    }
-   
+
    public void setTransformAToPredecessor(YawPitchRollTransformDefinition transformAToPredecessor)
    {
       this.transformAToPredecessor = transformAToPredecessor;
@@ -134,34 +134,33 @@ public class RevoluteTwinsJointDefinition extends OneDoFJointDefinition
    public RevoluteTwinsJoint toJoint(RigidBodyBasics predecessor)
    {
       RevoluteTwinsJoint joint = new RevoluteTwinsJoint(getName(),
-                                    predecessor,
-                                    jointADefinition.getName(),
-                                    jointBDefinition.getName(),
-                                    bodyAB.getName(),
-                                    transformAToPredecessor,
-                                    transformBToA,
-                                    bodyAB.getMomentOfInertia(),
-                                    bodyAB.getMass(),
-                                    bodyAB.getInertiaPose(),
-                                    actuatedJointIndex,
-                                    constraintRatio,
-                                    constraintOffset,
-                                    getAxis());
-      
+                                                        predecessor,
+                                                        jointADefinition.getName(),
+                                                        jointBDefinition.getName(),
+                                                        bodyAB.getName(),
+                                                        transformAToPredecessor,
+                                                        transformBToA,
+                                                        bodyAB.getMomentOfInertia(),
+                                                        bodyAB.getMass(),
+                                                        bodyAB.getInertiaPose(),
+                                                        actuatedJointIndex,
+                                                        constraintRatio,
+                                                        constraintOffset,
+                                                        getAxis());
+
       setPositionLimits(getPositionLowerLimit(), getPositionUpperLimit());
       setVelocityLimits(getVelocityLowerLimit(), getVelocityUpperLimit());
       setEffortLimits(getEffortLowerLimit(), getEffortUpperLimit());
       setDamping(getDamping());
-      
+
       joint.getJointA().setJointLimits(jointADefinition.getPositionLowerLimit(), jointADefinition.getPositionUpperLimit());
       joint.getJointA().setVelocityLimits(jointADefinition.getVelocityLowerLimit(), jointADefinition.getVelocityUpperLimit());
       joint.getJointA().setEffortLimits(jointADefinition.getEffortLowerLimit(), jointADefinition.getEffortUpperLimit());
-      
+
       joint.getJointB().setJointLimits(jointBDefinition.getPositionLowerLimit(), jointBDefinition.getPositionUpperLimit());
       joint.getJointB().setVelocityLimits(jointBDefinition.getVelocityLowerLimit(), jointBDefinition.getVelocityUpperLimit());
       joint.getJointB().setEffortLimits(jointBDefinition.getEffortLowerLimit(), jointBDefinition.getEffortUpperLimit());
 
-      
       return joint;
    }
 
@@ -228,7 +227,7 @@ public class RevoluteTwinsJointDefinition extends OneDoFJointDefinition
    {
       this.jointADefinition = jointADefinition;
    }
-   
+
    public void setJointB(RevoluteJointDefinition jointBDefinition)
    {
       this.jointBDefinition = jointBDefinition;
