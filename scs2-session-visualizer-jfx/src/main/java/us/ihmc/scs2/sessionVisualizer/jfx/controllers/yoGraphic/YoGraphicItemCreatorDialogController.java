@@ -31,13 +31,13 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameWrapper;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoRobotFXManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.*;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoRobot.YoRobotFX;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools.createAvailableYoGraphicFXItemName;
 
@@ -49,6 +49,8 @@ public class YoGraphicItemCreatorDialogController
    private ToggleButton yoLineFX2DToggleButton, yoPointcloudFX2DToggleButton, yoPointFX2DToggleButton, yoPolygonFX2DToggleButton;
    @FXML
    private ToggleButton yoArrowFX3DToggleButton, yoBoxFX3DToggleButton, yoCapsuleFX3DToggleButton, yoConeFX3DToggleButton, yoCoordinateSystemFX3DToggleButton, yoCylinderFX3DToggleButton, yoEllipsoidFX3DToggleButton, yoPointcloudFX3DToggleButton, yoPointFX3DToggleButton, yoPolygonExtrudedFX3DToggleButton, yoConvexPolytopeFX3DToggleButton, yoPolynomialFX3DToggleButton, yoRampFX3DToggleButton, yoSTPBoxFX3DToggleButton;
+   @FXML
+   private ToggleButton yoAddRobotFXToggleButton;
    @FXML
    private GridPane miscPane;
    @FXML
@@ -119,6 +121,7 @@ public class YoGraphicItemCreatorDialogController
       buttonToTypeMap.put(yoSTPBoxFX3DToggleButton, YoSTPBoxFX3D.class);
       // Misc.:
       buttonToTypeMap.put(yoGroupFXToggleButton, YoGroupFX.class);
+      buttonToTypeMap.put(yoAddRobotFXToggleButton, YoGhostRobotFX.class);
 
       // Default Names:
       // Graphic 2D:
@@ -143,6 +146,7 @@ public class YoGraphicItemCreatorDialogController
       typeToDefaultNameMap.put(YoSTPBoxFX3D.class, "STP Box 3D");
       // Misc.:
       typeToDefaultNameMap.put(YoGroupFX.class, "Group");
+      typeToDefaultNameMap.put(YoGhostRobotFX.class, "Ghost Robot");
 
       buttonToTypeMap.keySet().forEach(button -> button.setToggleGroup(toggleGroup));
 
@@ -219,7 +223,7 @@ public class YoGraphicItemCreatorDialogController
       cleanupMiscPane();
 
       robotCollisionsToggleButtons.clear();
-      robotCollisionsToggleButtons.addAll(sessionRobotDefinitions.stream().map(this::createRobotCollisionsToggleButton).collect(Collectors.toList()));
+      robotCollisionsToggleButtons.addAll(sessionRobotDefinitions.stream().map(this::createRobotCollisionsToggleButton).toList());
 
       addNodesToMiscPane(robotCollisionsToggleButtons);
       robotCollisionsToggleButtons.forEach(button -> button.setToggleGroup(toggleGroup));
@@ -255,7 +259,7 @@ public class YoGraphicItemCreatorDialogController
       cleanupMiscPane();
 
       robotMassPropertiesToggleButtons.clear();
-      robotMassPropertiesToggleButtons.addAll(sessionRobotDefinitions.stream().map(this::createRobotMassPropertiesToggleButton).collect(Collectors.toList()));
+      robotMassPropertiesToggleButtons.addAll(sessionRobotDefinitions.stream().map(this::createRobotMassPropertiesToggleButton).toList());
 
       addNodesToMiscPane(robotMassPropertiesToggleButtons);
       robotMassPropertiesToggleButtons.forEach(button -> button.setToggleGroup(toggleGroup));
@@ -325,7 +329,11 @@ public class YoGraphicItemCreatorDialogController
          return null;
 
       Class<? extends YoGraphicFXItem> itemType = toItemType(toggleGroup.getSelectedToggle());
-      if (itemType != null)
+      if (itemType == YoRobotFX.class)
+      {
+         new YoRobotFX()
+      }
+      else if (itemType != null)
       {
          return YoGraphicFXControllerTools.createYoGraphicFXItemAndRegister(worldFrame, parent, itemNameTextField.getText(), itemType);
       }

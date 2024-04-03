@@ -9,7 +9,6 @@ import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyReadOnly;
 import us.ihmc.messager.javafx.JavaFXMessager;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.robot.SixDoFJointDefinition;
-import us.ihmc.scs2.definition.yoGraphic.YoGraphicRobotDefinition;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.session.SessionRobotDefinitionListChange;
 import us.ihmc.scs2.sessionVisualizer.jfx.Camera3DRequest;
@@ -88,7 +87,6 @@ public class YoRobotFXManager extends ObservedAnimationTimer implements Manager
                   {
                      rootNode.getChildren().removeAll(robotsToRemove.stream().map(YoRobotFX::getRootNode).toList());
                      robots.removeAll(robotsToRemove);
-                     robotsToRemove.forEach(YoRobotFX::dispose);
                   });
                }
             }
@@ -96,7 +94,7 @@ public class YoRobotFXManager extends ObservedAnimationTimer implements Manager
 
          private YoRobotFX newYoRobotFX(RobotDefinition robotDefinition)
          {
-            YoRobotFX robot = new YoRobotFX(yoManager, referenceFrameManager, new YoGraphicRobotDefinition(robotDefinition));
+            YoRobotFX robot = new YoRobotFX(yoManager, referenceFrameManager, robotDefinition);
             robot.loadRobot(command -> backgroundExecutorManager.queueTaskToExecuteInBackground(this, command));
             return robot;
          }
