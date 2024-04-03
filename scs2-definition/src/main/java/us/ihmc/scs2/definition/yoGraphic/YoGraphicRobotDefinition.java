@@ -5,6 +5,7 @@ import us.ihmc.scs2.definition.visual.MaterialDefinition;
 import us.ihmc.scs2.definition.yoComposite.YoOrientation3DDefinition;
 import us.ihmc.scs2.definition.yoComposite.YoTuple3DDefinition;
 
+import java.util.List;
 import java.util.Objects;
 
 public class YoGraphicRobotDefinition extends YoGraphicDefinition
@@ -37,27 +38,6 @@ public class YoGraphicRobotDefinition extends YoGraphicDefinition
       this.robotStateDefinition = robotStateDefinition;
    }
 
-   public void setRootJointPosition(YoTuple3DDefinition rootJointPosition)
-   {
-      if (robotStateDefinition == null)
-         robotStateDefinition = new YoRobotStateDefinition();
-      robotStateDefinition.setRootJointPosition(rootJointPosition);
-   }
-
-   public void setRootJointOrientation(YoOrientation3DDefinition rootJointOrientation)
-   {
-      if (robotStateDefinition == null)
-         robotStateDefinition = new YoRobotStateDefinition();
-      robotStateDefinition.setRootJointOrientation(rootJointOrientation);
-   }
-
-   public void setJointPositions(YoListDefinition jointPositions)
-   {
-      if (robotStateDefinition == null)
-         robotStateDefinition = new YoRobotStateDefinition();
-      robotStateDefinition.setJointPositions(jointPositions);
-   }
-
    public RobotDefinition getRobotDefinition()
    {
       return robotDefinition;
@@ -71,21 +51,6 @@ public class YoGraphicRobotDefinition extends YoGraphicDefinition
    public YoRobotStateDefinition getRobotStateDefinition()
    {
       return robotStateDefinition;
-   }
-
-   public YoTuple3DDefinition getRootJointPosition()
-   {
-      return robotStateDefinition == null ? null : robotStateDefinition.getRootJointPosition();
-   }
-
-   public YoOrientation3DDefinition getRootJointOrientation()
-   {
-      return robotStateDefinition == null ? null : robotStateDefinition.getRootJointOrientation();
-   }
-
-   public YoListDefinition getJointPositions()
-   {
-      return robotStateDefinition == null ? null : robotStateDefinition.getJointPositions();
    }
 
    @Override
@@ -119,7 +84,7 @@ public class YoGraphicRobotDefinition extends YoGraphicDefinition
    {
       private YoTuple3DDefinition rootJointPosition;
       private YoOrientation3DDefinition rootJointOrientation;
-      private YoListDefinition jointPositions;
+      private List<YoOneDoFJointStateDefinition> jointPositions;
 
       public YoRobotStateDefinition()
       {
@@ -135,7 +100,7 @@ public class YoGraphicRobotDefinition extends YoGraphicDefinition
          this.rootJointOrientation = rootJointOrientation;
       }
 
-      public void setJointPositions(YoListDefinition jointPositions)
+      public void setJointPositions(List<YoOneDoFJointStateDefinition> jointPositions)
       {
          this.jointPositions = jointPositions;
       }
@@ -150,7 +115,7 @@ public class YoGraphicRobotDefinition extends YoGraphicDefinition
          return rootJointOrientation;
       }
 
-      public YoListDefinition getJointPositions()
+      public List<YoOneDoFJointStateDefinition> getJointPositions()
       {
          return jointPositions;
       }
@@ -169,6 +134,63 @@ public class YoGraphicRobotDefinition extends YoGraphicDefinition
             if (!Objects.equals(rootJointOrientation, other.rootJointOrientation))
                return false;
             if (!Objects.equals(jointPositions, other.jointPositions))
+               return false;
+            return true;
+         }
+         else
+         {
+            return false;
+         }
+      }
+   }
+
+   public static class YoOneDoFJointStateDefinition
+   {
+      private String jointName;
+      private String jointPosition;
+
+      public YoOneDoFJointStateDefinition()
+      {
+      }
+
+      public YoOneDoFJointStateDefinition(String jointName, String jointPosition)
+      {
+         setJointName(jointName);
+         setJointPosition(jointPosition);
+      }
+
+      public void setJointName(String jointName)
+      {
+         this.jointName = jointName;
+      }
+
+      public void setJointPosition(String jointPosition)
+      {
+         this.jointPosition = jointPosition;
+      }
+
+      public String getJointName()
+      {
+         return jointName;
+      }
+
+      public String getJointPosition()
+      {
+         return jointPosition;
+      }
+
+      @Override
+      public boolean equals(Object object)
+      {
+         if (object == this)
+         {
+            return true;
+         }
+         else if (object instanceof YoOneDoFJointStateDefinition other)
+         {
+            if (!Objects.equals(jointName, other.jointName))
+               return false;
+            if (!Objects.equals(jointPosition, other.jointPosition))
                return false;
             return true;
          }

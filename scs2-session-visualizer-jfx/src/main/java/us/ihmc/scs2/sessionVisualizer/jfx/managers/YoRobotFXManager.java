@@ -88,6 +88,7 @@ public class YoRobotFXManager extends ObservedAnimationTimer implements Manager
                   {
                      rootNode.getChildren().removeAll(robotsToRemove.stream().map(YoRobotFX::getRootNode).toList());
                      robots.removeAll(robotsToRemove);
+                     robotsToRemove.forEach(YoRobotFX::dispose);
                   });
                }
             }
