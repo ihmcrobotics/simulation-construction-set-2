@@ -29,9 +29,9 @@ import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameWrapper;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoRobotFXManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.*;
-import us.ihmc.scs2.sessionVisualizer.jfx.yoRobot.YoRobotFX;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -82,6 +82,7 @@ public class YoGraphicItemCreatorDialogController
 
    private ReferenceFrameWrapper worldFrame;
    private YoRobotFXManager robotFXManager;
+   private YoManager yoManager;
    private ReferenceFrameManager referenceFrameManager;
    private ObservableList<RobotDefinition> sessionRobotDefinitions;
    private ObservableList<TerrainObjectDefinition> sessionTerrainObjectDefinitions;
@@ -95,6 +96,7 @@ public class YoGraphicItemCreatorDialogController
       referenceFrameManager = toolkit.getReferenceFrameManager();
       worldFrame = referenceFrameManager.getWorldFrame();
       robotFXManager = toolkit.getYoRobotFXManager();
+      yoManager = toolkit.getYoManager();
       sessionRobotDefinitions = toolkit.getSessionRobotDefinitions();
       sessionTerrainObjectDefinitions = toolkit.getSessionTerrainObjectDefinitions();
 
@@ -329,9 +331,12 @@ public class YoGraphicItemCreatorDialogController
          return null;
 
       Class<? extends YoGraphicFXItem> itemType = toItemType(toggleGroup.getSelectedToggle());
-      if (itemType == YoRobotFX.class)
+      if (itemType == YoGhostRobotFX.class)
       {
-         new YoRobotFX()
+         YoGhostRobotFX yoGhostRobotFX = new YoGhostRobotFX(yoManager.getRootRegistryDatabase());
+         yoGhostRobotFX.setName(itemNameTextField.getText());
+         parent.addYoGraphicFX3D(yoGhostRobotFX);
+         return yoGhostRobotFX;
       }
       else if (itemType != null)
       {

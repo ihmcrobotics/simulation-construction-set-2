@@ -24,12 +24,12 @@ import us.ihmc.scs2.definition.yoComposite.YoYawPitchRollDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicRobotDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicRobotDefinition.YoOneDoFJointStateDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicRobotDefinition.YoRobotStateDefinition;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.FrameNode;
 import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.RigidBodyFrameNodeFactories;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoDoubleProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.CompositePropertyTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.YoVariableDatabase;
 import us.ihmc.scs2.sharedMemory.LinkedYoDouble;
 import us.ihmc.scs2.sharedMemory.LinkedYoVariable;
 import us.ihmc.scs2.simulation.robot.Robot;
@@ -43,7 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class YoGhostRobotFX extends YoGraphicFX3D
 { // FIXME Need to handle the color property
    private final Group rootNode = new Group();
-   private final YoManager yoManager;
+   private final YoVariableDatabase yoVariableDatabase;
 
    private YoGraphicRobotDefinition graphicRobotDefinition;
    private Robot robot;
@@ -55,13 +55,12 @@ public class YoGhostRobotFX extends YoGraphicFX3D
 
    private final List<Runnable> clearStateBindingTasks = new ArrayList<>();
 
-   private boolean dirty = true;
    private boolean robotDefinitionChanged = true;
    private boolean robotStateDefinitionChanged = true;
 
-   public YoGhostRobotFX(YoManager yoManager)
+   public YoGhostRobotFX(YoVariableDatabase yoVariableDatabase)
    {
-      this.yoManager = yoManager;
+      this.yoVariableDatabase = yoVariableDatabase;
 
       rigidBodyFrameNodeMap.addListener((MapChangeListener<String, FrameNode>) change ->
       {
@@ -99,7 +98,6 @@ public class YoGhostRobotFX extends YoGraphicFX3D
          return;
       if (graphicRobotDefinition == null)
       {
-         dirty = true;
          robotDefinitionChanged = true;
          robotStateDefinitionChanged = true;
       }
@@ -107,37 +105,16 @@ public class YoGhostRobotFX extends YoGraphicFX3D
       {
          if (!Objects.equals(graphicRobotDefinition.getRobotDefinition(), input.getRobotDefinition()))
          {
-            dirty = true;
             robotDefinitionChanged = true;
          }
          if (!Objects.equals(graphicRobotDefinition.getRobotStateDefinition(), input.getRobotStateDefinition()))
          {
-            dirty = true;
             robotStateDefinitionChanged = true;
          }
       }
 
       graphicRobotDefinition = input;
-
-      RobotDefinition robotDefinition = graphicRobotDefinition.getRobotDefinition();
-      if (graphicRobotDefinition.getName() == null)
-         graphicRobotDefinition.setName(robotDefinition.getName());
-
-      if (!Objects.equals(graphicRobotDefinition.getName(), robotDefinition.getName()))
-         throw new IllegalArgumentException("The robot name in the graphic definition does not match the robot name in the robot definition.");
-
-      String robotName = graphicRobotDefinition.getName();
-      LogTools.info("Loading robot: " + robotName);
-
-      // Ensure consistency
-      graphicRobotDefinition.setName(robotName);
-      setName(robotName);
-
-      updateRobotDefinition();
-
-      updateRobotStateDefinition();
-
-      LogTools.info("Loaded robot: " + robotName);
+      setName(graphicRobotDefinition.getName());
    }
 
    private void updateRobotDefinition()
@@ -146,9 +123,12 @@ public class YoGhostRobotFX extends YoGraphicFX3D
          return;
 
       robotDefinitionChanged = false;
+      rigidBodyFrameNodeMap.clear();
       RobotDefinition robotDefinition = graphicRobotDefinition.getRobotDefinition();
       robot = new Robot(robotDefinition, ReferenceFrameTools.constructARootFrame("dummy"), false);
       RigidBodyFrameNodeFactories.createRobotFrameNodeMap(robot.getRootBody(), robotDefinition, null, rigidBodyFrameNodeMap);
+      // Need to update the robot state definition as the robot has changed.
+      robotStateDefinitionChanged = true;
    }
 
    private void updateRobotStateDefinition()
@@ -157,6 +137,7 @@ public class YoGhostRobotFX extends YoGraphicFX3D
          return;
 
       robotStateDefinitionChanged = false;
+      initialize = true;
 
       // Clear previous bindings
       clearRobotStateBindings();
@@ -232,7 +213,7 @@ public class YoGhostRobotFX extends YoGraphicFX3D
    {
       if (variableName == null)
          return new SimpleDoubleProperty(this, "dummy", 0.0);
-      DoubleProperty doubleProperty = CompositePropertyTools.toDoubleProperty(yoManager.getRootRegistryDatabase(), variableName);
+      DoubleProperty doubleProperty = CompositePropertyTools.toDoubleProperty(yoVariableDatabase, variableName);
       if (doubleProperty instanceof YoDoubleProperty yoDoubleProperty)
       {
          LinkedYoDouble linkedYoDouble = yoDoubleProperty.getLinkedBuffer();
@@ -249,31 +230,27 @@ public class YoGhostRobotFX extends YoGraphicFX3D
    @Override
    public void computeBackground()
    {
-      if (!dirty)
-         return;
-      dirty = false;
+      updateRobotDefinition();
+      updateRobotStateDefinition();
    }
 
    @Override
    public void render()
    {
-      if (dirty)
+      if (robot == null)
          return;
 
-      if (robot != null)
+      boolean updateRobot = false;
+      for (LinkedYoVariable<?> linkedYoVariable : linkedYoVariables)
       {
-         boolean updateRobot = false;
-         for (LinkedYoVariable<?> linkedYoVariable : linkedYoVariables)
-         {
-            updateRobot |= linkedYoVariable.pull();
-         }
+         updateRobot |= linkedYoVariable.pull();
+      }
 
-         if (updateRobot || initialize)
-         {
-            robot.getRootBody().updateFramesRecursively();
-            rigidBodyFrameNodeMap.values().forEach(FrameNode::updatePose);
-            initialize = false;
-         }
+      if (updateRobot || initialize)
+      {
+         robot.getRootBody().updateFramesRecursively();
+         rigidBodyFrameNodeMap.values().forEach(FrameNode::updatePose);
+         initialize = false;
       }
    }
 
@@ -316,7 +293,7 @@ public class YoGhostRobotFX extends YoGraphicFX3D
    @Override
    public YoGraphicFX clone()
    {
-      return new YoGhostRobotFX(yoManager);
+      return new YoGhostRobotFX(yoVariableDatabase);
    }
 
    @Override

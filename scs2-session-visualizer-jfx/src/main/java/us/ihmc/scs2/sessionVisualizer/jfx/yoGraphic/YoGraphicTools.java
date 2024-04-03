@@ -20,7 +20,18 @@ import us.ihmc.log.LogTools;
 import us.ihmc.mecano.multiBodySystem.interfaces.RigidBodyReadOnly;
 import us.ihmc.mecano.tools.MultiBodySystemTools;
 import us.ihmc.scs2.definition.collision.CollisionShapeDefinition;
-import us.ihmc.scs2.definition.geometry.*;
+import us.ihmc.scs2.definition.geometry.Box3DDefinition;
+import us.ihmc.scs2.definition.geometry.Capsule3DDefinition;
+import us.ihmc.scs2.definition.geometry.Cone3DDefinition;
+import us.ihmc.scs2.definition.geometry.ConvexPolytope3DDefinition;
+import us.ihmc.scs2.definition.geometry.Cylinder3DDefinition;
+import us.ihmc.scs2.definition.geometry.Ellipsoid3DDefinition;
+import us.ihmc.scs2.definition.geometry.ExtrudedPolygon2DDefinition;
+import us.ihmc.scs2.definition.geometry.GeometryDefinition;
+import us.ihmc.scs2.definition.geometry.Point3DDefinition;
+import us.ihmc.scs2.definition.geometry.Ramp3DDefinition;
+import us.ihmc.scs2.definition.geometry.STPBox3DDefinition;
+import us.ihmc.scs2.definition.geometry.Sphere3DDefinition;
 import us.ihmc.scs2.definition.robot.RigidBodyDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.terrain.TerrainObjectDefinition;
@@ -39,9 +50,17 @@ import us.ihmc.scs2.sessionVisualizer.jfx.tools.YoVariableDatabase;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.QuaternionProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple2DProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple3DProperty;
-import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.color.*;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.color.BaseColorFX;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.color.SimpleColorFX;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.color.YoColorRGBADoubleFX;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.color.YoColorRGBAIntFX;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.color.YoColorRGBASingleFX;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class YoGraphicTools
@@ -266,12 +285,14 @@ public class YoGraphicTools
             return toYoPolygonExtrudedFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, (YoGraphicPolygonExtruded3DDefinition) definition);
          else if (definition instanceof YoGraphicConvexPolytope3DDefinition)
             return toYoConvexPolytopeFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, (YoGraphicConvexPolytope3DDefinition) definition);
-         else if (definition instanceof YoGraphicBox3DDefinition)
-            return toYoBoxFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, (YoGraphicBox3DDefinition) definition);
          else if (definition instanceof YoGraphicSTPBox3DDefinition)
             return toYoSTPBoxFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, (YoGraphicSTPBox3DDefinition) definition);
+         else if (definition instanceof YoGraphicBox3DDefinition)
+            return toYoBoxFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, (YoGraphicBox3DDefinition) definition);
          else if (definition instanceof YoGraphicEllipsoid3DDefinition)
             return toYoEllipsoidFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, (YoGraphicEllipsoid3DDefinition) definition);
+         else if (definition instanceof YoGraphicRobotDefinition)
+            return toYoGhostRobotFX(yoVariableDatabase, resourceManager, referenceFrameManager, (YoGraphicRobotDefinition) definition);
 
          LogTools.error("Unhandled graphic type: {}", definition.getClass().getSimpleName());
          return null;
@@ -437,6 +458,26 @@ public class YoGraphicTools
    {
       toYoGraphicFX(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
       yoGraphicFXToPack.setColor(toBaseColorFX(yoVariableDatabase, definition.getColor()));
+   }
+
+   public static YoGhostRobotFX toYoGhostRobotFX(YoVariableDatabase yoVariableDatabase,
+                                                 YoGraphicFXResourceManager resourceManager,
+                                                 ReferenceFrameManager referenceFrameManager,
+                                                 YoGraphicRobotDefinition definition)
+   {
+      YoGhostRobotFX yoGraphicFX = new YoGhostRobotFX(yoVariableDatabase);
+      toYoGhostRobotFX(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFX);
+      return yoGraphicFX;
+   }
+
+   public static void toYoGhostRobotFX(YoVariableDatabase yoVariableDatabase,
+                                       YoGraphicFXResourceManager resourceManager,
+                                       ReferenceFrameManager referenceFrameManager,
+                                       YoGraphicRobotDefinition definition,
+                                       YoGhostRobotFX yoGraphicFXToPack)
+   {
+      toYoGraphicFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
+      yoGraphicFXToPack.setInput(definition);
    }
 
    public static YoPointFX3D toYoPointFX3D(YoVariableDatabase yoVariableDatabase,
@@ -1002,10 +1043,10 @@ public class YoGraphicTools
                                                          RigidBodyTransformReadOnly originPose,
                                                          GeometryDefinition geometryDefinition)
    {
-      if (geometryDefinition instanceof Box3DDefinition)
-         return convertBox3DDefinition(referenceFrame, originPose, (Box3DDefinition) geometryDefinition);
-      else if (geometryDefinition instanceof STPBox3DDefinition)
+      if (geometryDefinition instanceof STPBox3DDefinition)
          return convertSTPBox3DDefinition(referenceFrame, originPose, (STPBox3DDefinition) geometryDefinition);
+      else if (geometryDefinition instanceof Box3DDefinition)
+         return convertBox3DDefinition(referenceFrame, originPose, (Box3DDefinition) geometryDefinition);
       else if (geometryDefinition instanceof Capsule3DDefinition)
          return convertCapsule3DDefinition(referenceFrame, originPose, (Capsule3DDefinition) geometryDefinition);
       else if (geometryDefinition instanceof Cone3DDefinition)
@@ -1320,6 +1361,8 @@ public class YoGraphicTools
          return toYoGraphicSTPBox3DDefinition((YoSTPBoxFX3D) yoGraphicFX);
       else if (yoGraphicFX instanceof YoEllipsoidFX3D)
          return toYoGraphicEllipsoid3DDefinition((YoEllipsoidFX3D) yoGraphicFX);
+      else if (yoGraphicFX instanceof YoGhostRobotFX yoGhostRobotFX)
+         return yoGhostRobotFX.getGraphicRobotDefinition();
 
       LogTools.error("Unsupported {}: {}", YoGraphicFX.class.getSimpleName(), yoGraphicFX.getClass().getSimpleName());
       return null;
