@@ -142,6 +142,9 @@ public class YoGhostRobotFX extends YoGraphicFX3D
       // Clear previous bindings
       clearRobotStateBindings();
 
+      if (graphicRobotDefinition == null)
+         return;
+
       YoRobotStateDefinition robotStateDefinition = graphicRobotDefinition.getRobotStateDefinition();
 
       if (robotStateDefinition == null)

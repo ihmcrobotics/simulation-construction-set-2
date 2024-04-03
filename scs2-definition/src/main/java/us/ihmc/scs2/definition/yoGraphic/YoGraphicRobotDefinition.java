@@ -91,6 +91,8 @@ public class YoGraphicRobotDefinition extends YoGraphic3DDefinition
 
       public YoRobotStateDefinition(YoRobotStateDefinition other)
       {
+         if (other == null)
+            return;
          if (other.rootJointPosition != null)
             setRootJointPosition(other.rootJointPosition.copy());
          if (other.rootJointOrientation != null)
