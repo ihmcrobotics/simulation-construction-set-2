@@ -15,6 +15,7 @@ import javafx.scene.text.Font;
 import org.kordamp.ikonli.javafx.FontIcon;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGhostRobotFX;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXItem;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
@@ -52,6 +53,8 @@ public class YoGraphicFXItemTreeCell extends CheckBoxTreeCell<YoGraphicFXItem>
       }
       else
       {
+         if (item instanceof YoGhostRobotFX)
+            System.out.println(item.getName());
          setText(item.getName());
          textProperty().bind(item.nameProperty());
 
@@ -61,7 +64,7 @@ public class YoGraphicFXItemTreeCell extends CheckBoxTreeCell<YoGraphicFXItem>
          {
             graphic = new FontIcon("fa-folder-open-o");
          }
-         else if (item instanceof YoGraphicFXItem)
+         else
          {
             boolean is2D = item instanceof YoGraphicFX2D;
             Label iconLabel = new Label(is2D ? "2D" : "3D");

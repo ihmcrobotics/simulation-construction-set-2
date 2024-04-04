@@ -34,6 +34,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoDoubleProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.CompositePropertyTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.YoVariableDatabase;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.color.BaseColorFX;
 import us.ihmc.scs2.sharedMemory.LinkedYoDouble;
 import us.ihmc.scs2.sharedMemory.LinkedYoVariable;
 import us.ihmc.scs2.simulation.robot.Robot;
@@ -56,7 +57,7 @@ public class YoGhostRobotFX extends YoGraphicFX3D
 
    private final List<LinkedYoVariable<?>> linkedYoVariables = new ArrayList<>();
 
-   private boolean initialize = true;
+   private boolean forceUpdate = true;
 
    private final List<Runnable> clearStateBindingTasks = new ArrayList<>();
 
@@ -68,6 +69,7 @@ public class YoGhostRobotFX extends YoGraphicFX3D
 
    public YoGhostRobotFX(YoVariableDatabase yoVariableDatabase)
    {
+      setColor((BaseColorFX) null); // Remove the default color.
       this.yoVariableDatabase = yoVariableDatabase;
 
       rigidBodyFrameNodeMap.addListener((MapChangeListener<String, FrameNode>) change ->
@@ -174,13 +176,16 @@ public class YoGhostRobotFX extends YoGraphicFX3D
       // We link the robot state to the yoVariables from YoRobotStateDefinition.
       YoTuple3DDefinition rootJointPositionDefinition = robotStateDefinition.getRootJointPosition();
 
+      Runnable invalidHandler = () ->
+      { /* Do nothing for NaN values. */ };
+
       if (rootJointPositionDefinition != null)
       {
          Pose3DBasics pose = robot.getFloatingRootJoint().getJointPose();
 
-         setupBinding(rootJointPositionDefinition.getX(), pose::setX);
-         setupBinding(rootJointPositionDefinition.getY(), pose::setY);
-         setupBinding(rootJointPositionDefinition.getZ(), pose::setZ);
+         setupBinding(rootJointPositionDefinition.getX(), pose::setX, invalidHandler);
+         setupBinding(rootJointPositionDefinition.getY(), pose::setY, invalidHandler);
+         setupBinding(rootJointPositionDefinition.getZ(), pose::setZ, invalidHandler);
       }
 
       YoOrientation3DDefinition rootJointOrientationDefinition = robotStateDefinition.getRootJointOrientation();
@@ -191,16 +196,30 @@ public class YoGhostRobotFX extends YoGraphicFX3D
 
          if (rootJointOrientationDefinition instanceof YoYawPitchRollDefinition yawPitchRollDefinition)
          {
-            setupBinding(yawPitchRollDefinition.getYaw(), newValue -> orientation.setYawPitchRoll(newValue, orientation.getPitch(), orientation.getRoll()));
-            setupBinding(yawPitchRollDefinition.getPitch(), newValue -> orientation.setYawPitchRoll(orientation.getYaw(), newValue, orientation.getRoll()));
-            setupBinding(yawPitchRollDefinition.getRoll(), newValue -> orientation.setYawPitchRoll(orientation.getYaw(), orientation.getPitch(), newValue));
+            setupBinding(yawPitchRollDefinition.getYaw(),
+                         newValue -> orientation.setYawPitchRoll(newValue, orientation.getPitch(), orientation.getRoll()),
+                         invalidHandler);
+            setupBinding(yawPitchRollDefinition.getPitch(),
+                         newValue -> orientation.setYawPitchRoll(orientation.getYaw(), newValue, orientation.getRoll()),
+                         invalidHandler);
+            setupBinding(yawPitchRollDefinition.getRoll(),
+                         newValue -> orientation.setYawPitchRoll(orientation.getYaw(), orientation.getPitch(), newValue),
+                         invalidHandler);
          }
          else if (rootJointOrientationDefinition instanceof YoQuaternionDefinition quaternionDefinition)
          {
-            setupBinding(quaternionDefinition.getX(), newValue -> orientation.setUnsafe(newValue, orientation.getY(), orientation.getZ(), orientation.getS()));
-            setupBinding(quaternionDefinition.getY(), newValue -> orientation.setUnsafe(orientation.getX(), newValue, orientation.getZ(), orientation.getS()));
-            setupBinding(quaternionDefinition.getZ(), newValue -> orientation.setUnsafe(orientation.getX(), orientation.getY(), newValue, orientation.getS()));
-            setupBinding(quaternionDefinition.getS(), newValue -> orientation.setUnsafe(orientation.getX(), orientation.getY(), orientation.getZ(), newValue));
+            setupBinding(quaternionDefinition.getX(),
+                         newValue -> orientation.setUnsafe(newValue, orientation.getY(), orientation.getZ(), orientation.getS()),
+                         invalidHandler);
+            setupBinding(quaternionDefinition.getY(),
+                         newValue -> orientation.setUnsafe(orientation.getX(), newValue, orientation.getZ(), orientation.getS()),
+                         invalidHandler);
+            setupBinding(quaternionDefinition.getZ(),
+                         newValue -> orientation.setUnsafe(orientation.getX(), orientation.getY(), newValue, orientation.getS()),
+                         invalidHandler);
+            setupBinding(quaternionDefinition.getS(),
+                         newValue -> orientation.setUnsafe(orientation.getX(), orientation.getY(), orientation.getZ(), newValue),
+                         invalidHandler);
          }
          else
          {
@@ -217,17 +236,27 @@ public class YoGhostRobotFX extends YoGraphicFX3D
             if (joint == null)
                LogTools.error("Could not find joint: " + jointName);
             else
-               setupBinding(jointPositionDefinition.getJointPosition(), joint::setQ);
+               setupBinding(jointPositionDefinition.getJointPosition(), joint::setQ, invalidHandler);
          }
       }
 
-      initialize = true;
+      forceUpdate = true;
    }
 
-   private void setupBinding(String variableName, DoubleConsumer setter)
+   private void setupBinding(String variableName, DoubleConsumer setter, Runnable invalidNumberHandler)
    {
       DoubleProperty doubleProperty = toDoubleProperty(variableName);
-      ChangeListener<Number> changeListener = (o, oldValue, newValue) -> setter.accept(newValue.doubleValue());
+      ChangeListener<Number> changeListener = (o, oldValue, newValue) ->
+      {
+         if (newValue == null || !Double.isFinite(newValue.doubleValue()))
+         {
+            invalidNumberHandler.run();
+            return;
+         }
+
+         setter.accept(newValue.doubleValue());
+         forceUpdate = true;
+      };
       doubleProperty.addListener(changeListener);
       // Trigger the change listener once to set the initial value.
       changeListener.changed(doubleProperty, null, doubleProperty.getValue());
@@ -271,11 +300,11 @@ public class YoGhostRobotFX extends YoGraphicFX3D
          updateRobot |= linkedYoVariable.pull();
       }
 
-      if (updateRobot || initialize)
+      if (updateRobot || forceUpdate)
       {
          robot.getRootBody().updateFramesRecursively();
          rigidBodyFrameNodeMap.values().forEach(FrameNode::updatePose);
-         initialize = false;
+         forceUpdate = false;
       }
 
       if ((getColor() == null) != (overridingMaterial == null))
@@ -330,7 +359,7 @@ public class YoGhostRobotFX extends YoGraphicFX3D
 
    public boolean isRobotLoaded()
    {
-      return !initialize;
+      return !forceUpdate;
    }
 
    @Override

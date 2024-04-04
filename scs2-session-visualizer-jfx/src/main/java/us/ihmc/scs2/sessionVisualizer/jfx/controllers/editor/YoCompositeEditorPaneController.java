@@ -18,7 +18,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
-import org.apache.commons.lang3.mutable.MutableBoolean;
 import us.ihmc.scs2.definition.yoComposite.YoCompositeDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.editor.searchTextField.DoubleSearchField;
@@ -36,7 +35,9 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeCollection;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositePattern;
 import us.ihmc.scs2.sharedMemory.LinkedYoRegistry;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -72,6 +73,8 @@ public class YoCompositeEditorPaneController
    private ReferenceFrameManager referenceFrameManager;
 
    private ReferenceFrameSearchField yoReferenceFrameTextField;
+
+   private final List<Runnable> cleanupTasks = new ArrayList<>();
 
    public void initialize(SessionVisualizerToolkit toolkit, YoCompositeCollection yoCompositeCollection, boolean setupReferenceFrameFields)
    {
@@ -139,21 +142,6 @@ public class YoCompositeEditorPaneController
       {
          componentSearchTextFields[i].setText(Double.toString(0.0));
       }
-
-      MutableBoolean firstTime = new MutableBoolean(true);
-      searchYoCompositeLabel.textProperty().addListener((observable, oldValue, newValue) ->
-                                                        {
-                                                           System.out.println("Composite name changed: " + newValue);
-                                                           if (firstTime.getValue() && newValue.toLowerCase().contains("left_hip_z"))
-                                                           {
-                                                              firstTime.setFalse();
-                                                              yoComponentTextFields[0].getValidityProperty().addListener((o, oldValue1, newValue1) ->
-                                                                                                                         {
-                                                                                                                            System.out.println(
-                                                                                                                                  "Validity: " + newValue1);
-                                                                                                                         });
-                                                           }
-                                                        });
 
       compositeNameProperty.addListener((observable, oldValue, newValue) ->
                                         {
