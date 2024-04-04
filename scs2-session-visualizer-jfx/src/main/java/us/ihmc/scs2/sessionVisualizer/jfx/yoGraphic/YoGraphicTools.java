@@ -1362,7 +1362,7 @@ public class YoGraphicTools
       else if (yoGraphicFX instanceof YoEllipsoidFX3D)
          return toYoGraphicEllipsoid3DDefinition((YoEllipsoidFX3D) yoGraphicFX);
       else if (yoGraphicFX instanceof YoGhostRobotFX yoGhostRobotFX)
-         return yoGhostRobotFX.getGraphicRobotDefinition();
+         return toYoGraphicRobotDefinition(yoGhostRobotFX);
 
       LogTools.error("Unsupported {}: {}", YoGraphicFX.class.getSimpleName(), yoGraphicFX.getClass().getSimpleName());
       return null;
@@ -1720,6 +1720,23 @@ public class YoGraphicTools
       definition.setPosition(CompositePropertyTools.toYoTuple3DDefinition(yoGraphicFX.getPosition()));
       definition.setOrientation(CompositePropertyTools.toYoOrientation3DDefinition(yoGraphicFX.getOrientation()));
       definition.setSize(CompositePropertyTools.toYoTuple3DDefinition(yoGraphicFX.getSize()));
+      definition.setColor(toPaintDefinition(yoGraphicFX.getColor()));
+
+      return definition;
+   }
+
+   public static YoGraphicRobotDefinition toYoGraphicRobotDefinition(YoGhostRobotFX yoGraphicFX)
+   {
+      if (yoGraphicFX == null)
+         return null;
+
+      YoGraphicRobotDefinition definition;
+      if (yoGraphicFX.getGraphicRobotDefinition() != null)
+         definition = new YoGraphicRobotDefinition(yoGraphicFX.getGraphicRobotDefinition());
+      else
+         definition = new YoGraphicRobotDefinition();
+      definition.setName(yoGraphicFX.getName());
+      definition.setVisible(yoGraphicFX.isVisible());
       definition.setColor(toPaintDefinition(yoGraphicFX.getColor()));
 
       return definition;

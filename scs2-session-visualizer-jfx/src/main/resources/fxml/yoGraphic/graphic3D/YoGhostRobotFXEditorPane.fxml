@@ -45,7 +45,7 @@
         <fx:include fx:id="rootJointPositionEditor" source="../../editor/YoCompositeEditorPane.fxml"/>
         <fx:include fx:id="rootJointOrientationEditor" source="../../editor/YoCompositeEditorPane.fxml"/>
         <Separator prefWidth="200.0"/>
-        <fx:include fx:id="oneDoFJointPositionListEditor" source="../../editor/YoCompositeListEditorPane.fxml"/>
+        <fx:include fx:id="oneDoFJointPositionListEditor" source="../../editor/YoCompositeListEditorPane.fxml" VBox.vgrow="ALWAYS"/>
         <Separator prefWidth="200.0"/>
         <JFXCheckBox fx:id="enableColorCheckBox" text="Enable color"/>
         <fx:include fx:id="styleEditor" source="../editor/YoGraphic3DStyleEditorPane.fxml"/>

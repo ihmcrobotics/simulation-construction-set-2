@@ -5,12 +5,16 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.scene.Group;
 import javafx.scene.Node;
+import javafx.scene.paint.Material;
+import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.DrawMode;
+import javafx.scene.shape.Shape3D;
 import javafx.util.Duration;
 import us.ihmc.euclid.geometry.interfaces.Pose3DBasics;
 import us.ihmc.euclid.referenceFrame.tools.ReferenceFrameTools;
@@ -39,6 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.DoubleConsumer;
 
 public class YoGhostRobotFX extends YoGraphicFX3D
 { // FIXME Need to handle the color property
@@ -57,6 +62,9 @@ public class YoGhostRobotFX extends YoGraphicFX3D
 
    private boolean robotDefinitionChanged = true;
    private boolean robotStateDefinitionChanged = true;
+
+   private PhongMaterial overridingMaterial = null;
+   private final List<Runnable> reverseOverridingMaterialTasks = new ArrayList<>();
 
    public YoGhostRobotFX(YoVariableDatabase yoVariableDatabase)
    {
@@ -90,6 +98,12 @@ public class YoGhostRobotFX extends YoGraphicFX3D
             });
          }
       });
+
+      nameProperty().addListener((o, oldValue, newValue) ->
+                                 {
+                                    if (graphicRobotDefinition != null)
+                                       graphicRobotDefinition.setName(newValue);
+                                 });
    }
 
    public void setInput(YoGraphicRobotDefinition input)
@@ -124,6 +138,11 @@ public class YoGhostRobotFX extends YoGraphicFX3D
 
       robotDefinitionChanged = false;
       rigidBodyFrameNodeMap.clear();
+      if (graphicRobotDefinition == null || graphicRobotDefinition.getRobotDefinition() == null)
+      {
+         robot = null;
+         return;
+      }
       RobotDefinition robotDefinition = graphicRobotDefinition.getRobotDefinition();
       robot = new Robot(robotDefinition, ReferenceFrameTools.constructARootFrame("dummy"), false);
       RigidBodyFrameNodeFactories.createRobotFrameNodeMap(robot.getRootBody(), robotDefinition, null, rigidBodyFrameNodeMap);
@@ -136,11 +155,13 @@ public class YoGhostRobotFX extends YoGraphicFX3D
       if (!robotStateDefinitionChanged)
          return;
 
-      robotStateDefinitionChanged = false;
-      initialize = true;
-
       // Clear previous bindings
       clearRobotStateBindings();
+
+      if (robot == null)
+         return;
+
+      robotStateDefinitionChanged = false;
 
       if (graphicRobotDefinition == null)
          return;
@@ -157,12 +178,9 @@ public class YoGhostRobotFX extends YoGraphicFX3D
       {
          Pose3DBasics pose = robot.getFloatingRootJoint().getJointPose();
 
-         DoubleProperty x = toDoubleProperty(rootJointPositionDefinition.getX());
-         DoubleProperty y = toDoubleProperty(rootJointPositionDefinition.getY());
-         DoubleProperty z = toDoubleProperty(rootJointPositionDefinition.getZ());
-         x.addListener((o, oldValue, newValue) -> pose.setX(newValue.doubleValue()));
-         y.addListener((o, oldValue, newValue) -> pose.setY(newValue.doubleValue()));
-         z.addListener((o, oldValue, newValue) -> pose.setZ(newValue.doubleValue()));
+         setupBinding(rootJointPositionDefinition.getX(), pose::setX);
+         setupBinding(rootJointPositionDefinition.getY(), pose::setY);
+         setupBinding(rootJointPositionDefinition.getZ(), pose::setZ);
       }
 
       YoOrientation3DDefinition rootJointOrientationDefinition = robotStateDefinition.getRootJointOrientation();
@@ -173,23 +191,16 @@ public class YoGhostRobotFX extends YoGraphicFX3D
 
          if (rootJointOrientationDefinition instanceof YoYawPitchRollDefinition yawPitchRollDefinition)
          {
-            DoubleProperty yaw = toDoubleProperty(yawPitchRollDefinition.getYaw());
-            DoubleProperty pitch = toDoubleProperty(yawPitchRollDefinition.getPitch());
-            DoubleProperty roll = toDoubleProperty(yawPitchRollDefinition.getRoll());
-            yaw.addListener((o, oldValue, newValue) -> orientation.setYawPitchRoll(newValue.doubleValue(), pitch.getValue(), roll.getValue()));
-            pitch.addListener((o, oldValue, newValue) -> orientation.setYawPitchRoll(yaw.getValue(), newValue.doubleValue(), roll.getValue()));
-            roll.addListener((o, oldValue, newValue) -> orientation.setYawPitchRoll(yaw.getValue(), pitch.getValue(), newValue.doubleValue()));
+            setupBinding(yawPitchRollDefinition.getYaw(), newValue -> orientation.setYawPitchRoll(newValue, orientation.getPitch(), orientation.getRoll()));
+            setupBinding(yawPitchRollDefinition.getPitch(), newValue -> orientation.setYawPitchRoll(orientation.getYaw(), newValue, orientation.getRoll()));
+            setupBinding(yawPitchRollDefinition.getRoll(), newValue -> orientation.setYawPitchRoll(orientation.getYaw(), orientation.getPitch(), newValue));
          }
          else if (rootJointOrientationDefinition instanceof YoQuaternionDefinition quaternionDefinition)
          {
-            DoubleProperty x = toDoubleProperty(quaternionDefinition.getX());
-            DoubleProperty y = toDoubleProperty(quaternionDefinition.getY());
-            DoubleProperty z = toDoubleProperty(quaternionDefinition.getZ());
-            DoubleProperty s = toDoubleProperty(quaternionDefinition.getS());
-            x.addListener((o, oldValue, newValue) -> orientation.setUnsafe(newValue.doubleValue(), y.getValue(), z.getValue(), s.getValue()));
-            y.addListener((o, oldValue, newValue) -> orientation.setUnsafe(x.getValue(), newValue.doubleValue(), z.getValue(), s.getValue()));
-            z.addListener((o, oldValue, newValue) -> orientation.setUnsafe(x.getValue(), y.getValue(), newValue.doubleValue(), s.getValue()));
-            s.addListener((o, oldValue, newValue) -> orientation.setUnsafe(x.getValue(), y.getValue(), z.getValue(), newValue.doubleValue()));
+            setupBinding(quaternionDefinition.getX(), newValue -> orientation.setUnsafe(newValue, orientation.getY(), orientation.getZ(), orientation.getS()));
+            setupBinding(quaternionDefinition.getY(), newValue -> orientation.setUnsafe(orientation.getX(), newValue, orientation.getZ(), orientation.getS()));
+            setupBinding(quaternionDefinition.getZ(), newValue -> orientation.setUnsafe(orientation.getX(), orientation.getY(), newValue, orientation.getS()));
+            setupBinding(quaternionDefinition.getS(), newValue -> orientation.setUnsafe(orientation.getX(), orientation.getY(), orientation.getZ(), newValue));
          }
          else
          {
@@ -202,14 +213,25 @@ public class YoGhostRobotFX extends YoGraphicFX3D
          for (YoOneDoFJointStateDefinition jointPositionDefinition : robotStateDefinition.getJointPositions())
          {
             String jointName = jointPositionDefinition.getJointName();
-            DoubleProperty jointPosition = toDoubleProperty(jointPositionDefinition.getJointPosition());
             SimOneDoFJointBasics joint = robot.getOneDoFJoint(jointName);
             if (joint == null)
                LogTools.error("Could not find joint: " + jointName);
             else
-               jointPosition.addListener((o, oldValue, newValue) -> joint.setQ(newValue.doubleValue()));
+               setupBinding(jointPositionDefinition.getJointPosition(), joint::setQ);
          }
       }
+
+      initialize = true;
+   }
+
+   private void setupBinding(String variableName, DoubleConsumer setter)
+   {
+      DoubleProperty doubleProperty = toDoubleProperty(variableName);
+      ChangeListener<Number> changeListener = (o, oldValue, newValue) -> setter.accept(newValue.doubleValue());
+      doubleProperty.addListener(changeListener);
+      // Trigger the change listener once to set the initial value.
+      changeListener.changed(doubleProperty, null, doubleProperty.getValue());
+      clearStateBindingTasks.add(() -> doubleProperty.removeListener(changeListener));
    }
 
    private DoubleProperty toDoubleProperty(String variableName)
@@ -254,6 +276,40 @@ public class YoGhostRobotFX extends YoGraphicFX3D
          robot.getRootBody().updateFramesRecursively();
          rigidBodyFrameNodeMap.values().forEach(FrameNode::updatePose);
          initialize = false;
+      }
+
+      if ((getColor() == null) != (overridingMaterial == null))
+      {
+         if (getColor() == null)
+         {
+            reverseOverridingMaterialTasks.forEach(Runnable::run);
+            reverseOverridingMaterialTasks.clear();
+            overridingMaterial = null;
+         }
+         else
+         {
+            overridingMaterial = new PhongMaterial();
+            overrideMaterialRecursive(rootNode, overridingMaterial);
+         }
+      }
+
+      if (getColor() != null)
+      {
+         overridingMaterial.setDiffuseColor(getColor().get());
+      }
+   }
+
+   private void overrideMaterialRecursive(Node start, PhongMaterial material)
+   {
+      if (start instanceof Group group)
+      {
+         group.getChildren().forEach(child -> overrideMaterialRecursive(child, material));
+      }
+      else if (start instanceof Shape3D shape)
+      {
+         Material originalMaterial = shape.getMaterial();
+         reverseOverridingMaterialTasks.add(() -> shape.setMaterial(originalMaterial));
+         shape.setMaterial(material);
       }
    }
 

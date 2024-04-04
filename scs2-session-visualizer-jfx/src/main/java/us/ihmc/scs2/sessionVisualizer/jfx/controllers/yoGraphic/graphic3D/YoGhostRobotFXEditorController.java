@@ -10,16 +10,21 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.Region;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.util.Pair;
+import org.jetbrains.annotations.NotNull;
+import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.robot.OneDoFJointDefinition;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.robot.sdf.SDFTools;
 import us.ihmc.scs2.definition.robot.sdf.items.SDFRoot;
 import us.ihmc.scs2.definition.robot.urdf.URDFTools;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFModel;
+import us.ihmc.scs2.definition.yoComposite.YoCompositePatternDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicRobotDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicRobotDefinition.YoOneDoFJointStateDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicRobotDefinition.YoRobotStateDefinition;
@@ -29,13 +34,17 @@ import us.ihmc.scs2.sessionVisualizer.jfx.controllers.editor.YoCompositeListEdit
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.CompositePropertyTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositePattern;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGhostRobotFX;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.color.BaseColorFX;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class YoGhostRobotFXEditorController extends YoGraphicFX3DEditorController<YoGhostRobotFX>
 {
@@ -63,15 +72,37 @@ public class YoGhostRobotFXEditorController extends YoGraphicFX3DEditorControlle
    private final Property<RobotDefinition> lastRobotModelFromFile = new SimpleObjectProperty<>(this, "lastRobotModelFromFile", null);
    private final Property<RobotDefinition> selectedRobotModel = new SimpleObjectProperty<>(this, "selectedRobotModel", null);
 
+   private final Property<YoCompositePattern> oneDoFJointPattern = new SimpleObjectProperty<>(this, "previousOneDoFJointPattern", null);
+
    @Override
    public void initialize(SessionVisualizerToolkit toolkit, YoGhostRobotFX yoGraphicToEdit)
    {
       super.initialize(toolkit, yoGraphicToEdit);
-      definitionBeforeEdits = yoGraphicToEdit.getGraphicRobotDefinition();
-      if (definitionBeforeEdits == null)
-         definitionBeforeEdits = new YoGraphicRobotDefinition();
+      definitionBeforeEdits = YoGraphicTools.toYoGraphicRobotDefinition(yoGraphicToEdit);
       yoGraphicToEdit.visibleProperty().addListener((observable, oldValue, newValue) -> definitionBeforeEdits.setVisible(newValue));
 
+      selectedRobotModel.addListener((o, oldValue, newValue) ->
+                                     {
+                                        if (newValue != null)
+                                        {
+                                           YoCompositePatternDefinition oneDoFJointPatternDefinition = createOneDoFJointPatternDefinition(newValue);
+
+                                           if (oldValue != null)
+                                           {
+                                              YoCompositePatternDefinition oldPatternDefinition = createOneDoFJointPatternDefinition(oldValue);
+                                              if (!Objects.equals(oneDoFJointPatternDefinition.getName(), oldPatternDefinition.getName()))
+                                                 yoCompositeSearchManager.discardYoComposite(oldPatternDefinition.getName());
+                                           }
+
+                                           if (yoCompositeSearchManager.getCollectionFromType(oneDoFJointPatternDefinition.getName()) == null)
+                                           {
+                                              yoCompositeSearchManager.searchYoCompositeInBackground(YoCompositeTools.toYoCompositePattern(
+                                                    oneDoFJointPatternDefinition));
+                                           }
+                                        }
+                                     });
+
+      robotModelFromSessionRadioButton.setSelected(true);
       new ToggleGroup().getToggles().addAll(robotModelFromSessionRadioButton, robotModelFromFileRadioButton);
       sessionRobotModelsComboBox.disableProperty().bind(robotModelFromFileRadioButton.selectedProperty());
       loadedRobotModelFileTextField.disableProperty().bind(robotModelFromSessionRadioButton.selectedProperty());
@@ -88,13 +119,9 @@ public class YoGhostRobotFXEditorController extends YoGraphicFX3DEditorControlle
          {
             super.updateItem(item, empty);
             if (empty || item == null)
-            {
                setText(null);
-            }
             else
-            {
                setText(item.getName());
-            }
          }
       });
 
@@ -133,7 +160,9 @@ public class YoGhostRobotFXEditorController extends YoGraphicFX3DEditorControlle
                                            yoGraphicToEdit.setInput(newDefinition);
 
                                            List<OneDoFJointDefinition> oneDoFJoints = robotDefinition.getAllOneDoFJoints();
-                                           oneDoFJointPositionListEditorController.setElementNameProvider(i -> oneDoFJoints.get(i).getName());
+                                           oneDoFJointPositionListEditorController.setElementNameProvider(i -> i >= oneDoFJoints.size() ?
+                                                 "null" :
+                                                 oneDoFJoints.get(i).getName());
                                            oneDoFJointPositionListEditorController.setNumberOfElements(oneDoFJoints.size());
                                         }
                                      });
@@ -163,7 +192,8 @@ public class YoGhostRobotFXEditorController extends YoGraphicFX3DEditorControlle
                                                                     false,
                                                                     0,
                                                                     null);
-      oneDoFJointPositionListEditorController.setCompositeName("1-Dof Joint Positions", "q");
+      oneDoFJointPositionListEditorController.setCompositeName("1-Dof Joint Positions");
+      oneDoFJointPositionListEditorController.setPrefHeight(10);
       inputsValidityProperty = Bindings.and(inputsValidityProperty, oneDoFJointPositionListEditorController.inputsValidityProperty());
       YoGraphicFXControllerTools.toSingletonDoubleSupplierListProperty(oneDoFJointPositionListEditorController.compositeListProperty())
                                 .addListener((o, oldValue, newValue) ->
@@ -171,6 +201,14 @@ public class YoGhostRobotFXEditorController extends YoGraphicFX3DEditorControlle
                                                 YoGraphicRobotDefinition newDefinition = shallowCopy();
                                                 YoRobotStateDefinition newState = new YoRobotStateDefinition(newDefinition.getRobotStateDefinition());
                                                 List<OneDoFJointDefinition> oneDoFJoints = newDefinition.getRobotDefinition().getAllOneDoFJoints();
+                                                if (oneDoFJoints.size() != newValue.size())
+                                                {
+                                                   LogTools.warn("Mismatch in the number of 1-DoF joints: expected={}, actual={}",
+                                                                 oneDoFJoints.size(),
+                                                                 newValue.size());
+                                                   return;
+                                                }
+
                                                 List<YoOneDoFJointStateDefinition> newOneDoFJointStates = new ArrayList<>(oneDoFJoints.size());
                                                 for (int i = 0; i < oneDoFJoints.size(); i++)
                                                 {
@@ -185,7 +223,47 @@ public class YoGhostRobotFXEditorController extends YoGraphicFX3DEditorControlle
                                              });
       oneDoFJointPositionListEditorController.addInputNotification(() -> updateHasChangesPendingProperty(null, null, null));
 
+      styleEditorController.getMainPane().setDisable(!enableColorCheckBox.isSelected());
+      enableColorCheckBox.setSelected(definitionBeforeEdits.getColor() != null);
+      styleEditorController.bindYoGraphicFX3D(yoGraphicToEdit);
+      enableColorCheckBox.selectedProperty().addListener((o, oldValue, newValue) ->
+                                                         {
+                                                            styleEditorController.getMainPane().setDisable(!newValue);
+                                                            if (!newValue)
+                                                               yoGraphicToEdit.setColor((BaseColorFX) null);
+                                                            else
+                                                               yoGraphicToEdit.setColor(styleEditorController.colorProperty().get());
+                                                         });
+
+      setupHeightAdjustment();
       resetFields();
+   }
+
+   @NotNull
+   private static YoCompositePatternDefinition createOneDoFJointPatternDefinition(RobotDefinition newValue)
+   {
+      YoCompositePatternDefinition oneDoFJointPatternDefinition = new YoCompositePatternDefinition();
+      List<OneDoFJointDefinition> oneDoFJoints = newValue.getAllOneDoFJoints();
+      oneDoFJointPatternDefinition.setName(newValue.getName() + "OneDoFJoints[%d]".formatted(oneDoFJoints.size()));
+      oneDoFJointPatternDefinition.setIdentifiers(oneDoFJoints.stream().map(OneDoFJointDefinition::getName).toArray(String[]::new));
+      oneDoFJointPatternDefinition.setCrossRegistry(true);
+      return oneDoFJointPatternDefinition;
+   }
+
+   private void setupHeightAdjustment()
+   {
+      mainPane.parentProperty().addListener((o, oldValue, newValue) ->
+                                            {
+                                               Region parent = (Region) newValue;
+
+                                               while (parent != null && !(parent instanceof ScrollPane))
+                                                  parent = (Region) parent.getParent();
+
+                                               if (parent == null)
+                                                  return;
+
+                                               oneDoFJointPositionListEditorController.setupHeightAdjustmentForScrollPane((ScrollPane) parent);
+                                            });
    }
 
    private YoGraphicRobotDefinition shallowCopy()
@@ -206,13 +284,15 @@ public class YoGhostRobotFXEditorController extends YoGraphicFX3DEditorControlle
    @Override
    public void resetFields()
    {
-
+      styleEditorController.setInput(definitionBeforeEdits);
+      nameEditorController.setInput(definitionBeforeEdits.getName(), yoGraphicToEdit.getNamespace());
    }
 
    @Override
    public void saveChanges()
    {
-
+      definitionBeforeEdits = YoGraphicTools.toYoGraphicRobotDefinition(yoGraphicToEdit);
+      hasChangesPendingProperty.set(false);
    }
 
    @Override
@@ -224,7 +304,7 @@ public class YoGhostRobotFXEditorController extends YoGraphicFX3DEditorControlle
    @Override
    protected <T> void updateHasChangesPendingProperty(ObservableValue<? extends T> observable, T oldValue, T newValue)
    {
-
+      hasChangesPendingProperty.set(!definitionBeforeEdits.equals(yoGraphicToEdit.getGraphicRobotDefinition()));
    }
 
    private Pair<File, RobotDefinition> loadRobotModelFromFile()
@@ -242,7 +322,7 @@ public class YoGhostRobotFXEditorController extends YoGraphicFX3DEditorControlle
          URDFModel urdfModel = null;
          try
          {
-            urdfModel = URDFTools.loadURDFModel(result, List.of(result.getParent()));
+            urdfModel = URDFTools.loadURDFModel(result, createResourceDirectories(result));
          }
          catch (JAXBException e)
          {
@@ -267,5 +347,28 @@ public class YoGhostRobotFXEditorController extends YoGraphicFX3DEditorControlle
       {
          return null;
       }
+   }
+
+   @NotNull
+   private static List<String> createResourceDirectories(File modelFile)
+   {
+      List<String> resourceDirectories = new ArrayList<>();
+      resourceDirectories.add(modelFile.getParent());
+
+      File candidate = modelFile.getParentFile();
+
+      for (int i = 0; i < 3; i++)
+      {
+         candidate = candidate.getParentFile();
+
+         if (candidate == null)
+            break;
+         if (candidate.getName().equals("models"))
+         {
+            resourceDirectories.add(candidate.getAbsolutePath());
+            break;
+         }
+      }
+      return resourceDirectories;
    }
 }
