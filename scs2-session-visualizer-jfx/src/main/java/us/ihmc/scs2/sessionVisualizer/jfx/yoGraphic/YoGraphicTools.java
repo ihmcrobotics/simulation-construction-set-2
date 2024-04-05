@@ -5,6 +5,7 @@ import javafx.beans.property.IntegerProperty;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.Shape;
 import javafx.scene.shape.Shape3D;
 import us.ihmc.euclid.Axis3D;
@@ -458,6 +459,7 @@ public class YoGraphicTools
    {
       toYoGraphicFX(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
       yoGraphicFXToPack.setColor(toBaseColorFX(yoVariableDatabase, definition.getColor()));
+      yoGraphicFXToPack.setDrawMode(toDrawMode(definition.getDrawMode()));
    }
 
    public static YoGhostRobotFX toYoGhostRobotFX(YoVariableDatabase yoVariableDatabase,
@@ -889,6 +891,19 @@ public class YoGraphicTools
          return DEFAULT_COLOR;
 
       return new SimpleColorFX(JavaFXVisualTools.toColor(definition));
+   }
+
+   public static DrawMode toDrawMode(String definition)
+   {
+      if (definition == null)
+         return DrawMode.FILL;
+
+      definition = definition.trim();
+      if ("LINE".equalsIgnoreCase(definition))
+         return DrawMode.LINE;
+      if ("WIREFRAME".equalsIgnoreCase(definition))
+         return DrawMode.LINE;
+      return DrawMode.FILL;
    }
 
    public static YoGroupFX convertRobotCollisionShapeDefinitions(RigidBodyReadOnly rootBody,
@@ -1475,6 +1490,7 @@ public class YoGraphicTools
       definition.setBodyRadius(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getBodyRadius()));
       definition.setHeadRadius(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getHeadRadius()));
       definition.setColor(toPaintDefinition(yoGraphicFX.getColor()));
+      definition.setDrawMode(toDrawModeDefinition(yoGraphicFX.getDrawMode()));
 
       return definition;
    }
@@ -1493,6 +1509,7 @@ public class YoGraphicTools
       definition.setLength(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getLength()));
       definition.setRadius(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getRadius()));
       definition.setColor(toPaintDefinition(yoGraphicFX.getColor()));
+      definition.setDrawMode(toDrawModeDefinition(yoGraphicFX.getDrawMode()));
 
       return definition;
    }
@@ -1511,6 +1528,7 @@ public class YoGraphicTools
       definition.setHeight(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getHeight()));
       definition.setRadius(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getRadius()));
       definition.setColor(toPaintDefinition(yoGraphicFX.getColor()));
+      definition.setDrawMode(toDrawModeDefinition(yoGraphicFX.getDrawMode()));
 
       return definition;
    }
@@ -1529,6 +1547,7 @@ public class YoGraphicTools
       definition.setLength(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getLength()));
       definition.setRadius(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getRadius()));
       definition.setColor(toPaintDefinition(yoGraphicFX.getColor()));
+      definition.setDrawMode(toDrawModeDefinition(yoGraphicFX.getDrawMode()));
 
       return definition;
    }
@@ -1545,6 +1564,7 @@ public class YoGraphicTools
       definition.setPosition(CompositePropertyTools.toYoTuple3DDefinition(yoGraphicFX.getPosition()));
       definition.setSize(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getSize()));
       definition.setColor(toPaintDefinition(yoGraphicFX.getColor()));
+      definition.setDrawMode(toDrawModeDefinition(yoGraphicFX.getDrawMode()));
       definition.setGraphicName(yoGraphicFX.getGraphicResource().getResourceName());
 
       return definition;
@@ -1564,6 +1584,7 @@ public class YoGraphicTools
       definition.setSize(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getSize()));
       definition.setGraphicName(yoGraphicFX.getGraphicResource().getResourceName());
       definition.setColor(toPaintDefinition(yoGraphicFX.getColor()));
+      definition.setDrawMode(toDrawModeDefinition(yoGraphicFX.getDrawMode()));
 
       return definition;
    }
@@ -1587,6 +1608,7 @@ public class YoGraphicTools
       definition.setTimeResolution(CompositePropertyTools.toIntegerPropertyName(yoGraphicFX.getTimeResolution()));
       definition.setNumberOfDivisions(CompositePropertyTools.toIntegerPropertyName(yoGraphicFX.getNumberOfDivisions()));
       definition.setColor(toPaintDefinition(yoGraphicFX.getColor()));
+      definition.setDrawMode(toDrawModeDefinition(yoGraphicFX.getDrawMode()));
 
       return definition;
    }
@@ -1615,6 +1637,7 @@ public class YoGraphicTools
       definition.setBodyRadius(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getBodyRadius()));
       definition.setHeadRadius(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getHeadRadius()));
       definition.setColor(toPaintDefinition(yoGraphicFX.getColor()));
+      definition.setDrawMode(toDrawModeDefinition(yoGraphicFX.getDrawMode()));
 
       return definition;
    }
@@ -1634,6 +1657,7 @@ public class YoGraphicTools
       definition.setNumberOfVertices(CompositePropertyTools.toIntegerPropertyName(yoGraphicFX.getNumberOfVertices()));
       definition.setThickness(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getThickness()));
       definition.setColor(toPaintDefinition(yoGraphicFX.getColor()));
+      definition.setDrawMode(toDrawModeDefinition(yoGraphicFX.getDrawMode()));
 
       return definition;
    }
@@ -1652,6 +1676,7 @@ public class YoGraphicTools
       definition.setVertices(yoGraphicFX.getVertices().stream().map(CompositePropertyTools::toYoTuple3DDefinition).collect(Collectors.toList()));
       definition.setNumberOfVertices(CompositePropertyTools.toIntegerPropertyName(yoGraphicFX.getNumberOfVertices()));
       definition.setColor(toPaintDefinition(yoGraphicFX.getColor()));
+      definition.setDrawMode(toDrawModeDefinition(yoGraphicFX.getDrawMode()));
 
       return definition;
    }
@@ -1669,6 +1694,7 @@ public class YoGraphicTools
       definition.setOrientation(CompositePropertyTools.toYoOrientation3DDefinition(yoGraphicFX.getOrientation()));
       definition.setSize(CompositePropertyTools.toYoTuple3DDefinition(yoGraphicFX.getSize()));
       definition.setColor(toPaintDefinition(yoGraphicFX.getColor()));
+      definition.setDrawMode(toDrawModeDefinition(yoGraphicFX.getDrawMode()));
 
       return definition;
    }
@@ -1686,6 +1712,7 @@ public class YoGraphicTools
       definition.setOrientation(CompositePropertyTools.toYoOrientation3DDefinition(yoGraphicFX.getOrientation()));
       definition.setRadii(CompositePropertyTools.toYoTuple3DDefinition(yoGraphicFX.getRadii()));
       definition.setColor(toPaintDefinition(yoGraphicFX.getColor()));
+      definition.setDrawMode(toDrawModeDefinition(yoGraphicFX.getDrawMode()));
 
       return definition;
    }
@@ -1705,6 +1732,7 @@ public class YoGraphicTools
       definition.setMinimumMargin(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getMinimumMargin()));
       definition.setMaximumMargin(CompositePropertyTools.toDoublePropertyName(yoGraphicFX.getMaximumMargin()));
       definition.setColor(toPaintDefinition(yoGraphicFX.getColor()));
+      definition.setDrawMode(toDrawModeDefinition(yoGraphicFX.getDrawMode()));
 
       return definition;
    }
@@ -1722,6 +1750,7 @@ public class YoGraphicTools
       definition.setOrientation(CompositePropertyTools.toYoOrientation3DDefinition(yoGraphicFX.getOrientation()));
       definition.setSize(CompositePropertyTools.toYoTuple3DDefinition(yoGraphicFX.getSize()));
       definition.setColor(toPaintDefinition(yoGraphicFX.getColor()));
+      definition.setDrawMode(toDrawModeDefinition(yoGraphicFX.getDrawMode()));
 
       return definition;
    }
@@ -1738,6 +1767,7 @@ public class YoGraphicTools
       definition.setRobotDefinition(yoGraphicFX.getRobotDefinition());
       definition.setRobotStateDefinition(yoGraphicFX.getRobotStateDefinition());
       definition.setColor(toPaintDefinition(yoGraphicFX.getColor()));
+      definition.setDrawMode(toDrawModeDefinition(yoGraphicFX.getDrawMode()));
 
       return definition;
    }
@@ -1790,6 +1820,14 @@ public class YoGraphicTools
          LogTools.error("Problem converting color: {}", baseColor);
          return null;
       }
+   }
+
+   public static String toDrawModeDefinition(DrawMode drawMode)
+   {
+      if (drawMode == null)
+         return "FILL";
+      else
+         return drawMode.name();
    }
 
    public static List<Shape> extractShapes(Group group)

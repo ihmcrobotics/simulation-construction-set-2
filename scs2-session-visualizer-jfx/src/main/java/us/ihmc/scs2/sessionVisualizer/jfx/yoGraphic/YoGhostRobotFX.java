@@ -19,7 +19,6 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.paint.Material;
 import javafx.scene.paint.PhongMaterial;
-import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.Shape3D;
 import javafx.util.Duration;
 import us.ihmc.euclid.geometry.interfaces.Pose3DBasics;
@@ -60,8 +59,6 @@ public class YoGhostRobotFX extends YoGraphicFX3D
    private boolean robotDefinitionChanged = true;
    private boolean robotStateDefinitionChanged = true;
 
-   private final Property<DrawMode> drawMode = new SimpleObjectProperty<>(this, "drawMode", DrawMode.FILL);
-
    private Robot robot;
    private final ObservableMap<String, FrameNode> rigidBodyFrameNodeMap = FXCollections.observableMap(new ConcurrentHashMap<>(64));
 
@@ -81,7 +78,7 @@ public class YoGhostRobotFX extends YoGraphicFX3D
       setColor((BaseColorFX) null); // Remove the default color.
       this.yoVariableDatabase = yoVariableDatabase;
 
-      this.drawMode.addListener((o, oldValue, newValue) -> JavaFXMissingTools.setDrawModeRecursive(rootNode, newValue));
+      drawModeProperty.addListener((o, oldValue, newValue) -> JavaFXMissingTools.setDrawModeRecursive(rootNode, newValue));
 
       rootJointPoseValid.addListener((o, oldValue, newValue) ->
                                      {
@@ -106,6 +103,7 @@ public class YoGhostRobotFX extends YoGraphicFX3D
             node.setScaleZ(0.0);
             if (overridingMaterial != null)
                overrideMaterialRecursive(node, overridingMaterial);
+            JavaFXMissingTools.setDrawModeRecursive(node, getDrawMode());
             Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(0.25),
                                                           new KeyValue(node.scaleXProperty(), 1.0),
                                                           new KeyValue(node.scaleYProperty(), 1.0),
@@ -345,16 +343,6 @@ public class YoGhostRobotFX extends YoGraphicFX3D
          reverseOverridingMaterialTasks.add(() -> shape.setMaterial(originalMaterial));
          shape.setMaterial(material);
       }
-   }
-
-   public void setDrawMode(DrawMode drawMode)
-   {
-      this.drawMode.setValue(drawMode);
-   }
-
-   public DrawMode getDrawMode()
-   {
-      return drawMode.getValue();
    }
 
    public RobotDefinition getRobotDefinition()
