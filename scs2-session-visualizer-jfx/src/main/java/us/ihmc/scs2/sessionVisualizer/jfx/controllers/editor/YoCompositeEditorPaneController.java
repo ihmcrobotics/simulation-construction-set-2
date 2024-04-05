@@ -245,6 +245,20 @@ public class YoCompositeEditorPaneController
       compositeNameProperty.set(compositeName);
    }
 
+   public void clearInput()
+   {
+      for (int i = 0; i < numberOfComponents; i++)
+      {
+         componentSearchTextFields[i].setText("0.0");
+      }
+      if (yoCompositeTextField != null)
+         yoCompositeTextField.initializeFieldFromComponents();
+      if (referenceFrameSearchTextField != null)
+      {
+         referenceFrameSearchTextField.setText(referenceFrameManager.getWorldFrame().getName());
+      }
+   }
+
    public void setInput(YoComposite input)
    {
       if (yoCompositeTextField != null)

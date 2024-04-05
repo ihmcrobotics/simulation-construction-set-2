@@ -18,6 +18,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.util.Pair;
+import javafx.util.StringConverter;
 import org.jetbrains.annotations.NotNull;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.robot.OneDoFJointDefinition;
@@ -27,8 +28,6 @@ import us.ihmc.scs2.definition.robot.sdf.items.SDFRoot;
 import us.ihmc.scs2.definition.robot.urdf.URDFTools;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFModel;
 import us.ihmc.scs2.definition.yoComposite.YoCompositePatternDefinition;
-import us.ihmc.scs2.definition.yoComposite.YoQuaternionDefinition;
-import us.ihmc.scs2.definition.yoComposite.YoTuple3DDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicRobotDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicRobotDefinition.YoOneDoFJointStateDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicRobotDefinition.YoRobotStateDefinition;
@@ -112,6 +111,21 @@ public class YoGhostRobotFXEditorController extends YoGraphicFX3DEditorControlle
          }
       });
 
+      sessionRobotModelsComboBox.setConverter(new StringConverter<>()
+      {
+         @Override
+         public String toString(RobotDefinition object)
+         {
+            return object.getName();
+         }
+
+         @Override
+         public RobotDefinition fromString(String string)
+         {
+            return sessionRobotModelsComboBox.getItems().stream().filter(r -> r.getName().equals(string)).findFirst().orElse(null);
+         }
+      });
+
       sessionRobotModelsComboBox.getSelectionModel().selectedItemProperty().addListener((o, oldValue, newValue) -> selectedRobotModel.setValue(newValue));
       robotModelFromSessionRadioButton.selectedProperty().addListener((o, oldValue, newValue) ->
                                                                       {
@@ -142,7 +156,9 @@ public class YoGhostRobotFXEditorController extends YoGraphicFX3DEditorControlle
                                         if (newValue != null)
                                         {
                                            RobotDefinition robotDefinition = new RobotDefinition(newValue);
+                                           yoGraphicToEdit.setRobotStateDefinition(null);
                                            yoGraphicToEdit.setRobotDefinition(robotDefinition);
+                                           setRobotStateFields(robotDefinition, null);
 
                                            YoCompositePatternDefinition oneDoFJointPatternDefinition = createOneDoFJointPatternDefinition(newValue);
 
@@ -277,60 +293,100 @@ public class YoGhostRobotFXEditorController extends YoGraphicFX3DEditorControlle
       RobotDefinition robotDefinition = definitionBeforeEdits.getRobotDefinition();
       if (robotDefinition != null)
       {
-         if (loadedRobotModelFileTextField.getText().isBlank())
+         if (loadedRobotModelFileTextField.getText().isBlank() || !Objects.equals(robotDefinition, lastRobotModelFromFile.getValue()))
+
          {
             if (!sessionRobotModelsComboBox.getItems().contains(robotDefinition))
             { // This is to handle the case where the graphic is imported, we don't have the info about where the robot model came from.
+               boolean hasHomonym = sessionRobotModelsComboBox.getItems().stream().anyMatch(r -> r.getName().equals(robotDefinition.getName()));
+               if (hasHomonym)
+               {
+                  robotDefinition.setName("%s-Imported-DoFs[%d]".formatted(robotDefinition.getName(), robotDefinition.getAllOneDoFJoints().size()));
+               }
                sessionRobotModelsComboBox.getItems().add(robotDefinition);
+               sessionRobotModelsComboBox.getSelectionModel().select(robotDefinition);
+            }
+            else
+            {
                sessionRobotModelsComboBox.getSelectionModel().select(robotDefinition);
             }
             robotModelFromSessionRadioButton.setSelected(true);
          }
-
-         YoRobotStateDefinition robotStateDefinition = definitionBeforeEdits.getRobotStateDefinition();
-
-         rootJointPositionEditorController.setInput(robotStateDefinition.getRootJointPosition());
-         rootJointOrientationEditorController.setInput(robotStateDefinition.getRootJointOrientation());
-
-         YoCompositePatternDefinition patternDefinition = createOneDoFJointPatternDefinition(robotDefinition);
-         if (oneDoFJointPositionsEditorController != null && oneDoFJointPattern.getValue() != null && patternDefinition.getName()
-                                                                                                                       .equals(oneDoFJointPattern.getValue()
-                                                                                                                                                 .getType()))
-         {
-            oneDoFJointPositionsEditorController.setInput(robotStateDefinition.getJointPositions()
-                                                                              .stream()
-                                                                              .map(YoOneDoFJointStateDefinition::getJointPosition)
-                                                                              .toArray(String[]::new));
-         }
-         else
-         {
-            YoCompositePattern newPattern = YoCompositeTools.toYoCompositePattern(patternDefinition);
-            oneDoFJointPattern.setValue(newPattern);
-            if (yoCompositeSearchManager.getCollectionFromType(newPattern.getType()) == null)
-            {
-               yoCompositeSearchManager.searchYoCompositeNow(newPattern, this::setupOneDoFJointPositionEditor);
-            }
-            else
-            {
-               setupOneDoFJointPositionEditor(yoCompositeSearchManager.getCollectionFromType(newPattern.getType()));
-            }
-         }
-         oneDoFJointPositionsEditorController.setInput(robotStateDefinition.getJointPositions()
-                                                                           .stream()
-                                                                           .map(YoOneDoFJointStateDefinition::getJointPosition)
-                                                                           .toArray(String[]::new));
       }
       else
       {
          robotModelFromSessionRadioButton.setSelected(true);
-         rootJointPositionEditorController.setInput(new YoTuple3DDefinition());
-         rootJointOrientationEditorController.setInput(new YoQuaternionDefinition());
+      }
+
+      setRobotStateFields(robotDefinition, definitionBeforeEdits.getRobotStateDefinition());
+   }
+
+   private void setRobotStateFields(RobotDefinition robotDefinition, YoRobotStateDefinition robotStateDefinition)
+   {
+      if (robotDefinition == null)
+      {
+         rootJointPositionEditorController.clearInput();
+         rootJointOrientationEditorController.clearInput();
          if (oneDoFJointPositionsEditorController != null)
          {
             int index = mainPane.getChildren().indexOf(oneDoFJointPositionsEditorController.getMainPane());
             mainPane.getChildren().set(index, oneDoFJointsPlaceholderLabel);
             oneDoFJointPositionsEditorController = null;
          }
+         return;
+      }
+
+      if (robotStateDefinition == null)
+      {
+         rootJointPositionEditorController.clearInput();
+         rootJointOrientationEditorController.clearInput();
+      }
+      else
+      {
+         rootJointPositionEditorController.setInput(robotStateDefinition.getRootJointPosition());
+         rootJointOrientationEditorController.setInput(robotStateDefinition.getRootJointOrientation());
+      }
+
+      YoCompositePatternDefinition patternDefinition = createOneDoFJointPatternDefinition(robotDefinition);
+      if (oneDoFJointPositionsEditorController != null && oneDoFJointPattern.getValue() != null && patternDefinition.getName()
+                                                                                                                    .equals(oneDoFJointPattern.getValue()
+                                                                                                                                              .getType()))
+      {
+         if (robotStateDefinition == null)
+         {
+            oneDoFJointPositionsEditorController.clearInput();
+         }
+         else
+         {
+            oneDoFJointPositionsEditorController.setInput(robotStateDefinition.getJointPositions()
+                                                                              .stream()
+                                                                              .map(YoOneDoFJointStateDefinition::getJointPosition)
+                                                                              .toArray(String[]::new));
+         }
+      }
+      else
+      {
+         YoCompositePattern newPattern = YoCompositeTools.toYoCompositePattern(patternDefinition);
+         oneDoFJointPattern.setValue(newPattern);
+         if (yoCompositeSearchManager.getCollectionFromType(newPattern.getType()) == null)
+         {
+            yoCompositeSearchManager.searchYoCompositeNow(newPattern, this::setupOneDoFJointPositionEditor);
+         }
+         else
+         {
+            setupOneDoFJointPositionEditor(yoCompositeSearchManager.getCollectionFromType(newPattern.getType()));
+         }
+      }
+      if (robotStateDefinition == null)
+      {
+         oneDoFJointPositionsEditorController.clearInput();
+      }
+      else
+      {
+         oneDoFJointPositionsEditorController.setInput(robotStateDefinition.getJointPositions()
+                                                                           .stream()
+                                                                           .map(YoOneDoFJointStateDefinition::getJointPosition)
+                                                                           .toArray(String[]::new));
       }
    }
 
