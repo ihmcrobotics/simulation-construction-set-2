@@ -4,7 +4,9 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.Property;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
@@ -25,7 +27,6 @@ import us.ihmc.scs2.definition.yoComposite.YoOrientation3DDefinition;
 import us.ihmc.scs2.definition.yoComposite.YoQuaternionDefinition;
 import us.ihmc.scs2.definition.yoComposite.YoTuple3DDefinition;
 import us.ihmc.scs2.definition.yoComposite.YoYawPitchRollDefinition;
-import us.ihmc.scs2.definition.yoGraphic.YoGraphicRobotDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicRobotDefinition.YoOneDoFJointStateDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicRobotDefinition.YoRobotStateDefinition;
 import us.ihmc.scs2.sessionVisualizer.jfx.multiBodySystem.FrameNode;
@@ -51,7 +52,13 @@ public class YoGhostRobotFX extends YoGraphicFX3D
    private final Group rootNode = new Group();
    private final YoVariableDatabase yoVariableDatabase;
 
-   private YoGraphicRobotDefinition graphicRobotDefinition;
+   private RobotDefinition robotDefinition;
+   private YoRobotStateDefinition robotStateDefinition;
+   private boolean robotDefinitionChanged = true;
+   private boolean robotStateDefinitionChanged = true;
+
+   private final Property<DrawMode> drawMode = new SimpleObjectProperty<>(this, "drawMode", DrawMode.FILL);
+
    private Robot robot;
    private final ObservableMap<String, FrameNode> rigidBodyFrameNodeMap = FXCollections.observableMap(new ConcurrentHashMap<>(64));
 
@@ -61,9 +68,6 @@ public class YoGhostRobotFX extends YoGraphicFX3D
 
    private final List<Runnable> clearStateBindingTasks = new ArrayList<>();
 
-   private boolean robotDefinitionChanged = true;
-   private boolean robotStateDefinitionChanged = true;
-
    private PhongMaterial overridingMaterial = null;
    private final List<Runnable> reverseOverridingMaterialTasks = new ArrayList<>();
 
@@ -71,6 +75,8 @@ public class YoGhostRobotFX extends YoGraphicFX3D
    {
       setColor((BaseColorFX) null); // Remove the default color.
       this.yoVariableDatabase = yoVariableDatabase;
+
+      this.drawMode.addListener((o, oldValue, newValue) -> JavaFXMissingTools.setDrawModeRecursive(rootNode, newValue));
 
       rigidBodyFrameNodeMap.addListener((MapChangeListener<String, FrameNode>) change ->
       {
@@ -100,37 +106,22 @@ public class YoGhostRobotFX extends YoGraphicFX3D
             });
          }
       });
-
-      nameProperty().addListener((o, oldValue, newValue) ->
-                                 {
-                                    if (graphicRobotDefinition != null)
-                                       graphicRobotDefinition.setName(newValue);
-                                 });
    }
 
-   public void setInput(YoGraphicRobotDefinition input)
+   public void setRobotDefinition(RobotDefinition robotDefinition)
    {
-      if (graphicRobotDefinition == input)
+      if (this.robotDefinition == robotDefinition || Objects.equals(this.robotDefinition, robotDefinition))
          return;
-      if (graphicRobotDefinition == null)
-      {
-         robotDefinitionChanged = true;
-         robotStateDefinitionChanged = true;
-      }
-      else
-      {
-         if (!Objects.equals(graphicRobotDefinition.getRobotDefinition(), input.getRobotDefinition()))
-         {
-            robotDefinitionChanged = true;
-         }
-         if (!Objects.equals(graphicRobotDefinition.getRobotStateDefinition(), input.getRobotStateDefinition()))
-         {
-            robotStateDefinitionChanged = true;
-         }
-      }
+      this.robotDefinition = robotDefinition;
+      robotDefinitionChanged = true;
+   }
 
-      graphicRobotDefinition = input;
-      setName(graphicRobotDefinition.getName());
+   public void setRobotStateDefinition(YoRobotStateDefinition robotStateDefinition)
+   {
+      if (this.robotStateDefinition == robotStateDefinition || Objects.equals(this.robotStateDefinition, robotStateDefinition))
+         return;
+      this.robotStateDefinition = robotStateDefinition;
+      robotStateDefinitionChanged = true;
    }
 
    private void updateRobotDefinition()
@@ -140,12 +131,11 @@ public class YoGhostRobotFX extends YoGraphicFX3D
 
       robotDefinitionChanged = false;
       rigidBodyFrameNodeMap.clear();
-      if (graphicRobotDefinition == null || graphicRobotDefinition.getRobotDefinition() == null)
+      if (robotDefinition == null)
       {
          robot = null;
          return;
       }
-      RobotDefinition robotDefinition = graphicRobotDefinition.getRobotDefinition();
       robot = new Robot(robotDefinition, ReferenceFrameTools.constructARootFrame("dummy"), false);
       RigidBodyFrameNodeFactories.createRobotFrameNodeMap(robot.getRootBody(), robotDefinition, null, rigidBodyFrameNodeMap);
       // Need to update the robot state definition as the robot has changed.
@@ -164,11 +154,6 @@ public class YoGhostRobotFX extends YoGraphicFX3D
          return;
 
       robotStateDefinitionChanged = false;
-
-      if (graphicRobotDefinition == null)
-         return;
-
-      YoRobotStateDefinition robotStateDefinition = graphicRobotDefinition.getRobotStateDefinition();
 
       if (robotStateDefinition == null)
          return;
@@ -344,22 +329,22 @@ public class YoGhostRobotFX extends YoGraphicFX3D
 
    public void setDrawMode(DrawMode drawMode)
    {
-      JavaFXMissingTools.runLaterIfNeeded(getClass(), () -> JavaFXMissingTools.setDrawModeRecursive(rootNode, drawMode));
+      this.drawMode.setValue(drawMode);
    }
 
-   public YoGraphicRobotDefinition getGraphicRobotDefinition()
+   public DrawMode getDrawMode()
    {
-      return graphicRobotDefinition;
+      return drawMode.getValue();
    }
 
    public RobotDefinition getRobotDefinition()
    {
-      return graphicRobotDefinition.getRobotDefinition();
+      return robotDefinition;
    }
 
-   public boolean isRobotLoaded()
+   public YoRobotStateDefinition getRobotStateDefinition()
    {
-      return !forceUpdate;
+      return robotStateDefinition;
    }
 
    @Override
@@ -381,7 +366,14 @@ public class YoGhostRobotFX extends YoGraphicFX3D
    @Override
    public YoGraphicFX clone()
    {
-      return new YoGhostRobotFX(yoVariableDatabase);
+      YoGhostRobotFX clone = new YoGhostRobotFX(yoVariableDatabase);
+      clone.setName(getName());
+      clone.setColor(getColor());
+      clone.setVisible(isVisible());
+      clone.setRobotDefinition(robotDefinition);
+      clone.setRobotStateDefinition(robotStateDefinition);
+      clone.setDrawMode(getDrawMode());
+      return clone;
    }
 
    @Override

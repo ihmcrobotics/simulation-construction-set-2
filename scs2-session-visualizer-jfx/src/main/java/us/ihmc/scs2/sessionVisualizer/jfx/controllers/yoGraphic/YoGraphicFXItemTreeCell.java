@@ -15,7 +15,6 @@ import javafx.scene.text.Font;
 import org.kordamp.ikonli.javafx.FontIcon;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGhostRobotFX;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFX2D;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicFXItem;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
@@ -53,8 +52,6 @@ public class YoGraphicFXItemTreeCell extends CheckBoxTreeCell<YoGraphicFXItem>
       }
       else
       {
-         if (item instanceof YoGhostRobotFX)
-            System.out.println(item.getName());
          setText(item.getName());
          textProperty().bind(item.nameProperty());
 

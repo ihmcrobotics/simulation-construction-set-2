@@ -169,6 +169,7 @@ public class DefinitionIOTools
          classesToBeBound.add(YoGraphicPolynomial3DDefinition.class);
          classesToBeBound.add(YoGraphicRamp3DDefinition.class);
          classesToBeBound.add(YoGraphicSTPBox3DDefinition.class);
+         classesToBeBound.add(YoGraphicRobotDefinition.class);
          classesToBeBound.add(YoListDefinition.class);
 
          // YoCompositeDefinition

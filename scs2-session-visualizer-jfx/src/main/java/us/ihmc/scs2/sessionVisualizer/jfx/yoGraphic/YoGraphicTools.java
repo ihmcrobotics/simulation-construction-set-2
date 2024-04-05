@@ -477,7 +477,8 @@ public class YoGraphicTools
                                        YoGhostRobotFX yoGraphicFXToPack)
    {
       toYoGraphicFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
-      yoGraphicFXToPack.setInput(definition);
+      yoGraphicFXToPack.setRobotDefinition(definition.getRobotDefinition());
+      yoGraphicFXToPack.setRobotStateDefinition(definition.getRobotStateDefinition());
    }
 
    public static YoPointFX3D toYoPointFX3D(YoVariableDatabase yoVariableDatabase,
@@ -1730,13 +1731,12 @@ public class YoGraphicTools
       if (yoGraphicFX == null)
          return null;
 
-      YoGraphicRobotDefinition definition;
-      if (yoGraphicFX.getGraphicRobotDefinition() != null)
-         definition = new YoGraphicRobotDefinition(yoGraphicFX.getGraphicRobotDefinition());
-      else
-         definition = new YoGraphicRobotDefinition();
+      YoGraphicRobotDefinition definition = new YoGraphicRobotDefinition();
       definition.setName(yoGraphicFX.getName());
       definition.setVisible(yoGraphicFX.isVisible());
+      definition.setVisible(yoGraphicFX.isVisible());
+      definition.setRobotDefinition(yoGraphicFX.getRobotDefinition());
+      definition.setRobotStateDefinition(yoGraphicFX.getRobotStateDefinition());
       definition.setColor(toPaintDefinition(yoGraphicFX.getColor()));
 
       return definition;
