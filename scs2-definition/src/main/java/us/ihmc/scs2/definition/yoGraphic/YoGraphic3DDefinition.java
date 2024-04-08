@@ -32,6 +32,19 @@ public abstract class YoGraphic3DDefinition extends YoGraphicDefinition
 
    public YoGraphic3DDefinition()
    {
+   }
+
+   public YoGraphic3DDefinition(YoGraphic3DDefinition other)
+   {
+      super(other);
+      color = other.color == null ? null : other.color.copy();
+      drawMode = other.drawMode;
+   }
+
+   @Override
+   protected void registerFields()
+   {
+      super.registerFields();
       registerPaintField("color", this::getColor, this::setColor);
       registerStringField("drawMode", this::getDrawMode, this::setDrawMode);
    }

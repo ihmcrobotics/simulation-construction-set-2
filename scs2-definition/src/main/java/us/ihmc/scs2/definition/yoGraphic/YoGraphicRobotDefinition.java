@@ -4,13 +4,34 @@ import us.ihmc.scs2.definition.robot.RobotDefinition;
 import us.ihmc.scs2.definition.yoComposite.YoOrientation3DDefinition;
 import us.ihmc.scs2.definition.yoComposite.YoTuple3DDefinition;
 
+import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * A {@code YoGraphicRobotDefinition} is a template for creating a 3D representation of a robot and which
+ * state can be backed by {@code YoVariable}s.
+ * <p>
+ * <b>
+ * IMPORTANT: This yoGraphic definition is not yet supported by the YoVariable server, such that the controller should not be making these, instead you want to
+ * create this yoGraphic via the SCS2 GUI.
+ * </b>
+ * </p>
+ * <p>
+ * The {@code YoGraphicArrow3DDefinition} is to be passed before initialization of a session (either
+ * before starting a simulation or when creating a yoVariable server), such that the SCS GUI can use
+ * the definitions and create the actual graphics.
+ * </p>
+ *
+ * @author Sylvain Bertrand
+ */
+@XmlRootElement(name = "YoGraphicRobotDefinition")
 public class YoGraphicRobotDefinition extends YoGraphic3DDefinition
 {
+   /** The robot definition used to instantiate the graphics. */
    private RobotDefinition robotDefinition;
+   /** The robot state definition used to update the state of the robot. */
    private YoRobotStateDefinition robotStateDefinition;
 
    public YoGraphicRobotDefinition()
@@ -52,6 +73,12 @@ public class YoGraphicRobotDefinition extends YoGraphic3DDefinition
    public YoRobotStateDefinition getRobotStateDefinition()
    {
       return robotStateDefinition;
+   }
+
+   @Override
+   public YoGraphicRobotDefinition copy()
+   {
+      return new YoGraphicRobotDefinition(this);
    }
 
    @Override
@@ -131,6 +158,15 @@ public class YoGraphicRobotDefinition extends YoGraphic3DDefinition
          return jointPositions;
       }
 
+      public YoRobotStateDefinition copy()
+      {
+         YoRobotStateDefinition copy = new YoRobotStateDefinition();
+         copy.rootJointPosition = rootJointPosition != null ? rootJointPosition.copy() : null;
+         copy.rootJointOrientation = rootJointOrientation != null ? rootJointOrientation.copy() : null;
+         copy.jointPositions = jointPositions != null ? jointPositions.stream().map(YoOneDoFJointStateDefinition::copy).toList() : null;
+         return copy;
+      }
+
       @Override
       public boolean equals(Object object)
       {
@@ -194,6 +230,14 @@ public class YoGraphicRobotDefinition extends YoGraphic3DDefinition
       public String getJointPosition()
       {
          return jointPosition;
+      }
+
+      public YoOneDoFJointStateDefinition copy()
+      {
+         YoOneDoFJointStateDefinition copy = new YoOneDoFJointStateDefinition();
+         copy.jointName = jointName;
+         copy.jointPosition = jointPosition;
+         return copy;
       }
 
       @Override

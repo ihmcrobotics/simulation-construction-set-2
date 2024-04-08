@@ -479,6 +479,8 @@ public class YoGraphicTools
                                        YoGhostRobotFX yoGraphicFXToPack)
    {
       toYoGraphicFX3D(yoVariableDatabase, resourceManager, referenceFrameManager, definition, yoGraphicFXToPack);
+      if (definition.getColor() == null)
+         yoGraphicFXToPack.setColor((BaseColorFX) null); // We actually do not want to set the color here.
       yoGraphicFXToPack.setRobotDefinition(definition.getRobotDefinition());
       yoGraphicFXToPack.setRobotStateDefinition(definition.getRobotStateDefinition());
    }

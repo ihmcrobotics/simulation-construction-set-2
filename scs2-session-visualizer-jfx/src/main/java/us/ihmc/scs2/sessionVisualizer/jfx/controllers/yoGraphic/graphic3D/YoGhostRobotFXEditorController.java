@@ -44,9 +44,17 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGraphicTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.color.BaseColorFX;
 
 import javax.xml.bind.JAXBException;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -116,7 +124,7 @@ public class YoGhostRobotFXEditorController extends YoGraphicFX3DEditorControlle
          @Override
          public String toString(RobotDefinition object)
          {
-            return object.getName();
+            return object == null ? "null" : object.getName();
          }
 
          @Override
@@ -419,31 +427,53 @@ public class YoGhostRobotFXEditorController extends YoGraphicFX3DEditorControlle
                                                             ROBOT_MODEL_PATH_KEY);
       if (result == null)
          return null;
+      ClassLoader resourceClassLoader = null;
+      try
+      {
+         resourceClassLoader = createResourceClassLoader(result);
+      }
+      catch (MalformedURLException e)
+      {
+         throw new RuntimeException(e);
+      }
+
+      InputStream inputStream = null;
+      try
+      {
+         inputStream = new BufferedInputStream(new FileInputStream(result));
+      }
+      catch (FileNotFoundException e)
+      {
+         throw new RuntimeException(e);
+      }
+
       if (result.getName().toLowerCase().endsWith("urdf"))
       {
-         URDFModel urdfModel = null;
          try
          {
-            urdfModel = URDFTools.loadURDFModel(result, createResourceDirectories(result));
+            URDFModel urdfModel = URDFTools.loadURDFModel(inputStream, Collections.emptyList(), resourceClassLoader);
+            RobotDefinition robotDefinition = URDFTools.toRobotDefinition(urdfModel);
+            robotDefinition.setResourceClassLoader(resourceClassLoader);
+            return new Pair<>(result, robotDefinition);
          }
          catch (JAXBException e)
          {
             throw new RuntimeException(e);
          }
-         return new Pair<>(result, URDFTools.toRobotDefinition(urdfModel));
       }
       else if (result.getName().toLowerCase().endsWith("sdf"))
       {
-         SDFRoot sdfRoot = null;
          try
          {
-            sdfRoot = SDFTools.loadSDFRoot(result);
+            SDFRoot sdfRoot = SDFTools.loadSDFRoot(inputStream, Collections.emptyList(), resourceClassLoader);
+            RobotDefinition robotDefinition = SDFTools.toFloatingRobotDefinition(sdfRoot.getModels().get(0));
+            robotDefinition.setResourceClassLoader(resourceClassLoader);
+            return new Pair<>(result, robotDefinition);
          }
          catch (JAXBException e)
          {
             throw new RuntimeException(e);
          }
-         return new Pair<>(result, SDFTools.toFloatingRobotDefinition(sdfRoot.getModels().get(0)));
       }
       else
       {
@@ -451,11 +481,10 @@ public class YoGhostRobotFXEditorController extends YoGraphicFX3DEditorControlle
       }
    }
 
-   @NotNull
-   private static List<String> createResourceDirectories(File modelFile)
+   private static ClassLoader createResourceClassLoader(File modelFile) throws MalformedURLException
    {
-      List<String> resourceDirectories = new ArrayList<>();
-      resourceDirectories.add(modelFile.getParent());
+      List<URL> resourceURLs = new ArrayList<>();
+      resourceURLs.add(modelFile.getParentFile().toURI().normalize().toURL());
 
       File candidate = modelFile.getParentFile();
 
@@ -467,10 +496,10 @@ public class YoGhostRobotFXEditorController extends YoGraphicFX3DEditorControlle
             break;
          if (candidate.getName().equals("models"))
          {
-            resourceDirectories.add(candidate.getAbsolutePath());
+            resourceURLs.add(candidate.toURI().normalize().toURL());
             break;
          }
       }
-      return resourceDirectories;
+      return new URLClassLoader(resourceURLs.toArray(URL[]::new));
    }
 }
