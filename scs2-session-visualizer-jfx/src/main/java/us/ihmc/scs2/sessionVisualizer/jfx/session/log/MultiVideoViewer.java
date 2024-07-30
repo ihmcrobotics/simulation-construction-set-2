@@ -16,7 +16,7 @@ public class MultiVideoViewer extends ObservedAnimationTimer
    {
       this.thumbnailsContainer = thumbnailsContainer;
 
-      for (BytedecoVideoReader reader : multiReader.getReaders())
+      for (VideoDataReader reader : multiReader.getReaders())
       {
          videoViewers.add(new VideoViewer(owner, reader, defaultThumbnailWidth));
       }

@@ -16,6 +16,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Background;
@@ -39,7 +40,7 @@ import javafx.util.Duration;
 import org.bytedeco.javacv.JavaFXFrameConverter;
 import us.ihmc.scs2.session.SessionPropertiesHelper;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.session.log.BytedecoVideoReader.FrameData;
+import us.ihmc.scs2.sessionVisualizer.jfx.session.log.BlackMagicVideoDataReader.FrameData;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 
 public class VideoViewer
@@ -60,14 +61,14 @@ public class VideoViewer
 
    private final BooleanProperty updateVideoView = new SimpleBooleanProperty(this, "updateVideoView", false);
    private final ObjectProperty<Stage> videoWindowProperty = new SimpleObjectProperty<>(this, "videoWindow", null);
-   private final BytedecoVideoReader reader;
+   private final VideoDataReader reader;
    private final double defaultThumbnailSize;
 
    private final JavaFXFrameConverter frameConverter = new JavaFXFrameConverter();
 
    private final ObjectProperty<Pane> imageViewRootPane = new SimpleObjectProperty<>(this, "imageViewRootPane", null);
 
-   public VideoViewer(Window owner, BytedecoVideoReader reader, double defaultThumbnailSize)
+   public VideoViewer(Window owner, VideoDataReader reader, double defaultThumbnailSize)
    {
       this.reader = reader;
       this.defaultThumbnailSize = defaultThumbnailSize;
@@ -230,7 +231,20 @@ public class VideoViewer
 
    public void update()
    {
-      FrameData currentFrameData = reader.pollCurrentFrame();
+      if (reader.getClass().equals(MagewellVideoDataReader.class))
+      {
+         updateMageWellVideoDataReader();
+      }
+
+      if (reader.getClass().equals(BlackMagicVideoDataReader.class))
+      {
+         updateBlackMagicVideoDataReader();
+      }
+   }
+
+   public void updateMageWellVideoDataReader()
+   {
+      MagewellVideoDataReader.FrameData currentFrameData = reader.pollCurrentFrameMagewell();
       Image currentImage;
 
       if (currentFrameData.frame == null)
@@ -254,6 +268,44 @@ public class VideoViewer
 
       if (updateVideoView.get())
       {
+         queryRobotTimestampLabel.setText(Long.toString(currentFrameData.queryRobotTimestamp));
+         robotTimestampLabel.setText(Long.toString(currentFrameData.robotTimestamp));
+         cameraCurrentPTSLabel.setText(Long.toString(currentFrameData.cameraCurrentPTS));
+         demuxerCurrentPTSLabel.setText(Long.toString(currentFrameData.demuxerCurrentPTS));
+
+         if (imageViewRootPane.get() != null)
+         {
+            imageViewRootPane.get().setPadding(new Insets(16, 16, 16, 16));
+
+            if (reader.replacedRobotTimestampsContainsIndex(reader.getCurrentIndex()))
+            {
+               imageViewRootPane.get().setBackground(new Background(new BackgroundFill(Color.DARKORANGE, CornerRadii.EMPTY, Insets.EMPTY)));
+            }
+            else
+            {
+               imageViewRootPane.get().setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
+            }
+         }
+      }
+   }
+
+   public void updateBlackMagicVideoDataReader()
+   {
+      FrameData currentFrameData = reader.pollCurrentFrameBlackMagic();
+
+      if (currentFrameData == null)
+         return;
+
+      WritableImage currentFrame = currentFrameData.frame;
+
+      thumbnailContainer.setPrefWidth(THUMBNAIL_HIGHLIGHT_SCALE * defaultThumbnailSize);
+      thumbnailContainer.setPrefHeight(THUMBNAIL_HIGHLIGHT_SCALE * defaultThumbnailSize * currentFrame.getHeight() / currentFrame.getWidth());
+
+      thumbnail.setImage(currentFrame);
+
+      if (updateVideoView.get())
+      {
+         videoView.setImage(currentFrame);
          queryRobotTimestampLabel.setText(Long.toString(currentFrameData.queryRobotTimestamp));
          robotTimestampLabel.setText(Long.toString(currentFrameData.robotTimestamp));
          cameraCurrentPTSLabel.setText(Long.toString(currentFrameData.cameraCurrentPTS));

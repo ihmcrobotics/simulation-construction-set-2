@@ -13,7 +13,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.BackgroundExecutorManager;
 
 public class MultiVideoDataReader
 {
-   private final List<BytedecoVideoReader> readers = new ArrayList<>();
+   private final List<VideoDataReader> readers = new ArrayList<>();
    private final BackgroundExecutorManager backgroundExecutorManager;
    private Future<?> currentTask = null;
 
@@ -27,8 +27,23 @@ public class MultiVideoDataReader
          Camera camera = cameras.get(i);
          try
          {
-            BytedecoVideoReader reader = new BytedecoVideoReader(camera, dataDirectory, logProperties.getVideo().getHasTimebase());
-            readers.add(reader);
+            VideoDataReader reader;
+            if (camera.getType().toString().equals("MAGEWELL_CAPTURE"))
+            {
+               reader = new MagewellVideoDataReader(camera, dataDirectory, logProperties.getVideo().getHasTimebase());
+               readers.add(reader);
+            }
+            else if (camera.getType().toString().equals("CAPTURE_CARD"))
+            {
+               reader = new BlackMagicVideoDataReader(camera, dataDirectory, logProperties.getVideo().getHasTimebase());
+               readers.add(reader);
+            }
+            else // Older logs won't have the camera type set correctly, if there isn't a type set this is the only option
+            {
+               reader = new BlackMagicVideoDataReader(camera, dataDirectory, logProperties.getVideo().getHasTimebase());
+               readers.add(reader);
+            }
+
          }
          catch (IOException e)
          {
@@ -54,7 +69,7 @@ public class MultiVideoDataReader
 
       for (int i = 0; i < readers.size(); i++)
       {
-         BytedecoVideoReader reader = readers.get(i);
+         VideoDataReader reader = readers.get(i);
          Camera camera = reader.getCamera();
 
          if (progressConsumer != null)
@@ -62,7 +77,9 @@ public class MultiVideoDataReader
             progressConsumer.info("Cropping video (%s)".formatted(camera.getVideoFileAsString()));
             double progressPercentage = (double) i / (double) readers.size();
             progressConsumer.progress(progressPercentage);
-            subProgressConsumer = progressConsumer.subProgress("Cropping video (%s): ".formatted(camera.getVideoFileAsString()), progressPercentage, (i + 1.0) / readers.size());
+            subProgressConsumer = progressConsumer.subProgress("Cropping video (%s): ".formatted(camera.getVideoFileAsString()),
+                                                               progressPercentage,
+                                                               (i + 1.0) / readers.size());
          }
 
          File timestampFile = new File(selectedDirectory, camera.getTimestampFileAsString());
@@ -76,7 +93,7 @@ public class MultiVideoDataReader
       return readers.size();
    }
 
-   public List<BytedecoVideoReader> getReaders()
+   public List<VideoDataReader> getReaders()
    {
       return readers;
    }

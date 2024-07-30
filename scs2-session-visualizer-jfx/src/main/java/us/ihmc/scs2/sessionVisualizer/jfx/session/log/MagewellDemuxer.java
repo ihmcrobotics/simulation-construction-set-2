@@ -7,15 +7,14 @@ import us.ihmc.robotDataLogger.Camera;
 
 import java.io.File;
 
-public class BytedecoWindowsDemuxer
+public class MagewellDemuxer
 {
-    // For testing things recorded from the logger
     public String videoPath;
     public String timestampPath;
 
     private final FFmpegFrameGrabber grabber;
 
-    public BytedecoWindowsDemuxer(File dataDirectory, Camera camera)
+    public MagewellDemuxer(File dataDirectory, Camera camera)
     {
         videoPath = dataDirectory.getAbsolutePath() + "/" + camera.getVideoFile();
         timestampPath = dataDirectory.getAbsolutePath() + "/" + camera.getTimestampFile();
@@ -33,7 +32,7 @@ public class BytedecoWindowsDemuxer
 
     public String getName()
     {
-        return "Bytedeco Windows";
+        return "MageWell Demuxer";
     }
 
     public int getImageHeight()
