@@ -1,15 +1,8 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.managers;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Rectangle2D;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
@@ -18,6 +11,7 @@ import us.ihmc.log.LogTools;
 import us.ihmc.messager.SynchronizeHint;
 import us.ihmc.messager.javafx.JavaFXMessager;
 import us.ihmc.scs2.definition.configuration.WindowConfigurationDefinition;
+import us.ihmc.scs2.definition.yoSlider.YoSliderboardType;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.sessionVisualizer.jfx.SCSGuiConfiguration;
 import us.ihmc.scs2.sessionVisualizer.jfx.SecondaryWindowController;
@@ -25,11 +19,16 @@ import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.YoRegistryStatisticsPaneController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.YoSliderboardManager;
+import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.creator.YoCompositeAndEquationEditorWindowController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.pattern.YoCompositePatternPropertyWindowController;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicPropertyWindowController;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.yoVariables.registry.YoNamespace;
 import us.ihmc.yoVariables.registry.YoRegistry;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SecondaryWindowManager implements Manager
 {
@@ -37,7 +36,10 @@ public class SecondaryWindowManager implements Manager
 
    private final SessionVisualizerToolkit toolkit;
 
-   private final Property<YoCompositePatternPropertyWindowController> yoCompositeEditor = new SimpleObjectProperty<>(this, "yoCompositeEditor", null);
+   private final Property<YoCompositePatternPropertyWindowController> yoCompositePatternEditor = new SimpleObjectProperty<>(this,
+                                                                                                                            "yoCompositePatternEditor",
+                                                                                                                            null);
+   private final Property<YoCompositeAndEquationEditorWindowController> yoCompositeCreator = new SimpleObjectProperty<>(this, "yoCompositeCreator", null);
    private final Property<YoGraphicPropertyWindowController> yoGraphicEditor = new SimpleObjectProperty<>(this, "yoGraphicEditor", null);
    private final Property<YoRegistryStatisticsPaneController> yoRegistryStatistics = new SimpleObjectProperty<>(this, "yoRegistryStatistics", null);
    private final List<Stage> secondaryWindows = new ArrayList<>();
@@ -103,16 +105,22 @@ public class SecondaryWindowManager implements Manager
    @Override
    public void stopSession()
    {
-      if (yoCompositeEditor.getValue() != null)
+      if (yoCompositePatternEditor.getValue() != null)
       {
-         yoCompositeEditor.getValue().closeAndDispose();
-         yoCompositeEditor.setValue(null);
+         yoCompositePatternEditor.getValue().closeAndDispose();
+         yoCompositePatternEditor.setValue(null);
       }
 
       if (yoGraphicEditor.getValue() != null)
       {
          yoGraphicEditor.getValue().closeAndDispose();
          yoGraphicEditor.setValue(null);
+      }
+
+      if (yoCompositeCreator.getValue() != null)
+      {
+         yoCompositeCreator.getValue().closeAndDispose();
+         yoCompositeCreator.setValue(null);
       }
 
       sliderboardManager.stopSession();
@@ -143,14 +151,20 @@ public class SecondaryWindowManager implements Manager
          case NewWindowRequest.COMPOSITE_PATTERN_EDITOR_WINDOW_TYPE:
             openYoCompositePatternEditor(request.requestSource);
             break;
+         case NewWindowRequest.COMPOSITE_CREATOR_WINDOW_TYPE:
+            openYoCompositeCreator(request.requestSource);
+            break;
          case NewWindowRequest.SECONDARY_CHART_WINDOW_TYPE:
             newChartWindow(request.requestSource);
             break;
          case NewWindowRequest.GRAPHIC_EDITOR_WINDOW_TYPE:
             openYoGraphicEditor(request.requestSource);
             break;
-         case NewWindowRequest.BCF2000_SLIDERBOARD_WINDOW_TYPE:
-            sliderboardManager.openBCF2000SliderboardWindow(request.requestSource);
+         case NewWindowRequest.BFC2000_SLIDERBOARD_WINDOW_TYPE:
+            sliderboardManager.openSliderboardWindow(request.requestSource, YoSliderboardType.BCF2000);
+            return;
+         case NewWindowRequest.XTOUCHCOMPACT_SLIDERBOARD_WINDOW_TYPE:
+            sliderboardManager.openSliderboardWindow(request.requestSource, YoSliderboardType.XTOUCHCOMPACT);
             return;
          case NewWindowRequest.REGISTRY_STATISTICS_WINDOW_TYPE:
             openRegistryStatisticsWindow(request.requestSource, (String) request.additionalData);
@@ -159,11 +173,35 @@ public class SecondaryWindowManager implements Manager
       }
    }
 
+   private void openYoCompositeCreator(Window requestSource)
+   {
+      if (yoCompositeCreator.getValue() != null)
+      {
+         yoCompositeCreator.getValue().showWindow();
+         return;
+      }
+
+      try
+      {
+         FXMLLoader fxmlLoader = new FXMLLoader(SessionVisualizerIOTools.YO_COMPOSITE_AND_EQUATION_EDITOR_WINDOW_URL);
+         fxmlLoader.load();
+         YoCompositeAndEquationEditorWindowController controller = fxmlLoader.getController();
+         controller.initialize(toolkit);
+         yoCompositeCreator.setValue(controller);
+         initializeSecondaryWindowWithOwner(requestSource, controller.getWindow());
+         controller.showWindow();
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+      }
+   }
+
    public void openYoCompositePatternEditor(Window requestSource)
    {
-      if (yoCompositeEditor.getValue() != null)
+      if (yoCompositePatternEditor.getValue() != null)
       {
-         yoCompositeEditor.getValue().showWindow();
+         yoCompositePatternEditor.getValue().showWindow();
          return;
       }
 
@@ -173,7 +211,7 @@ public class SecondaryWindowManager implements Manager
          fxmlLoader.load();
          YoCompositePatternPropertyWindowController controller = fxmlLoader.getController();
          controller.initialize(toolkit);
-         yoCompositeEditor.setValue(controller);
+         yoCompositePatternEditor.setValue(controller);
          initializeSecondaryWindowWithOwner(requestSource, controller.getWindow());
          controller.showWindow();
       }
@@ -199,7 +237,6 @@ public class SecondaryWindowManager implements Manager
          loader.load();
          SecondaryWindowController controller = loader.getController();
          controller.initialize(new SessionVisualizerWindowToolkit(stage, toolkit));
-         controller.setupChartGroup();
          secondaryWindowControllers.add(controller);
          stage.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, e ->
          {
@@ -223,52 +260,9 @@ public class SecondaryWindowManager implements Manager
       Stage stage = new Stage();
 
       if (definition != null)
-      {
-         double positionX = definition.getPositionX();
-         double positionY = definition.getPositionY();
-         double width;
-         if (definition.getWidth() > 0.0)
-            width = definition.getWidth();
-         else
-            width = stage.getWidth();
-
-         double height;
-         if (definition.getHeight() > 0.0)
-            height = definition.getHeight();
-         else
-            height = stage.getHeight();
-
-         ObservableList<Screen> screensForRectangle = Screen.getScreensForRectangle(positionX, positionY, width, height);
-
-         if (screensForRectangle.isEmpty())
-         {
-            // The window would be outside the visible bounds of the screens.
-            // We'll reset the window so it appears in the middle of the primary screen.
-            Screen primary = Screen.getPrimary();
-            Rectangle2D visualBounds = primary.getVisualBounds();
-            width = Math.min(width, visualBounds.getWidth());
-            height = Math.min(height, visualBounds.getHeight());
-            positionX = 0.5 * (visualBounds.getMinX() + visualBounds.getMaxX() - width);
-            positionY = 0.5 * (visualBounds.getMinY() + visualBounds.getMaxY() - height);
-         }
-
-         stage.setX(positionX);
-         stage.setY(positionY);
-
-         if (definition.isMaximized())
-         {
-            stage.setMaximized(true);
-         }
-         else
-         {
-            stage.setWidth(width);
-            stage.setHeight(height);
-         }
-      }
+         SCSGuiConfiguration.loadWindowConfigurationDefinition(definition, stage);
       else
-      {
          initializeSecondaryWindowWithOwner(requestSource, stage);
-      }
 
       secondaryWindows.add(stage);
       return stage;
@@ -284,6 +278,7 @@ public class SecondaryWindowManager implements Manager
          definition.setPositionY(stage.getY());
          definition.setWidth(stage.getWidth());
          definition.setHeight(stage.getHeight());
+         definition.setShowing(stage.isShowing());
       }
       else
       {
@@ -292,6 +287,7 @@ public class SecondaryWindowManager implements Manager
          definition.setPositionY(stage.getY());
          definition.setWidth(stage.getWidth());
          definition.setHeight(stage.getHeight());
+         definition.setShowing(stage.isShowing());
       }
       return definition;
    }
@@ -363,12 +359,24 @@ public class SecondaryWindowManager implements Manager
       secondary.setY(owner.getY() + 30.0);
    }
 
+   public int getNumberOfSecondaryWindows()
+   {
+      return secondaryWindows.size();
+   }
+
+   public SecondaryWindowController getSecondaryWindowController(int index)
+   {
+      return secondaryWindowControllers.get(index);
+   }
+
    public static class NewWindowRequest
    {
       public static final String REGISTRY_STATISTICS_WINDOW_TYPE = "YoRegistryStatisticsWindow";
-      public static final String BCF2000_SLIDERBOARD_WINDOW_TYPE = "BC2000EditorWindow";
+      public static final String BFC2000_SLIDERBOARD_WINDOW_TYPE = "BFC2000EditorWindow";
+      public static final String XTOUCHCOMPACT_SLIDERBOARD_WINDOW_TYPE = "XTouchCompactEditorWindow";
       public static final String GRAPHIC_EDITOR_WINDOW_TYPE = "YoGraphicEditorWindow";
-      public static final String COMPOSITE_PATTERN_EDITOR_WINDOW_TYPE = "YoCompositeEditorWindow";
+      public static final String COMPOSITE_PATTERN_EDITOR_WINDOW_TYPE = "YoCompositePatternEditorWindow";
+      public static final String COMPOSITE_CREATOR_WINDOW_TYPE = "YoCompositeEditorWindow";
       public static final String SECONDARY_CHART_WINDOW_TYPE = "SecondaryChartWindow";
 
       private final String windowType;
@@ -392,9 +400,14 @@ public class SecondaryWindowManager implements Manager
          return new NewWindowRequest(REGISTRY_STATISTICS_WINDOW_TYPE, requestSource, registry.getNamespace().toString());
       }
 
-      public static NewWindowRequest bcf2000SliderboardWindow(Window requestSource)
+      public static NewWindowRequest bfc2000SliderboardWindow(Window requestSource)
       {
-         return new NewWindowRequest(BCF2000_SLIDERBOARD_WINDOW_TYPE, requestSource);
+         return new NewWindowRequest(BFC2000_SLIDERBOARD_WINDOW_TYPE, requestSource);
+      }
+
+      public static NewWindowRequest xtouchCompactSliderboardWindow(Window requestSource)
+      {
+         return new NewWindowRequest(XTOUCHCOMPACT_SLIDERBOARD_WINDOW_TYPE, requestSource);
       }
 
       public static NewWindowRequest graphicEditorWindow(Window requestSource)
@@ -405,6 +418,11 @@ public class SecondaryWindowManager implements Manager
       public static NewWindowRequest compositePatternEditorWindow(Window requestSource)
       {
          return new NewWindowRequest(COMPOSITE_PATTERN_EDITOR_WINDOW_TYPE, requestSource);
+      }
+
+      public static NewWindowRequest compositeCreatorWindow(Window requestSource)
+      {
+         return new NewWindowRequest(COMPOSITE_CREATOR_WINDOW_TYPE, requestSource);
       }
 
       public static NewWindowRequest chartWindow(Window requestSource)

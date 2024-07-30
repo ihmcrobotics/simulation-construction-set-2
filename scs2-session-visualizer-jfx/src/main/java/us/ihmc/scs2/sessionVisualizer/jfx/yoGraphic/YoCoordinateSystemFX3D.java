@@ -9,16 +9,18 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Material;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Cylinder;
+import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.MeshView;
 import javafx.scene.transform.Affine;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import us.ihmc.euclid.Axis3D;
 import us.ihmc.euclid.axisAngle.AxisAngle;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.javaFXToolkit.JavaFXTools;
-import us.ihmc.javaFXToolkit.shapes.JavaFXMeshBuilder;
+import us.ihmc.scs2.definition.visual.TriangleMesh3DBuilder;
+import us.ihmc.scs2.sessionVisualizer.jfx.definition.JavaFXVisualTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameWrapper;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Orientation3DProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.QuaternionProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple3DProperty;
@@ -47,12 +49,18 @@ public class YoCoordinateSystemFX3D extends YoGraphicFX3D
 
    public YoCoordinateSystemFX3D()
    {
+      drawModeProperty.addListener((o, oldValue, newValue) ->
+                                   {
+                                      if (newValue == null)
+                                         drawModeProperty.setValue(DrawMode.FILL);
+                                      JavaFXMissingTools.setDrawModeRecursive(coordinateSystemNode, newValue);
+                                   });
       coordinateSystemNode.getTransforms().add(affine);
       coordinateSystemNode.idProperty().bind(nameProperty());
       coordinateSystemNode.getProperties().put(YO_GRAPHICFX_ITEM_KEY, this);
    }
 
-   public YoCoordinateSystemFX3D(ReferenceFrame worldFrame)
+   public YoCoordinateSystemFX3D(ReferenceFrameWrapper worldFrame)
    {
       this();
       position.setReferenceFrame(worldFrame);
@@ -72,7 +80,7 @@ public class YoCoordinateSystemFX3D extends YoGraphicFX3D
 
       newData = newCoordinateSystemData(bodyLength, bodyRadius, headLength, headRadius);
 
-      affine.setToTransform(JavaFXTools.createAffineFromOrientation3DAndTuple(orientation.toQuaternionInWorld(), position.toPoint3DInWorld()));
+      affine.setToTransform(JavaFXMissingTools.createAffineFromOrientation3DAndTuple(orientation.toQuaternionInWorld(), position.toPoint3DInWorld()));
       if (color == null)
          color = new SimpleColorFX();
       material.setDiffuseColor(color.get());
@@ -159,10 +167,10 @@ public class YoCoordinateSystemFX3D extends YoGraphicFX3D
       }
 
       oldData = newDataLocal;
-      newNodes = createCoordinateSystem(newDataLocal, material, nameProperty());
+      newNodes = createCoordinateSystem(newDataLocal, material, nameProperty(), getDrawMode() == null ? DrawMode.FILL : getDrawMode());
    }
 
-   static Node[] createCoordinateSystem(CoordinateSystemData data, Material material, ReadOnlyStringProperty nameProperty)
+   static Node[] createCoordinateSystem(CoordinateSystemData data, Material material, ReadOnlyStringProperty nameProperty, DrawMode drawMode)
    {
       Node[] nodes = new Node[6];
 
@@ -172,18 +180,20 @@ public class YoCoordinateSystemFX3D extends YoGraphicFX3D
       {
          Cylinder body = new Cylinder(data.bodyRadius, data.bodyLength);
          body.setMaterial(material);
+         body.setDrawMode(drawMode);
          body.idProperty().bind(nameProperty.concat(" (").concat(Axis3D.values[axis].name()).concat("-body)"));
 
          if (axisBodyRotates[axis] != null)
             body.getTransforms().add(axisBodyRotates[axis]);
          body.getTransforms().add(axisBodyTranslate);
 
-         JavaFXMeshBuilder meshBuilder = new JavaFXMeshBuilder();
+         TriangleMesh3DBuilder meshBuilder = new TriangleMesh3DBuilder();
          Point3D headPosition = new Point3D();
          headPosition.setElement(axis, data.bodyLength);
          meshBuilder.addCone(data.headLength, data.headRadius, headPosition, axisHeadOrientations[axis]);
-         MeshView head = new MeshView(meshBuilder.generateMesh());
+         MeshView head = new MeshView(JavaFXVisualTools.toTriangleMesh(meshBuilder.generateTriangleMesh3D()));
          head.setMaterial(new PhongMaterial(axisColors[axis]));
+         head.setDrawMode(drawMode);
          head.idProperty().bind(nameProperty.concat(" (").concat(Axis3D.values[axis].name()).concat("-head)"));
 
          nodes[2 * axis] = body;

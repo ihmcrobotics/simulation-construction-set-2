@@ -1,25 +1,5 @@
 package us.ihmc.scs2.session.tools;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
-import javax.xml.bind.JAXBException;
-
 import gnu.trove.map.hash.TLongObjectHashMap;
 import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
@@ -38,7 +18,28 @@ import us.ihmc.scs2.definition.robot.urdf.URDFTools;
 import us.ihmc.scs2.definition.robot.urdf.items.URDFModel;
 import us.ihmc.scs2.simulation.robot.Robot;
 import us.ihmc.scs2.simulation.robot.RobotInterface;
+import us.ihmc.yoVariables.exceptions.NameCollisionException;
 import us.ihmc.yoVariables.registry.YoRegistry;
+import us.ihmc.yoVariables.variable.YoVariable;
+
+import javax.xml.bind.JAXBException;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class RobotModelLoader
 {
@@ -64,18 +65,19 @@ public class RobotModelLoader
       List<Runnable> jointStateUpdaters = new ArrayList<>();
 
       SubtreeStreams.fromChildren(OneDoFJointBasics.class, robot.getRootBody()).forEach(oneDoFJoint ->
-      {
-         OneDoFState jointState = (OneDoFState) jointNameToState.get(oneDoFJoint.getName());
+                                                                                        {
+                                                                                           OneDoFState jointState = (OneDoFState) jointNameToState.get(
+                                                                                                 oneDoFJoint.getName());
 
-         if (jointState != null)
-         {
-            jointStateUpdaters.add(() ->
-            {
-               oneDoFJoint.setQ(jointState.getQ());
-               oneDoFJoint.setQd(jointState.getQd());
-            });
-         }
-      });
+                                                                                           if (jointState != null)
+                                                                                           {
+                                                                                              jointStateUpdaters.add(() ->
+                                                                                                                     {
+                                                                                                                        oneDoFJoint.setQ(jointState.getQ());
+                                                                                                                        oneDoFJoint.setQd(jointState.getQd());
+                                                                                                                     });
+                                                                                           }
+                                                                                        });
 
       SixDoFJointBasics floatingJoint = (SixDoFJointBasics) robot.getRootBody().getChildrenJoints().get(0);
       SixDoFState jointState = (SixDoFState) jointNameToState.get(floatingJoint.getSuccessor().getName());
@@ -83,13 +85,28 @@ public class RobotModelLoader
       if (jointState != null)
       {
          jointStateUpdaters.add(() ->
-         {
-            floatingJoint.getJointPose().set(jointState.getTranslation(), jointState.getRotation());
-            floatingJoint.getJointTwist().set(jointState.getTwistAngularPart(), jointState.getTwistLinearPart());
-         });
+                                {
+                                   floatingJoint.getJointPose().set(jointState.getTranslation(), jointState.getRotation());
+                                   floatingJoint.getJointTwist().set(jointState.getTwistAngularPart(), jointState.getTwistLinearPart());
+                                });
       }
 
-      rootRegistry.addChild(robot.getRegistry());
+      try
+      {
+         rootRegistry.addChild(robot.getRegistry());
+      }
+      catch (NameCollisionException e)
+      {
+         YoRegistry logRobotRegistry = rootRegistry.getChild(robot.getName());
+         // If there's no overlap in variable names, we can just add the robot variables to the logRobotRegistry.
+         for (YoVariable variable : new ArrayList<>(robot.getRegistry().getVariables())) // Need to copy the list to avoid concurrent modification exception.
+         {
+            if (logRobotRegistry.getVariable(variable.getName()) == null)
+               logRobotRegistry.addVariable(variable);
+            else
+               throw new NameCollisionException("Cannot add robot to log registry, name collision with variable " + variable.getFullNameString());
+         }
+      }
 
       return () -> jointStateUpdaters.forEach(updater -> updater.run());
    }
@@ -201,7 +218,8 @@ public class RobotModelLoader
       Path resourceDirectory = Paths.get(resourceDirectoryLocation, modelName);
       try
       {
-         Files.createDirectories(resourceDirectory);
+         if (!Files.exists(resourceDirectory))
+            Files.createDirectories(resourceDirectory);
       }
       catch (IOException e)
       {
@@ -216,8 +234,16 @@ public class RobotModelLoader
       {
          while ((ze = zip.getNextEntry()) != null)
          {
+            // No need to explicitly handle directories, they will be created when copying files.
+            if (ze.isDirectory())
+               continue;
+
             Path target = resourceDirectory.resolve(ze.getName());
-            Files.createDirectories(target.getParent());
+
+            Files.deleteIfExists(target);
+
+            if (!Files.exists(target.getParent()))
+               Files.createDirectories(target.getParent());
             Files.copy(zip, target, StandardCopyOption.REPLACE_EXISTING);
          }
       }

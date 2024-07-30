@@ -1,29 +1,16 @@
 package us.ihmc.scs2.sessionVisualizer.jfx;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.util.List;
-
 import javafx.stage.Window;
 import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 import us.ihmc.messager.MessagerAPIFactory.Topic;
 import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
 import us.ihmc.scs2.definition.yoComposite.YoTuple2DDefinition;
 import us.ihmc.scs2.definition.yoEntry.YoEntryListDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
-import us.ihmc.scs2.definition.yoSlider.YoButtonDefinition;
-import us.ihmc.scs2.definition.yoSlider.YoKnobDefinition;
-import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
-import us.ihmc.scs2.definition.yoSlider.YoSliderboardDefinition;
-import us.ihmc.scs2.definition.yoSlider.YoSliderboardListDefinition;
-import us.ihmc.scs2.session.Session;
-import us.ihmc.scs2.session.SessionDataExportRequest;
-import us.ihmc.scs2.session.SessionDataFilterParameters;
-import us.ihmc.scs2.session.SessionMessagerAPI;
+import us.ihmc.scs2.definition.yoSlider.*;
+import us.ihmc.scs2.session.*;
 import us.ihmc.scs2.session.SessionMessagerAPI.Sensors.SensorMessage;
-import us.ihmc.scs2.session.SessionMode;
-import us.ihmc.scs2.session.SessionState;
-import us.ihmc.scs2.session.YoSharedBufferMessagerAPI;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.search.SearchEngines;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.NewTerrainVisualRequest;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SecondaryWindowManager.NewWindowRequest;
@@ -32,13 +19,18 @@ import us.ihmc.scs2.sessionVisualizer.jfx.yoRobot.NewRobotVisualRequest;
 import us.ihmc.scs2.sharedMemory.CropBufferRequest;
 import us.ihmc.scs2.sharedMemory.FillBufferRequest;
 import us.ihmc.scs2.sharedMemory.interfaces.YoBufferPropertiesReadOnly;
+import us.ihmc.scs2.symbolic.YoEquationManager.YoEquationListChange;
+
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.List;
 
 public class SessionVisualizerTopics
 {
    // GUI internal topics:
    private Topic<Boolean> disableUserControls;
    private Topic<SceneVideoRecordingRequest> sceneVideoRecordingRequest;
-   private Topic<CameraObjectTrackingRequest> cameraTrackObject;
+   private Topic<Camera3DRequest> camera3DRequest;
    private Topic<Object> takeSnapshot;
    private Topic<Object> registerRecordable;
    private Topic<Object> forgetRecordable;
@@ -60,6 +52,7 @@ public class SessionVisualizerTopics
    private Topic<List<String>> yoCompositeSelected;
    private Topic<Boolean> yoCompositeRefreshAll;
    private Topic<Boolean> showSCS2YoVariables;
+   private Topic<YoNameDisplay> yoVariableNameDisplay;
 
    private Topic<File> yoGraphicLoadRequest;
    private Topic<File> yoGraphicSaveRequest;
@@ -71,10 +64,10 @@ public class SessionVisualizerTopics
    private Topic<Pair<Window, Double>> yoChartZoomFactor;
    private Topic<Pair<Window, Boolean>> yoChartRequestZoomIn, yoChartRequestZoomOut;
    private Topic<Pair<Window, Integer>> yoChartRequestShift;
+   private Topic<Pair<Window, Boolean>> yoChartShowYAxis;
 
    private Topic<Pair<Window, File>> yoChartGroupSaveConfiguration;
    private Topic<Pair<Window, File>> yoChartGroupLoadConfiguration;
-   private Topic<Pair<Window, String>> yoChartGroupName;
 
    private Topic<YoEntryListDefinition> yoEntryListAdd;
 
@@ -83,13 +76,14 @@ public class SessionVisualizerTopics
    private Topic<Boolean> yoMultiSliderboardClearAll;
    private Topic<YoSliderboardListDefinition> yoMultiSliderboardSet;
    private Topic<YoSliderboardDefinition> yoSliderboardSet;
-   private Topic<String> yoSliderboardRemove;
-   private Topic<Pair<String, YoButtonDefinition>> yoSliderboardSetButton;
-   private Topic<Pair<String, YoKnobDefinition>> yoSliderboardSetKnob;
-   private Topic<Pair<String, YoSliderDefinition>> yoSliderboardSetSlider;
-   private Topic<Pair<String, Integer>> yoSliderboardClearButton;
-   private Topic<Pair<String, Integer>> yoSliderboardClearKnob;
-   private Topic<Pair<String, Integer>> yoSliderboardClearSlider;
+   private Topic<Pair<String, YoSliderboardType>> yoSliderboardRemove;
+
+   private Topic<ImmutableTriple<String, YoSliderboardType, YoButtonDefinition>> yoSliderboardSetButton;
+   private Topic<ImmutableTriple<String, YoSliderboardType, YoKnobDefinition>> yoSliderboardSetKnob;
+   private Topic<ImmutableTriple<String, YoSliderboardType, YoSliderDefinition>> yoSliderboardSetSlider;
+   private Topic<ImmutableTriple<String, YoSliderboardType, Integer>> yoSliderboardClearButton;
+   private Topic<ImmutableTriple<String, YoSliderboardType, Integer>> yoSliderboardClearKnob;
+   private Topic<ImmutableTriple<String, YoSliderboardType, Integer>> yoSliderboardClearSlider;
 
    private Topic<Integer> controlsNumberPrecision;
 
@@ -108,9 +102,16 @@ public class SessionVisualizerTopics
    private Topic<Double> playbackRealTimeRate;
    private Topic<Integer> bufferRecordTickPeriod;
    private Topic<Integer> initializeBufferRecordTickPeriod;
+   private Topic<Long> runMaxDuration;
    private Topic<SessionDataExportRequest> sessionDataExportRequest;
    private Topic<Session> startNewSessionRequest;
    private Topic<OpenSessionControlsRequest> openSessionControlsRequest;
+
+   private Topic<SessionRobotDefinitionListChange> sessionRobotDefinitionListChangeRequest;
+   private Topic<SessionRobotDefinitionListChange> sessionRobotDefinitionListChangeState;
+
+   private Topic<YoEquationListChange> sessionYoEquationListChangeRequest;
+   private Topic<YoEquationListChange> sessionYoEquationListChangeState;
 
    private Topic<Integer> yoBufferCurrentIndexRequest;
    private Topic<Integer> yoBufferIncrementCurrentIndexRequest, yoBufferDecrementCurrentIndexRequest;
@@ -120,6 +121,7 @@ public class SessionVisualizerTopics
    private Topic<Integer> yoBufferCurrentSizeRequest;
    private Topic<Integer> yoBufferInitializeSize;
    private Topic<YoBufferPropertiesReadOnly> yoBufferCurrentProperties;
+   private Topic<Boolean> yoBufferForceListenerUpdate;
    private Topic<SensorMessage<CameraSensorDefinition>> cameraSensorDefinitionData;
    private Topic<SensorMessage<BufferedImage>> cameraSensorFrame;
 
@@ -127,7 +129,7 @@ public class SessionVisualizerTopics
    {
       disableUserControls = SessionVisualizerMessagerAPI.DisableUserControls;
       sceneVideoRecordingRequest = SessionVisualizerMessagerAPI.SceneVideoRecordingRequest;
-      cameraTrackObject = SessionVisualizerMessagerAPI.CameraTrackObject;
+      camera3DRequest = SessionVisualizerMessagerAPI.Camera3DRequest;
       takeSnapshot = SessionVisualizerMessagerAPI.TakeSnapshot;
       registerRecordable = SessionVisualizerMessagerAPI.RegisterRecordable;
       forgetRecordable = SessionVisualizerMessagerAPI.ForgetRecordable;
@@ -151,6 +153,7 @@ public class SessionVisualizerTopics
       yoCompositeSelected = SessionVisualizerMessagerAPI.YoSearch.YoCompositePatternSelected;
       yoCompositeRefreshAll = SessionVisualizerMessagerAPI.YoSearch.YoCompositeRefreshAll;
       showSCS2YoVariables = SessionVisualizerMessagerAPI.YoSearch.ShowSCS2YoVariables;
+      yoVariableNameDisplay = SessionVisualizerMessagerAPI.YoSearch.YoVariableNameDisplay;
 
       yoGraphicLoadRequest = SessionVisualizerMessagerAPI.YoGraphic.YoGraphicLoadRequest;
       yoGraphicSaveRequest = SessionVisualizerMessagerAPI.YoGraphic.YoGraphicSaveRequest;
@@ -163,9 +166,9 @@ public class SessionVisualizerTopics
       yoChartRequestZoomIn = SessionVisualizerMessagerAPI.YoChart.YoChartRequestZoomIn;
       yoChartRequestZoomOut = SessionVisualizerMessagerAPI.YoChart.YoChartRequestZoomOut;
       yoChartRequestShift = SessionVisualizerMessagerAPI.YoChart.YoChartRequestShift;
+      yoChartShowYAxis = SessionVisualizerMessagerAPI.YoChart.YoChartShowYAxis;
       yoChartGroupSaveConfiguration = SessionVisualizerMessagerAPI.YoChart.YoChartGroupSaveConfiguration;
       yoChartGroupLoadConfiguration = SessionVisualizerMessagerAPI.YoChart.YoChartGroupLoadConfiguration;
-      yoChartGroupName = SessionVisualizerMessagerAPI.YoChart.YoChartGroupName;
 
       yoEntryListAdd = SessionVisualizerMessagerAPI.YoEntry.YoEntryListAdd;
 
@@ -198,9 +201,16 @@ public class SessionVisualizerTopics
       playbackRealTimeRate = SessionMessagerAPI.PlaybackRealTimeRate;
       bufferRecordTickPeriod = SessionMessagerAPI.BufferRecordTickPeriod;
       initializeBufferRecordTickPeriod = SessionMessagerAPI.InitializeBufferRecordTickPeriod;
+      runMaxDuration = SessionMessagerAPI.RunMaxDuration;
       sessionDataExportRequest = SessionMessagerAPI.SessionDataExportRequest;
       startNewSessionRequest = SessionVisualizerMessagerAPI.SessionAPI.StartNewSessionRequest;
       openSessionControlsRequest = SessionVisualizerMessagerAPI.SessionAPI.OpenSessionControlsRequest;
+
+      sessionRobotDefinitionListChangeRequest = SessionMessagerAPI.SessionRobotDefinitionListChangeRequest;
+      sessionRobotDefinitionListChangeState = SessionMessagerAPI.SessionRobotDefinitionListChangeState;
+
+      sessionYoEquationListChangeRequest = SessionMessagerAPI.SessionYoEquationListChangeRequest;
+      sessionYoEquationListChangeState = SessionMessagerAPI.SessionYoEquationListChangeState;
 
       yoBufferCurrentIndexRequest = YoSharedBufferMessagerAPI.CurrentIndexRequest;
       yoBufferIncrementCurrentIndexRequest = YoSharedBufferMessagerAPI.IncrementCurrentIndexRequest;
@@ -212,6 +222,7 @@ public class SessionVisualizerTopics
       yoBufferCurrentSizeRequest = YoSharedBufferMessagerAPI.CurrentBufferSizeRequest;
       yoBufferInitializeSize = YoSharedBufferMessagerAPI.InitializeBufferSize;
       yoBufferCurrentProperties = YoSharedBufferMessagerAPI.CurrentBufferProperties;
+      yoBufferForceListenerUpdate = YoSharedBufferMessagerAPI.ForceListenerUpdate;
 
       cameraSensorDefinitionData = SessionMessagerAPI.Sensors.CameraSensorDefinitionData;
       cameraSensorFrame = SessionMessagerAPI.Sensors.CameraSensorFrame;
@@ -227,9 +238,9 @@ public class SessionVisualizerTopics
       return sceneVideoRecordingRequest;
    }
 
-   public Topic<CameraObjectTrackingRequest> getCameraTrackObject()
+   public Topic<Camera3DRequest> getCamera3DRequest()
    {
-      return cameraTrackObject;
+      return camera3DRequest;
    }
 
    public Topic<Object> getTakeSnapshot()
@@ -337,6 +348,11 @@ public class SessionVisualizerTopics
       return showSCS2YoVariables;
    }
 
+   public Topic<YoNameDisplay> getYoVariableNameDisplay()
+   {
+      return yoVariableNameDisplay;
+   }
+
    public Topic<File> getYoGraphicLoadRequest()
    {
       return yoGraphicLoadRequest;
@@ -387,14 +403,14 @@ public class SessionVisualizerTopics
       return yoChartRequestShift;
    }
 
+   public Topic<Pair<Window, Boolean>> getYoChartShowYAxis()
+   {
+      return yoChartShowYAxis;
+   }
+
    public Topic<Pair<Window, File>> getYoChartGroupLoadConfiguration()
    {
       return yoChartGroupLoadConfiguration;
-   }
-
-   public Topic<Pair<Window, String>> getYoChartGroupName()
-   {
-      return yoChartGroupName;
    }
 
    public Topic<Pair<Window, File>> getYoChartGroupSaveConfiguration()
@@ -432,37 +448,37 @@ public class SessionVisualizerTopics
       return yoSliderboardSet;
    }
 
-   public Topic<String> getYoSliderboardRemove()
+   public Topic<Pair<String, YoSliderboardType>> getYoSliderboardRemove()
    {
       return yoSliderboardRemove;
    }
 
-   public Topic<Pair<String, YoButtonDefinition>> getYoSliderboardSetButton()
+   public Topic<ImmutableTriple<String, YoSliderboardType, YoButtonDefinition>> getYoSliderboardSetButton()
    {
       return yoSliderboardSetButton;
    }
 
-   public Topic<Pair<String, YoKnobDefinition>> getYoSliderboardSetKnob()
+   public Topic<ImmutableTriple<String, YoSliderboardType, YoKnobDefinition>> getYoSliderboardSetKnob()
    {
       return yoSliderboardSetKnob;
    }
 
-   public Topic<Pair<String, YoSliderDefinition>> getYoSliderboardSetSlider()
+   public Topic<ImmutableTriple<String, YoSliderboardType, YoSliderDefinition>> getYoSliderboardSetSlider()
    {
       return yoSliderboardSetSlider;
    }
 
-   public Topic<Pair<String, Integer>> getYoSliderboardClearButton()
+   public Topic<ImmutableTriple<String, YoSliderboardType, Integer>> getYoSliderboardClearButton()
    {
       return yoSliderboardClearButton;
    }
 
-   public Topic<Pair<String, Integer>> getYoSliderboardClearKnob()
+   public Topic<ImmutableTriple<String, YoSliderboardType, Integer>> getYoSliderboardClearKnob()
    {
       return yoSliderboardClearKnob;
    }
 
-   public Topic<Pair<String, Integer>> getYoSliderboardClearSlider()
+   public Topic<ImmutableTriple<String, YoSliderboardType, Integer>> getYoSliderboardClearSlider()
    {
       return yoSliderboardClearSlider;
    }
@@ -532,6 +548,11 @@ public class SessionVisualizerTopics
       return initializeBufferRecordTickPeriod;
    }
 
+   public Topic<Long> getRunMaxDuration()
+   {
+      return runMaxDuration;
+   }
+
    public Topic<SessionDataExportRequest> getSessionDataExportRequest()
    {
       return sessionDataExportRequest;
@@ -545,6 +566,26 @@ public class SessionVisualizerTopics
    public Topic<OpenSessionControlsRequest> getOpenSessionControlsRequest()
    {
       return openSessionControlsRequest;
+   }
+
+   public Topic<SessionRobotDefinitionListChange> getSessionRobotDefinitionListChangeRequest()
+   {
+      return sessionRobotDefinitionListChangeRequest;
+   }
+
+   public Topic<SessionRobotDefinitionListChange> getSessionRobotDefinitionListChangeState()
+   {
+      return sessionRobotDefinitionListChangeState;
+   }
+
+   public Topic<YoEquationListChange> getSessionYoEquationListChangeRequest()
+   {
+      return sessionYoEquationListChangeRequest;
+   }
+
+   public Topic<YoEquationListChange> getSessionYoEquationListChangeState()
+   {
+      return sessionYoEquationListChangeState;
    }
 
    public Topic<Integer> getYoBufferCurrentIndexRequest()
@@ -595,6 +636,11 @@ public class SessionVisualizerTopics
    public Topic<YoBufferPropertiesReadOnly> getYoBufferCurrentProperties()
    {
       return yoBufferCurrentProperties;
+   }
+
+   public Topic<Boolean> getYoBufferForceListenerUpdate()
+   {
+      return yoBufferForceListenerUpdate;
    }
 
    public Topic<SensorMessage<CameraSensorDefinition>> getCameraSensorDefinitionData()

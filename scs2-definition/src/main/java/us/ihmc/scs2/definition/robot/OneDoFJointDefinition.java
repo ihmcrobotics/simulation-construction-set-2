@@ -1,15 +1,15 @@
 package us.ihmc.scs2.definition.robot;
 
-import java.util.Objects;
-
-import javax.xml.bind.annotation.XmlElement;
-
+import us.ihmc.euclid.tools.EuclidCoreTools;
 import us.ihmc.euclid.tools.EuclidHashCodeTools;
 import us.ihmc.euclid.tuple3D.Vector3D;
 import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.scs2.definition.state.OneDoFJointState;
 import us.ihmc.scs2.definition.state.interfaces.JointStateReadOnly;
+
+import javax.xml.bind.annotation.XmlElement;
+import java.util.Objects;
 
 public abstract class OneDoFJointDefinition extends JointDefinition
 {
@@ -18,12 +18,12 @@ public abstract class OneDoFJointDefinition extends JointDefinition
    private double positionLowerLimit = Double.NEGATIVE_INFINITY, positionUpperLimit = Double.POSITIVE_INFINITY;
    private double velocityLowerLimit = Double.NEGATIVE_INFINITY, velocityUpperLimit = Double.POSITIVE_INFINITY;
    private double effortLowerLimit = Double.NEGATIVE_INFINITY, effortUpperLimit = Double.POSITIVE_INFINITY;
-   private double damping = -1.0;
-   private double stiction = -1.0;
+   private double damping = 0.0;
+   private double stiction = 0.0;
 
-   private double kpSoftLimitStop = -1.0;
-   private double kdSoftLimitStop = -1.0;
-   private double dampingVelocitySoftLimit = -1.0;
+   private double kpSoftLimitStop = 0.0;
+   private double kdSoftLimitStop = 0.0;
+   private double dampingVelocitySoftLimit = 0.0;
 
    private OneDoFJointState initialJointState;
 
@@ -303,31 +303,28 @@ public abstract class OneDoFJointDefinition extends JointDefinition
 
       if (!Objects.equals(axis, other.axis))
          return false;
-      if (Double.doubleToLongBits(positionLowerLimit) != Double.doubleToLongBits(other.positionLowerLimit))
+      if (!EuclidCoreTools.equals(positionLowerLimit, other.positionLowerLimit))
          return false;
-      if (Double.doubleToLongBits(positionUpperLimit) != Double.doubleToLongBits(other.positionUpperLimit))
+      if (!EuclidCoreTools.equals(positionUpperLimit, other.positionUpperLimit))
          return false;
-      if (Double.doubleToLongBits(velocityLowerLimit) != Double.doubleToLongBits(other.velocityLowerLimit))
+      if (!EuclidCoreTools.equals(velocityLowerLimit, other.velocityLowerLimit))
          return false;
-      if (Double.doubleToLongBits(velocityUpperLimit) != Double.doubleToLongBits(other.velocityUpperLimit))
+      if (!EuclidCoreTools.equals(velocityUpperLimit, other.velocityUpperLimit))
          return false;
-      if (Double.doubleToLongBits(effortLowerLimit) != Double.doubleToLongBits(other.effortLowerLimit))
+      if (!EuclidCoreTools.equals(effortLowerLimit, other.effortLowerLimit))
          return false;
-      if (Double.doubleToLongBits(effortUpperLimit) != Double.doubleToLongBits(other.effortUpperLimit))
+      if (!EuclidCoreTools.equals(effortUpperLimit, other.effortUpperLimit))
          return false;
-      if (Double.doubleToLongBits(damping) != Double.doubleToLongBits(other.damping))
+      if (!EuclidCoreTools.equals(damping, other.damping))
          return false;
-      if (Double.doubleToLongBits(stiction) != Double.doubleToLongBits(other.stiction))
+      if (!EuclidCoreTools.equals(stiction, other.stiction))
          return false;
-      if (Double.doubleToLongBits(kpSoftLimitStop) != Double.doubleToLongBits(other.kpSoftLimitStop))
+      if (!EuclidCoreTools.equals(kpSoftLimitStop, other.kpSoftLimitStop))
          return false;
-      if (Double.doubleToLongBits(kdSoftLimitStop) != Double.doubleToLongBits(other.kdSoftLimitStop))
+      if (!EuclidCoreTools.equals(kdSoftLimitStop, other.kdSoftLimitStop))
          return false;
-      if (Double.doubleToLongBits(dampingVelocitySoftLimit) != Double.doubleToLongBits(other.dampingVelocitySoftLimit))
+      if (!EuclidCoreTools.equals(dampingVelocitySoftLimit, other.dampingVelocitySoftLimit))
          return false;
-      if (!Objects.equals(initialJointState, other.initialJointState))
-         return false;
-
-      return true;
+      return Objects.equals(initialJointState, other.initialJointState);
    }
 }

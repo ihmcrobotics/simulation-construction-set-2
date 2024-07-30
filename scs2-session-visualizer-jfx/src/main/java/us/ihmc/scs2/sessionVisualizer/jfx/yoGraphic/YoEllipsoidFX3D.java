@@ -2,10 +2,11 @@ package us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic;
 
 import javafx.scene.Node;
 import javafx.scene.paint.PhongMaterial;
+import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.Sphere;
 import javafx.scene.transform.Affine;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.javaFXToolkit.JavaFXTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameWrapper;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Orientation3DProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.QuaternionProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple3DProperty;
@@ -24,12 +25,18 @@ public class YoEllipsoidFX3D extends YoGraphicFX3D
 
    public YoEllipsoidFX3D()
    {
+      drawModeProperty.addListener((o, oldValue, newValue) ->
+                                   {
+                                      if (newValue == null)
+                                         drawModeProperty.setValue(DrawMode.FILL);
+                                      ellipsoidNode.setDrawMode(newValue);
+                                   });
       ellipsoidNode.setMaterial(material);
       ellipsoidNode.getTransforms().add(affine);
       ellipsoidNode.idProperty().bind(nameProperty());
    }
 
-   public YoEllipsoidFX3D(ReferenceFrame worldFrame)
+   public YoEllipsoidFX3D(ReferenceFrameWrapper worldFrame)
    {
       this();
       position.setReferenceFrame(worldFrame);
@@ -48,7 +55,7 @@ public class YoEllipsoidFX3D extends YoGraphicFX3D
          return;
       }
 
-      affine.setToTransform(JavaFXTools.createAffineFromOrientation3DAndTuple(orientation.toQuaternionInWorld(), position.toPoint3DInWorld()));
+      affine.setToTransform(JavaFXMissingTools.createAffineFromOrientation3DAndTuple(orientation.toQuaternionInWorld(), position.toPoint3DInWorld()));
       affine.appendScale(radii.getX(), radii.getY(), radii.getZ());
 
       if (color == null)

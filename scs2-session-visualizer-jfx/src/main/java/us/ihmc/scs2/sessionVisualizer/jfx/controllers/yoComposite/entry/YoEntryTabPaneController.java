@@ -1,18 +1,5 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.entry;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
-import javax.xml.bind.JAXBException;
-
-import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -23,6 +10,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.stage.Window;
+import org.kordamp.ikonli.javafx.FontIcon;
 import us.ihmc.log.LogTools;
 import us.ihmc.messager.javafx.JavaFXMessager;
 import us.ihmc.scs2.definition.yoEntry.YoEntryConfigurationDefinition;
@@ -35,6 +23,17 @@ import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.MenuTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.TabPaneTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
+
+import javax.xml.bind.JAXBException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 public class YoEntryTabPaneController
 {
@@ -60,13 +59,13 @@ public class YoEntryTabPaneController
 
       tabToControllerMap.put(initialTab, initialListViewController);
       MenuTools.setupContextMenu(yoEntryTabPane,
-                                        TabPaneTools.addBeforeMenuItemFactory(this::newEmptyTab),
-                                        TabPaneTools.addAfterMenuItemFactory(this::newEmptyTab),
-                                        TabPaneTools.removeMenuItemFactory(),
-                                        TabPaneTools.removeAllMenuItemFactory(false),
-                                        exportTabMenuItemFactory(),
-                                        exportAllTabMenuItemFactory(),
-                                        importTabMenuItemFactory());
+                                 TabPaneTools.addBeforeMenuItemFactory(this::newEmptyTab),
+                                 TabPaneTools.addAfterMenuItemFactory(this::newEmptyTab),
+                                 TabPaneTools.removeMenuItemFactory(),
+                                 TabPaneTools.removeAllMenuItemFactory(false),
+                                 exportTabMenuItemFactory(),
+                                 exportAllTabMenuItemFactory(),
+                                 importTabMenuItemFactory());
 
       yoEntryTabPane.getTabs().addListener((ListChangeListener<Tab>) change ->
       {
@@ -93,14 +92,14 @@ public class YoEntryTabPaneController
 
       // By disabling the entry tabs, we unlink YoVariables reducing the cost of a run tick for the Session
       yoEntryTabPane.getSelectionModel().selectedItemProperty().addListener((o, oldValue, newValue) ->
-      {
-         for (Tab tab : yoEntryTabPane.getTabs())
-         {
-            Node content = tab.getContent();
-            if (content != null)
-               content.setDisable(tab != newValue);
-         }
-      });
+                                                                            {
+                                                                               for (Tab tab : yoEntryTabPane.getTabs())
+                                                                               {
+                                                                                  Node content = tab.getContent();
+                                                                                  if (content != null)
+                                                                                     content.setDisable(tab != newValue);
+                                                                               }
+                                                                            });
 
       JavaFXMessager messager = toolkit.getMessager();
       SessionVisualizerTopics topics = toolkit.getTopics();
@@ -174,16 +173,16 @@ public class YoEntryTabPaneController
          if (selectedTab == null)
             return null;
 
-         FontAwesomeIconView exportIcon = new FontAwesomeIconView();
+         FontIcon exportIcon = new FontIcon();
          exportIcon.getStyleClass().add("save-icon-view");
          MenuItem menuItem = new MenuItem("Export active tab...", exportIcon);
 
          menuItem.setOnAction(e ->
-         {
-            File result = SessionVisualizerIOTools.yoEntryConfigurationSaveFileDialog(owner);
-            if (result != null)
-               exportSingleTab(result, selectedTab);
-         });
+                              {
+                                 File result = SessionVisualizerIOTools.yoEntryConfigurationSaveFileDialog(owner);
+                                 if (result != null)
+                                    exportSingleTab(result, selectedTab);
+                              });
 
          return menuItem;
       };
@@ -198,16 +197,16 @@ public class YoEntryTabPaneController
          if (selectedTab == null)
             return null;
 
-         FontAwesomeIconView exportIcon = new FontAwesomeIconView();
+         FontIcon exportIcon = new FontIcon();
          exportIcon.getStyleClass().add("save-icon-view");
          MenuItem menuItem = new MenuItem("Export all tabs...", exportIcon);
 
          menuItem.setOnAction(e ->
-         {
-            File result = SessionVisualizerIOTools.yoEntryConfigurationSaveFileDialog(owner);
-            if (result != null)
-               exportAllTabs(result);
-         });
+                              {
+                                 File result = SessionVisualizerIOTools.yoEntryConfigurationSaveFileDialog(owner);
+                                 if (result != null)
+                                    exportAllTabs(result);
+                              });
 
          return menuItem;
       };
@@ -222,16 +221,16 @@ public class YoEntryTabPaneController
          if (selectedTab == null)
             return null;
 
-         FontAwesomeIconView exportIcon = new FontAwesomeIconView();
+         FontIcon exportIcon = new FontIcon();
          exportIcon.getStyleClass().add("load-icon-view");
          MenuItem menuItem = new MenuItem("Import tab(s)...", exportIcon);
 
          menuItem.setOnAction(e ->
-         {
-            File result = SessionVisualizerIOTools.yoEntryConfigurationOpenFileDialog(owner);
-            if (result != null)
-               importTabsAt(result, selectedTab);
-         });
+                              {
+                                 File result = SessionVisualizerIOTools.yoEntryConfigurationOpenFileDialog(owner);
+                                 if (result != null)
+                                    importTabsAt(result, selectedTab);
+                              });
 
          return menuItem;
       };
@@ -265,7 +264,11 @@ public class YoEntryTabPaneController
 
       try
       {
-         XMLTools.saveYoEntryConfigurationDefinition(new FileOutputStream(file), toYoEntryConfigurationDefinition());
+         YoEntryConfigurationDefinition yoEntryConfigurationDefinition = toYoEntryConfigurationDefinition();
+         if (yoEntryConfigurationDefinition.getYoEntryLists().isEmpty())
+            return;
+
+         XMLTools.saveYoEntryConfigurationDefinition(new FileOutputStream(file), yoEntryConfigurationDefinition);
       }
       catch (IOException | JAXBException e)
       {

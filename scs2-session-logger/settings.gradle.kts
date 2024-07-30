@@ -1,16 +1,17 @@
 pluginManagement {
    plugins {
-      id("us.ihmc.ihmc-build") version "0.29.4"
+      id("us.ihmc.ihmc-build") version "0.29.7"
    }
 }
 
 buildscript {
    repositories {
       maven { url = uri("https://plugins.gradle.org/m2/") }
+      maven { url = uri("https://mvnrepository.com/artifact/org.antlr/antlr4-runtime") }
       mavenLocal()
    }
    dependencies {
-      classpath("us.ihmc:ihmc-build:0.29.4")
+      classpath("us.ihmc:ihmc-build:0.29.7")
    }
 }
 

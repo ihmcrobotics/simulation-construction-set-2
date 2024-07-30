@@ -1,7 +1,5 @@
 package us.ihmc.scs2.session;
 
-import java.awt.image.BufferedImage;
-
 import us.ihmc.messager.MessagerAPIFactory;
 import us.ihmc.messager.MessagerAPIFactory.Category;
 import us.ihmc.messager.MessagerAPIFactory.CategoryTheme;
@@ -9,6 +7,9 @@ import us.ihmc.messager.MessagerAPIFactory.MessagerAPI;
 import us.ihmc.messager.MessagerAPIFactory.Topic;
 import us.ihmc.messager.MessagerAPIFactory.TopicTheme;
 import us.ihmc.scs2.definition.robot.CameraSensorDefinition;
+import us.ihmc.scs2.symbolic.YoEquationManager.YoEquationListChange;
+
+import java.awt.image.BufferedImage;
 
 public class SessionMessagerAPI
 {
@@ -27,13 +28,18 @@ public class SessionMessagerAPI
 
    private static final CategoryTheme Run = apiFactory.createCategoryTheme("Run");
    private static final CategoryTheme Playback = apiFactory.createCategoryTheme("Playback");
+   private static final CategoryTheme Change = apiFactory.createCategoryTheme("Change");
+   private static final CategoryTheme RobotDefinition = apiFactory.createCategoryTheme("RobotDefinition");
+   private static final CategoryTheme Equation = apiFactory.createCategoryTheme("Equation");
 
    private static final TopicTheme RealTimeRate = apiFactory.createTopicTheme("RealTimeRate");
+   private static final TopicTheme MaxDuration = apiFactory.createTopicTheme("MaxDuration");
    private static final TopicTheme Period = apiFactory.createTypedTopicTheme("Period");
    private static final TopicTheme State = apiFactory.createTypedTopicTheme("State");
    private static final TopicTheme Mode = apiFactory.createTypedTopicTheme("Mode");
    private static final TopicTheme TickPeriod = apiFactory.createTypedTopicTheme("TickPeriod");
    private static final TopicTheme Data = apiFactory.createTypedTopicTheme("Data");
+   private static final TopicTheme Request = apiFactory.createTypedTopicTheme("Request");
 
    public static final Topic<Long> SessionDTNanoseconds = root.child(Session).child(Run).topic(Period);
    public static final Topic<SessionState> SessionCurrentState = root.child(Session).topic(State);
@@ -44,7 +50,19 @@ public class SessionMessagerAPI
    public static final Topic<Boolean> RunAtRealTimeRate = root.child(Session).child(Run).topic(RealTimeRate);
    public static final Topic<Double> PlaybackRealTimeRate = root.child(Session).child(Playback).topic(RealTimeRate);
 
+   public static final Topic<Long> RunMaxDuration = root.child(Session).child(Run).topic(MaxDuration);
+
    public static final Topic<SessionDataExportRequest> SessionDataExportRequest = root.child(Session).child(Export).topic(Data);
+   public static final Topic<SessionRobotDefinitionListChange> SessionRobotDefinitionListChangeRequest = root.child(Session)
+                                                                                                             .child(Change)
+                                                                                                             .child(RobotDefinition)
+                                                                                                             .topic(Request);
+   public static final Topic<SessionRobotDefinitionListChange> SessionRobotDefinitionListChangeState = root.child(Session)
+                                                                                                           .child(Change)
+                                                                                                           .child(RobotDefinition)
+                                                                                                           .topic(State);
+   public static final Topic<YoEquationListChange> SessionYoEquationListChangeRequest = root.child(Session).child(Change).child(Equation).topic(Request);
+   public static final Topic<YoEquationListChange> SessionYoEquationListChangeState = root.child(Session).child(Change).child(Equation).topic(State);
 
    static
    { // Ensure that the Sensors is loaded before closing the API.

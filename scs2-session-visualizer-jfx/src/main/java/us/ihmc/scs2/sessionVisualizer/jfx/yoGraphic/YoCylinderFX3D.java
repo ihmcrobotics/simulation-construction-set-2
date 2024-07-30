@@ -4,18 +4,19 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Node;
 import javafx.scene.paint.PhongMaterial;
+import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.Mesh;
 import javafx.scene.shape.MeshView;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Translate;
 import us.ihmc.euclid.axisAngle.AxisAngle;
 import us.ihmc.euclid.geometry.tools.EuclidGeometryTools;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.euclid.tools.EuclidCoreTools;
 import us.ihmc.euclid.tuple3D.Point3D;
-import us.ihmc.javaFXToolkit.JavaFXTools;
 import us.ihmc.scs2.definition.visual.TriangleMesh3DFactories;
 import us.ihmc.scs2.sessionVisualizer.jfx.definition.JavaFXTriangleMesh3DDefinitionInterpreter;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameWrapper;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.Tuple3DProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.color.SimpleColorFX;
 
@@ -38,13 +39,19 @@ public class YoCylinderFX3D extends YoGraphicFX3D
 
    public YoCylinderFX3D()
    {
+      drawModeProperty.addListener((o, oldValue, newValue) ->
+                                   {
+                                      if (newValue == null)
+                                         drawModeProperty.setValue(DrawMode.FILL);
+                                      cylinderNode.setDrawMode(newValue);
+                                   });
       cylinderNode.setMaterial(material);
       cylinderNode.getTransforms().addAll(translate, rotate);
       cylinderNode.idProperty().bind(nameProperty());
       cylinderNode.getProperties().put(YO_GRAPHICFX_ITEM_KEY, this);
    }
 
-   public YoCylinderFX3D(ReferenceFrame worldFrame)
+   public YoCylinderFX3D(ReferenceFrameWrapper worldFrame)
    {
       this();
       center.setReferenceFrame(worldFrame);
@@ -78,7 +85,7 @@ public class YoCylinderFX3D extends YoGraphicFX3D
       {
          AxisAngle axisAngle = EuclidGeometryTools.axisAngleFromZUpToVector3D(axis.toVector3DInWorld());
          axisAngle.setAngle(Math.toDegrees(axisAngle.getAngle()));
-         JavaFXTools.convertAxisAngleToRotate(axisAngle, rotate); // FIXME: The conversion has to handle the change of unit: radians -> degrees
+         JavaFXMissingTools.convertAxisAngleToRotate(axisAngle, rotate); // FIXME: The conversion has to handle the change of unit: radians -> degrees
       }
 
       if (clearMesh)

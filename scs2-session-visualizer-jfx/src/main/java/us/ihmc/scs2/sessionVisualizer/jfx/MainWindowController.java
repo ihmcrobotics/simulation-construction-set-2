@@ -1,18 +1,13 @@
 package us.ihmc.scs2.sessionVisualizer.jfx;
 
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.commons.lang3.mutable.MutableBoolean;
-
 import com.jfoenix.controls.JFXDrawer;
 import com.jfoenix.controls.JFXDrawer.DrawerDirection;
 import com.jfoenix.controls.JFXHamburger;
 import com.jfoenix.controls.events.JFXDrawerEvent;
-
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -31,6 +26,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import us.ihmc.commons.Conversions;
 import us.ihmc.messager.javafx.JavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.HamburgerAnimationTransition.FrameType;
@@ -47,6 +43,9 @@ import us.ihmc.scs2.sessionVisualizer.jfx.tools.CompositePropertyTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.YoVariableDatabase;
+
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 public class MainWindowController extends ObservedAnimationTimer implements VisualizerController
 {
@@ -71,18 +70,27 @@ public class MainWindowController extends ObservedAnimationTimer implements Visu
    @FXML
    private YoChartGroupPanelController yoChartGroupPanelController;
 
-   /** The drawer used to hold onto the tools for searching yoVariables. */
+   /**
+    * The drawer used to hold onto the tools for searching yoVariables.
+    */
    private final JFXDrawer leftDrawer = new JFXDrawer();
-   /** The drawer used to hold onto custom GUI controls. */
+   /**
+    * The drawer used to hold onto custom GUI controls.
+    */
    private final JFXDrawer rightDrawer = new JFXDrawer();
 
    private final BooleanProperty leftDrawerOpen = new SimpleBooleanProperty(this, "leftDrawerOpenProperty", false);
    private final BooleanProperty rightDrawerOpen = new SimpleBooleanProperty(this, "rightDrawerOpenProperty", false);
    private final BooleanProperty disableUserControls = new SimpleBooleanProperty(this, "disableUserControlsProperty", false);
+   private final Property<YoNameDisplay> yoNameDisplayProperty = new SimpleObjectProperty<>(this, "yoNameDisplayProperty", YoNameDisplay.UNIQUE_SHORT_NAME);
 
-   /** Controller for the left pane where variable search and entries are displayed. */
+   /**
+    * Controller for the left pane where variable search and entries are displayed.
+    */
    private SidePaneController sidePaneController;
-   /** Controller for the right pane where custom user controls are displayed. */
+   /**
+    * Controller for the right pane where custom user controls are displayed.
+    */
    private UserSidePaneController userSidePaneController;
 
    private final Plotter2D plotter2D = new Plotter2D();
@@ -101,6 +109,7 @@ public class MainWindowController extends ObservedAnimationTimer implements Visu
       messager = toolkit.getMessager();
 
       messager.addFXTopicListener(topics.getDisableUserControls(), m -> disableUserControls.set(m));
+      messager.bindBidirectional(topics.getYoVariableNameDisplay(), yoNameDisplayProperty, true);
 
       mainWindowMenuBarController.initialize(windowToolkit);
       sessionSimpleControlsController.initialize(windowToolkit);
@@ -145,6 +154,7 @@ public class MainWindowController extends ObservedAnimationTimer implements Visu
          e.printStackTrace();
       }
 
+      setupViewport3D(toolkit.getGlobalToolkit().getViewport3DManager().getPane());
       setupPlotter2D(plotter2D);
       messager.addFXTopicListener(topics.getPlotter2DTrackCoordinateRequest(), m ->
       {
@@ -152,6 +162,11 @@ public class MainWindowController extends ObservedAnimationTimer implements Visu
          ReferenceFrameManager referenceFrameManager = toolkit.getReferenceFrameManager();
          plotter2D.coordinateToTrackProperty().setValue(CompositePropertyTools.toTuple2DProperty(rootRegistryDatabase, referenceFrameManager, m));
       });
+
+      messager.addFXTopicListener(topics.getYoChartGroupLoadConfiguration(),
+                                  m -> yoChartGroupPanelController.loadChartGroupConfiguration(m.getKey(), m.getValue()));
+      messager.addFXTopicListener(topics.getYoChartGroupSaveConfiguration(),
+                                  m -> yoChartGroupPanelController.saveChartGroupConfiguration(m.getKey(), m.getValue()));
    }
 
    public void setupViewport3D(Pane viewportPane)
@@ -176,20 +191,20 @@ public class MainWindowController extends ObservedAnimationTimer implements Visu
 
       showOverheadPlotterProperty = messager.createPropertyInput(topics.getShowOverheadPlotter(), false);
       showOverheadPlotterProperty.addListener((o, oldValue, newValue) ->
-      {
-         if (newValue)
-         {
-            if (!mainViewSplitPane.getItems().contains(pane))
-            {
-               mainViewSplitPane.getItems().add(pane);
-               plotter2D.setScale(400.0 / 5.0);
-            }
-         }
-         else
-         {
-            mainViewSplitPane.getItems().remove(pane);
-         }
-      });
+                                              {
+                                                 if (newValue)
+                                                 {
+                                                    if (!mainViewSplitPane.getItems().contains(pane))
+                                                    {
+                                                       mainViewSplitPane.getItems().add(pane);
+                                                       plotter2D.setScale(400.0 / 5.0);
+                                                    }
+                                                 }
+                                                 else
+                                                 {
+                                                    mainViewSplitPane.getItems().remove(pane);
+                                                 }
+                                              });
       return showOverheadPlotterProperty;
    }
 
@@ -274,14 +289,14 @@ public class MainWindowController extends ObservedAnimationTimer implements Visu
       MutableBoolean ignoreOpenChange = new MutableBoolean(false);
 
       drawerOpenProperty.addListener((o, oldValue, newValue) ->
-      {
-         if (ignoreOpenChange.booleanValue())
-            return;
-         if (newValue && (drawer.isClosing() || drawer.isClosed()))
-            drawer.open();
-         else if (drawer.isOpening() || drawer.isOpened())
-            drawer.close();
-      });
+                                     {
+                                        if (ignoreOpenChange.booleanValue())
+                                           return;
+                                        if (newValue && (drawer.isClosing() || drawer.isClosed()))
+                                           drawer.open();
+                                        else if (drawer.isOpening() || drawer.isOpened())
+                                           drawer.close();
+                                     });
 
       drawer.addEventHandler(Event.ANY, e ->
       {
@@ -305,12 +320,12 @@ public class MainWindowController extends ObservedAnimationTimer implements Visu
       });
 
       openCloseControl.setOnMouseClicked(e ->
-      {
-         if (drawer.isClosed() || drawer.isClosing())
-            drawer.open();
-         else
-            drawer.close();
-      });
+                                         {
+                                            if (drawer.isClosed() || drawer.isClosing())
+                                               drawer.open();
+                                            else
+                                               drawer.close();
+                                         });
 
       // By disabling the side pane, we unlink YoVariables (in search tabs) reducing the cost of a run tick for the Session
       drawerSidePane.visibleProperty().bind(drawerFullyClosed.not());
@@ -428,6 +443,21 @@ public class MainWindowController extends ObservedAnimationTimer implements Visu
       return mainViewSplitPane;
    }
 
+   public MainWindowMenuBarController getMainWindowMenuBarController()
+   {
+      return mainWindowMenuBarController;
+   }
+
+   public SessionSimpleControlsController getSessionSimpleControlsController()
+   {
+      return sessionSimpleControlsController;
+   }
+
+   public SessionAdvancedControlsController getSessionAdvancedControlsController()
+   {
+      return sessionAdvancedControlsController;
+   }
+
    public YoChartGroupPanelController getYoChartGroupPanelController()
    {
       return yoChartGroupPanelController;
@@ -461,5 +491,10 @@ public class MainWindowController extends ObservedAnimationTimer implements Visu
    public BooleanProperty showAdvancedControlsProperty()
    {
       return sessionAdvancedControlsController.showProperty();
+   }
+
+   public Property<YoNameDisplay> yoNameDisplayProperty()
+   {
+      return yoNameDisplayProperty;
    }
 }

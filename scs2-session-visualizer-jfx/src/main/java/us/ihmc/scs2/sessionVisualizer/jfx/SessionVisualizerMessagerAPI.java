@@ -1,25 +1,14 @@
 package us.ihmc.scs2.sessionVisualizer.jfx;
 
-import java.io.File;
-import java.util.List;
-
 import javafx.stage.Window;
 import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 import us.ihmc.messager.MessagerAPIFactory;
-import us.ihmc.messager.MessagerAPIFactory.Category;
-import us.ihmc.messager.MessagerAPIFactory.CategoryTheme;
-import us.ihmc.messager.MessagerAPIFactory.MessagerAPI;
-import us.ihmc.messager.MessagerAPIFactory.Topic;
-import us.ihmc.messager.MessagerAPIFactory.TopicTheme;
-import us.ihmc.messager.MessagerAPIFactory.TypedTopicTheme;
+import us.ihmc.messager.MessagerAPIFactory.*;
 import us.ihmc.scs2.definition.yoComposite.YoTuple2DDefinition;
 import us.ihmc.scs2.definition.yoEntry.YoEntryListDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
-import us.ihmc.scs2.definition.yoSlider.YoButtonDefinition;
-import us.ihmc.scs2.definition.yoSlider.YoKnobDefinition;
-import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
-import us.ihmc.scs2.definition.yoSlider.YoSliderboardDefinition;
-import us.ihmc.scs2.definition.yoSlider.YoSliderboardListDefinition;
+import us.ihmc.scs2.definition.yoSlider.*;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.session.SessionDataFilterParameters;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoComposite.search.SearchEngines;
@@ -27,6 +16,9 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.NewTerrainVisualRequest;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SecondaryWindowManager.NewWindowRequest;
 import us.ihmc.scs2.sessionVisualizer.jfx.session.OpenSessionControlsRequest;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoRobot.NewRobotVisualRequest;
+
+import java.io.File;
+import java.util.List;
 
 public class SessionVisualizerMessagerAPI
 {
@@ -59,7 +51,7 @@ public class SessionVisualizerMessagerAPI
    private static final TopicTheme Recordable = apiFactory.createTypedTopicTheme("Recordable");
    private static final TopicTheme Request = apiFactory.createTopicTheme("Request");
    private static final TypedTopicTheme<Integer> Size = apiFactory.createTypedTopicTheme("Size");
-   private static final TypedTopicTheme<Boolean> Show = apiFactory.createTypedTopicTheme("Show");
+   private static final TopicTheme Show = apiFactory.createTypedTopicTheme("Show");
    private static final TopicTheme Load = apiFactory.createTopicTheme("load");
    private static final TopicTheme Save = apiFactory.createTopicTheme("save");
    private static final TopicTheme Close = apiFactory.createTopicTheme("close");
@@ -74,7 +66,7 @@ public class SessionVisualizerMessagerAPI
 
    public static final Topic<Boolean> DisableUserControls = APIRoot.child(User).child(Controls).topic(Disable);
    public static final Topic<SceneVideoRecordingRequest> SceneVideoRecordingRequest = APIRoot.child(Video).topic(Request);
-   public static final Topic<CameraObjectTrackingRequest> CameraTrackObject = APIRoot.child(Camera).child(Track).topic(Request);
+   public static final Topic<Camera3DRequest> Camera3DRequest = APIRoot.child(Camera).child(Configuration).topic(Request);
    public static final Topic<Object> TakeSnapshot = APIRoot.topic(Snapshot);
    public static final Topic<Object> RegisterRecordable = APIRoot.child(Register).topic(Recordable);
    public static final Topic<Object> ForgetRecordable = APIRoot.child(Forget).topic(Recordable);
@@ -84,7 +76,8 @@ public class SessionVisualizerMessagerAPI
    public static final Topic<NewTerrainVisualRequest> TerrainVisualRequest = APIRoot.child(Terrain).child(Visual).topic(Request);
    public static final Topic<NewWindowRequest> OpenWindowRequest = APIRoot.topic(Open);
    public static final Topic<Boolean> SessionVisualizerCloseRequest = APIRoot.topic(Close);
-   public static final Topic<Integer> ControlsNumberPrecision = APIRoot.child(Controls).topic(Precision); // TODO Not the greatest topic name, nor the best place.
+   public static final Topic<Integer> ControlsNumberPrecision = APIRoot.child(Controls)
+                                                                       .topic(Precision); // TODO Not the greatest topic name, nor the best place.
    public static final Topic<File> SessionVisualizerConfigurationLoadRequest = APIRoot.child(Configuration).topic(Load);
    public static final Topic<Boolean> SessionVisualizerDefaultConfigurationLoadRequest = APIRoot.child(Configuration).child(Default).topic(Load);
    public static final Topic<File> SessionVisualizerConfigurationSaveRequest = APIRoot.child(Configuration).topic(Save);
@@ -132,6 +125,7 @@ public class SessionVisualizerMessagerAPI
       public static final Topic<List<String>> YoCompositePatternSelected = APIRoot.child(YoSearch).child(YoCompositePattern).topic(Selected);
       public static final Topic<Boolean> YoCompositeRefreshAll = APIRoot.child(YoSearch).child(YoCompositePattern).topic(Refresh);
       public static final Topic<Boolean> ShowSCS2YoVariables = APIRoot.child(YoSearch).child(Debug).topic(Show);
+      public static final Topic<YoNameDisplay> YoVariableNameDisplay = APIRoot.child(YoSearch).topic(Name);
    }
 
    public static class YoGraphic
@@ -155,6 +149,7 @@ public class SessionVisualizerMessagerAPI
       private static final CategoryTheme In = apiFactory.createCategoryTheme("In");
       private static final CategoryTheme Out = apiFactory.createCategoryTheme("Out");
       private static final CategoryTheme Shift = apiFactory.createCategoryTheme("Shift");
+      private static final CategoryTheme YAxis = apiFactory.createCategoryTheme("YAxis");
 
       private static final TopicTheme Factor = apiFactory.createTopicTheme("Factor");
 
@@ -162,9 +157,9 @@ public class SessionVisualizerMessagerAPI
       public static final Topic<Pair<Window, Boolean>> YoChartRequestZoomIn = APIRoot.child(YoChart).child(Zoom).child(In).topic(Request);
       public static final Topic<Pair<Window, Boolean>> YoChartRequestZoomOut = APIRoot.child(YoChart).child(Zoom).child(Out).topic(Request);
       public static final Topic<Pair<Window, Integer>> YoChartRequestShift = APIRoot.child(YoChart).child(Shift).topic(Request);
+      public static final Topic<Pair<Window, Boolean>> YoChartShowYAxis = APIRoot.child(YoChart).child(YAxis).topic(Show);
       public static final Topic<Pair<Window, File>> YoChartGroupSaveConfiguration = APIRoot.child(YoChart).child(Group).child(Configuration).topic(Save);
       public static final Topic<Pair<Window, File>> YoChartGroupLoadConfiguration = APIRoot.child(YoChart).child(Group).child(Configuration).topic(Load);
-      public static final Topic<Pair<Window, String>> YoChartGroupName = APIRoot.child(YoChart).child(Group).topic(Name);
    }
 
    public static class YoEntry
@@ -189,14 +184,32 @@ public class SessionVisualizerMessagerAPI
       public static final Topic<Boolean> YoMultiSliderboardClearAll = APIRoot.child(Multi).child(YoSliderboard).topic(Remove);
       public static final Topic<YoSliderboardListDefinition> YoMultiSliderboardSet = APIRoot.child(Multi).child(YoSliderboard).topic(Set);
       public static final Topic<YoSliderboardDefinition> YoSliderboardSet = APIRoot.child(YoSliderboard).child(Single).topic(Set);
-      public static final Topic<String> YoSliderboardRemove = APIRoot.child(YoSliderboard).child(Single).topic(Remove);
+      public static final Topic<Pair<String, YoSliderboardType>> YoSliderboardRemove = APIRoot.child(YoSliderboard).child(Single).topic(Remove);
 
-      public static final Topic<Pair<String, YoButtonDefinition>> YoSliderboardSetButton = APIRoot.child(YoSliderboard).child(Single).child(Button).topic(Set);
-      public static final Topic<Pair<String, YoKnobDefinition>> YoSliderboardSetKnob = APIRoot.child(YoSliderboard).child(Single).child(Knob).topic(Set);
-      public static final Topic<Pair<String, YoSliderDefinition>> YoSliderboardSetSlider = APIRoot.child(YoSliderboard).child(Single).child(Slider).topic(Set);
-      public static final Topic<Pair<String, Integer>> YoSliderboardClearButton = APIRoot.child(YoSliderboard).child(Single).child(Button).topic(Remove);
-      public static final Topic<Pair<String, Integer>> YoSliderboardClearKnob = APIRoot.child(YoSliderboard).child(Single).child(Knob).topic(Remove);
-      public static final Topic<Pair<String, Integer>> YoSliderboardClearSlider = APIRoot.child(YoSliderboard).child(Single).child(Slider).topic(Remove);
+      public static final Topic<ImmutableTriple<String, YoSliderboardType, YoButtonDefinition>> YoSliderboardSetButton = APIRoot.child(YoSliderboard)
+                                                                                                                                .child(Single)
+                                                                                                                                .child(Button)
+                                                                                                                                .topic(Set);
+      public static final Topic<ImmutableTriple<String, YoSliderboardType, YoKnobDefinition>> YoSliderboardSetKnob = APIRoot.child(YoSliderboard)
+                                                                                                                            .child(Single)
+                                                                                                                            .child(Knob)
+                                                                                                                            .topic(Set);
+      public static final Topic<ImmutableTriple<String, YoSliderboardType, YoSliderDefinition>> YoSliderboardSetSlider = APIRoot.child(YoSliderboard)
+                                                                                                                                .child(Single)
+                                                                                                                                .child(Slider)
+                                                                                                                                .topic(Set);
+      public static final Topic<ImmutableTriple<String, YoSliderboardType, Integer>> YoSliderboardClearButton = APIRoot.child(YoSliderboard)
+                                                                                                                       .child(Single)
+                                                                                                                       .child(Button)
+                                                                                                                       .topic(Remove);
+      public static final Topic<ImmutableTriple<String, YoSliderboardType, Integer>> YoSliderboardClearKnob = APIRoot.child(YoSliderboard)
+                                                                                                                     .child(Single)
+                                                                                                                     .child(Knob)
+                                                                                                                     .topic(Remove);
+      public static final Topic<ImmutableTriple<String, YoSliderboardType, Integer>> YoSliderboardClearSlider = APIRoot.child(YoSliderboard)
+                                                                                                                       .child(Single)
+                                                                                                                       .child(Slider)
+                                                                                                                       .topic(Remove);
    }
 
    public static class SessionAPI

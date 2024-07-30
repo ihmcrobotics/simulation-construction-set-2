@@ -1,27 +1,5 @@
 package us.ihmc.scs2.sessionVisualizer.jfx;
 
-import static us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools.SCS2_CONFIGURATION_DEFAULT_PATH;
-import static us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools.scsConfigurationFileExtension;
-import static us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools.scsMainConfigurationFileExtension;
-import static us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools.yoChartGroupConfigurationFileExtension;
-import static us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools.yoCompositeConfigurationFileExtension;
-import static us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools.yoEntryConfigurationFileExtension;
-import static us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools.yoGraphicConfigurationFileExtension;
-import static us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools.yoSliderboardConfigurationFileExtension;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.xml.bind.JAXBException;
-
 import javafx.collections.ObservableList;
 import javafx.geometry.Rectangle2D;
 import javafx.stage.Screen;
@@ -33,8 +11,19 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.SecondaryWindowManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
 
+import javax.xml.bind.JAXBException;
+import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools.*;
+
 public class SCSGuiConfiguration
 {
+   public static final String DEFAULT_ROBOT_CONFIGURATION_NAME = "DefaultRobotConfiguration";
    private final Path configurationFolderPath;
 
    private final String mainConfigurationFilename;
@@ -42,6 +31,7 @@ public class SCSGuiConfiguration
    private String yoCompositeFilename;
    private String yoEntryConfigurationFilename;
    private String yoSliderboardConfigurationFilename;
+   private String yoEquationFilename;
    private String mainYoChartGroupFilename;
    private final List<String> secondaryYoChartGroupFilenames = new ArrayList<>();
 
@@ -50,10 +40,16 @@ public class SCSGuiConfiguration
    private Path yoCompositePath;
    private Path yoEntryConfigurationPath;
    private Path yoSliderboardConfigurationPath;
+   private Path yoEquationPath;
    private Path mainYoChartGroupPath;
    private final List<Path> secondaryYoChartGroupPaths = new ArrayList<>();
 
    private SCSGuiConfigurationDefinition definition;
+
+   public static SCSGuiConfiguration defaultLoader(String robotName)
+   {
+      return defaultLoader(robotName, DEFAULT_ROBOT_CONFIGURATION_NAME);
+   }
 
    public static SCSGuiConfiguration defaultLoader(String robotName, String simulationName)
    {
@@ -66,6 +62,11 @@ public class SCSGuiConfiguration
          e.printStackTrace();
          return null;
       }
+   }
+
+   public static SCSGuiConfiguration defaultSaver(String robotName)
+   {
+      return defaultSaver(robotName, DEFAULT_ROBOT_CONFIGURATION_NAME);
    }
 
    public static SCSGuiConfiguration defaultSaver(String robotName, String simulationName)
@@ -142,6 +143,7 @@ public class SCSGuiConfiguration
                yoCompositeFilename = definition.getYoCompositePatternListFilename();
                yoEntryConfigurationFilename = definition.getYoEntryConfigurationFilename();
                yoSliderboardConfigurationFilename = definition.getYoSliderboardConfigurationFilename();
+               yoEquationFilename = definition.getYoEquationFilename();
                mainYoChartGroupFilename = definition.getMainYoChartGroupConfigurationFilename();
                if (definition.getSecondaryYoChartGroupConfigurationsFilenames() != null)
                   secondaryYoChartGroupFilenames.addAll(definition.getSecondaryYoChartGroupConfigurationsFilenames());
@@ -150,6 +152,7 @@ public class SCSGuiConfiguration
                yoCompositePath = toPath(yoCompositeFilename);
                yoEntryConfigurationPath = toPath(yoEntryConfigurationFilename);
                yoSliderboardConfigurationPath = toPath(yoSliderboardConfigurationFilename);
+               yoEquationPath = toPath(yoEquationFilename);
                mainYoChartGroupPath = toPath(mainYoChartGroupFilename);
 
                for (String filename : secondaryYoChartGroupFilenames)
@@ -180,12 +183,14 @@ public class SCSGuiConfiguration
          yoCompositeFilename = toFilename("YoComposite", yoCompositeConfigurationFileExtension);
          yoEntryConfigurationFilename = toFilename("YoEntry", yoEntryConfigurationFileExtension);
          yoSliderboardConfigurationFilename = toFilename("YoSliderboard", yoSliderboardConfigurationFileExtension);
+         yoEquationFilename = toFilename("YoEquation", yoEquationFileExtension);
          mainYoChartGroupFilename = toFilename("MainYoChartGroup", yoChartGroupConfigurationFileExtension);
 
          yoGraphicsPath = toPath(yoGraphicsFilename);
          yoCompositePath = toPath(yoCompositeFilename);
          yoEntryConfigurationPath = toPath(yoEntryConfigurationFilename);
          yoSliderboardConfigurationPath = toPath(yoSliderboardConfigurationFilename);
+         yoEquationPath = toPath(yoEquationFilename);
          mainYoChartGroupPath = toPath(mainYoChartGroupFilename);
 
          definition = new SCSGuiConfigurationDefinition();
@@ -194,6 +199,7 @@ public class SCSGuiConfiguration
          definition.setYoCompositePatternListFilename(yoCompositeFilename);
          definition.setYoEntryConfigurationFilename(yoEntryConfigurationFilename);
          definition.setYoSliderboardConfigurationFilename(yoSliderboardConfigurationFilename);
+         definition.setYoEquationFilename(yoEquationFilename);
          definition.setMainYoChartGroupConfigurationFilename(mainYoChartGroupFilename);
          definition.setSecondaryYoChartGroupConfigurationsFilenames(secondaryYoChartGroupFilenames);
       }
@@ -227,6 +233,11 @@ public class SCSGuiConfiguration
    public void setShowAdvancedControls(boolean showAdvancedControls)
    {
       definition.setShowAdvancedControls(showAdvancedControls);
+   }
+
+   public void setShowYoVariableUniqueNames(boolean showYoVariableUniqueNames)
+   {
+      definition.setShowYoVariableUniqueNames(showYoVariableUniqueNames);
    }
 
    public void setMainStage(Stage stage)
@@ -289,6 +300,11 @@ public class SCSGuiConfiguration
       return yoSliderboardConfigurationPath != null && yoSliderboardConfigurationPath.toFile().exists();
    }
 
+   public boolean hasYoEquationConfiguration()
+   {
+      return yoEquationPath != null && yoEquationPath.toFile().exists();
+   }
+
    public boolean hasMainYoChartGroupConfiguration()
    {
       return mainYoChartGroupPath != null && mainYoChartGroupPath.toFile().exists();
@@ -322,7 +338,7 @@ public class SCSGuiConfiguration
    public boolean hasSecondaryWindowConfigurations()
    {
       return definition != null && definition.getSecondaryWindowConfigurations() != null
-            && definition.getSecondaryWindowConfigurations().size() == getNumberOfSecondaryYoChartGroupConfigurations();
+             && definition.getSecondaryWindowConfigurations().size() == getNumberOfSecondaryYoChartGroupConfigurations();
    }
 
    public File getMainConfigurationFile()
@@ -348,6 +364,11 @@ public class SCSGuiConfiguration
    public File getYoSliderboardConfigurationFile()
    {
       return yoSliderboardConfigurationPath.toFile();
+   }
+
+   public File getYoEquationConfigurationFile()
+   {
+      return yoEquationPath.toFile();
    }
 
    public File getMainYoChartGroupConfigurationFile()
@@ -397,6 +418,11 @@ public class SCSGuiConfiguration
    public boolean getShowAdvancedControls()
    {
       return definition.isShowAdvancedControls();
+   }
+
+   public boolean getShowYoVariableUniqueNames()
+   {
+      return definition.isShowYoVariableUniqueNames();
    }
 
    public void getMainWindowConfiguration(Stage stage)

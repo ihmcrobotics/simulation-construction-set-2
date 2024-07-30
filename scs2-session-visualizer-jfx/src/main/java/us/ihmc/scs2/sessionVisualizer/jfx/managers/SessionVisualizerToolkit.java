@@ -1,8 +1,5 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.managers;
 
-import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -10,7 +7,6 @@ import javafx.collections.ObservableList;
 import javafx.scene.Group;
 import javafx.scene.SubScene;
 import javafx.stage.Stage;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
 import us.ihmc.log.LogTools;
 import us.ihmc.messager.MessagerAPIFactory;
 import us.ihmc.scs2.definition.robot.RobotDefinition;
@@ -23,9 +19,17 @@ import us.ihmc.scs2.sessionVisualizer.jfx.SessionChangeListener;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizer;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerMessagerAPI;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerTopics;
-import us.ihmc.scs2.sessionVisualizer.jfx.tools.SCS2JavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.ObservedAnimationTimer;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.SCS2JavaFXMessager;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.StringTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoGraphic.YoGroupFX;
+import us.ihmc.yoVariables.variable.YoVariable;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class SessionVisualizerToolkit extends ObservedAnimationTimer
 {
@@ -48,6 +52,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    private final EnvironmentManager environmentManager;
    private final SecondaryWindowManager secondaryWindowManager;
    private final SessionDataPreferenceManager sessionDataPreferenceManager;
+   private final MultiViewport3DManager viewport3DManager;
 
    private final Stage mainWindow;
    private final SubScene mainScene3D;
@@ -58,10 +63,9 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    private final ObservableList<TerrainObjectDefinition> sessionTerrainObjectDefinitions = FXCollections.observableArrayList();
    private final ConcurrentLinkedQueue<SessionChangeListener> sessionChangeListeners = new ConcurrentLinkedQueue<>();
 
-   public SessionVisualizerToolkit(Stage mainWindow, SubScene mainScene3D, Group mainView3DRoot) throws Exception
+   public SessionVisualizerToolkit(Stage mainWindow, Group mainView3DRoot) throws Exception
    {
       this.mainWindow = mainWindow;
-      this.mainScene3D = mainScene3D;
       this.mainView3DRoot = mainView3DRoot;
 
       MessagerAPIFactory apiFactory = new MessagerAPIFactory();
@@ -73,32 +77,48 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       messager.startMessager();
 
       snapshotManager = new SnapshotManager(mainWindow, messager, topics);
-      videoRecordingManager = new VideoRecordingManager(mainScene3D, mainView3DRoot, topics, messager, backgroundExecutorManager);
       chartDataManager = new ChartDataManager(messager, topics, yoManager, backgroundExecutorManager);
       yoGraphicFXManager = new YoGraphicFXManager(messager, topics, yoManager, backgroundExecutorManager, referenceFrameManager);
       yoCompositeSearchManager = new YoCompositeSearchManager(messager, topics, yoManager, backgroundExecutorManager);
       keyFrameManager = new KeyFrameManager(messager, topics);
       yoRobotFXManager = new YoRobotFXManager(messager, topics, yoManager, referenceFrameManager, backgroundExecutorManager);
       environmentManager = new EnvironmentManager(messager, topics, backgroundExecutorManager);
+
+      viewport3DManager = new MultiViewport3DManager(mainView3DRoot, yoManager, yoCompositeSearchManager, referenceFrameManager);
+      this.mainScene3D = viewport3DManager.getMainViewport().getSubScene();
+      mainView3DRoot.getChildren().addAll(yoRobotFXManager.getRootNode(), environmentManager.getRootNode(), yoGraphicFXManager.getRootNode3D());
+      environmentManager.addSkybox(viewport3DManager.getMainViewport().getCamera());
+
+      messager.addFXTopicListener(topics.getCamera3DRequest(), viewport3DManager::submitRequest);
+
+      videoRecordingManager = new VideoRecordingManager(mainScene3D, mainView3DRoot, topics, messager, backgroundExecutorManager);
       secondaryWindowManager = new SecondaryWindowManager(this);
       sessionDataPreferenceManager = new SessionDataPreferenceManager(messager, topics);
       cameraSensorsManager = new CameraSensorsManager(mainView3DRoot, messager, topics, yoRobotFXManager);
 
       activeSessionProperty.addListener((o, oldValue, newValue) ->
+                                        {
+                                           sessionRobotDefinitions.clear();
+                                           sessionTerrainObjectDefinitions.clear();
+
+                                           if (newValue == null)
+                                              return;
+
+                                           List<RobotDefinition> newRobotDefinitions = newValue.getRobotDefinitions();
+                                           if (newRobotDefinitions != null && !newRobotDefinitions.isEmpty())
+                                              sessionRobotDefinitions.setAll(newRobotDefinitions);
+
+                                           List<TerrainObjectDefinition> newTerrainObjectDefinitions = newValue.getTerrainObjectDefinitions();
+                                           if (newTerrainObjectDefinitions != null && !newTerrainObjectDefinitions.isEmpty())
+                                              sessionTerrainObjectDefinitions.setAll(newTerrainObjectDefinitions);
+                                        });
+
+      messager.addFXTopicListener(topics.getSessionRobotDefinitionListChangeState(), change ->
       {
-         sessionRobotDefinitions.clear();
-         sessionTerrainObjectDefinitions.clear();
-
-         if (newValue == null)
-            return;
-
-         List<RobotDefinition> newRobotDefinitions = newValue.getRobotDefinitions();
-         if (newRobotDefinitions != null && !newRobotDefinitions.isEmpty())
-            sessionRobotDefinitions.setAll(newRobotDefinitions);
-
-         List<TerrainObjectDefinition> newTerrainObjectDefinitions = newValue.getTerrainObjectDefinitions();
-         if (newTerrainObjectDefinitions != null && !newTerrainObjectDefinitions.isEmpty())
-            sessionTerrainObjectDefinitions.setAll(newTerrainObjectDefinitions);
+         if (change.getRemovedRobotDefinition() != null)
+            sessionRobotDefinitions.remove(change.getRemovedRobotDefinition());
+         if (change.getAddedRobotDefinition() != null)
+            sessionRobotDefinitions.add(change.getAddedRobotDefinition());
       });
    }
 
@@ -116,43 +136,43 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       session.setupWithMessager(messager);
 
       backgroundExecutorManager.executeInBackground(() ->
-      {
-         try
-         {
-            yoManager.startSession(session);
-            yoRobotFXManager.startSession(session);
-            environmentManager.startSession(session);
-            referenceFrameManager.startSession(session);
-            chartDataManager.startSession(session);
-            chartRenderManager.startSession(session);
-            yoCompositeSearchManager.startSession(session);
-            keyFrameManager.startSession(session);
-            secondaryWindowManager.startSession(session);
+                                                    {
+                                                       try
+                                                       {
+                                                          yoManager.startSession(session);
+                                                          yoRobotFXManager.startSession(session);
+                                                          environmentManager.startSession(session);
+                                                          referenceFrameManager.startSession(session);
+                                                          chartDataManager.startSession(session);
+                                                          chartRenderManager.startSession(session);
+                                                          yoCompositeSearchManager.startSession(session);
+                                                          keyFrameManager.startSession(session);
+                                                          secondaryWindowManager.startSession(session);
 
-            while (!yoRobotFXManager.isSessionLoaded())
-            {
-               try
-               {
-                  Thread.sleep(100);
-               }
-               catch (InterruptedException e)
-               {
-                  e.printStackTrace();
-                  return;
-               }
-            }
+                                                          while (!yoRobotFXManager.isSessionLoaded())
+                                                          {
+                                                             try
+                                                             {
+                                                                Thread.sleep(100);
+                                                             }
+                                                             catch (InterruptedException e)
+                                                             {
+                                                                e.printStackTrace();
+                                                                return;
+                                                             }
+                                                          }
 
-            yoGraphicFXManager.startSession(session); // In case some graphics rely on the robot frames
-            cameraSensorsManager.startSession(session);
-            messager.submitMessage(topics.getSessionCurrentState(), SessionState.ACTIVE);
-         }
-         finally
-         {
-            if (sessionLoadedCallback != null)
-               sessionLoadedCallback.run();
-            sessionChangeListeners.forEach(listener -> listener.sessionChanged(oldSession, session));
-         }
-      });
+                                                          yoGraphicFXManager.startSession(session); // In case some graphics rely on the robot frames
+                                                          cameraSensorsManager.startSession(session);
+                                                          messager.submitMessage(topics.getSessionCurrentState(), SessionState.ACTIVE);
+                                                       }
+                                                       finally
+                                                       {
+                                                          if (sessionLoadedCallback != null)
+                                                             sessionLoadedCallback.run();
+                                                          sessionChangeListeners.forEach(listener -> listener.sessionChanged(oldSession, session));
+                                                       }
+                                                    });
 
       mainWindow.setTitle(session.getSessionName());
    }
@@ -220,6 +240,8 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       backgroundExecutorManager.shutdown();
       environmentManager.dispose();
       messager.closeMessager();
+      viewport3DManager.dispose();
+      mainView3DRoot.getChildren().clear();
    }
 
    public SCS2JavaFXMessager getMessager()
@@ -245,6 +267,11 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    public Group getMainView3DRoot()
    {
       return mainView3DRoot;
+   }
+
+   public MultiViewport3DManager getViewport3DManager()
+   {
+      return viewport3DManager;
    }
 
    public YoManager getYoManager()
@@ -287,7 +314,7 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
       return yoCompositeSearchManager;
    }
 
-   public ReferenceFrame getWorldFrame()
+   public ReferenceFrameWrapper getWorldFrame()
    {
       return referenceFrameManager.getWorldFrame();
    }
@@ -340,5 +367,11 @@ public class SessionVisualizerToolkit extends ObservedAnimationTimer
    public ObservableList<TerrainObjectDefinition> getSessionTerrainObjectDefinitions()
    {
       return sessionTerrainObjectDefinitions;
+   }
+
+   // TODO Move this to a more appropriate place
+   public void generateChartGroupTitle(Object caller, Collection<YoVariable> variables, Consumer<String> callback)
+   {
+      callback.accept(StringTools.commonSubString(variables.stream().map(YoVariable::getName).collect(Collectors.toList())));
    }
 }

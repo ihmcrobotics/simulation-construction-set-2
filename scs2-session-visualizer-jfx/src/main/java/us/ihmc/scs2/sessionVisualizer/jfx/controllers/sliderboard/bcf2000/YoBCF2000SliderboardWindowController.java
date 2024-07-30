@@ -1,7 +1,5 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.bcf2000;
 
-import static us.ihmc.scs2.definition.yoSlider.YoSliderboardDefinition.BCF2000;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -26,16 +24,18 @@ import us.ihmc.scs2.definition.yoSlider.YoKnobDefinition;
 import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
 import us.ihmc.scs2.definition.yoSlider.YoSliderboardDefinition;
 import us.ihmc.scs2.definition.yoSlider.YoSliderboardListDefinition;
+import us.ihmc.scs2.definition.yoSlider.YoSliderboardType;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.controllers.sliderboard.YoSliderboardWindowControllerInterface;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.xml.XMLTools;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController.Button;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController.Knob;
-import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController.Slider;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController.BCF2000Button;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController.BCF2000Knob;
+import us.ihmc.scs2.sessionVisualizer.sliderboard.BCF2000SliderboardController.BCF2000Slider;
 import us.ihmc.scs2.sessionVisualizer.sliderboard.SliderboardVariable;
 
-public class YoBCF2000SliderboardWindowController
+public class YoBCF2000SliderboardWindowController implements YoSliderboardWindowControllerInterface
 {
    private static final String CONNECTED_STRING = "Connected to BCF2000 sliderboard";
    private static final String NOT_CONNECTED_STRING = "Not connected to BCF2000 sliderboard";
@@ -68,11 +68,10 @@ public class YoBCF2000SliderboardWindowController
    private List<YoBCF2000InputController> allInputControllers;
 
    private BCF2000SliderboardController sliderboard;
-   private Window owner;
 
+   @Override
    public void initialize(Window owner, SessionVisualizerToolkit toolkit)
    {
-      this.owner = owner;
       knobControllers = Arrays.asList(knob0Controller,
                                       knob1Controller,
                                       knob2Controller,
@@ -127,34 +126,26 @@ public class YoBCF2000SliderboardWindowController
       for (int i = 0; i < knobControllers.size(); i++)
       {
          YoBCF2000KnobController yoKnobController = knobControllers.get(i);
-         SliderboardVariable knob = sliderboard == null ? null : sliderboard.getKnob(Knob.values[i]);
-         yoKnobController.initialize(toolkit, Knob.values[i], knob);
+         SliderboardVariable knob = sliderboard == null ? null : sliderboard.getKnob(BCF2000Knob.values[i]);
+         yoKnobController.initialize(toolkit, BCF2000Knob.values[i], knob);
       }
 
       for (int i = 0; i < buttonControllers.size(); i++)
       {
          YoBCF2000ButtonController yoButtonController = buttonControllers.get(i);
-         SliderboardVariable button = sliderboard == null ? null : sliderboard.getButton(Button.values[i]);
-         yoButtonController.initialize(toolkit, Button.values[i], button);
+         SliderboardVariable button = sliderboard == null ? null : sliderboard.getButton(BCF2000Button.values[i]);
+         yoButtonController.initialize(toolkit, BCF2000Button.values[i], button);
       }
 
       for (int i = 0; i < sliderControllers.size(); i++)
       {
          YoBCF2000SliderController yoSliderController = sliderControllers.get(i);
-         SliderboardVariable slider = sliderboard == null ? null : sliderboard.getSlider(Slider.values[i]);
-         yoSliderController.initialize(toolkit, Slider.values[i], slider);
+         SliderboardVariable slider = sliderboard == null ? null : sliderboard.getSlider(BCF2000Slider.values[i]);
+         yoSliderController.initialize(toolkit, BCF2000Slider.values[i], slider);
       }
    }
 
-   @FXML
-   public void importYoSliderboard()
-   {
-      File result = SessionVisualizerIOTools.yoSliderboardConfigurationOpenFileDialog(owner);
-
-      if (result != null)
-         load(result);
-   }
-
+   @Override
    public void load(File file)
    {
       LogTools.info("Loading from file: " + file);
@@ -172,15 +163,7 @@ public class YoBCF2000SliderboardWindowController
       }
    }
 
-   @FXML
-   public void exportYoSliderboard()
-   {
-      File result = SessionVisualizerIOTools.yoSliderboardConfigurationSaveFileDialog(owner);
-
-      if (result != null)
-         save(result);
-   }
-
+   @Override
    public void save(File file)
    {
       LogTools.info("Saving to file: " + file);
@@ -195,8 +178,14 @@ public class YoBCF2000SliderboardWindowController
       }
    }
 
+   @Override
    public void setInput(YoSliderboardDefinition input)
    {
+      if (input.getType() != YoSliderboardType.BCF2000)
+      {
+         throw new RuntimeException("Invalid definition type: " + input.getType());
+      }
+
       clear();
 
       if (input.getName() != null)
@@ -244,6 +233,7 @@ public class YoBCF2000SliderboardWindowController
       }
    }
 
+   @Override
    public void setButtonInput(YoButtonDefinition buttonDefinition)
    {
       if (buttonDefinition.getIndex() < 0 || buttonDefinition.getIndex() >= buttonControllers.size())
@@ -256,6 +246,7 @@ public class YoBCF2000SliderboardWindowController
       buttonController.setInput(buttonDefinition);
    }
 
+   @Override
    public void removeButtonInput(int buttonIndex)
    {
       if (buttonIndex < 0 || buttonIndex >= buttonControllers.size())
@@ -267,6 +258,7 @@ public class YoBCF2000SliderboardWindowController
       buttonControllers.get(buttonIndex).clear();
    }
 
+   @Override
    public void setKnobInput(YoKnobDefinition knobDefinition)
    {
       if (knobDefinition.getIndex() < 0 || knobDefinition.getIndex() >= knobControllers.size())
@@ -279,6 +271,7 @@ public class YoBCF2000SliderboardWindowController
       knobController.setInput(knobDefinition);
    }
 
+   @Override
    public void removeKnobInput(int knobIndex)
    {
       if (knobIndex < 0 || knobIndex >= knobControllers.size())
@@ -290,6 +283,7 @@ public class YoBCF2000SliderboardWindowController
       knobControllers.get(knobIndex).clear();
    }
 
+   @Override
    public void setSliderInput(YoSliderDefinition sliderDefinition)
    {
       if (sliderDefinition.getIndex() < 0 || sliderDefinition.getIndex() >= sliderControllers.size())
@@ -302,6 +296,7 @@ public class YoBCF2000SliderboardWindowController
       sliderController.setInput(sliderDefinition);
    }
 
+   @Override
    public void removeSliderInput(int sliderIndex)
    {
       if (sliderIndex < 0 || sliderIndex >= sliderControllers.size())
@@ -313,6 +308,7 @@ public class YoBCF2000SliderboardWindowController
       sliderControllers.get(sliderIndex).clear();
    }
 
+   @Override
    public void clear()
    {
       for (YoBCF2000InputController controller : allInputControllers)
@@ -321,18 +317,21 @@ public class YoBCF2000SliderboardWindowController
       }
    }
 
+   @Override
    public void start()
    {
       if (sliderboard != null)
          sliderboard.start();
    }
 
+   @Override
    public void stop()
    {
       if (sliderboard != null)
          sliderboard.stop();
    }
 
+   @Override
    public void close()
    {
       stop();
@@ -342,22 +341,25 @@ public class YoBCF2000SliderboardWindowController
          sliderboard.closeAndDispose();
    }
 
+   @Override
    public StringProperty nameProperty()
    {
       return nameProperty;
    }
 
+   @Override
    public YoSliderboardDefinition toYoSliderboardDefinition()
    {
       YoSliderboardDefinition definition = new YoSliderboardDefinition();
       definition.setName(nameProperty.get());
-      definition.setType(BCF2000);
+      definition.setType(YoSliderboardType.BCF2000);
       definition.setKnobs(knobControllers.stream().map(YoBCF2000KnobController::toYoKnobDefinition).collect(Collectors.toList()));
       definition.setButtons(buttonControllers.stream().map(YoBCF2000ButtonController::toYoButtonDefinition).collect(Collectors.toList()));
       definition.setSliders(sliderControllers.stream().map(YoBCF2000SliderController::toYoSliderDefinition).collect(Collectors.toList()));
       return definition;
    }
 
+   @Override
    public boolean isEmpty()
    {
       for (YoBCF2000InputController controller : allInputControllers)
@@ -367,5 +369,11 @@ public class YoBCF2000SliderboardWindowController
       }
 
       return true;
+   }
+
+   @Override
+   public YoSliderboardType getType()
+   {
+      return YoSliderboardType.BCF2000;
    }
 }

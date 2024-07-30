@@ -1,20 +1,20 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.yoComposite;
 
-import static us.ihmc.scs2.definition.yoComposite.YoTuple3DDefinition.YoTuple3D;
-import static us.ihmc.scs2.definition.yoComposite.YoTuple3DDefinition.YoTuple3DIdentifiers;
-
-import java.util.Objects;
-
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleDoubleProperty;
 import us.ihmc.euclid.interfaces.EuclidGeometry;
-import us.ihmc.euclid.referenceFrame.ReferenceFrame;
-import us.ihmc.euclid.referenceFrame.interfaces.FrameTuple3DReadOnly;
 import us.ihmc.euclid.tuple3D.Point3D;
 import us.ihmc.euclid.tuple3D.Vector3D;
+import us.ihmc.euclid.tuple3D.interfaces.Tuple3DReadOnly;
+import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameWrapper;
 
-public class Tuple3DProperty extends CompositeProperty implements FrameTuple3DReadOnly
+import java.util.Objects;
+
+import static us.ihmc.scs2.definition.yoComposite.YoTuple3DDefinition.YoTuple3D;
+import static us.ihmc.scs2.definition.yoComposite.YoTuple3DDefinition.YoTuple3DIdentifiers;
+
+public class Tuple3DProperty extends CompositeProperty implements Tuple3DReadOnly
 {
    public Tuple3DProperty()
    {
@@ -26,7 +26,7 @@ public class Tuple3DProperty extends CompositeProperty implements FrameTuple3DRe
       super(YoTuple3D, YoTuple3DIdentifiers, x, y, z);
    }
 
-   public Tuple3DProperty(ReferenceFrame referenceFrame, double x, double y, double z)
+   public Tuple3DProperty(ReferenceFrameWrapper referenceFrame, double x, double y, double z)
    {
       super(YoTuple3D, YoTuple3DIdentifiers, referenceFrame, x, y, z);
    }
@@ -36,7 +36,7 @@ public class Tuple3DProperty extends CompositeProperty implements FrameTuple3DRe
       super(YoTuple3D, YoTuple3DIdentifiers, xyzProperties);
    }
 
-   public Tuple3DProperty(Property<ReferenceFrame> referenceFrameProperty, DoubleProperty[] xyzProperties)
+   public Tuple3DProperty(Property<ReferenceFrameWrapper> referenceFrameProperty, DoubleProperty[] xyzProperties)
    {
       super(YoTuple3D, YoTuple3DIdentifiers, referenceFrameProperty, xyzProperties);
    }
@@ -46,7 +46,7 @@ public class Tuple3DProperty extends CompositeProperty implements FrameTuple3DRe
       super(YoTuple3D, YoTuple3DIdentifiers, xProperty, yProperty, zProperty);
    }
 
-   public Tuple3DProperty(Property<ReferenceFrame> referenceFrameProperty, DoubleProperty xProperty, DoubleProperty yProperty, DoubleProperty zProperty)
+   public Tuple3DProperty(Property<ReferenceFrameWrapper> referenceFrameProperty, DoubleProperty xProperty, DoubleProperty yProperty, DoubleProperty zProperty)
    {
       super(YoTuple3D, YoTuple3DIdentifiers, referenceFrameProperty, xProperty, yProperty, zProperty);
    }
@@ -92,9 +92,10 @@ public class Tuple3DProperty extends CompositeProperty implements FrameTuple3DRe
       setComponentValues(x, y, z);
    }
 
-   public void set(ReferenceFrame referenceFrame, double x, double y, double z)
+   public void set(ReferenceFrameWrapper referenceFrame, double x, double y, double z)
    {
-      set(referenceFrame, x, y, z);
+      setReferenceFrame(referenceFrame);
+      setComponentValues(x, y, z);
    }
 
    public void set(DoubleProperty xProperty, DoubleProperty yProperty, DoubleProperty zProperty)
@@ -102,9 +103,10 @@ public class Tuple3DProperty extends CompositeProperty implements FrameTuple3DRe
       setComponentValueProperties(xProperty, yProperty, zProperty);
    }
 
-   public void set(Property<ReferenceFrame> referenceFrameProperty, DoubleProperty xProperty, DoubleProperty yProperty, DoubleProperty zProperty)
+   public void set(Property<ReferenceFrameWrapper> referenceFrameProperty, DoubleProperty xProperty, DoubleProperty yProperty, DoubleProperty zProperty)
    {
-      set(referenceFrameProperty, xProperty, yProperty, zProperty);
+      setReferenceFrameProperty(referenceFrameProperty);
+      setComponentValueProperties(xProperty, yProperty, zProperty);
    }
 
    @Override
@@ -129,7 +131,7 @@ public class Tuple3DProperty extends CompositeProperty implements FrameTuple3DRe
 
    public DoubleProperty xProperty()
    {
-      return componentValueProperties[0];
+      return componentValueProperties == null ? null : componentValueProperties[0];
    }
 
    @Override
@@ -140,7 +142,7 @@ public class Tuple3DProperty extends CompositeProperty implements FrameTuple3DRe
 
    public DoubleProperty yProperty()
    {
-      return componentValueProperties[1];
+      return componentValueProperties == null ? null : componentValueProperties[1];
    }
 
    @Override
@@ -151,17 +153,17 @@ public class Tuple3DProperty extends CompositeProperty implements FrameTuple3DRe
 
    public DoubleProperty zProperty()
    {
-      return componentValueProperties[2];
+      return componentValueProperties == null ? null : componentValueProperties[2];
    }
 
    public Point3D toPoint3DInWorld()
    {
-      return toWorld(new Point3D(this));
+      return componentValueProperties == null ? null : toWorld(new Point3D(this));
    }
 
    public Vector3D toVector3DInWorld()
    {
-      return toWorld(new Vector3D(this));
+      return componentValueProperties == null ? null : toWorld(new Vector3D(this));
    }
 
    @Override

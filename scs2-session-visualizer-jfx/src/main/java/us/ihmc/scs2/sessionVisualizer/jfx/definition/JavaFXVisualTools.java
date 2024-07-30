@@ -1,28 +1,5 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.definition;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.lang.reflect.Modifier;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.apache.commons.io.FilenameUtils;
-
 import com.interactivemesh.jfx.importer.FilePath;
 import com.interactivemesh.jfx.importer.ImportException;
 import com.interactivemesh.jfx.importer.ModelImporter;
@@ -32,7 +9,6 @@ import com.interactivemesh.jfx.importer.col.ColModelImporter;
 import com.interactivemesh.jfx.importer.obj.ObjImportOption;
 import com.interactivemesh.jfx.importer.obj.ObjModelImporter;
 import com.interactivemesh.jfx.importer.stl.StlMeshImporter;
-
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -52,11 +28,12 @@ import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Transform;
 import javafx.scene.transform.Translate;
+import org.apache.commons.io.FilenameUtils;
 import us.ihmc.euclid.tools.EuclidCoreTools;
 import us.ihmc.euclid.tuple3D.Vector3D;
-import us.ihmc.javaFXToolkit.JavaFXTools;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.definition.AffineTransformDefinition;
+import us.ihmc.scs2.definition.DefinitionIOTools;
 import us.ihmc.scs2.definition.geometry.Box3DDefinition;
 import us.ihmc.scs2.definition.geometry.Cylinder3DDefinition;
 import us.ihmc.scs2.definition.geometry.GeometryDefinition;
@@ -68,6 +45,27 @@ import us.ihmc.scs2.definition.visual.MaterialDefinition;
 import us.ihmc.scs2.definition.visual.TextureDefinition;
 import us.ihmc.scs2.definition.visual.TriangleMesh3DFactories;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.lang.reflect.Modifier;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class JavaFXVisualTools
 {
@@ -158,7 +156,7 @@ public class JavaFXVisualTools
       if (node != null && originPose != null && (originPose.hasTranslation() || originPose.hasLinearTransform()))
       {
          Affine nodeAffine = new Affine();
-         JavaFXTools.convertEuclidAffineToJavaFXAffine(originPose, nodeAffine);
+         JavaFXMissingTools.convertEuclidAffineToJavaFXAffine(originPose, nodeAffine);
          node.getTransforms().add(0, nodeAffine);
       }
 
@@ -266,24 +264,10 @@ public class JavaFXVisualTools
       if (geometryDefinition == null || geometryDefinition.getFileName() == null)
          return DEFAULT_MESH_VIEWS;
 
-      String filename = geometryDefinition.getFileName();
-
       if (resourceClassLoader == null)
-         resourceClassLoader = JavaFXTools.class.getClassLoader();
-      URL fileURL = resourceClassLoader.getResource(filename);
+         resourceClassLoader = JavaFXVisualTools.class.getClassLoader();
 
-      if (fileURL == null)
-      {
-         File file = new File(filename);
-         try
-         {
-            fileURL = file.toURI().toURL();
-         }
-         catch (MalformedURLException e)
-         {
-            throw new RuntimeException(e);
-         }
-      }
+      URL fileURL = DefinitionIOTools.resolveModelFileURL(geometryDefinition, resourceClassLoader);
 
       Material material;
       if (overridingMaterial != null)
@@ -586,6 +570,11 @@ public class JavaFXVisualTools
       return filteredNodes;
    }
 
+   public static TriangleMesh toTriangleMesh(TriangleMesh3DDefinition triangleMesh3DDefinition)
+   {
+      return JavaFXTriangleMesh3DDefinitionInterpreter.interpretDefinition(triangleMesh3DDefinition);
+   }
+
    public static Material toMaterial(MaterialDefinition materialDefinition, ClassLoader resourceClassLoader)
    {
       if (materialDefinition == null)
@@ -703,9 +692,12 @@ public class JavaFXVisualTools
 
    static
    {
-      List<String> list = Stream.of(Color.class.getDeclaredFields()).filter(field -> Modifier.isStatic(field.getModifiers()))
-                                .filter(field -> Modifier.isPublic(field.getModifiers())).filter(field -> field.getType() == Color.class)
-                                .map(field -> field.getName().toLowerCase()).collect(Collectors.toList());
+      List<String> list = Stream.of(Color.class.getDeclaredFields())
+                                .filter(field -> Modifier.isStatic(field.getModifiers()))
+                                .filter(field -> Modifier.isPublic(field.getModifiers()))
+                                .filter(field -> field.getType() == Color.class)
+                                .map(field -> field.getName().toLowerCase())
+                                .collect(Collectors.toList());
       colorNameList = Collections.unmodifiableList(list);
    }
 

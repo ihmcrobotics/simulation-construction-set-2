@@ -1,13 +1,6 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.tools;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
-import java.util.function.BooleanSupplier;
-
-import org.apache.commons.lang3.mutable.MutableObject;
-
 import com.sun.javafx.application.PlatformImpl;
-
 import javafx.animation.AnimationTimer;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -23,8 +16,11 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Material;
 import javafx.scene.shape.DrawMode;
 import javafx.scene.shape.Shape3D;
+import javafx.scene.transform.Affine;
+import javafx.scene.transform.NonInvertibleTransformException;
 import javafx.scene.transform.Rotate;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Transform;
@@ -34,9 +30,14 @@ import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import javafx.util.Duration;
+import org.apache.commons.lang3.mutable.MutableObject;
+import us.ihmc.euclid.axisAngle.interfaces.AxisAngleReadOnly;
 import us.ihmc.euclid.exceptions.SingularMatrixException;
+import us.ihmc.euclid.matrix.interfaces.RotationMatrixReadOnly;
+import us.ihmc.euclid.orientation.interfaces.Orientation3DReadOnly;
 import us.ihmc.euclid.transform.AffineTransform;
 import us.ihmc.euclid.transform.RigidBodyTransform;
+import us.ihmc.euclid.transform.interfaces.RigidBodyTransformReadOnly;
 import us.ihmc.euclid.tuple2D.interfaces.Tuple2DReadOnly;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DBasics;
 import us.ihmc.euclid.tuple3D.interfaces.Point3DReadOnly;
@@ -47,17 +48,161 @@ import us.ihmc.euclid.tuple3D.interfaces.Vector3DReadOnly;
 import us.ihmc.log.LogTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
 
+import java.util.Objects;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.function.BooleanSupplier;
+
 public class JavaFXMissingTools
 {
+   public static void zero(Translate translate)
+   {
+      translate.setX(0.0);
+      translate.setY(0.0);
+      translate.setZ(0.0);
+   }
+
+   public static void setTranslate(Translate translateToPack, double x, double y, double z)
+   {
+      translateToPack.setX(x);
+      translateToPack.setY(y);
+      translateToPack.setZ(z);
+   }
+
    public static void addEquals(Translate translateToModify, Tuple2DReadOnly offset)
    {
       translateToModify.setX(translateToModify.getX() + offset.getX());
       translateToModify.setY(translateToModify.getY() + offset.getY());
    }
 
+   public static void addEquals(Translate translateToModify, Tuple3DReadOnly offset)
+   {
+      addEquals(translateToModify, offset.getX(), offset.getY(), offset.getZ());
+   }
+
+   public static void addEquals(Translate translateToModify, double dx, double dy, double dz)
+   {
+      translateToModify.setX(translateToModify.getX() + dx);
+      translateToModify.setY(translateToModify.getY() + dy);
+      translateToModify.setZ(translateToModify.getZ() + dz);
+   }
+
+   public static void subEquals(Translate translateToModify, Tuple3DReadOnly offset)
+   {
+      translateToModify.setX(translateToModify.getX() - offset.getX());
+      translateToModify.setY(translateToModify.getY() - offset.getY());
+      translateToModify.setZ(translateToModify.getZ() - offset.getZ());
+   }
+
+   public static void applyTranform(Transform transform, Vector3DBasics vectorToTransform)
+   {
+      javafx.geometry.Point3D temporaryVector = transform.deltaTransform(vectorToTransform.getX(), vectorToTransform.getY(), vectorToTransform.getZ());
+      vectorToTransform.set(temporaryVector.getX(), temporaryVector.getY(), temporaryVector.getZ());
+   }
+
+   public static void applyTranform(Transform transform, Point3DBasics pointToTransform)
+   {
+      javafx.geometry.Point3D temporaryVector = transform.transform(pointToTransform.getX(), pointToTransform.getY(), pointToTransform.getZ());
+      pointToTransform.set(temporaryVector.getX(), temporaryVector.getY(), temporaryVector.getZ());
+   }
+
+   public static void applyInvertTranform(Transform transform, Vector3DBasics vectorToTransform)
+   {
+      javafx.geometry.Point3D temporaryVector = new javafx.geometry.Point3D(vectorToTransform.getX(), vectorToTransform.getY(), vectorToTransform.getZ());
+      try
+      {
+         transform.inverseDeltaTransform(temporaryVector);
+      }
+      catch (NonInvertibleTransformException e)
+      {
+         e.printStackTrace();
+      }
+      vectorToTransform.set(temporaryVector.getX(), temporaryVector.getY(), temporaryVector.getZ());
+   }
+
+   public static void convertAxisAngleToRotate(AxisAngleReadOnly axisAngle, Rotate rotateToPack)
+   {
+      rotateToPack.setAngle(axisAngle.getAngle());
+      rotateToPack.setPivotX(0.0);
+      rotateToPack.setPivotY(0.0);
+      rotateToPack.setPivotZ(0.0);
+      rotateToPack.setAxis(new javafx.geometry.Point3D(axisAngle.getX(), axisAngle.getY(), axisAngle.getZ()));
+   }
+
+   public static Affine createAffineFromOrientation3DAndTuple(Orientation3DReadOnly orientation3D, Tuple3DReadOnly translation)
+   {
+      return createRigidBodyTransformToAffine(new RigidBodyTransform(orientation3D, translation));
+   }
+
+   public static Affine createRigidBodyTransformToAffine(RigidBodyTransform rigidBodyTransform)
+   {
+      Affine ret = new Affine();
+      convertRigidBodyTransformToAffine(rigidBodyTransform, ret);
+      return ret;
+   }
+
+   public static void convertRigidBodyTransformToAffine(RigidBodyTransform rigidBodyTransform, Affine affineToPack)
+   {
+      affineToPack.setMxx(rigidBodyTransform.getM00());
+      affineToPack.setMxy(rigidBodyTransform.getM01());
+      affineToPack.setMxz(rigidBodyTransform.getM02());
+      affineToPack.setMyx(rigidBodyTransform.getM10());
+      affineToPack.setMyy(rigidBodyTransform.getM11());
+      affineToPack.setMyz(rigidBodyTransform.getM12());
+      affineToPack.setMzx(rigidBodyTransform.getM20());
+      affineToPack.setMzy(rigidBodyTransform.getM21());
+      affineToPack.setMzz(rigidBodyTransform.getM22());
+
+      affineToPack.setTx(rigidBodyTransform.getM03());
+      affineToPack.setTy(rigidBodyTransform.getM13());
+      affineToPack.setTz(rigidBodyTransform.getM23());
+   }
+
+   public static void convertRotationMatrixToAffine(RotationMatrixReadOnly rotation, Affine affineToModify)
+   {
+      affineToModify.setMxx(rotation.getM00());
+      affineToModify.setMxy(rotation.getM01());
+      affineToModify.setMxz(rotation.getM02());
+      affineToModify.setMyx(rotation.getM10());
+      affineToModify.setMyy(rotation.getM11());
+      affineToModify.setMyz(rotation.getM12());
+      affineToModify.setMzx(rotation.getM20());
+      affineToModify.setMzy(rotation.getM21());
+      affineToModify.setMzz(rotation.getM22());
+   }
+
+   public static void convertEuclidAffineToJavaFXAffine(AffineTransform euclidAffine, Affine javaFxAffineToPack)
+   {
+      javaFxAffineToPack.setMxx(euclidAffine.getM00());
+      javaFxAffineToPack.setMxy(euclidAffine.getM01());
+      javaFxAffineToPack.setMxz(euclidAffine.getM02());
+      javaFxAffineToPack.setMyx(euclidAffine.getM10());
+      javaFxAffineToPack.setMyy(euclidAffine.getM11());
+      javaFxAffineToPack.setMyz(euclidAffine.getM12());
+      javaFxAffineToPack.setMzx(euclidAffine.getM20());
+      javaFxAffineToPack.setMzy(euclidAffine.getM21());
+      javaFxAffineToPack.setMzz(euclidAffine.getM22());
+
+      javaFxAffineToPack.setTx(euclidAffine.getM03());
+      javaFxAffineToPack.setTy(euclidAffine.getM13());
+      javaFxAffineToPack.setTz(euclidAffine.getM23());
+   }
+
    public static void runLater(Class<?> caller, Runnable task)
    {
-      Platform.runLater(task::run);
+      if (caller != null && Objects.equals("ResourceLoadingTest", caller.getSimpleName()))
+         System.out.println("ResourceLoadingTest: Platform.runLater() start");
+      try
+      {
+         Platform.runLater(task);
+      }
+      catch (IllegalStateException e)
+      {
+         System.err.println("Exception in Platform.runLater()");
+         e.printStackTrace();
+      }
+      if (caller != null && Objects.equals("ResourceLoadingTest", caller.getSimpleName()))
+         System.out.println("ResourceLoadingTest: Platform.runLater() end");
    }
 
    public static void runLaterIfNeeded(Class<?> caller, Runnable runnable)
@@ -286,9 +431,9 @@ public class JavaFXMissingTools
       };
 
       PlatformImpl.startup(() ->
-      {
-         runLater(application.getClass(), runnable);
-      });
+                           {
+                              runLater(application.getClass(), runnable);
+                           });
       PlatformImpl.setImplicitExit(false);
    }
 
@@ -310,13 +455,13 @@ public class JavaFXMissingTools
          // TODO Seems that on Ubuntu the changes done to the window position/size are not processed properly until the window is showing.
          // This may be related to the bug reported when using GTK3: https://github.com/javafxports/openjdk-jfx/pull/446, might be fixed in later version.
          dialog.setOnShown(e ->
-         {
-            runLater(JavaFXMissingTools.class, () ->
-            {
-               dialog.setX(owner.getX() + 0.5 * (owner.getWidth() - dialog.getWidth()));
-               dialog.setY(owner.getY() + 0.5 * (owner.getHeight() - dialog.getHeight()));
-            });
-         });
+                           {
+                              runLater(JavaFXMissingTools.class, () ->
+                              {
+                                 dialog.setX(owner.getX() + 0.5 * (owner.getWidth() - dialog.getWidth()));
+                                 dialog.setY(owner.getY() + 0.5 * (owner.getHeight() - dialog.getHeight()));
+                              });
+                           });
       }
    }
 
@@ -356,20 +501,27 @@ public class JavaFXMissingTools
                           jfxTransform.getTz());
    }
 
-   public static void toJavaFX(RigidBodyTransform euclidTransform, javafx.scene.transform.Affine jfxTransform)
+   public static void toJavaFX(RigidBodyTransformReadOnly euclidTransform, javafx.scene.transform.Affine jfxTransform)
    {
-      jfxTransform.setToTransform(euclidTransform.getM00(),
-                                  euclidTransform.getM01(),
-                                  euclidTransform.getM02(),
-                                  euclidTransform.getM03(),
-                                  euclidTransform.getM10(),
-                                  euclidTransform.getM11(),
-                                  euclidTransform.getM12(),
-                                  euclidTransform.getM13(),
-                                  euclidTransform.getM20(),
-                                  euclidTransform.getM21(),
-                                  euclidTransform.getM22(),
-                                  euclidTransform.getM23());
+      if (euclidTransform instanceof RigidBodyTransform matrixTransform)
+      {
+         jfxTransform.setToTransform(matrixTransform.getM00(),
+                                     matrixTransform.getM01(),
+                                     matrixTransform.getM02(),
+                                     matrixTransform.getM03(),
+                                     matrixTransform.getM10(),
+                                     matrixTransform.getM11(),
+                                     matrixTransform.getM12(),
+                                     matrixTransform.getM13(),
+                                     matrixTransform.getM20(),
+                                     matrixTransform.getM21(),
+                                     matrixTransform.getM22(),
+                                     matrixTransform.getM23());
+      }
+      else
+      {
+         toJavaFX(new RigidBodyTransform(euclidTransform), jfxTransform);
+      }
    }
 
    public static javafx.geometry.Point3D toJavaFX(Tuple3DReadOnly euclidInput)
@@ -477,9 +629,8 @@ public class JavaFXMissingTools
             z_out = z_in;
          }
       }
-      else if (transform instanceof Scale)
+      else if (transform instanceof Scale scale)
       {
-         Scale scale = ((Scale) transform);
          x_out = x_in / scale.getX();
          y_out = y_in / scale.getY();
          z_out = z_in / scale.getZ();
@@ -541,5 +692,13 @@ public class JavaFXMissingTools
          ((Shape3D) start).setDrawMode(drawMode);
       if (start instanceof Group)
          ((Group) start).getChildren().forEach(c -> setDrawModeRecursive(c, drawMode));
+   }
+
+   public static void setMaterialRecursive(Node start, Material material)
+   {
+      if (start instanceof Shape3D)
+         ((Shape3D) start).setMaterial(material);
+      if (start instanceof Group)
+         ((Group) start).getChildren().forEach(c -> setMaterialRecursive(c, material));
    }
 }

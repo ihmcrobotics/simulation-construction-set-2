@@ -1,12 +1,5 @@
 package us.ihmc.scs2.sessionVisualizer.jfx;
 
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
@@ -25,11 +18,15 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.stage.WindowEvent;
 import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 import us.ihmc.messager.Messager;
 import us.ihmc.messager.MessagerAPIFactory.Topic;
 import us.ihmc.scs2.definition.DefinitionIOTools;
+import us.ihmc.scs2.definition.camera.YoLevelOrbitalCoordinateDefinition;
+import us.ihmc.scs2.definition.camera.YoOrbitalCoordinateDefinition;
 import us.ihmc.scs2.definition.visual.VisualDefinition;
 import us.ihmc.scs2.definition.yoComposite.YoTuple2DDefinition;
+import us.ihmc.scs2.definition.yoComposite.YoTuple3DDefinition;
 import us.ihmc.scs2.definition.yoEntry.YoEntryListDefinition;
 import us.ihmc.scs2.definition.yoGraphic.YoGraphicDefinition;
 import us.ihmc.scs2.definition.yoSlider.YoButtonDefinition;
@@ -37,12 +34,14 @@ import us.ihmc.scs2.definition.yoSlider.YoKnobDefinition;
 import us.ihmc.scs2.definition.yoSlider.YoSliderDefinition;
 import us.ihmc.scs2.definition.yoSlider.YoSliderboardDefinition;
 import us.ihmc.scs2.definition.yoSlider.YoSliderboardListDefinition;
+import us.ihmc.scs2.definition.yoSlider.YoSliderboardType;
 import us.ihmc.scs2.session.Session;
 import us.ihmc.scs2.session.SessionDataFilterParameters;
 import us.ihmc.scs2.session.SessionPropertiesHelper;
+import us.ihmc.scs2.sessionVisualizer.jfx.Camera3DRequest.CameraControlRequest;
+import us.ihmc.scs2.sessionVisualizer.jfx.Camera3DRequest.FocalPointRequest;
 import us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoGraphic.YoGraphicFXControllerTools;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.MultiSessionManager;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.MultiViewport3DManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.ReferenceFrameManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerWindowToolkit;
@@ -51,10 +50,17 @@ import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoDoubleProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoEnumAsStringProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoIntegerProperty;
 import us.ihmc.scs2.sessionVisualizer.jfx.properties.YoLongProperty;
-import us.ihmc.scs2.sessionVisualizer.jfx.tools.SCS2JavaFXMessager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXApplicationCreator;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.SCS2JavaFXMessager;
 import us.ihmc.yoVariables.exceptions.IllegalOperationException;
+
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 
 public class SessionVisualizer
 {
@@ -65,6 +71,9 @@ public class SessionVisualizer
 
    static
    {
+      // Required for visualizing ROS topics which often have repeating sub-names in the topic names.
+      System.setProperty("yo.allowRepeatingSubname", "true");
+      System.setProperty("prism.forceGPU", "true");
       DefinitionIOTools.loadResources();
       YoGraphicFXControllerTools.loadResources();
    }
@@ -74,12 +83,11 @@ public class SessionVisualizer
    private final SessionVisualizerToolkit toolkit;
    private final MultiSessionManager multiSessionManager;
 
-   private final Group view3DRoot;
-   private final MainWindowController mainWindowController;
-   private final MultiViewport3DManager viewport3DManager;
+   protected final MainWindowController mainWindowController;
    private final SCS2JavaFXMessager messager;
    private final SessionVisualizerTopics topics;
-   private final SessionVisualizerControlsImpl sessionVisualizerControls = new SessionVisualizerControlsImpl();
+   private final SessionVisualizerControlsImpl sessionVisualizerControls = createControls();
+
    private final List<Runnable> stopListeners = new ArrayList<>();
 
    private final Stage primaryStage;
@@ -97,11 +105,8 @@ public class SessionVisualizer
 
       Scene3DBuilder scene3DBuilder = new Scene3DBuilder();
       scene3DBuilder.addDefaultLighting();
-      view3DRoot = scene3DBuilder.getRoot();
-      viewport3DManager = new MultiViewport3DManager(view3DRoot);
-      viewport3DManager.createMainViewport();
 
-      toolkit = new SessionVisualizerToolkit(primaryStage, viewport3DManager.getMainViewport().getSubScene(), view3DRoot);
+      toolkit = createToolkit(primaryStage, scene3DBuilder);
       messager = toolkit.getMessager();
       topics = toolkit.getTopics();
 
@@ -110,22 +115,9 @@ public class SessionVisualizer
       mainWindowController = loader.getController();
       mainWindowController.initialize(new SessionVisualizerWindowToolkit(primaryStage, toolkit));
 
-      scene3DBuilder.addNodeToView(toolkit.getYoRobotFXManager().getRootNode());
-      scene3DBuilder.addNodeToView(toolkit.getEnvironmentManager().getRootNode());
-
-      messager.addFXTopicListener(topics.getCameraTrackObject(), request ->
-      {
-         if (request.getNode() != null)
-            viewport3DManager.getMainViewport().setCameraNodeToTrack(request.getNode());
-      });
-
       if (SHOW_WORLD_FRAME)
          toolkit.getEnvironmentManager().addWorldCoordinateSystem(0.3);
-      toolkit.getEnvironmentManager().addSkybox(viewport3DManager.getMainViewport().getCamera());
       messager.addFXTopicListener(topics.getSessionVisualizerCloseRequest(), m -> stop());
-
-      scene3DBuilder.addNodeToView(toolkit.getYoGraphicFXManager().getRootNode3D());
-      mainWindowController.setupViewport3D(viewport3DManager.getPane());
 
       // This is workaround to get the lights working when doing snapshots.
       Group clonedLightGroup = new Group();
@@ -157,6 +149,16 @@ public class SessionVisualizer
       }
    }
 
+   protected SessionVisualizerControlsImpl createControls()
+   {
+      return new SessionVisualizerControlsImpl();
+   }
+
+   protected SessionVisualizerToolkit createToolkit(Stage primaryStage, Scene3DBuilder scene3DBuilder) throws Exception
+   {
+      return new SessionVisualizerToolkit(primaryStage, scene3DBuilder.getRoot());
+   }
+
    public void initializeStageWithPrimaryScreen()
    {
       initializeStageWithScreen(0.75, Screen.getPrimary(), primaryStage);
@@ -171,7 +173,7 @@ public class SessionVisualizer
       stage.setWidth(width);
       stage.setHeight(height);
       double centerX = bounds.getMinX() + (bounds.getWidth() - width) * 0.5;
-      double centerY = bounds.getMinY() + (bounds.getHeight() - height) * 1.0 / 3.0;
+      double centerY = bounds.getMinY() + (bounds.getHeight() - height) / 3.0;
       stage.setX(centerX);
       stage.setY(centerY);
    }
@@ -215,7 +217,6 @@ public class SessionVisualizer
 
       try
       {
-         viewport3DManager.dispose();
          multiSessionManager.stopSession(saveConfiguration, shutdownSessionOnClose);
          multiSessionManager.shutdown();
          mainWindowController.stop();
@@ -223,7 +224,6 @@ public class SessionVisualizer
          if (primaryStage.isShowing())
             primaryStage.close();
          primaryStage.setScene(null);
-         view3DRoot.getChildren().clear();
 
          stopListeners.forEach(Runnable::run);
       }
@@ -247,9 +247,16 @@ public class SessionVisualizer
       return toolkit;
    }
 
-   public static void main(String[] args)
+   public static void main(String[] args) throws Exception
    {
-      SessionVisualizerControls controls = startSessionVisualizer(null, true);
+      SessionVisualizerArgsHandler argsHandler = new SessionVisualizerArgsHandler();
+      if (!argsHandler.parseArgs(args))
+      {
+         System.exit(-1);
+         return;
+      }
+
+      SessionVisualizerControls controls = startSessionVisualizer(argsHandler.getSession(), true);
       // When running as remote visualizer, some non-daemon threads are not cleaned up properly.
       controls.addVisualizerShutdownListener(() -> System.exit(0));
    }
@@ -307,7 +314,7 @@ public class SessionVisualizer
       });
    }
 
-   private class SessionVisualizerControlsImpl implements SessionVisualizerControls
+   protected class SessionVisualizerControlsImpl implements SessionVisualizerControls
    {
       private final CountDownLatch visualizerReadyLatch = new CountDownLatch(1);
       private final CountDownLatch visualizerShutdownLatch = new CountDownLatch(1);
@@ -347,7 +354,7 @@ public class SessionVisualizer
       {
          checkVisualizerRunning();
          waitUntilVisualizerFullyUp();
-         viewport3DManager.getMainViewport().setCameraOrientation(latitude, longitude, 0);
+         toolkit.getViewport3DManager().getMainViewport().setCameraOrientation(latitude, longitude, 0);
       }
 
       @Override
@@ -355,15 +362,15 @@ public class SessionVisualizer
       {
          checkVisualizerRunning();
          waitUntilVisualizerFullyUp();
-         viewport3DManager.getMainViewport().setCameraPosition(x, y, z);
+         toolkit.getViewport3DManager().getMainViewport().setCameraPosition(x, y, z);
       }
 
       @Override
-      public void setCameraFocusPosition(double x, double y, double z)
+      public void setCameraFocalPosition(double x, double y, double z)
       {
          checkVisualizerRunning();
          waitUntilVisualizerFullyUp();
-         viewport3DManager.getMainViewport().setCameraFocusPosition(x, y, z);
+         toolkit.getViewport3DManager().getMainViewport().setCameraFocalPosition(x, y, z);
       }
 
       @Override
@@ -371,7 +378,7 @@ public class SessionVisualizer
       {
          checkVisualizerRunning();
          waitUntilVisualizerFullyUp();
-         viewport3DManager.getMainViewport().setCameraZoom(distanceFromFocus);
+         toolkit.getViewport3DManager().getMainViewport().setCameraZoom(distanceFromFocus);
       }
 
       @Override
@@ -379,7 +386,39 @@ public class SessionVisualizer
       {
          checkVisualizerRunning();
          waitUntilVisualizerFullyUp();
-         submitMessage(getTopics().getCameraTrackObject(), new CameraObjectTrackingRequest(robotName, rigidBodyName));
+         submitMessage(getTopics().getCamera3DRequest(), new Camera3DRequest(FocalPointRequest.trackRobot(robotName, rigidBodyName)));
+      }
+
+      @Override
+      public void requestCameraFocalPositionTracking(YoTuple3DDefinition coordinatesToTrack)
+      {
+         checkVisualizerRunning();
+         waitUntilVisualizerFullyUp();
+         submitMessage(getTopics().getCamera3DRequest(), new Camera3DRequest(FocalPointRequest.trackCoordinates(coordinatesToTrack)));
+      }
+
+      @Override
+      public void requestCameraPositionTracking(YoTuple3DDefinition cameraCoordinates)
+      {
+         checkVisualizerRunning();
+         waitUntilVisualizerFullyUp();
+         submitMessage(getTopics().getCamera3DRequest(), new Camera3DRequest(CameraControlRequest.trackPosition(cameraCoordinates)));
+      }
+
+      @Override
+      public void requestCameraOrbitTracking(YoOrbitalCoordinateDefinition cameraCoordinates)
+      {
+         checkVisualizerRunning();
+         waitUntilVisualizerFullyUp();
+         submitMessage(getTopics().getCamera3DRequest(), new Camera3DRequest(CameraControlRequest.trackOrbit(cameraCoordinates)));
+      }
+
+      @Override
+      public void requestCameraLevelOrbitTracking(YoLevelOrbitalCoordinateDefinition cameraCoordinates)
+      {
+         checkVisualizerRunning();
+         waitUntilVisualizerFullyUp();
+         submitMessage(getTopics().getCamera3DRequest(), new Camera3DRequest(CameraControlRequest.trackLevelOrbit(cameraCoordinates)));
       }
 
       @Override
@@ -445,6 +484,12 @@ public class SessionVisualizer
       }
 
       @Override
+      public void requestChartsForceUpdate()
+      {
+         submitMessage(getTopics().getYoBufferForceListenerUpdate(), true);
+      }
+
+      @Override
       public void clearAllSliderboards()
       {
          submitMessage(getTopics().getYoMultiSliderboardClearAll(), true);
@@ -463,45 +508,45 @@ public class SessionVisualizer
       }
 
       @Override
-      public void removeSliderboard(String sliderboardName)
+      public void removeSliderboard(String sliderboardName, YoSliderboardType sliderboardType)
       {
-         submitMessage(getTopics().getYoSliderboardRemove(), sliderboardName);
+         submitMessage(getTopics().getYoSliderboardRemove(), new Pair<>(sliderboardName, sliderboardType));
       }
 
       @Override
-      public void setSliderboardButton(String sliderboardName, YoButtonDefinition buttonDefinition)
+      public void setSliderboardButton(String sliderboardName, YoSliderboardType sliderboardType, YoButtonDefinition buttonDefinition)
       {
-         submitMessage(getTopics().getYoSliderboardSetButton(), new Pair<>(sliderboardName, buttonDefinition));
+         submitMessage(getTopics().getYoSliderboardSetButton(), new ImmutableTriple<>(sliderboardName, sliderboardType, buttonDefinition));
       }
 
       @Override
-      public void clearSliderboardButton(String sliderboardName, int buttonIndex)
+      public void clearSliderboardButton(String sliderboardName, YoSliderboardType sliderboardType, int buttonIndex)
       {
-         submitMessage(getTopics().getYoSliderboardClearButton(), new Pair<>(sliderboardName, buttonIndex));
+         submitMessage(getTopics().getYoSliderboardClearButton(), new ImmutableTriple<>(sliderboardName, sliderboardType, buttonIndex));
       }
 
       @Override
-      public void setSliderboardKnob(String sliderboardName, YoKnobDefinition knobDefinition)
+      public void setSliderboardKnob(String sliderboardName, YoSliderboardType sliderboardType, YoKnobDefinition knobDefinition)
       {
-         submitMessage(getTopics().getYoSliderboardSetKnob(), new Pair<>(sliderboardName, knobDefinition));
+         submitMessage(getTopics().getYoSliderboardSetKnob(), new ImmutableTriple<>(sliderboardName, sliderboardType, knobDefinition));
       }
 
       @Override
-      public void clearSliderboardKnob(String sliderboardName, int knobIndex)
+      public void clearSliderboardKnob(String sliderboardName, YoSliderboardType sliderboardType, int knobIndex)
       {
-         submitMessage(getTopics().getYoSliderboardClearKnob(), new Pair<>(sliderboardName, knobIndex));
+         submitMessage(getTopics().getYoSliderboardClearKnob(), new ImmutableTriple<>(sliderboardName, sliderboardType, knobIndex));
       }
 
       @Override
-      public void setSliderboardSlider(String sliderboardName, YoSliderDefinition sliderDefinition)
+      public void setSliderboardSlider(String sliderboardName, YoSliderboardType sliderboardType, YoSliderDefinition sliderDefinition)
       {
-         submitMessage(getTopics().getYoSliderboardSetSlider(), new Pair<>(sliderboardName, sliderDefinition));
+         submitMessage(getTopics().getYoSliderboardSetSlider(), new ImmutableTriple<>(sliderboardName, sliderboardType, sliderDefinition));
       }
 
       @Override
-      public void clearSliderboardSlider(String sliderboardName, int sliderIndex)
+      public void clearSliderboardSlider(String sliderboardName, YoSliderboardType sliderboardType, int sliderIndex)
       {
-         submitMessage(getTopics().getYoSliderboardClearSlider(), new Pair<>(sliderboardName, sliderIndex));
+         submitMessage(getTopics().getYoSliderboardClearSlider(), new ImmutableTriple<>(sliderboardName, sliderboardType, sliderIndex));
       }
 
       @Override
@@ -519,11 +564,11 @@ public class SessionVisualizer
          CountDownLatch latch = new CountDownLatch(1);
          Runnable callback = request.getRecordingEndedCallback();
          request.setRecordingEndedCallback(() ->
-         {
-            latch.countDown();
-            if (callback != null)
-               callback.run();
-         });
+                                           {
+                                              latch.countDown();
+                                              if (callback != null)
+                                                 callback.run();
+                                           });
          messager.submitMessage(topics.getSceneVideoRecordingRequest(), request);
 
          try
@@ -536,14 +581,18 @@ public class SessionVisualizer
          }
       }
 
-      /** {@inheritDoc} */
+      /**
+       * {@inheritDoc}
+       */
       @Override
       public void disableGUIControls()
       {
          submitMessage(getTopics().getDisableUserControls(), true);
       }
 
-      /** {@inheritDoc} */
+      /**
+       * {@inheritDoc}
+       */
       @Override
       public void enableGUIControls()
       {
