@@ -23,12 +23,7 @@ public interface VideoDataReader
 
    Camera getCamera();
 
-   default MagewellVideoDataReader.FrameData pollCurrentFrameMagewell()
-   {
-      return null;
-   };
-
-   default BlackMagicVideoDataReader.FrameData pollCurrentFrameBlackMagic()
+   default FrameData pollCurrentFrame()
    {
       return null;
    };

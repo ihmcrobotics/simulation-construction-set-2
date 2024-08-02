@@ -4,8 +4,7 @@ import org.apache.commons.math.stat.descriptive.moment.StandardDeviation;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import us.ihmc.scs2.sessionVisualizer.jfx.session.log.MagewellVideoDataReader;
-import us.ihmc.scs2.sessionVisualizer.jfx.session.log.BlackMagicVideoDataReader;
+import us.ihmc.scs2.sessionVisualizer.jfx.session.log.TimestampScrubber;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,12 +13,9 @@ import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * This class is setup to test the {@link MagewellVideoDataReader} and isn't setup to test the other possible capture methods
- */
 public class TimestampScrubberTest
 {
-   private static MagewellVideoDataReader.TimestampScrubber scrubber;
+   private static TimestampScrubber scrubber;
 
    private static long[] robotTimestamps;
    private static long[] videoTimestamps;
@@ -33,7 +29,7 @@ public class TimestampScrubberTest
       //        File timestampFile = new File("//10.7.4.48/LogData/Nadia/20230427_NadiaRunning/20230427_183903_NadiaRunningTallerCompleteFailRobotBreakMaybe/NadiaPoleNorth_Timestamps.dat");
       File timestampFile = new File(Objects.requireNonNull(TimestampScrubberTest.class.getClassLoader().getResource("sessionLogs/Capture.dat")).toURI());
 
-      scrubber = new MagewellVideoDataReader.TimestampScrubber(timestampFile, true, false);
+      scrubber = new TimestampScrubber(timestampFile, true, false);
 
       // Need to have one video in the log or this will fail
       robotTimestamps = scrubber.getRobotTimestampsArray();
@@ -64,7 +60,7 @@ public class TimestampScrubberTest
             System.out.println(currentRobotTimestamp + " -- " + previousRobotTimestamp);
 
          Assertions.assertTrue(currentRobotTimestamp > previousRobotTimestamp,
-                               "Cureent: " + currentRobotTimestamp + " and Previous: " + previousRobotTimestamp + " at Index: " + i);
+                               "Current: " + currentRobotTimestamp + " and Previous: " + previousRobotTimestamp + " at Index: " + i);
       }
    }
 
@@ -188,7 +184,7 @@ public class TimestampScrubberTest
    {
       File badName = new File("This_is_a_bad_file_name_lol");
 
-      Throwable thrown = assertThrows(RuntimeException.class, () -> new BlackMagicVideoDataReader.TimestampScrubber(badName, true, false));
+      Throwable thrown = assertThrows(RuntimeException.class, () -> new TimestampScrubber(badName, true, false));
       String messageException = thrown.getMessage().substring(0, 58);
 
       assertEquals("java.io.FileNotFoundException: " + badName, messageException);

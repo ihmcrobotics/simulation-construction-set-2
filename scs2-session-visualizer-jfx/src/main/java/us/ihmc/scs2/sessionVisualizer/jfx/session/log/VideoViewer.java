@@ -37,10 +37,8 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
-import org.bytedeco.javacv.JavaFXFrameConverter;
 import us.ihmc.scs2.session.SessionPropertiesHelper;
 import us.ihmc.scs2.sessionVisualizer.jfx.SessionVisualizerIOTools;
-import us.ihmc.scs2.sessionVisualizer.jfx.session.log.BlackMagicVideoDataReader.FrameData;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.JavaFXMissingTools;
 
 public class VideoViewer
@@ -63,8 +61,6 @@ public class VideoViewer
    private final ObjectProperty<Stage> videoWindowProperty = new SimpleObjectProperty<>(this, "videoWindow", null);
    private final VideoDataReader reader;
    private final double defaultThumbnailSize;
-
-   private final JavaFXFrameConverter frameConverter = new JavaFXFrameConverter();
 
    private final ObjectProperty<Pane> imageViewRootPane = new SimpleObjectProperty<>(this, "imageViewRootPane", null);
 
@@ -231,67 +227,7 @@ public class VideoViewer
 
    public void update()
    {
-      if (reader.getClass().equals(MagewellVideoDataReader.class))
-      {
-         updateMageWellVideoDataReader();
-      }
-
-      if (reader.getClass().equals(BlackMagicVideoDataReader.class))
-      {
-         updateBlackMagicVideoDataReader();
-      }
-   }
-
-   public void updateMageWellVideoDataReader()
-   {
-      MagewellVideoDataReader.FrameData currentFrameData = reader.pollCurrentFrameMagewell();
-      Image currentImage;
-
-      if (currentFrameData.frame == null)
-         return;
-
-      thumbnailContainer.setPrefWidth(THUMBNAIL_HIGHLIGHT_SCALE * defaultThumbnailSize);
-      thumbnailContainer.setPrefHeight(THUMBNAIL_HIGHLIGHT_SCALE * defaultThumbnailSize * reader.getImageHeight()/ reader.getImageWidth());
-
-      try
-      {
-         if (currentFrameData.frame.imageHeight > 0 && currentFrameData.frame.imageWidth > 0)
-         {
-            currentImage = frameConverter.convert(currentFrameData.frame);
-            thumbnail.setImage(currentImage);
-            videoView.setImage(currentImage);
-         }
-      }
-      catch(UnsupportedOperationException ignored)
-      {
-      }
-
-      if (updateVideoView.get())
-      {
-         queryRobotTimestampLabel.setText(Long.toString(currentFrameData.queryRobotTimestamp));
-         robotTimestampLabel.setText(Long.toString(currentFrameData.robotTimestamp));
-         cameraCurrentPTSLabel.setText(Long.toString(currentFrameData.cameraCurrentPTS));
-         demuxerCurrentPTSLabel.setText(Long.toString(currentFrameData.demuxerCurrentPTS));
-
-         if (imageViewRootPane.get() != null)
-         {
-            imageViewRootPane.get().setPadding(new Insets(16, 16, 16, 16));
-
-            if (reader.replacedRobotTimestampsContainsIndex(reader.getCurrentIndex()))
-            {
-               imageViewRootPane.get().setBackground(new Background(new BackgroundFill(Color.DARKORANGE, CornerRadii.EMPTY, Insets.EMPTY)));
-            }
-            else
-            {
-               imageViewRootPane.get().setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
-            }
-         }
-      }
-   }
-
-   public void updateBlackMagicVideoDataReader()
-   {
-      FrameData currentFrameData = reader.pollCurrentFrameBlackMagic();
+      FrameData currentFrameData = reader.pollCurrentFrame();
 
       if (currentFrameData == null)
          return;
