@@ -60,18 +60,18 @@ public class MagewellVideoDataReader implements VideoDataReader
 
    public void readVideoFrame(long queryRobotTimestamp)
    {
-      long videoTimestamp = timestampScrubber.getVideoTimestamp(queryRobotTimestamp);
+      long currentVideoTimestamps = timestampScrubber.getVideoTimestamp(queryRobotTimestamp);
       long currentRobotTimestamp = timestampScrubber.getCurrentRobotTimestamp();
 
-      magewellDemuxer.seekToPTS(videoTimestamp);
+      magewellDemuxer.seekToPTS(currentVideoTimestamps);
 
       // This is a copy that can be shown in the video view to debug timestamp issues
       {
          FrameData copyForWriting = frameData;
          copyForWriting.queryRobotTimestamp = queryRobotTimestamp;
-         copyForWriting.robotTimestamp = currentRobotTimestamp;
-         copyForWriting.cameraCurrentPTS = videoTimestamp;
-         copyForWriting.demuxerCurrentPTS = magewellDemuxer.getCurrentPTS();
+         copyForWriting.currentRobotTimestamp = currentRobotTimestamp;
+         copyForWriting.currentVideoTimestamp = currentVideoTimestamps;
+         copyForWriting.currentDemuxerTimestamp = magewellDemuxer.getCurrentPTS();
       }
 
       Frame nextFrame = magewellDemuxer.getNextFrame();

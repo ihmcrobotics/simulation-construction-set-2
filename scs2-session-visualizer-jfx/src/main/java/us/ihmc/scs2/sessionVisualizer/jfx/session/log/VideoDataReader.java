@@ -6,6 +6,9 @@ import us.ihmc.scs2.session.log.ProgressConsumer;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * This interface allows supporting different types of capture methods to be viewed back with SCS2.
+ */
 public interface VideoDataReader
 {
 
