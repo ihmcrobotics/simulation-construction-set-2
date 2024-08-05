@@ -3,29 +3,68 @@ package us.ihmc.scs2.sessionVisualizer.jfx.session.log;
 import java.io.File;
 import java.io.IOException;
 
+import org.bytedeco.javacv.Frame;
 import org.jcodec.containers.mp4.MP4Packet;
 
-import us.ihmc.codecs.builder.H264Settings;
-import us.ihmc.codecs.builder.MP4H264MovieBuilder;
 import us.ihmc.codecs.builder.MP4MJPEGMovieBuilder;
 import us.ihmc.codecs.demuxer.MP4VideoDemuxer;
-import us.ihmc.codecs.generated.EProfileIdc;
-import us.ihmc.codecs.generated.YUVPicture;
+import us.ihmc.robotDataLogger.logger.MagewellMuxer;
 import us.ihmc.scs2.session.log.ProgressConsumer;
 
 public class VideoConverter
 {
+   public static int cropMagewellVideo(MagewellDemuxer magewellDemuxer,
+                                       File target,
+                                       long startCameraTimestamp,
+                                       long endCameraTimestamp,
+                                       ProgressConsumer progressConsumer) throws IOException
+   {
+      MagewellMuxer magewellMuxer = null;
+
+      int frameRate = (int) magewellDemuxer.getFrameRate();
+      long cameraTimeStamp = 0;
+
+      long startFrame = getFrame(startCameraTimestamp, magewellDemuxer); // This also moves the stream to the startFrame
+      long endFrame = getFrame(endCameraTimestamp, magewellDemuxer);
+      long numberOfFrames = endFrame - startFrame;
+
+      magewellDemuxer.seekToPTS(startCameraTimestamp);
+
+      Frame frame;
+      while ((frame = magewellDemuxer.getNextFrame()) != null && magewellDemuxer.getFrameNumber() <= endFrame)
+      {
+         if (magewellMuxer == null)
+         {
+            magewellMuxer = new MagewellMuxer(target, magewellDemuxer.getImageWidth(), magewellDemuxer.getImageHeight());
+            magewellMuxer.start();
+         }
+
+         magewellMuxer.recordFrame(frame, cameraTimeStamp);
+
+         if (progressConsumer != null)
+         {
+            progressConsumer.info("frame %d/%d".formatted(magewellDemuxer.getFrameNumber() - startFrame, numberOfFrames));
+            progressConsumer.progress((double) (magewellDemuxer.getFrameNumber() - startFrame) / (double) numberOfFrames);
+         }
+      }
+
+      if (magewellMuxer != null)
+      {
+         magewellMuxer.close();
+      }
+
+      return frameRate;
+   }
 
    /**
     * @param source
     * @param target
     * @param startPTS
     * @param endPTS
-    * @param monitor
     * @return frame rate of the new video file
     * @throws IOException
     */
-   public static int crop(File source, File target, long startPTS, long endPTS, ProgressConsumer progressConsumer) throws IOException
+   public static int cropBlackMagicVideo(File source, File target, long startPTS, long endPTS, ProgressConsumer progressConsumer) throws IOException
    {
       MP4MJPEGMovieBuilder builder = null;
       MP4VideoDemuxer demuxer = new MP4VideoDemuxer(source);
@@ -58,54 +97,6 @@ public class VideoConverter
       demuxer.delete();
 
       return frameRate;
-
-   }
-
-   /**
-    * @param source
-    * @param target
-    * @param startPTS
-    * @param endPTS
-    * @param bitrate
-    * @param progressConsumer
-    * @return frame rate of the new video file
-    * @throws IOException
-    */
-   public static void convert(File source, File target, long startPTS, long endPTS, ProgressConsumer progressConsumer) throws IOException
-   {
-      MP4H264MovieBuilder builder = null;
-      MP4VideoDemuxer demuxer = new MP4VideoDemuxer(source);
-
-      H264Settings settings = new H264Settings();
-      settings.setBitrate(10000);
-      settings.setProfileIdc(EProfileIdc.PRO_HIGH);
-
-      int frameRate = getFrameRate(demuxer);
-
-      long endFrame = getFrame(endPTS, demuxer);
-      long startFrame = getFrame(startPTS, demuxer); // This also moves the stream to the startFrame
-      long numberOfFrames = endFrame - startFrame;
-
-      YUVPicture frame;
-      while ((frame = demuxer.getNextFrame()) != null && demuxer.getCurrentFrame() <= endFrame)
-      {
-         if (builder == null)
-         {
-            builder = new MP4H264MovieBuilder(target, frame.getWidth(), frame.getHeight(), frameRate, settings);
-         }
-         // frame.toYUV420();
-         builder.encodeFrame(frame);
-         frame.delete();
-
-         if (progressConsumer != null)
-         {
-            progressConsumer.progress((int) ((double) (demuxer.getCurrentFrame() - startFrame) / (double) numberOfFrames));
-         }
-      }
-
-      builder.close();
-      demuxer.delete();
-
    }
 
    private static int getFrameRate(MP4VideoDemuxer demuxer) throws IOException
@@ -120,7 +111,12 @@ public class VideoConverter
 
       System.out.println("Framerate is " + rate);
       return rate;
+   }
 
+   private static long getFrame(long endCameraTimestamp, MagewellDemuxer demuxer) throws IOException
+   {
+      demuxer.seekToPTS(endCameraTimestamp);
+      return demuxer.getFrameNumber();
    }
 
    private static long getFrame(long endPTS, MP4VideoDemuxer demuxer) throws IOException

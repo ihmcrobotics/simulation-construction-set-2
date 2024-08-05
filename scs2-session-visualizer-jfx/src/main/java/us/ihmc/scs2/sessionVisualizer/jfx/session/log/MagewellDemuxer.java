@@ -21,6 +21,7 @@ public class MagewellDemuxer
 
         try
         {
+//            When trying to creat a new frame grabber things were not working, maybe we can pass in the one being used rather then creat a new one?
             grabber = new FFmpegFrameGrabber(videoPath);
             grabber.start();
         }
@@ -62,6 +63,11 @@ public class MagewellDemuxer
         }
     }
 
+    public int getFrameNumber()
+    {
+        return grabber.getFrameNumber();
+    }
+
     public Frame getNextFrame()
     {
         try
@@ -72,5 +78,10 @@ public class MagewellDemuxer
         {
             throw new RuntimeException(e);
         }
+    }
+
+    public double getFrameRate()
+    {
+        return grabber.getVideoFrameRate();
     }
 }

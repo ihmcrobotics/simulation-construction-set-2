@@ -20,8 +20,6 @@ public interface VideoDataReader
 
    void cropVideo(File file, File file2, long test, long what, ProgressConsumer heck) throws IOException;
 
-   void exportVideo(File file, long test, long what, ProgressConsumer heck);
-
    String getName();
 
    Camera getCamera();

@@ -87,7 +87,7 @@ public class BlackMagicVideoDataReader implements VideoDataReader
       long startVideoTimestamp = timestampScrubber.getVideoTimestamp(startTimestamp);
       long endVideoTimestamp = timestampScrubber.getVideoTimestamp(endTimestamp);
 
-      int framerate = VideoConverter.crop(videoFile, outputFile, startVideoTimestamp, endVideoTimestamp, monitor);
+      int framerate = VideoConverter.cropBlackMagicVideo(videoFile, outputFile, startVideoTimestamp, endVideoTimestamp, monitor);
 
       PrintWriter timestampWriter = new PrintWriter(timestampFile);
       timestampWriter.println(1);
@@ -115,21 +115,6 @@ public class BlackMagicVideoDataReader implements VideoDataReader
       }
 
       timestampWriter.close();
-   }
-
-   public void exportVideo(File selectedFile, long startTimestamp, long endTimestamp, ProgressConsumer progreesConsumer)
-   {
-      long startVideoTimestamp = timestampScrubber.getVideoTimestamp(startTimestamp);
-      long endVideoTimestamp = timestampScrubber.getVideoTimestamp(endTimestamp);
-
-      try
-      {
-         VideoConverter.convert(videoFile, selectedFile, startVideoTimestamp, endVideoTimestamp, progreesConsumer);
-      }
-      catch (IOException e)
-      {
-         e.printStackTrace();
-      }
    }
 
    public String getName()
