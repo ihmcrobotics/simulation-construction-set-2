@@ -60,7 +60,7 @@ public class BlackMagicVideoDataReader implements VideoDataReader
 
    public void readVideoFrame(long queryRobotTimestamp)
    {
-      long videoTimestamp = timestampScrubber.getVideoTimestamp(queryRobotTimestamp);
+      long videoTimestamp = timestampScrubber.getVideoTimestampFromRobotTimestamp(queryRobotTimestamp);
       long currentRobotTimestamp = timestampScrubber.getCurrentRobotTimestamp();
 
       try
@@ -84,8 +84,8 @@ public class BlackMagicVideoDataReader implements VideoDataReader
 
    public void cropVideo(File outputFile, File timestampFile, long startTimestamp, long endTimestamp, ProgressConsumer monitor) throws IOException
    {
-      long startVideoTimestamp = timestampScrubber.getVideoTimestamp(startTimestamp);
-      long endVideoTimestamp = timestampScrubber.getVideoTimestamp(endTimestamp);
+      long startVideoTimestamp = timestampScrubber.getVideoTimestampFromRobotTimestamp(startTimestamp);
+      long endVideoTimestamp = timestampScrubber.getVideoTimestampFromRobotTimestamp(endTimestamp);
 
       int framerate = VideoConverter.cropBlackMagicVideo(videoFile, outputFile, startVideoTimestamp, endVideoTimestamp, monitor);
 

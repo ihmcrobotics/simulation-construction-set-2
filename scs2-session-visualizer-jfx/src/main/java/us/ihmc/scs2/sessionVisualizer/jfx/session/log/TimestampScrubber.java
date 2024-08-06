@@ -135,7 +135,7 @@ public class TimestampScrubber
     * @param queryRobotTimestamp the value sent from the robot data in which we want to find the closest robotTimestamp in the instant file.
     * @return the videoTimestamp that matches the index of the closest robotTimestamp in our instant file.
     */
-   public long getVideoTimestamp(long queryRobotTimestamp)
+   public long getVideoTimestampFromRobotTimestamp(long queryRobotTimestamp)
    {
       currentIndex = searchRobotTimestampsForIndex(queryRobotTimestamp);
       videoTimestamp = videoTimestamps[currentIndex];
@@ -153,6 +153,33 @@ public class TimestampScrubber
          return robotTimestamps.length - 1;
 
       int index = Arrays.binarySearch(robotTimestamps, queryRobotTimestamp);
+
+      if (index < 0)
+      {
+         int nextIndex = -index - 1; // insertionPoint
+         index = nextIndex;
+      }
+
+      return index;
+   }
+
+   public long[] getCroppedRobotTimestamps(long startRobotTimestamp, long endRobotTimestamp)
+   {
+      int startIndex = findIndexOfRobotTimestamps(startRobotTimestamp);
+      int endIndex = findIndexOfRobotTimestamps(endRobotTimestamp);
+
+      return Arrays.copyOfRange(robotTimestamps, startIndex, endIndex + 1);
+   }
+
+   private int findIndexOfRobotTimestamps(long value)
+   {
+      if (value <= robotTimestamps[0])
+         return 0;
+
+      if (value >= robotTimestamps[robotTimestamps.length - 1])
+         return robotTimestamps.length - 1;
+
+      int index = Arrays.binarySearch(robotTimestamps, value);
 
       if (index < 0)
       {

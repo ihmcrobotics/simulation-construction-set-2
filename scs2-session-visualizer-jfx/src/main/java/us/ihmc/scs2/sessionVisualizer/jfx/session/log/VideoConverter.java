@@ -3,62 +3,14 @@ package us.ihmc.scs2.sessionVisualizer.jfx.session.log;
 import java.io.File;
 import java.io.IOException;
 
-import org.bytedeco.javacv.Frame;
 import org.jcodec.containers.mp4.MP4Packet;
 
 import us.ihmc.codecs.builder.MP4MJPEGMovieBuilder;
 import us.ihmc.codecs.demuxer.MP4VideoDemuxer;
-import us.ihmc.robotDataLogger.logger.MagewellDemuxer;
-import us.ihmc.robotDataLogger.logger.MagewellMuxer;
 import us.ihmc.scs2.session.log.ProgressConsumer;
 
 public class VideoConverter
 {
-   public static int cropMagewellVideo(MagewellDemuxer magewellDemuxer,
-                                       File target,
-                                       long startCameraTimestamp,
-                                       long endCameraTimestamp,
-                                       ProgressConsumer progressConsumer) throws IOException
-   {
-      MagewellMuxer magewellMuxer = null;
-
-      int frameRate = (int) magewellDemuxer.getFrameRate();
-
-      long startFrame = getFrame(startCameraTimestamp, magewellDemuxer); // This also moves the stream to the startFrame
-      long endFrame = getFrame(endCameraTimestamp, magewellDemuxer);
-      long numberOfFrames = endFrame - startFrame;
-
-      magewellDemuxer.seekToPTS(startCameraTimestamp);
-
-      Frame frame;
-      int i = 0;
-      while ((frame = magewellDemuxer.getNextFrame()) != null && magewellDemuxer.getFrameNumber() <= endFrame)
-      {
-         if (magewellMuxer == null)
-         {
-            magewellMuxer = new MagewellMuxer(target, magewellDemuxer.getImageWidth(), magewellDemuxer.getImageHeight());
-            magewellMuxer.start();
-         }
-
-//         frame.timestamp = ++i;
-
-         magewellMuxer.recordFrame(frame, i);
-
-         if (progressConsumer != null)
-         {
-            progressConsumer.info("frame %d/%d".formatted(magewellDemuxer.getFrameNumber() - startFrame, numberOfFrames));
-            progressConsumer.progress((double) (magewellDemuxer.getFrameNumber() - startFrame) / (double) numberOfFrames);
-         }
-      }
-
-      if (magewellMuxer != null)
-      {
-         magewellMuxer.close();
-      }
-
-      return frameRate;
-   }
-
    /**
     * @param source
     * @param target
@@ -114,12 +66,6 @@ public class VideoConverter
 
       System.out.println("Framerate is " + rate);
       return rate;
-   }
-
-   private static long getFrame(long endCameraTimestamp, MagewellDemuxer magewellDemuxer)
-   {
-      magewellDemuxer.seekToPTS(endCameraTimestamp);
-      return magewellDemuxer.getFrameNumber();
    }
 
    private static long getFrame(long endPTS, MP4VideoDemuxer demuxer) throws IOException
