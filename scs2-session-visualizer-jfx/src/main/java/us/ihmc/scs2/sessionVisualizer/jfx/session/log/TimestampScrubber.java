@@ -183,6 +183,11 @@ public class TimestampScrubber
       return robotTimestamps[i];
    }
 
+   public long getVideoTimestampAtIndex(int i)
+   {
+      return videoTimestamps[i];
+   }
+
    public long[] getRobotTimestampsArray()
    {
       return robotTimestamps;

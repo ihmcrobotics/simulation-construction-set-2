@@ -8,6 +8,7 @@ import org.jcodec.containers.mp4.MP4Packet;
 
 import us.ihmc.codecs.builder.MP4MJPEGMovieBuilder;
 import us.ihmc.codecs.demuxer.MP4VideoDemuxer;
+import us.ihmc.robotDataLogger.logger.MagewellDemuxer;
 import us.ihmc.robotDataLogger.logger.MagewellMuxer;
 import us.ihmc.scs2.session.log.ProgressConsumer;
 
@@ -22,7 +23,6 @@ public class VideoConverter
       MagewellMuxer magewellMuxer = null;
 
       int frameRate = (int) magewellDemuxer.getFrameRate();
-      long cameraTimeStamp = 0;
 
       long startFrame = getFrame(startCameraTimestamp, magewellDemuxer); // This also moves the stream to the startFrame
       long endFrame = getFrame(endCameraTimestamp, magewellDemuxer);
@@ -31,6 +31,7 @@ public class VideoConverter
       magewellDemuxer.seekToPTS(startCameraTimestamp);
 
       Frame frame;
+      int i = 0;
       while ((frame = magewellDemuxer.getNextFrame()) != null && magewellDemuxer.getFrameNumber() <= endFrame)
       {
          if (magewellMuxer == null)
@@ -39,7 +40,9 @@ public class VideoConverter
             magewellMuxer.start();
          }
 
-         magewellMuxer.recordFrame(frame, cameraTimeStamp);
+//         frame.timestamp = ++i;
+
+         magewellMuxer.recordFrame(frame, i);
 
          if (progressConsumer != null)
          {
@@ -113,10 +116,10 @@ public class VideoConverter
       return rate;
    }
 
-   private static long getFrame(long endCameraTimestamp, MagewellDemuxer demuxer) throws IOException
+   private static long getFrame(long endCameraTimestamp, MagewellDemuxer magewellDemuxer)
    {
-      demuxer.seekToPTS(endCameraTimestamp);
-      return demuxer.getFrameNumber();
+      magewellDemuxer.seekToPTS(endCameraTimestamp);
+      return magewellDemuxer.getFrameNumber();
    }
 
    private static long getFrame(long endPTS, MP4VideoDemuxer demuxer) throws IOException

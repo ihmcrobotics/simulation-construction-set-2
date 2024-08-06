@@ -7,6 +7,7 @@ import javafx.scene.image.WritableImage;
 import org.bytedeco.javacv.Frame;
 import org.bytedeco.javacv.JavaFXFrameConverter;
 import us.ihmc.robotDataLogger.Camera;
+import us.ihmc.robotDataLogger.logger.MagewellDemuxer;
 import us.ihmc.scs2.session.log.ProgressConsumer;
 
 import java.io.File;
@@ -128,20 +129,16 @@ public class MagewellVideoDataReader implements VideoDataReader
       timestampWriter.println(1);
       timestampWriter.println(framerate);
 
-      long pts = 0;
-      /*
-       * PTS gets reordered to be monotonically increasing starting from 0
-       */
       for (int i = 0; i < timestampScrubber.getRobotTimestampsLength(); i++)
       {
          long robotTimestamp = timestampScrubber.getRobotTimestampAtIndex(i);
+         long videoTimestamp = timestampScrubber.getVideoTimestampAtIndex(i);
 
          if (robotTimestamp >= startTimestamp && robotTimestamp <= endTimestamp)
          {
             timestampWriter.print(robotTimestamp);
             timestampWriter.print(" ");
-            timestampWriter.println(pts);
-            pts++;
+            timestampWriter.println(videoTimestamp);
          }
          else if (robotTimestamp > endTimestamp)
          {
