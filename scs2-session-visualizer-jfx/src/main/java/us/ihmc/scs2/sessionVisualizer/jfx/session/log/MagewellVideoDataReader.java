@@ -43,7 +43,7 @@ public class MagewellVideoDataReader implements VideoDataReader
          throw new IOException("Cannot find video: " + videoFile);
       }
 
-      magewellDemuxer = new MagewellDemuxer(dataDirectory, camera);
+      magewellDemuxer = new MagewellDemuxer(videoFile);
 
       File timestampFile = new File(dataDirectory, camera.getTimestampFileAsString());
       this.timestampScrubber = new TimestampScrubber(timestampFile, hasTimeBase, interlaced);
