@@ -179,8 +179,7 @@ public class CollisionTools
       else if (definition instanceof Ramp3DDefinition ramp3DDefinition)
          return new FrameRamp3D(referenceFrame, toRamp3D(originPose, ramp3DDefinition));
       else if (definition instanceof ModelFileGeometryDefinition modelFileGeometryDefinition)
-         return new FrameConvexPolytope3D(referenceFrame, new ConvexPolytope3D());
-//         return new FrameConvexPolytope3D(referenceFrame, toConvexPolytope3D(originPose, modelFileGeometryDefinition));
+         return new FrameConvexPolytope3D(referenceFrame, toConvexPolytope3D(originPose, modelFileGeometryDefinition));
 
       LogTools.warn("Unhandled geometry type: " + definition.getClass().getSimpleName());
       return null;
