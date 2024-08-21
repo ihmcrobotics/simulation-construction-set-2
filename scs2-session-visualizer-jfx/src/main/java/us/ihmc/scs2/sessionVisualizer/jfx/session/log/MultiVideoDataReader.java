@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.Future;
 
 import us.ihmc.robotDataLogger.Camera;
+import us.ihmc.robotDataLogger.CameraType;
 import us.ihmc.robotDataLogger.LogProperties;
 import us.ihmc.scs2.session.log.ProgressConsumer;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.BackgroundExecutorManager;
@@ -28,11 +29,11 @@ public class MultiVideoDataReader
          try
          {
             VideoDataReader reader;
-            if (camera.getType().toString().equals("MAGEWELL_CAPTURE"))
+            if (camera.getType().toString().equals(CameraType.CAPTURE_CARD_MAGEWELL.toString()))
             {
                reader = new MagewellVideoDataReader(camera, dataDirectory, logProperties.getVideo().getHasTimebase());
             }
-            else if (camera.getType().toString().equals("CAPTURE_CARD"))
+            else if (camera.getType().toString().equals(CameraType.CAPTURE_CARD.toString()))
             {
                reader = new BlackMagicVideoDataReader(camera, dataDirectory, logProperties.getVideo().getHasTimebase());
             }
