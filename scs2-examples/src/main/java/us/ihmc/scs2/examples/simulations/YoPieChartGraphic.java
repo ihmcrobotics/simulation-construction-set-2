@@ -6,7 +6,6 @@ import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
-import javafx.scene.chart.PieChart.Data;
 import javafx.stage.Stage;
 import us.ihmc.scs2.SimulationConstructionSet2;
 import us.ihmc.yoVariables.variable.YoDouble;
@@ -42,7 +41,7 @@ public class YoPieChartGraphic
 
    private static class YoPieChart extends PieChart
    {
-      private final Property<YoDouble[]> arrayProperty = new SimpleObjectProperty<>(this, "matrix", null);
+      private final Property<YoDouble[]> arrayProperty = new SimpleObjectProperty<>(this, "array", null);
       private final AnimationTimer animationTimer;
 
       public YoPieChart()

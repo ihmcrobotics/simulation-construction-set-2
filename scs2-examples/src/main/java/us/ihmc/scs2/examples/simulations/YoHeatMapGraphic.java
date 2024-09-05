@@ -17,7 +17,7 @@ public class YoHeatMapGraphic
    public static void main(String[] args)
    {
       SimulationConstructionSet2 scs = new SimulationConstructionSet2(SimulationConstructionSet2.doNothingPhysicsEngine());
-      YoMatrix matrix = new YoMatrix("matrix", 10, 10, scs.getRootRegistry());
+      YoMatrix matrix = new YoMatrix("matrix", 3, 3, scs.getRootRegistry());
       for (int row = 0; row < matrix.getNumRows(); row++)
       {
          for (int column = 0; column < matrix.getNumCols(); column++)
