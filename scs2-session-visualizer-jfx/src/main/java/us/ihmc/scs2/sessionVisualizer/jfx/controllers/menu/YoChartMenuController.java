@@ -39,6 +39,12 @@ public class YoChartMenuController implements VisualizerController
    }
 
    @FXML
+   public void openPieChartWindow()
+   {
+      messager.submitMessage(topics.getOpenWindowRequest(), NewWindowRequest.pieChartWindow(owner));
+   }
+
+   @FXML
    public void loadChartGroup()
    {
       File result = SessionVisualizerIOTools.yoChartConfigurationOpenFileDialog(owner);
