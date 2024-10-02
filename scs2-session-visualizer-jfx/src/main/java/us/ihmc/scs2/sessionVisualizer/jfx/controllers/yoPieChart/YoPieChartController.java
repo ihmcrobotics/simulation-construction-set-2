@@ -19,10 +19,10 @@ public class YoPieChartController implements VisualizerController
    private JFXToggleNode button;
 
    @FXML
-   private YoPieChartVariableController variable0Controller, variable1Controller, variable2Controller, variable3Controller, variable4Controller, variable5Controller;
+   private YoPieChartVariableController variable0Controller, variable1Controller, variable2Controller, variable3Controller, variable4Controller,
+         variable5Controller, variable6Controller, variable7Controller, variable8Controller, variable9Controller, variable10Controller, variable11Controller;
 
    private List<YoPieChartVariableController> variableControllers;
-
 
    @FXML
    private PieChart pieChart;
@@ -33,7 +33,18 @@ public class YoPieChartController implements VisualizerController
    @Override
    public void initialize(SessionVisualizerWindowToolkit toolkit)
    {
-      variableControllers = Arrays.asList(variable0Controller, variable1Controller, variable2Controller, variable3Controller, variable4Controller, variable5Controller);
+      variableControllers = Arrays.asList(variable0Controller,
+                                          variable1Controller,
+                                          variable2Controller,
+                                          variable3Controller,
+                                          variable4Controller,
+                                          variable5Controller,
+                                          variable6Controller,
+                                          variable7Controller,
+                                          variable8Controller,
+                                          variable9Controller,
+                                          variable10Controller,
+                                          variable11Controller);
 
       for (int i = 0; i < variableControllers.size(); i++)
       {

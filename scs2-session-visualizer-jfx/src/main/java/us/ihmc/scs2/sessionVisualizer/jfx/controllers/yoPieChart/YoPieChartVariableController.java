@@ -6,7 +6,6 @@ import javafx.scene.chart.PieChart;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
-import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
 import us.ihmc.yoVariables.variable.YoDouble;
 
 public class YoPieChartVariableController extends YoPieChartInputController
@@ -15,14 +14,11 @@ public class YoPieChartVariableController extends YoPieChartInputController
    private HBox rootPane;
 
    @FXML
-   private Label yoBariableDropLabel;
-
-   @FXML
-   private JFXTextField yoVariableTextValue;
+   private Label yoVariableLabel;
 
    public void initialize(SessionVisualizerToolkit toolkit, PieChart pieChart)
    {
-      super.initialize(toolkit, rootPane, yoBariableDropLabel, YoDouble.class::isInstance, pieChart);
+      super.initialize(toolkit, rootPane, yoVariableLabel, YoDouble.class::isInstance, pieChart);
       clear();
    }
 }
