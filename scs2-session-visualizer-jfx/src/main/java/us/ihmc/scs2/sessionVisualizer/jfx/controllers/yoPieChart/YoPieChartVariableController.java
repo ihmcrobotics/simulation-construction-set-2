@@ -1,12 +1,12 @@
 package us.ihmc.scs2.sessionVisualizer.jfx.controllers.yoPieChart;
 
-import com.jfoenix.controls.JFXTextField;
 import javafx.fxml.FXML;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.yoVariables.variable.YoDouble;
+import us.ihmc.yoVariables.variable.YoVariable;
 
 public class YoPieChartVariableController extends YoPieChartInputController
 {
@@ -20,5 +20,15 @@ public class YoPieChartVariableController extends YoPieChartInputController
    {
       super.initialize(toolkit, rootPane, yoVariableLabel, YoDouble.class::isInstance, pieChart);
       clear();
+   }
+
+   public YoVariable getYoVariable()
+   {
+      return super.getYoVariable();
+   }
+
+   public void setYoVariable(String yoVariableName)
+   {
+      super.setYoVariable(yoVariableName);
    }
 }

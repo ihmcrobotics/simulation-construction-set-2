@@ -26,6 +26,7 @@ import us.ihmc.scs2.sessionVisualizer.jfx.managers.SessionVisualizerToolkit;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoCompositeSearchManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.managers.YoManager;
 import us.ihmc.scs2.sessionVisualizer.jfx.tools.DragAndDropTools;
+import us.ihmc.scs2.sessionVisualizer.jfx.tools.YoVariableDatabase;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoComposite;
 import us.ihmc.scs2.sessionVisualizer.jfx.yoComposite.YoCompositeTools;
 import us.ihmc.yoVariables.variable.YoVariable;
@@ -62,6 +63,8 @@ public class YoPieChartInputController
    private List<YoVariable> yoVariablesForPieChart = new ArrayList<>();
    private PieChart pieChart;
 
+   private YoVariableDatabase rootRegistryDatabase = null;
+
    public void initialize(SessionVisualizerToolkit toolkit, Region rootPane, Labeled yoVariableDropLabel, Predicate<YoVariable> filter, PieChart pieChart)
    {
       this.toolkit = toolkit;
@@ -70,6 +73,7 @@ public class YoPieChartInputController
       this.filter = filter;
       this.pieChart = pieChart;
       this.yoCompositeSearchManager = toolkit.getYoCompositeSearchManager();
+      rootRegistryDatabase = toolkit.getYoManager().getRootRegistryDatabase();
 
       messager = toolkit.getMessager();
       yoCompositeSelectedTopic = toolkit.getTopics().getYoCompositeSelected();
@@ -311,5 +315,16 @@ public class YoPieChartInputController
    private void setSelectionHighlight(boolean isSelected)
    {
       borderStyle.set(isSelected ? HIGHLIGHTED_BORDER : DEFAULT_BORDER);
+   }
+
+   public YoVariable getYoVariable()
+   {
+      return yoVariable;
+   }
+
+   public void setYoVariable(String yoVariableName)
+   {
+      setYoVariableInput(rootRegistryDatabase.searchExact(yoVariableName));
+//      this.yoVariable = rootRegistryDatabase.searchExact(yoVariableName);
    }
 }

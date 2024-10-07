@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.Scene?>
 <?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -55,6 +56,12 @@
                                   <PieChart fx:id="pieChart" prefHeight="736.0" prefWidth="1288.0" />
                         </children>
                      </VBox>
+                  </children>
+               </VBox>
+               <VBox layoutX="1190.0" layoutY="863.0" prefHeight="82.0" prefWidth="99.0">
+                  <children>
+                     <Button fx:id="saveButton" mnemonicParsing="false" onMousePressed="#saveLayout" prefHeight="43.0" prefWidth="99.0" text="Save" />
+                     <Button fx:id="loadButton" mnemonicParsing="false" onMousePressed="#loadLayout" prefHeight="39.0" prefWidth="99.0" text="Load" />
                   </children>
                </VBox>
                 </children>
