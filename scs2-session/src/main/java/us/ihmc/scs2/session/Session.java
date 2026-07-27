@@ -72,7 +72,7 @@ public abstract class Session
     * The default value is loaded from the system property: <tt>"scs2.session.buffer.initialsize"</tt>.
     * </p>
     */
-   public static final int DEFAULT_INITIAL_BUFFER_SIZE = SessionPropertiesHelper.loadIntegerProperty("scs2.session.buffer.initialsize", 8192);
+   public static final int DEFAULT_INITIAL_BUFFER_SIZE = SessionPropertiesHelper.loadIntegerProperty("scs2.session.buffer.initialsize", 65536);
    /**
     * Default period at which {@link YoVariable}s are saved into the buffer.
     * <p>
