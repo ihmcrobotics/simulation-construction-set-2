@@ -158,14 +158,9 @@ public class YoChartPanelController extends ObservedAnimationTimer implements Vi
       dynamicLineChart.addMarker(outPointMarker);
       dynamicLineChart.addMarker(bufferIndexMarker);
 
+      dynamicLineChart.showYAxisProperty().bind(showYAxisProperty);
       showYAxisProperty.set(!(dynamicLineChart.getYAxis() instanceof FastNumberAxis));
-      showYAxisProperty.addListener((observable, oldValue, newValue) ->
-                                    {
-                                       if (newValue)
-                                          dynamicLineChart.setYAxis(FastAxisBase.wrap(new NumberAxis()));
-                                       else
-                                          dynamicLineChart.setYAxis(new FastNumberAxis());
-                                    });
+      showYAxisProperty.addListener((observable, oldValue, newValue) -> updatePrimaryYAxis());
 
       userMarkers.addListener((ListChangeListener<ChartMarker>) change ->
       {
@@ -225,6 +220,7 @@ public class YoChartPanelController extends ObservedAnimationTimer implements Vi
          {
             dynamicLineChart.removeMarker(originMarker);
          }
+         updatePrimaryYAxis();
       };
       dynamicLineChart.chartStyleProperty().addListener(originMarkerUpdater);
       originMarkerUpdater.changed(null, null, dynamicLineChart.chartStyleProperty().get());
@@ -284,6 +280,24 @@ public class YoChartPanelController extends ObservedAnimationTimer implements Vi
          }
       };
       dynamicLineChart.borderProperty().addListener(borderInitializer);
+   }
+
+   /**
+    * The primary shared Y-axis only shows the union range in RAW (master-scaling) mode; in NORMALIZED
+    * mode its {@code [0, 1]} range is meaningless and the per-variable axes carry the display instead, so
+    * we keep the hidden {@link FastNumberAxis} there.
+    */
+   private void updatePrimaryYAxis()
+   {
+      boolean showUnionAxis = showYAxisProperty.get() && dynamicLineChart.getChartStyle() == ChartStyle.RAW;
+      boolean unionAxisShown = !(dynamicLineChart.getYAxis() instanceof FastNumberAxis);
+      if (showUnionAxis == unionAxisShown)
+         return;
+
+      if (showUnionAxis)
+         dynamicLineChart.setYAxis(FastAxisBase.wrap(new NumberAxis()));
+      else
+         dynamicLineChart.setYAxis(new FastNumberAxis());
    }
 
    public void setChartConfiguration(YoChartConfigurationDefinition definition)

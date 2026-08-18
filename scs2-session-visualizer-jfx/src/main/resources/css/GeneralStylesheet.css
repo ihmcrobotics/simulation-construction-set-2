@@ -387,6 +387,92 @@
     -fx-stroke: CHART_COLOR_10;
 }
 
+/* Per-variable Y-axes (individual-scaling charts): each axis is colored to match its series' line,
+ * reusing the same default-colorN -> CHART_COLOR_(N+1) palette as .chart-series-line above. */
+.per-variable-axis {
+    -fx-tick-label-fill: CHART_COLOR_1;
+}
+
+.default-color0.per-variable-axis {
+    -fx-tick-label-fill: CHART_COLOR_1;
+}
+.default-color0.per-variable-axis .axis-tick-mark,
+.default-color0.per-variable-axis .axis-minor-tick-mark {
+    -fx-stroke: CHART_COLOR_1;
+}
+
+.default-color1.per-variable-axis {
+    -fx-tick-label-fill: CHART_COLOR_2;
+}
+.default-color1.per-variable-axis .axis-tick-mark,
+.default-color1.per-variable-axis .axis-minor-tick-mark {
+    -fx-stroke: CHART_COLOR_2;
+}
+
+.default-color2.per-variable-axis {
+    -fx-tick-label-fill: CHART_COLOR_3;
+}
+.default-color2.per-variable-axis .axis-tick-mark,
+.default-color2.per-variable-axis .axis-minor-tick-mark {
+    -fx-stroke: CHART_COLOR_3;
+}
+
+.default-color3.per-variable-axis {
+    -fx-tick-label-fill: CHART_COLOR_4;
+}
+.default-color3.per-variable-axis .axis-tick-mark,
+.default-color3.per-variable-axis .axis-minor-tick-mark {
+    -fx-stroke: CHART_COLOR_4;
+}
+
+.default-color4.per-variable-axis {
+    -fx-tick-label-fill: CHART_COLOR_5;
+}
+.default-color4.per-variable-axis .axis-tick-mark,
+.default-color4.per-variable-axis .axis-minor-tick-mark {
+    -fx-stroke: CHART_COLOR_5;
+}
+
+.default-color5.per-variable-axis {
+    -fx-tick-label-fill: CHART_COLOR_6;
+}
+.default-color5.per-variable-axis .axis-tick-mark,
+.default-color5.per-variable-axis .axis-minor-tick-mark {
+    -fx-stroke: CHART_COLOR_6;
+}
+
+.default-color6.per-variable-axis {
+    -fx-tick-label-fill: CHART_COLOR_7;
+}
+.default-color6.per-variable-axis .axis-tick-mark,
+.default-color6.per-variable-axis .axis-minor-tick-mark {
+    -fx-stroke: CHART_COLOR_7;
+}
+
+.default-color7.per-variable-axis {
+    -fx-tick-label-fill: CHART_COLOR_8;
+}
+.default-color7.per-variable-axis .axis-tick-mark,
+.default-color7.per-variable-axis .axis-minor-tick-mark {
+    -fx-stroke: CHART_COLOR_8;
+}
+
+.default-color8.per-variable-axis {
+    -fx-tick-label-fill: CHART_COLOR_9;
+}
+.default-color8.per-variable-axis .axis-tick-mark,
+.default-color8.per-variable-axis .axis-minor-tick-mark {
+    -fx-stroke: CHART_COLOR_9;
+}
+
+.default-color9.per-variable-axis {
+    -fx-tick-label-fill: CHART_COLOR_10;
+}
+.default-color9.per-variable-axis .axis-tick-mark,
+.default-color9.per-variable-axis .axis-minor-tick-mark {
+    -fx-stroke: CHART_COLOR_10;
+}
+
 .chart-legend {
     -fx-hgap: 8.0;
     -fx-vgap: 3.0;
