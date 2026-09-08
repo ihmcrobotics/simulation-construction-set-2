@@ -8,15 +8,9 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -214,31 +208,14 @@ public class SessionVisualizer
 
       if (toolkit.hasActiveSession())
       {
-         if (SessionVisualizerIOTools.isSaveConfigurationPromptSkipped())
+         Optional<Boolean> save = SessionVisualizerIOTools.confirmSaveDefaultConfiguration(primaryStage, true);
+         if (save.isEmpty())
          {
-            saveConfiguration = SessionVisualizerIOTools.getSkippedSaveConfigurationAnswer();
+            if (event != null)
+               event.consume();
+            return;
          }
-         else
-         {
-            Alert alert = new Alert(AlertType.CONFIRMATION, null, ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
-            CheckBox doNotAskAgainCheckBox = new CheckBox("Don't ask again");
-            alert.getDialogPane().setContent(new VBox(10, new Label("Do you want to save the default configuration?"), doNotAskAgainCheckBox));
-            SessionVisualizerIOTools.addSCSIconToDialog(alert);
-            alert.initOwner(primaryStage);
-            JavaFXMissingTools.centerDialogInOwner(alert);
-
-            Optional<ButtonType> result = alert.showAndWait();
-            if (!result.isPresent() || result.get() == ButtonType.CANCEL)
-            {
-               if (event != null)
-                  event.consume();
-               return;
-            }
-
-            saveConfiguration = result.get() == ButtonType.YES;
-            if (doNotAskAgainCheckBox.isSelected())
-               SessionVisualizerIOTools.setSkipSaveConfigurationPrompt(saveConfiguration);
-         }
+         saveConfiguration = save.get();
       }
 
       stopNow(saveConfiguration);

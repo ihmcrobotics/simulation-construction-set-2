@@ -42,7 +42,7 @@ public class HelpMenuController implements VisualizerController
    public void resetSaveConfigurationPrompt()
    {
       SessionVisualizerIOTools.resetSaveConfigurationPrompt();
-      Alert alert = new Alert(AlertType.INFORMATION, "The save-configuration prompt will be shown again on next close.", ButtonType.OK);
+      Alert alert = new Alert(AlertType.INFORMATION, "The save-configuration prompt will be shown again when replacing a session or closing.", ButtonType.OK);
       SessionVisualizerIOTools.addSCSIconToDialog(alert);
       alert.showAndWait();
    }
